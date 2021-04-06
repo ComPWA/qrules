@@ -6,7 +6,7 @@ requires = [
 ]
 
 [tool.setuptools_scm]
-write_to = "src/expertsystem/version.py"
+write_to = "src/qrules/version.py"
 
 [tool.black]
 line-length = 79

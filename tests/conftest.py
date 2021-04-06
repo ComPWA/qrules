@@ -1,7 +1,7 @@
 import pytest
 
-from expertsystem import load_default_particles
-from expertsystem.reaction.particle import ParticleCollection
+from qrules import load_default_particles
+from qrules.particle import ParticleCollection
 
 
 @pytest.fixture(scope="session")

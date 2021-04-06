@@ -2,15 +2,15 @@ import json
 
 import pytest
 
-from expertsystem import io
-from expertsystem.reaction import Result
-from expertsystem.reaction.particle import Particle, ParticleCollection
-from expertsystem.reaction.topology import (
+from qrules import io
+from qrules.particle import Particle, ParticleCollection
+from qrules.topology import (
     StateTransitionGraph,
     Topology,
     create_isobar_topologies,
     create_n_body_topology,
 )
+from qrules.transition import Result
 
 
 def through_dict(instance):

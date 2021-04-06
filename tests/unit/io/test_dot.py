@@ -1,10 +1,9 @@
 import pydot
 
-from expertsystem import io
-from expertsystem.io._dot import _collapse_graphs, _get_particle_graphs
-from expertsystem.reaction import Result
-from expertsystem.reaction.particle import ParticleCollection
-from expertsystem.reaction.topology import (
+from qrules import Result, io
+from qrules.io._dot import _collapse_graphs, _get_particle_graphs
+from qrules.particle import ParticleCollection
+from qrules.topology import (
     Edge,
     Topology,
     create_isobar_topologies,

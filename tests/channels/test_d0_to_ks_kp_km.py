@@ -1,8 +1,8 @@
-import expertsystem as es
+import qrules as q
 
 
 def test_script():
-    result = es.generate_transitions(
+    result = q.generate_transitions(
         initial_state="D0",
         final_state=["K~0", "K+", "K-"],
         allowed_intermediate_particles=[
@@ -20,6 +20,3 @@ def test_script():
         "a(2)(1320)-",
         "phi(1020)",
     }
-    model_builder = es.amplitude.get_builder(result)
-    model = model_builder.generate()
-    assert len(model.parameter_defaults) == 5

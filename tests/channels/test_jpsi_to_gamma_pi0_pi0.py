@@ -1,9 +1,7 @@
 import pytest
 
-import expertsystem as es
-from expertsystem.reaction.combinatorics import (
-    _create_edge_id_particle_mapping,
-)
+import qrules as q
+from qrules.combinatorics import _create_edge_id_particle_mapping
 
 
 @pytest.mark.parametrize(
@@ -29,7 +27,7 @@ from expertsystem.reaction.combinatorics import (
 def test_number_of_solutions(
     particle_database, allowed_intermediate_particles, number_of_solutions
 ):
-    result = es.generate_transitions(
+    result = q.generate_transitions(
         initial_state=("J/psi(1S)", [-1, +1]),
         final_state=["gamma", "pi0", "pi0"],
         particles=particle_database,
@@ -44,7 +42,7 @@ def test_number_of_solutions(
 
 
 def test_id_to_particle_mappings(particle_database):
-    result = es.generate_transitions(
+    result = q.generate_transitions(
         initial_state=("J/psi(1S)", [-1, +1]),
         final_state=["gamma", "pi0", "pi0"],
         particles=particle_database,
