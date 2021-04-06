@@ -26,7 +26,7 @@ happens during the transition from initial to final state.
 :::{dropdown} Original project: PWA Expert System
 
 The original project was the {doc}`expertsystem:index`. QRules originates from
-its `~expertsystem.reaction` module.
+its {mod}`~expertsystem.reaction` module.
 
 :::
 
