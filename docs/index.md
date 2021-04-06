@@ -6,9 +6,9 @@
 
 [![PyPI package](https://badge.fury.io/py/qrules.svg)](https://pypi.org/project/qrules)
 [![Supported Python versions](https://img.shields.io/pypi/pyversions/qrules)](https://pypi.org/project/qrules)
-[![Test coverage](https://codecov.io/gh/ComPWA/qrules/branch/main/graph/badge.svg)](https://codecov.io/gh/ComPWA/qrules)
+[![Test coverage](https://codecov.io/gh/ComPWA/qrules/branch/main/graph/badge.svg?token=PPRMC5E6SX)](https://codecov.io/gh/ComPWA/qrules)
 
-<!-- [![Codacy Badge](https://api.codacy.com/project/badge/Grade/***)](https://www.codacy.com/gh/ComPWA/qrules) -->
+<!-- [![Codacy Badge](https://codecov.io/gh/ComPWA/qrules/branch/main/graph/badge.svg?token=PPRMC5E6SX)](https://www.codacy.com/gh/ComPWA/qrules) -->
 
 ````{margin}
 ```{tip}
@@ -17,24 +17,23 @@ For an overview of upcoming releases and planned functionality, see
 ```
 ````
 
-The two purposes of the Partial Wave Analysis Expert System are to:
+QRules is a system for validating and generating particle reactions, using
+quantum number conservation rules. The user only has to provide a basic
+information of the particle reaction, such as an initial state and a final
+state. Helper functions provide easy ways to configure the system, but the user
+still has full control. QRules then constructs several hypotheses for what
+happens during the transition from initial to final state.
 
-1. validate a particle reaction, based on given information. <br> E.g.: Can a
-   $\pi^0$ decay into 1, 2, 3 $\gamma$ particles?
-2. create partial wave analysis amplitude models, based on basic information of
-   a reaction, for instance, an amplitude model for
-   $J/\psi \rightarrow \gamma\pi^0\pi^0$ in the helicity or canonical
-   formalism.
+:::{dropdown} Original project: PWA Expert System
 
-The user only has to provide a basic information of the particle reaction, such
-as an initial state and a final state. Helper functions provide easy ways to
-configure the system, but the user still has full control. The expert system
-then constructs several hypotheses for what happens during the transition from
-initial to final state.
+The original project was the {doc}`expertsystem:index`. QRules originates from
+its `~expertsystem.reaction` module.
+
+:::
 
 ## Internal design
 
-Internally, the PWA Expert System consists of three major components.
+Internally, QRules consists of three major components.
 
 ### 1. State Transition Graphs
 
@@ -67,7 +66,7 @@ The determination of the correct state properties in the graph is done by
 solvers. New properties are set for intermediate edges and interaction nodes
 and their validity is checked with the conservation rules.
 
-## Workflow of the Expert System
+## QRules workflow
 
 1. Preparation
 

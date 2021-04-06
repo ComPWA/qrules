@@ -1,4 +1,4 @@
-name-template: PWA Expert System $NEXT_PATCH_VERSION
+name-template: QRules $NEXT_PATCH_VERSION
 tag-template: $NEXT_PATCH_VERSION
 
 categories:
