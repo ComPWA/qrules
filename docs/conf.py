@@ -220,10 +220,6 @@ copybutton_prompt_text = r">>> |\.\.\. "  # doctest
 linkcheck_anchors = False
 
 # Settings for myst_nb
-execution_excludepatterns = [
-    "adr/001/*",
-    "adr/002/*",
-]
 execution_timeout = -1
 nb_output_stderr = "remove"
 nb_render_priority = {

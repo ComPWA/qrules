@@ -104,13 +104,6 @@ Changelog <https://github.com/ComPWA/qrules/releases>
 Develop <https://pwa.readthedocs.io/develop.html>
 ```
 
-```{toctree}
----
-maxdepth: 1
----
-ADRs <adr>
-```
-
 - {ref}`Python API <modindex>`
 - {ref}`General Index <genindex>`
 - {ref}`Search <search>`
