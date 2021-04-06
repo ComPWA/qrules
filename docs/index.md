@@ -7,8 +7,7 @@
 [![PyPI package](https://badge.fury.io/py/qrules.svg)](https://pypi.org/project/qrules)
 [![Supported Python versions](https://img.shields.io/pypi/pyversions/qrules)](https://pypi.org/project/qrules)
 [![Test coverage](https://codecov.io/gh/ComPWA/qrules/branch/main/graph/badge.svg?token=PPRMC5E6SX)](https://codecov.io/gh/ComPWA/qrules)
-
-<!-- [![Codacy Badge](https://codecov.io/gh/ComPWA/qrules/branch/main/graph/badge.svg?token=PPRMC5E6SX)](https://www.codacy.com/gh/ComPWA/qrules) -->
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/deeee5b9e2bb4b3daa655942c71e17da)](https://www.codacy.com/gh/ComPWA/qrules)
 
 ````{margin}
 ```{tip}
