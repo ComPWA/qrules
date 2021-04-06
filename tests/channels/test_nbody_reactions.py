@@ -3,7 +3,7 @@ from typing import FrozenSet, Set, Union
 
 import pytest
 
-from expertsystem.reaction import check_reaction_violations
+from qrules import check_reaction_violations
 
 
 def reduce_violated_rules(

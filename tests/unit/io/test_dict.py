@@ -1,8 +1,8 @@
 # pylint: disable=redefined-outer-name
 import pytest
 
-from expertsystem import io
-from expertsystem.reaction.particle import ParticleCollection
+from qrules import io
+from qrules.particle import ParticleCollection
 
 
 def test_not_implemented_errors(

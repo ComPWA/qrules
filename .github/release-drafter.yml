@@ -32,6 +32,6 @@ sort-direction: ascending
 template: |
   # Release $NEXT_PATCH_VERSION
 
-  See all documentation for this version [here](https://expertsystem.rtfd.io/en/$NEXT_PATCH_VERSION).
+  See all documentation for this version [here](https://qrules.rtfd.io/en/$NEXT_PATCH_VERSION).
 
   $CHANGES

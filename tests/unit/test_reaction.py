@@ -1,7 +1,7 @@
 import pytest
 
-from expertsystem.reaction import InteractionTypes as IT  # noqa: N817
-from expertsystem.reaction import _determine_interaction_types
+from qrules import _determine_interaction_types
+from qrules.default_settings import InteractionTypes as IT  # noqa: N817
 
 
 @pytest.mark.parametrize(

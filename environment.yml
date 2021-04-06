@@ -1,4 +1,4 @@
-name: es
+name: qrules
 channels:
   - defaults
 dependencies:

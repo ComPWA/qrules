@@ -18,8 +18,6 @@ ipython-genutils==0.2.0
 ipython==7.22.0
 jedi==0.18.0
 jsonschema==3.2.0
-mpmath==1.2.1
-numpy==1.20.2
 packaging==20.9
 parso==0.8.2
 particle==0.14.1
@@ -41,9 +39,8 @@ pytest==6.2.3
 python-constraint==1.4.0
 pyyaml==5.4.1
 six==1.15.0
-sympy==1.7.1
 toml==0.10.2
-tqdm==4.59.0
+tqdm==4.60.0
 traitlets==5.0.5
 wcwidth==0.2.5
 

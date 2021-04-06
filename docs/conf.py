@@ -15,9 +15,9 @@ import sphobjinv as soi
 from pkg_resources import get_distribution
 
 # -- Project information -----------------------------------------------------
-project = "ExpertSystem"
-package = "expertsystem"
-repo_name = "expertsystem"
+project = "QRules"
+package = "qrules"
+repo_name = "qrules"
 copyright = "2020, ComPWA"
 author = "Common Partial Wave Analysis"
 
@@ -166,13 +166,18 @@ nitpick_ignore = [
     ("py:class", "numpy.typing._dtype_like._DTypeDict"),
     ("py:class", "numpy.typing._dtype_like._SupportsDType"),
     ("py:class", "typing_extensions.Protocol"),
-    ("py:obj", "expertsystem.amplitude.helicity.ValueType"),
-    ("py:obj", "expertsystem.reaction.topology._K"),
-    ("py:obj", "expertsystem.reaction.topology._V"),
+    ("py:mod", "ampform"),
+    ("py:obj", "qrules.topology._K"),
+    ("py:obj", "qrules.topology._V"),
 ]
 
 # Intersphinx settings
 intersphinx_mapping = {
+    "ampform": ("https://ampform.readthedocs.io/en/stable", None),
+    "expertsystem": (
+        "https://pwa.readthedocs.io/projects/expertsystem/en/stable",
+        None,
+    ),
     "attrs": ("https://www.attrs.org/en/stable", None),
     "constraint": (
         "https://labix.org/doc/constraint/public",

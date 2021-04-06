@@ -3,7 +3,7 @@
 # Architectural Decision Records
 
 This log lists the architectural decisions for the
-[ExpertSystem repository](https://github.com/ComPWA/expertsystem):
+[QRules repository](https://github.com/ComPWA/qrules):
 
 ```{toctree}
 ---
