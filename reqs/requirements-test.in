@@ -1,4 +1,4 @@
--r requirements-extras.in
+-r requirements.in
 
 # Requirements for running pytest
 ipython
