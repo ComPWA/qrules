@@ -28,7 +28,7 @@ jobs:
           EXECUTE_NB: YES
         run: make html
       - uses: actions/upload-artifact@v2
-        if: ${{ failure() }}
+        if: ${{ always() }}
         with:
           name: html
           path: docs/_build/html
