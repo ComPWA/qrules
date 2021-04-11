@@ -112,7 +112,7 @@ Develop <https://pwa.readthedocs.io/develop.html>
 caption: Related projects
 hidden:
 ---
-AmpForm <http://ampform.readthedocs.io>
-TensorWaves <http://tensorwaves.readthedocs.io>
-PWA Pages <http://pwa.readthedocs.io>
+AmpForm <https://ampform.readthedocs.io>
+TensorWaves <https://tensorwaves.readthedocs.io>
+PWA Pages <https://pwa.readthedocs.io>
 ```
