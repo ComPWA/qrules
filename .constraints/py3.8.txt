@@ -119,7 +119,6 @@ pybtex==0.24.0
 pycodestyle==2.7.0
 pycparser==2.20
 pydata-sphinx-theme==0.4.3
-pydeps==1.9.13
 pydocstyle==6.0.0
 pydot==1.4.2
 pyflakes==2.3.1
@@ -164,7 +163,6 @@ sphinxcontrib-qthelp==1.0.3
 sphinxcontrib-serializinghtml==1.1.4
 sphobjinv==2.1
 sqlalchemy==1.3.24
-stdlib-list==0.8.0
 terminado==0.9.4
 testpath==0.4.4
 toml==0.10.2
