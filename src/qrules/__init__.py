@@ -46,12 +46,10 @@ from .conservation_rules import (
     parity_conservation,
     spin_magnitude_conservation,
 )
-from .default_settings import (
-    ADDITIONAL_PARTICLES_DEFINITIONS_PATH,
-    InteractionTypes,
-)
 from .particle import ParticleCollection, load_pdg
 from .quantum_numbers import InteractionProperties
+from .settings import InteractionTypes
+from .settings.defaults import ADDITIONAL_PARTICLES_DEFINITIONS_PATH
 from .solving import (
     GraphSettings,
     NodeSettings,

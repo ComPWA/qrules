@@ -2,7 +2,7 @@ from typing import NamedTuple, Tuple
 
 import pytest
 
-from qrules.default_settings import InteractionTypes
+from qrules.settings import InteractionTypes
 from qrules.transition import StateTransitionManager
 
 

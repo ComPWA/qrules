@@ -2,18 +2,14 @@
 
 from copy import deepcopy
 from enum import Enum, auto
-from os.path import dirname, join, realpath
 from typing import Dict, Iterable, List, Optional, Tuple, Union
 
-from .conservation_rules import (
+from qrules.conservation_rules import (
     BaryonNumberConservation,
     BottomnessConservation,
     ChargeConservation,
     CharmConservation,
-    ConservationRule,
-    EdgeQNConservationRule,
     ElectronLNConservation,
-    GraphElementRule,
     MassConservation,
     MuonLNConservation,
     StrangenessConservation,
@@ -33,47 +29,14 @@ from .conservation_rules import (
     spin_magnitude_conservation,
     spin_validity,
 )
-from .quantum_numbers import EdgeQuantumNumbers, NodeQuantumNumbers, arange
-from .solving import EdgeSettings, NodeSettings
-
-__QRULES_PATH = dirname(realpath(__file__))
-__DEFAULT_PARTICLE_LIST_FILE = "additional_definitions.yml"
-ADDITIONAL_PARTICLES_DEFINITIONS_PATH = join(
-    __QRULES_PATH, __DEFAULT_PARTICLE_LIST_FILE
+from qrules.quantum_numbers import (
+    EdgeQuantumNumbers,
+    NodeQuantumNumbers,
+    arange,
 )
+from qrules.solving import EdgeSettings, NodeSettings
 
-# If a conservation law is not listed here, a default priority of 1 is assumed.
-# Higher number means higher priority
-__CONSERVATION_LAW_PRIORITIES: Dict[
-    Union[GraphElementRule, EdgeQNConservationRule, ConservationRule], int
-] = {
-    spin_conservation: 8,
-    ls_spin_validity: 89,
-    spin_magnitude_conservation: 8,
-    helicity_conservation: 7,
-    MassConservation: 10,
-    ChargeConservation: 100,
-    ElectronLNConservation: 45,
-    MuonLNConservation: 44,
-    TauLNConservation: 43,
-    BaryonNumberConservation: 90,
-    identical_particle_symmetrization: 2,
-    CharmConservation: 70,
-    StrangenessConservation: 69,
-    parity_conservation: 6,
-    c_parity_conservation: 5,
-    parity_conservation_helicity: 4,
-    isospin_conservation: 60,
-    g_parity_conservation: 3,
-    BottomnessConservation: 68,
-}
-
-
-__EDGE_RULE_PRIORITIES: Dict[GraphElementRule, int] = {
-    gellmann_nishijima: 50,
-    isospin_validity: 61,
-    spin_validity: 62,
-}
+from .defaults import CONSERVATION_LAW_PRIORITIES, EDGE_RULE_PRIORITIES
 
 
 class InteractionTypes(Enum):
@@ -84,15 +47,12 @@ class InteractionTypes(Enum):
     WEAK = auto()
 
 
-def create_default_interaction_settings(
+def create_interaction_settings(
     formalism_type: str,
     nbody_topology: bool = False,
     mass_conservation_factor: Optional[float] = 3.0,
 ) -> Dict[InteractionTypes, Tuple[EdgeSettings, NodeSettings]]:
-    """Create a container that holds the settings for the various interactions.
-
-    E.g.: strong, em and weak interaction.
-    """
+    """Create a container that holds the settings for `.InteractionTypes`."""
     interaction_type_settings = {}
     formalism_edge_settings = EdgeSettings(
         conservation_rules={
@@ -100,7 +60,7 @@ def create_default_interaction_settings(
             gellmann_nishijima,
             spin_validity,
         },
-        rule_priorities=__EDGE_RULE_PRIORITIES,
+        rule_priorities=EDGE_RULE_PRIORITIES,
         qn_domains={
             EdgeQuantumNumbers.charge: [-2, -1, 0, 1, 2],
             EdgeQuantumNumbers.baryon_number: [-1, 0, 1],
@@ -124,7 +84,7 @@ def create_default_interaction_settings(
         },
     )
     formalism_node_settings = NodeSettings(
-        rule_priorities=__CONSERVATION_LAW_PRIORITIES
+        rule_priorities=CONSERVATION_LAW_PRIORITIES
     )
 
     if "helicity" in formalism_type:
