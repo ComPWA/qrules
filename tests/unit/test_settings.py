@@ -1,9 +1,9 @@
 import pytest
 
-from qrules.quantum_numbers import EdgeQuantumNumbers, NodeQuantumNumbers
 from qrules.settings import (
     InteractionTypes,
-    _halves_range,
+    _halves_domain,
+    _int_domain,
     create_interaction_settings,
 )
 
@@ -22,44 +22,54 @@ def test_create_interaction_settings(
     assert set(settings) == set(InteractionTypes)
 
     edge_settings, node_settings = settings[interaction_type]
-    assert edge_settings.qn_domains == {
-        EdgeQuantumNumbers.baryon_number: [-1, 0, 1],
-        EdgeQuantumNumbers.electron_lepton_number: [-1, 0, 1],
-        EdgeQuantumNumbers.muon_lepton_number: [-1, 0, 1],
-        EdgeQuantumNumbers.tau_lepton_number: [-1, 0, 1],
-        EdgeQuantumNumbers.parity: [-1, 1],
-        EdgeQuantumNumbers.c_parity: [-1, 1, None],
-        EdgeQuantumNumbers.g_parity: [-1, 1, None],
-        EdgeQuantumNumbers.spin_magnitude: _halves_range(0, 2),
-        EdgeQuantumNumbers.spin_projection: _halves_range(-2, +2),
-        EdgeQuantumNumbers.charge: [-2, -1, 0, 1, 2],
-        EdgeQuantumNumbers.isospin_magnitude: _halves_range(0, 1.5),
-        EdgeQuantumNumbers.isospin_projection: _halves_range(-1.5, +1.5),
-        EdgeQuantumNumbers.strangeness: [-1, 0, 1],
-        EdgeQuantumNumbers.charmness: [-1, 0, 1],
-        EdgeQuantumNumbers.bottomness: [-1, 0, 1],
+    edge_qn_domains_str = {  # strings are easier to compare with pytest
+        qn_type.__name__: domain
+        for qn_type, domain in edge_settings.qn_domains.items()
     }
+    assert edge_qn_domains_str == {
+        "baryon_number": [-1, 0, +1],
+        "electron_lepton_number": [-1, 0, +1],
+        "muon_lepton_number": [-1, 0, +1],
+        "tau_lepton_number": [-1, 0, +1],
+        "parity": [-1, +1],
+        "c_parity": [-1, +1, None],
+        "g_parity": [-1, +1, None],
+        "spin_magnitude": _halves_domain(0, 2),
+        "spin_projection": _halves_domain(-2, +2),
+        "charge": _int_domain(-2, 2),
+        "isospin_magnitude": _halves_domain(0, 1.5),
+        "isospin_projection": _halves_domain(-1.5, +1.5),
+        "strangeness": _int_domain(-1, 1),
+        "charmness": _int_domain(-1, 1),
+        "bottomness": _int_domain(-1, 1),
+    }
+
     expected = {
-        NodeQuantumNumbers.l_magnitude: [0, 1, 2],
-        NodeQuantumNumbers.s_magnitude: _halves_range(0, 2),
+        "l_magnitude": _int_domain(0, 2),
+        "s_magnitude": _halves_domain(0, 2),
     }
     if "canonical" in formalism_type:
-        expected[NodeQuantumNumbers.l_projection] = [-2, -1, 0, 1, 2]
-        expected[NodeQuantumNumbers.s_projection] = _halves_range(-2, 2)
+        expected["l_projection"] = [-2, -1, 0, 1, 2]
+        expected["s_projection"] = _halves_domain(-2, 2)
     if formalism_type == "canonical-helicity":
-        expected[NodeQuantumNumbers.l_projection] = [0]
+        expected["l_projection"] = [0]
     if (
         "helicity" in formalism_type
         and interaction_type != InteractionTypes.WEAK
     ):
-        expected[NodeQuantumNumbers.parity_prefactor] = [-1, 1]
+        expected["parity_prefactor"] = [-1, 1]
     if nbody_topology:
-        expected[NodeQuantumNumbers.l_magnitude] = [0]
-        expected[NodeQuantumNumbers.s_magnitude] = [0]
+        expected["l_magnitude"] = [0]
+        expected["s_magnitude"] = [0]
     if nbody_topology and formalism_type != "helicity":
-        expected[NodeQuantumNumbers.l_projection] = [0]
-        expected[NodeQuantumNumbers.s_projection] = [0]
-    assert node_settings.qn_domains == expected
+        expected["l_projection"] = [0]
+        expected["s_projection"] = [0]
+
+    node_qn_domains_str = {  # strings are easier to compare with pytest
+        qn_type.__name__: domain
+        for qn_type, domain in node_settings.qn_domains.items()
+    }
+    assert node_qn_domains_str == expected
 
 
 @pytest.mark.parametrize(
@@ -73,6 +83,6 @@ def test_create_interaction_settings(
 def test_halves_range(start: float, stop: float, expected: list):
     if expected is None:
         with pytest.raises(ValueError):
-            _halves_range(start, stop)
+            _halves_domain(start, stop)
     else:
-        assert _halves_range(start, stop) == expected
+        assert _halves_domain(start, stop) == expected
