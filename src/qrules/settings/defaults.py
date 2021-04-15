@@ -46,24 +46,24 @@ CONSERVATION_LAW_PRIORITIES: Dict[
     Union[GraphElementRule, EdgeQNConservationRule, ConservationRule], int
 ] = {
     spin_conservation: 8,
-    ls_spin_validity: 89,
     spin_magnitude_conservation: 8,
-    helicity_conservation: 7,
     MassConservation: 10,
     ChargeConservation: 100,
     ElectronLNConservation: 45,
     MuonLNConservation: 44,
     TauLNConservation: 43,
     BaryonNumberConservation: 90,
-    identical_particle_symmetrization: 2,
-    CharmConservation: 70,
     StrangenessConservation: 69,
+    CharmConservation: 70,
+    BottomnessConservation: 68,
     parity_conservation: 6,
     c_parity_conservation: 5,
-    parity_conservation_helicity: 4,
-    isospin_conservation: 60,
     g_parity_conservation: 3,
-    BottomnessConservation: 68,
+    isospin_conservation: 60,
+    ls_spin_validity: 89,
+    helicity_conservation: 7,
+    parity_conservation_helicity: 4,
+    identical_particle_symmetrization: 2,
 }
 """Determines the order with which to verify conservation rules."""
 
