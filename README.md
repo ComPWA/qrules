@@ -1,4 +1,4 @@
-# Quantum Conservation Rules (`qrules`)
+# Quantum Number Conservation Rules
 
 [![Documentation build status](https://readthedocs.org/projects/qrules/badge/?version=latest)](https://qrules.readthedocs.io)
 [![Binder](https://static.mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/ComPWA/qrules/stable?filepath=docs/usage)
