@@ -1,11 +1,11 @@
 import pytest
 
-from qrules.default_settings import (
+from qrules.quantum_numbers import EdgeQuantumNumbers, NodeQuantumNumbers
+from qrules.settings import (
     InteractionTypes,
     _halves_range,
-    create_default_interaction_settings,
+    create_interaction_settings,
 )
-from qrules.quantum_numbers import EdgeQuantumNumbers, NodeQuantumNumbers
 
 
 @pytest.mark.parametrize("interaction_type", list(InteractionTypes))
@@ -13,14 +13,12 @@ from qrules.quantum_numbers import EdgeQuantumNumbers, NodeQuantumNumbers
 @pytest.mark.parametrize(
     "formalism_type", ["canonical", "canonical-helicity", "helicity"]
 )
-def test_create_default_interaction_settings(
+def test_create_interaction_settings(
     interaction_type: InteractionTypes,
     nbody_topology: bool,
     formalism_type: str,
 ):
-    settings = create_default_interaction_settings(
-        formalism_type, nbody_topology
-    )
+    settings = create_interaction_settings(formalism_type, nbody_topology)
     assert set(settings) == set(InteractionTypes)
 
     edge_settings, node_settings = settings[interaction_type]

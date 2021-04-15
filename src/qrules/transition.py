@@ -28,10 +28,6 @@ from .combinatorics import (
     create_initial_facts,
     match_external_edges,
 )
-from .default_settings import (
-    InteractionTypes,
-    create_default_interaction_settings,
-)
 from .particle import Particle, ParticleCollection, ParticleWithSpin, load_pdg
 from .quantum_numbers import (
     EdgeQuantumNumber,
@@ -40,6 +36,7 @@ from .quantum_numbers import (
     NodeQuantumNumber,
     NodeQuantumNumbers,
 )
+from .settings import InteractionTypes, create_interaction_settings
 from .solving import (
     CSPSolver,
     EdgeSettings,
@@ -331,12 +328,10 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
                 mass_conservation_factor = None
 
         if not self.interaction_type_settings:
-            self.interaction_type_settings = (
-                create_default_interaction_settings(
-                    formalism_type,
-                    nbody_topology=use_nbody_topology,
-                    mass_conservation_factor=mass_conservation_factor,
-                )
+            self.interaction_type_settings = create_interaction_settings(
+                formalism_type,
+                nbody_topology=use_nbody_topology,
+                mass_conservation_factor=mass_conservation_factor,
             )
 
         if reload_pdg or len(self.__particles) == 0:

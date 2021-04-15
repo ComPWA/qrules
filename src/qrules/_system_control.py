@@ -6,7 +6,6 @@ from typing import Callable, Dict, List, Optional, Set, Tuple, Type
 
 import attr
 
-from .default_settings import InteractionTypes
 from .particle import Particle, ParticleCollection, ParticleWithSpin
 from .quantum_numbers import (
     EdgeQuantumNumber,
@@ -16,6 +15,7 @@ from .quantum_numbers import (
     NodeQuantumNumbers,
     Parity,
 )
+from .settings import InteractionTypes
 from .solving import GraphEdgePropertyMap, GraphNodePropertyMap, GraphSettings
 from .topology import StateTransitionGraph
 
