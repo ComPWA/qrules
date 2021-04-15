@@ -89,7 +89,7 @@ def _get_spin_magnitudes(is_nbody: bool) -> List[float]:
         return [
             0,
         ]
-    return [0, 0.5, 1, 1.5, 2]
+    return [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4]
 
 
 def _get_ang_mom_magnitudes(is_nbody: bool) -> List[float]:
@@ -97,7 +97,7 @@ def _get_ang_mom_magnitudes(is_nbody: bool) -> List[float]:
         return [
             0,
         ]
-    return [0, 1, 2]
+    return [0, 1, 2, 3, 4]
 
 
 def __create_projections(
@@ -132,9 +132,19 @@ def create_default_interaction_settings(
             EdgeQuantumNumbers.parity: [-1, 1],
             EdgeQuantumNumbers.c_parity: [-1, 1, None],
             EdgeQuantumNumbers.g_parity: [-1, 1, None],
-            EdgeQuantumNumbers.spin_magnitude: [0, 0.5, 1, 1.5, 2],
+            EdgeQuantumNumbers.spin_magnitude: [
+                0,
+                0.5,
+                1,
+                1.5,
+                2,
+                2.5,
+                3,
+                3.5,
+                4,
+            ],
             EdgeQuantumNumbers.spin_projection: __create_projections(
-                [0, 0.5, 1, 1.5, 2]
+                [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4]
             ),
             EdgeQuantumNumbers.isospin_magnitude: [0, 0.5, 1, 1.5],
             EdgeQuantumNumbers.isospin_projection: __create_projections(

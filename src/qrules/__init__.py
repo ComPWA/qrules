@@ -202,7 +202,9 @@ def check_reaction_violations(
     # if it is a two body reaction
     ls_combinations = [
         InteractionProperties(l_magnitude=l_magnitude, s_magnitude=s_magnitude)
-        for l_magnitude, s_magnitude in product([0, 1], [0, 0.5, 1, 1.5, 2])
+        for l_magnitude, s_magnitude in product(
+            [0, 1, 2, 3, 4], [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
+        )
     ]
 
     initial_facts_list = []
