@@ -72,6 +72,7 @@ def check_reaction_violations(
     initial_state: Union[StateDefinition, Sequence[StateDefinition]],
     final_state: Sequence[StateDefinition],
     mass_conservation_factor: Optional[float] = 3.0,
+    particle_db: Optional[ParticleCollection] = None,
 ) -> Set[FrozenSet[str]]:
     """Determine violated interaction rules for a given particle reaction.
 
@@ -88,6 +89,8 @@ def check_reaction_violations(
       mass_conservation_factor: Factor with which the width is multiplied when
         checking for `.MassConservation`. Set to `None` in order to deactivate
         mass conservation.
+      particle_db: (Optional) Custom ParticleCollection object.  Defaults to
+        the list returned by load_pdg().
 
     Returns:
       Set of least violating rules. The set can have multiple entries, as
@@ -98,6 +101,9 @@ def check_reaction_violations(
     # pylint: disable=too-many-locals
     if not isinstance(initial_state, (list, tuple)):
         initial_state = [initial_state]  # type: ignore
+
+    if particle_db is None:
+        particle_db = load_pdg()
 
     def _check_violations(
         facts: InitialFacts,
@@ -184,7 +190,7 @@ def check_reaction_violations(
 
     initial_facts = create_initial_facts(
         topology=topology,
-        particles=load_pdg(),
+        particles=particle_db,
         initial_state=initial_state,
         final_state=final_state,
     )
