@@ -4,6 +4,7 @@ It is possible to change these settings from the outside, like:
 
 >>> from qrules.settings import defaults
 >>> defaults.MAX_ANGULAR_MOMENTUM = 4
+>>> defaults.MAX_SPIN_MAGNITUDE = 3
 """
 
 from os.path import dirname, join, realpath
@@ -75,7 +76,7 @@ EDGE_RULE_PRIORITIES: Dict[GraphElementRule, int] = {
 }
 
 MAX_ANGULAR_MOMENTUM: int = 2
-"""Maximum angular momentum over which to generate transitions.
+"""Maximum angular momentum over which to generate :math:`LS`-couplings."""
 
-Is used in particular by `.create_interaction_settings`.
-"""
+MAX_SPIN_MAGNITUDE: int = 2
+"""Maximum spin magnitude over which to generate :math:`LS`-couplings."""

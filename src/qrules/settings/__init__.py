@@ -39,6 +39,7 @@ from .defaults import (
     CONSERVATION_LAW_PRIORITIES,
     EDGE_RULE_PRIORITIES,
     MAX_ANGULAR_MOMENTUM,
+    MAX_SPIN_MAGNITUDE,
 )
 
 
@@ -183,7 +184,7 @@ def _get_ang_mom_magnitudes(is_nbody: bool) -> List[float]:
 def _get_spin_magnitudes(is_nbody: bool) -> List[float]:
     if is_nbody:
         return [0]
-    return _halves_domain(0, 2)
+    return _halves_domain(0, MAX_SPIN_MAGNITUDE)
 
 
 def _create_domains(particles: ParticleCollection) -> Dict[Any, list]:
