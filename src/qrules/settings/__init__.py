@@ -36,7 +36,11 @@ from qrules.quantum_numbers import (
 )
 from qrules.solving import EdgeSettings, NodeSettings
 
-from .defaults import CONSERVATION_LAW_PRIORITIES, EDGE_RULE_PRIORITIES
+from .defaults import (
+    CONSERVATION_LAW_PRIORITIES,
+    EDGE_RULE_PRIORITIES,
+    MAX_ANGULAR_MOMENTUM,
+)
 
 
 class InteractionTypes(Enum):
@@ -205,7 +209,7 @@ def create_interaction_settings(
 def _get_ang_mom_magnitudes(is_nbody: bool) -> List[float]:
     if is_nbody:
         return [0]
-    return [0, 1, 2]
+    return list(range(0, MAX_ANGULAR_MOMENTUM + 1))
 
 
 def __create_projections(
