@@ -6,15 +6,15 @@
 
 [![PyPI package](https://badge.fury.io/py/qrules.svg)](https://pypi.org/project/qrules)
 [![Supported Python versions](https://img.shields.io/pypi/pyversions/qrules)](https://pypi.org/project/qrules)
-[![Test coverage](https://codecov.io/gh/ComPWA/qrules/branch/main/graph/badge.svg?token=PPRMC5E6SX)](https://codecov.io/gh/ComPWA/qrules)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/deeee5b9e2bb4b3daa655942c71e17da)](https://www.codacy.com/gh/ComPWA/qrules)
+[![Google Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ComPWA/qrules/blob/stable)
+[![Binder](https://static.mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/ComPWA/qrules/stable?filepath=docs/usage)
 
-````{margin}
-```{tip}
-For an overview of upcoming releases and planned functionality, see
-[here](https://github.com/ComPWA/qrules/milestones?direction=asc&sort=title&state=open).
-```
-````
+:::{margin}
+
+The original project was the {doc}`PWA Expert System <expertsystem:index>`.
+QRules originates from its {mod}`~expertsystem.reaction` module.
+
+:::
 
 QRules is a system for validating and generating particle reactions, using
 quantum number conservation rules. The user only has to provide a basic
@@ -23,51 +23,53 @@ state. Helper functions provide easy ways to configure the system, but the user
 still has full control. QRules then constructs several hypotheses for what
 happens during the transition from initial to final state.
 
-:::{dropdown} Original project: PWA Expert System
+The {doc}`usage` pages illustrate some of the cool features of {mod}`qrules`.
+You can run each of them as Jupyter notebooks with the {fa}`rocket` launch
+button in the top-right corner. Enjoy!
 
-The original project was the {doc}`PWA Expert System <expertsystem:index>`.
-QRules originates from its {mod}`~expertsystem.reaction` module.
+```{rubric} Internal design
 
-:::
+```
 
-## Internal design
+QRules consists of three major components:
 
-Internally, QRules consists of three major components.
+1. **State transition graphs**
 
-### 1. State Transition Graphs
+   A {class}`.StateTransitionGraph` is a
+   [directed graph](https://en.wikipedia.org/wiki/Directed_graph) that consists
+   of **nodes** and **edges**. In a directed graph, each edge must be connected
+   to at least one node (in correspondence to Feynman graphs). This way, a
+   graph describes the transition from one state to another.
 
-A {class}`.StateTransitionGraph` is a
-[directed graph](https://en.wikipedia.org/wiki/Directed_graph) that consists of
-**nodes** and **edges**. In a directed graph, each edge must be connected to at
-least one node (in correspondence to Feynman graphs). This way, a graph
-describes the transition from one state to another.
+   - The edges correspond to particles/states, in other words a collection of
+     properties such as the quantum numbers that characterize the particle
+     state.
 
-- The edges correspond to particles/states, in other words a collection of
-  properties such as the quantum numbers that characterize the particle state.
+   - Each node represents an interaction and contains all information for the
+     transition of this specific step. Most importantly, a node contains a
+     collection of conservation rules that have to be satisfied. An interaction
+     node has $M$ ingoing lines and $N$ outgoing lines, where
+     $M,N \in \mathbb{Z}$, $M > 0, N > 0$.
 
-- Each node represents an interaction and contains all information for the
-  transition of this specific step. Most importantly, a node contains a
-  collection of conservation rules that have to be satisfied. An interaction
-  node has $M$ ingoing lines and $N$ outgoing lines, where
-  $M,N \in \mathbb{Z}$, $M > 0, N > 0$.
+2. **Conservation rules**
 
-### 2. Conservation Rules
+   The central component are the
+   {mod}`conservation rules <.conservation_rules>`. They belong to individual
+   nodes and receive properties about the node itself, as well as properties of
+   the ingoing and outgoing edges of that node. Based on those properties the
+   conservation rules determine whether edges pass or not.
 
-The central component of the expert system are the
-{mod}`conservation rules <.conservation_rules>`. They belong to individual
-nodes and receive properties about the node itself, as well as properties of
-the ingoing and outgoing edges of that node. Based on those properties the
-conservation rules determine whether edges pass or not.
+3. **Solvers**
 
-### 3. Solvers
+   The determination of the correct state properties in the graph is done by
+   solvers. New properties are set for intermediate edges and interaction nodes
+   and their validity is checked with the conservation rules.
 
-The determination of the correct state properties in the graph is done by
-solvers. New properties are set for intermediate edges and interaction nodes
-and their validity is checked with the conservation rules.
+```{rubric} QRules workflow
 
-## QRules workflow
+```
 
-1. Preparation
+1. **Preparation**
 
    1.1. Build all possible topologies. A **topology** is represented by a
    {ref}`graph <index:1. State Transition Graphs>`, in which the edges and
@@ -77,7 +79,7 @@ and their validity is checked with the conservation rules.
    these are the graph's ingoing edges (initial state) and outgoing edges
    (final state).
 
-2. Solving
+2. **Solving**
 
    2.1. _Propagate_ quantum number information through the complete graph while
    respecting the specified conservation laws. Information like mass is not
@@ -89,7 +91,9 @@ and their validity is checked with the conservation rules.
    2.3. _Validate_ the complete graphs, so run all conservation law check that
    were postponed from the first step.
 
-## Table of Contents
+```{rubric} Table of Contents
+
+```
 
 ```{toctree}
 ---
@@ -100,6 +104,7 @@ usage
 references
 API <api/qrules>
 Changelog <https://github.com/ComPWA/qrules/releases>
+Upcoming features <https://github.com/ComPWA/qrules/milestones?direction=asc&sort=title&state=open>
 Develop <https://pwa.readthedocs.io/develop.html>
 ```
 
