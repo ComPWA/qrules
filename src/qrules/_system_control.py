@@ -311,10 +311,14 @@ def filter_graphs(
         Selecting only the solutions, in which the :math:`\rho` decays via
         p-wave:
 
-        >>> my_filter = require_interaction_property(
-                'rho', InteractionQuantumNumberNames.L,
-                create_spin_domain([1], True))
-        >>> filtered_solutions = filter_graphs(solutions, [my_filter])
+        .. code-block:: python
+
+            my_filter = require_interaction_property(
+                "rho",
+                InteractionQuantumNumberNames.L,
+                create_spin_domain([1], True),
+            )
+            filtered_solutions = filter_graphs(solutions, [my_filter])
     """
     filtered_graphs = graphs
     for filter_ in filters:
