@@ -2,7 +2,7 @@
 
 from copy import deepcopy
 from enum import Enum, auto
-from typing import Dict, Iterable, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 from qrules.conservation_rules import (
     BaryonNumberConservation,
@@ -29,6 +29,7 @@ from qrules.conservation_rules import (
     spin_magnitude_conservation,
     spin_validity,
 )
+from qrules.particle import Particle, ParticleCollection
 from qrules.quantum_numbers import EdgeQuantumNumbers as EdgeQN
 from qrules.quantum_numbers import NodeQuantumNumbers as NodeQN
 from qrules.quantum_numbers import arange
@@ -51,11 +52,11 @@ class InteractionTypes(Enum):
 
 def create_interaction_settings(
     formalism_type: str,
+    particles: ParticleCollection,
     nbody_topology: bool = False,
     mass_conservation_factor: Optional[float] = 3.0,
 ) -> Dict[InteractionTypes, Tuple[EdgeSettings, NodeSettings]]:
     """Create a container that holds the settings for `.InteractionTypes`."""
-    interaction_type_settings = {}
     formalism_edge_settings = EdgeSettings(
         conservation_rules={
             isospin_validity,
@@ -63,25 +64,7 @@ def create_interaction_settings(
             spin_validity,
         },
         rule_priorities=EDGE_RULE_PRIORITIES,
-        qn_domains={
-            EdgeQN.charge: [-2, -1, 0, 1, 2],
-            EdgeQN.baryon_number: [-1, 0, 1],
-            EdgeQN.electron_lepton_number: [-1, 0, 1],
-            EdgeQN.muon_lepton_number: [-1, 0, 1],
-            EdgeQN.tau_lepton_number: [-1, 0, 1],
-            EdgeQN.parity: [-1, 1],
-            EdgeQN.c_parity: [-1, 1, None],
-            EdgeQN.g_parity: [-1, 1, None],
-            EdgeQN.spin_magnitude: _halves_domain(0, 2),
-            EdgeQN.spin_projection: __extend_negative(_halves_domain(0, 2)),
-            EdgeQN.isospin_magnitude: _halves_domain(0, 1.5),
-            EdgeQN.isospin_projection: __extend_negative(
-                _halves_domain(0, 1.5)
-            ),
-            EdgeQN.charmness: [-1, 0, 1],
-            EdgeQN.strangeness: [-1, 0, 1],
-            EdgeQN.bottomness: [-1, 0, 1],
-        },
+        qn_domains=_create_domains(particles),
     )
     formalism_node_settings = NodeSettings(
         rule_priorities=CONSERVATION_LAW_PRIORITIES
@@ -135,6 +118,7 @@ def create_interaction_settings(
             MassConservation(mass_conservation_factor)
         )
 
+    interaction_type_settings = {}
     weak_node_settings = deepcopy(formalism_node_settings)
     weak_node_settings.conservation_rules.update(
         [
@@ -167,10 +151,9 @@ def create_interaction_settings(
     if "helicity" in formalism_type:
         em_node_settings.conservation_rules.add(parity_conservation_helicity)
         em_node_settings.qn_domains.update({NodeQN.parity_prefactor: [-1, 1]})
+
     em_node_settings.interaction_strength = 1
-
     em_edge_settings = deepcopy(weak_edge_settings)
-
     interaction_type_settings[InteractionTypes.EM] = (
         em_edge_settings,
         em_node_settings,
@@ -180,10 +163,9 @@ def create_interaction_settings(
     strong_node_settings.conservation_rules.update(
         {isospin_conservation, g_parity_conservation}
     )
+
     strong_node_settings.interaction_strength = 60
-
     strong_edge_settings = deepcopy(em_edge_settings)
-
     interaction_type_settings[InteractionTypes.STRONG] = (
         strong_edge_settings,
         strong_node_settings,
@@ -202,6 +184,57 @@ def _get_spin_magnitudes(is_nbody: bool) -> List[float]:
     if is_nbody:
         return [0]
     return _halves_domain(0, 2)
+
+
+def _create_domains(particles: ParticleCollection) -> Dict[Any, list]:
+    domains: Dict[Any, list] = {
+        EdgeQN.electron_lepton_number: [-1, 0, +1],
+        EdgeQN.muon_lepton_number: [-1, 0, +1],
+        EdgeQN.tau_lepton_number: [-1, 0, +1],
+        EdgeQN.parity: [-1, +1],
+        EdgeQN.c_parity: [-1, +1, None],
+        EdgeQN.g_parity: [-1, +1, None],
+    }
+
+    for edge_qn, getter in {
+        EdgeQN.charge: lambda p: p.charge,
+        EdgeQN.baryon_number: lambda p: p.baryon_number,
+        EdgeQN.strangeness: lambda p: p.strangeness,
+        EdgeQN.charmness: lambda p: p.charmness,
+        EdgeQN.bottomness: lambda p: p.bottomness,
+    }.items():
+        domains[edge_qn] = __extend_negative(
+            __positive_int_domain(particles, getter)
+        )
+
+    domains[EdgeQN.spin_magnitude] = __positive_halves_domain(
+        particles, lambda p: p.spin
+    )
+    domains[EdgeQN.spin_projection] = __extend_negative(
+        domains[EdgeQN.spin_magnitude]
+    )
+    domains[EdgeQN.isospin_magnitude] = __positive_halves_domain(
+        particles,
+        lambda p: 0 if p.isospin is None else p.isospin.magnitude,
+    )
+    domains[EdgeQN.isospin_projection] = __extend_negative(
+        domains[EdgeQN.isospin_magnitude]
+    )
+    return domains
+
+
+def __positive_halves_domain(
+    particles: ParticleCollection, attr_getter: Callable[[Particle], Any]
+) -> List[float]:
+    values = set(map(attr_getter, particles))
+    return _halves_domain(0, max(values))
+
+
+def __positive_int_domain(
+    particles: ParticleCollection, attr_getter: Callable[[Particle], Any]
+) -> List[int]:
+    values = set(map(attr_getter, particles))
+    return _int_domain(0, max(values))
 
 
 def _halves_domain(start: float, stop: float) -> List[float]:

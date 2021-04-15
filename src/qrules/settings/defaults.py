@@ -45,10 +45,7 @@ ADDITIONAL_PARTICLES_DEFINITIONS_PATH: str = join(
 CONSERVATION_LAW_PRIORITIES: Dict[
     Union[GraphElementRule, EdgeQNConservationRule, ConservationRule], int
 ] = {
-    spin_conservation: 8,
-    spin_magnitude_conservation: 8,
     MassConservation: 10,
-    ChargeConservation: 100,
     ElectronLNConservation: 45,
     MuonLNConservation: 44,
     TauLNConservation: 43,
@@ -56,6 +53,9 @@ CONSERVATION_LAW_PRIORITIES: Dict[
     StrangenessConservation: 69,
     CharmConservation: 70,
     BottomnessConservation: 68,
+    ChargeConservation: 100,
+    spin_conservation: 8,
+    spin_magnitude_conservation: 8,
     parity_conservation: 6,
     c_parity_conservation: 5,
     g_parity_conservation: 3,

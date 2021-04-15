@@ -1,11 +1,33 @@
 import pytest
 
+from qrules.particle import ParticleCollection
+from qrules.quantum_numbers import EdgeQuantumNumbers as EdgeQN
 from qrules.settings import (
     InteractionTypes,
+    _create_domains,
     _halves_domain,
     _int_domain,
     create_interaction_settings,
 )
+
+
+def test_create_domains(particle_database: ParticleCollection):
+    pdg = particle_database
+    particles = pdg.filter(lambda p: p.name.startswith("pi"))
+    domains = _create_domains(particles)
+    assert len(domains) == 15
+    assert domains[EdgeQN.baryon_number] == [0]
+    assert domains[EdgeQN.strangeness] == [0]
+    assert domains[EdgeQN.charmness] == [0]
+    assert domains[EdgeQN.bottomness] == [0]
+    assert domains[EdgeQN.charge] == [-1, 0, +1]
+    assert domains[EdgeQN.spin_magnitude] == [0, 0.5, 1, 1.5, 2]
+    assert (
+        domains[EdgeQN.spin_projection]
+        == [-2, -1.5, -1, -0.5] + domains[EdgeQN.spin_magnitude]
+    )
+    assert domains[EdgeQN.isospin_magnitude] == [0, 0.5, 1]
+    assert domains[EdgeQN.isospin_projection] == [-1, -0.5, 0, 0.5, 1]
 
 
 @pytest.mark.parametrize("interaction_type", list(InteractionTypes))
@@ -14,11 +36,16 @@ from qrules.settings import (
     "formalism_type", ["canonical", "canonical-helicity", "helicity"]
 )
 def test_create_interaction_settings(
+    particle_database: ParticleCollection,
     interaction_type: InteractionTypes,
     nbody_topology: bool,
     formalism_type: str,
 ):
-    settings = create_interaction_settings(formalism_type, nbody_topology)
+    settings = create_interaction_settings(
+        formalism_type,
+        particles=particle_database,
+        nbody_topology=nbody_topology,
+    )
     assert set(settings) == set(InteractionTypes)
 
     edge_settings, node_settings = settings[interaction_type]
@@ -34,12 +61,12 @@ def test_create_interaction_settings(
         "parity": [-1, +1],
         "c_parity": [-1, +1, None],
         "g_parity": [-1, +1, None],
-        "spin_magnitude": _halves_domain(0, 2),
-        "spin_projection": _halves_domain(-2, +2),
+        "spin_magnitude": _halves_domain(0, 4),
+        "spin_projection": _halves_domain(-4, +4),
         "charge": _int_domain(-2, 2),
         "isospin_magnitude": _halves_domain(0, 1.5),
         "isospin_projection": _halves_domain(-1.5, +1.5),
-        "strangeness": _int_domain(-1, 1),
+        "strangeness": _int_domain(-3, +3),
         "charmness": _int_domain(-1, 1),
         "bottomness": _int_domain(-1, 1),
     }
