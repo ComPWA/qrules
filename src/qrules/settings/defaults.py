@@ -4,6 +4,7 @@ It is possible to change these settings from the outside, like:
 
 >>> from qrules.settings import defaults
 >>> defaults.MAX_ANGULAR_MOMENTUM = 4
+>>> defaults.MAX_SPIN_MAGNITUDE = 3
 """
 
 from os.path import dirname, join, realpath
@@ -45,10 +46,7 @@ ADDITIONAL_PARTICLES_DEFINITIONS_PATH: str = join(
 CONSERVATION_LAW_PRIORITIES: Dict[
     Union[GraphElementRule, EdgeQNConservationRule, ConservationRule], int
 ] = {
-    spin_conservation: 8,
-    spin_magnitude_conservation: 8,
     MassConservation: 10,
-    ChargeConservation: 100,
     ElectronLNConservation: 45,
     MuonLNConservation: 44,
     TauLNConservation: 43,
@@ -56,6 +54,9 @@ CONSERVATION_LAW_PRIORITIES: Dict[
     StrangenessConservation: 69,
     CharmConservation: 70,
     BottomnessConservation: 68,
+    ChargeConservation: 100,
+    spin_conservation: 8,
+    spin_magnitude_conservation: 8,
     parity_conservation: 6,
     c_parity_conservation: 5,
     g_parity_conservation: 3,
@@ -75,7 +76,7 @@ EDGE_RULE_PRIORITIES: Dict[GraphElementRule, int] = {
 }
 
 MAX_ANGULAR_MOMENTUM: int = 2
-"""Maximum angular momentum over which to generate transitions.
+"""Maximum angular momentum over which to generate :math:`LS`-couplings."""
 
-Is used in particular by `.create_interaction_settings`.
-"""
+MAX_SPIN_MAGNITUDE: int = 2
+"""Maximum spin magnitude over which to generate :math:`LS`-couplings."""

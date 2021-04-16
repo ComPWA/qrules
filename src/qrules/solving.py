@@ -62,7 +62,7 @@ class EdgeSettings:
 
     conservation_rules: Set[GraphElementRule] = attr.ib(factory=set)
     rule_priorities: Dict[GraphElementRule, int] = attr.ib(factory=dict)
-    qn_domains: Dict[Any, Any] = attr.ib(factory=dict)
+    qn_domains: Dict[Any, list] = attr.ib(factory=dict)
 
 
 @attr.s
@@ -81,7 +81,7 @@ class NodeSettings:
 
     conservation_rules: Set[Rule] = attr.ib(factory=set)
     rule_priorities: Dict[Rule, int] = attr.ib(factory=dict)
-    qn_domains: Dict[Any, Any] = attr.ib(factory=dict)
+    qn_domains: Dict[Any, list] = attr.ib(factory=dict)
     interaction_strength: float = 1.0
 
 

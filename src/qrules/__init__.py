@@ -48,8 +48,12 @@ from .conservation_rules import (
 )
 from .particle import ParticleCollection, load_pdg
 from .quantum_numbers import InteractionProperties
-from .settings import InteractionTypes
-from .settings.defaults import ADDITIONAL_PARTICLES_DEFINITIONS_PATH
+from .settings import InteractionTypes, _halves_domain, _int_domain
+from .settings.defaults import (
+    ADDITIONAL_PARTICLES_DEFINITIONS_PATH,
+    MAX_ANGULAR_MOMENTUM,
+    MAX_SPIN_MAGNITUDE,
+)
 from .solving import (
     GraphSettings,
     NodeSettings,
@@ -194,7 +198,10 @@ def check_reaction_violations(
     # if it is a two body reaction
     ls_combinations = [
         InteractionProperties(l_magnitude=l_magnitude, s_magnitude=s_magnitude)
-        for l_magnitude, s_magnitude in product([0, 1], [0, 0.5, 1, 1.5, 2])
+        for l_magnitude, s_magnitude in product(
+            _int_domain(0, MAX_ANGULAR_MOMENTUM),
+            _halves_domain(0, MAX_SPIN_MAGNITUDE),
+        )
     ]
 
     initial_facts_list = []

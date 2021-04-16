@@ -182,7 +182,7 @@ class InteractionProperties:
 
 
 def arange(
-    x_1: float, x_2: float, delta: float
+    x_1: float, x_2: float, delta: float = 1.0
 ) -> Generator[float, None, None]:
     current = Decimal(x_1)
     while current < x_2:
