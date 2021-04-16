@@ -105,6 +105,16 @@ def check_reaction_violations(  # pylint: disable=too-many-arguments
       several quantum numbers can be violated. Each entry in the frozenset
       represents a group of rules that together violate all possible quantum
       number configurations.
+
+    Example:
+        >>> import qrules as q
+        >>> q.check_reaction_violations(
+        ...     initial_state="pi0",
+        ...     final_state=["gamma", "gamma", "gamma"],
+        ... )
+        {frozenset({'c_parity_conservation'})}
+
+    .. seealso:: :ref:`usage:Check allowed reactions`
     """
     # pylint: disable=too-many-locals
     if not isinstance(initial_state, (list, tuple)):
