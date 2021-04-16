@@ -145,7 +145,7 @@ html_theme_options = {
     },
     "theme_dev_mode": True,
 }
-html_title = "QRules"
+html_title = "Quantum number conservation rules"
 pygments_style = "sphinx"
 todo_include_todos = False
 viewcode_follow_imported_members = True
