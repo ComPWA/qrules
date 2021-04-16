@@ -82,6 +82,7 @@ EDGE_RULE_PRIORITIES: Dict[GraphElementRule, int] = {
     isospin_validity: 61,
     spin_validity: 62,
 }
+"""Determines the order with which to verify `.Edge` conservation rules."""
 
 MAX_ANGULAR_MOMENTUM: int = 2
 """Maximum angular momentum over which to generate :math:`LS`-couplings."""
