@@ -91,8 +91,8 @@ def check_reaction_violations(
       mass_conservation_factor: Factor with which the width is multiplied when
         checking for `.MassConservation`. Set to `None` in order to deactivate
         mass conservation.
-      particle_db: (Optional) Custom ParticleCollection object.  Defaults to
-        the list returned by load_pdg().
+      particle_db (Optional): Custom `.ParticleCollection` object.  Defaults to
+        the `.ParticleCollection` returned by `.load_pdg`.
 
     Returns:
       Set of least violating rules. The set can have multiple entries, as
