@@ -13,8 +13,8 @@ from qrules.settings import (
 
 def test_create_domains(particle_database: ParticleCollection):
     pdg = particle_database
-    particles = pdg.filter(lambda p: p.name.startswith("pi"))
-    domains = _create_domains(particles)
+    pions = pdg.filter(lambda p: p.name.startswith("pi"))
+    domains = _create_domains(pions)
     assert len(domains) == 15
     assert domains[EdgeQN.baryon_number] == [0]
     assert domains[EdgeQN.strangeness] == [0]
@@ -43,7 +43,7 @@ def test_create_interaction_settings(
 ):
     settings = create_interaction_settings(
         formalism_type,
-        particles=particle_database,
+        particle_db=particle_database,
         nbody_topology=nbody_topology,
     )
     assert set(settings) == set(InteractionType)

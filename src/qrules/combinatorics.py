@@ -230,7 +230,7 @@ def _get_kinematic_representation(
 
 def create_initial_facts(  # pylint: disable=too-many-locals
     topology: Topology,
-    particles: ParticleCollection,
+    particle_db: ParticleCollection,
     initial_state: Sequence[StateDefinition],
     final_state: Sequence[StateDefinition],
     final_state_groupings: Optional[
@@ -253,7 +253,7 @@ def create_initial_facts(  # pylint: disable=too-many-locals
 
     kinematic_permutation_graphs = _generate_kinematic_permutations(
         topology=topology,
-        particles=particles,
+        particle_db=particle_db,
         initial_state=initial_state,
         final_state=final_state,
         allowed_kinematic_groupings=allowed_kinematic_groupings,
@@ -261,7 +261,7 @@ def create_initial_facts(  # pylint: disable=too-many-locals
     edge_initial_facts = list()
     for kinematic_permutation in kinematic_permutation_graphs:
         spin_permutations = _generate_spin_permutations(
-            kinematic_permutation, particles
+            kinematic_permutation, particle_db
         )
         edge_initial_facts.extend(
             [InitialFacts(edge_props=x) for x in spin_permutations]
@@ -271,7 +271,7 @@ def create_initial_facts(  # pylint: disable=too-many-locals
 
 def _generate_kinematic_permutations(
     topology: Topology,
-    particles: ParticleCollection,
+    particle_db: ParticleCollection,
     initial_state: Sequence[StateDefinition],
     final_state: Sequence[StateDefinition],
     allowed_kinematic_groupings: Optional[
@@ -301,10 +301,10 @@ def _generate_kinematic_permutations(
         return False
 
     initial_state_with_projections = _safe_set_spin_projections(
-        initial_state, particles
+        initial_state, particle_db
     )
     final_state_with_projections = _safe_set_spin_projections(
-        final_state, particles
+        final_state, particle_db
     )
 
     initial_facts_combinations: List[Dict[int, StateWithSpins]] = list()

@@ -224,7 +224,7 @@ def _get_particle_graphs(
     """Strip `list` of `.StateTransitionGraph` s of the spin projections.
 
     Extract a `list` of `.StateTransitionGraph` instances with only
-    particles on the edges.
+    `.Particle` instances on the edges.
 
     .. seealso:: :doc:`/usage/visualize`
     """

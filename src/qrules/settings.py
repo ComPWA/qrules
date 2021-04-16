@@ -95,7 +95,7 @@ class InteractionType(Enum):
 
 def create_interaction_settings(  # pylint: disable=too-many-locals,too-many-arguments
     formalism_type: str,
-    particles: ParticleCollection,
+    particle_db: ParticleCollection,
     nbody_topology: bool = False,
     mass_conservation_factor: Optional[float] = 3.0,
     max_angular_momentum: int = 2,
@@ -109,7 +109,7 @@ def create_interaction_settings(  # pylint: disable=too-many-locals,too-many-arg
             spin_validity,
         },
         rule_priorities=EDGE_RULE_PRIORITIES,
-        qn_domains=_create_domains(particles),
+        qn_domains=_create_domains(particle_db),
     )
     formalism_node_settings = NodeSettings(
         rule_priorities=CONSERVATION_LAW_PRIORITIES
@@ -235,7 +235,7 @@ def __get_spin_magnitudes(
     return _halves_domain(0, max_spin_magnitude)
 
 
-def _create_domains(particles: ParticleCollection) -> Dict[Any, list]:
+def _create_domains(particle_db: ParticleCollection) -> Dict[Any, list]:
     domains: Dict[Any, list] = {
         EdgeQN.electron_lepton_number: [-1, 0, +1],
         EdgeQN.muon_lepton_number: [-1, 0, +1],
@@ -253,17 +253,17 @@ def _create_domains(particles: ParticleCollection) -> Dict[Any, list]:
         EdgeQN.bottomness: lambda p: p.bottomness,
     }.items():
         domains[edge_qn] = __extend_negative(
-            __positive_int_domain(particles, getter)
+            __positive_int_domain(particle_db, getter)
         )
 
     domains[EdgeQN.spin_magnitude] = __positive_halves_domain(
-        particles, lambda p: p.spin
+        particle_db, lambda p: p.spin
     )
     domains[EdgeQN.spin_projection] = __extend_negative(
         domains[EdgeQN.spin_magnitude]
     )
     domains[EdgeQN.isospin_magnitude] = __positive_halves_domain(
-        particles,
+        particle_db,
         lambda p: 0 if p.isospin is None else p.isospin.magnitude,
     )
     domains[EdgeQN.isospin_projection] = __extend_negative(
@@ -273,16 +273,16 @@ def _create_domains(particles: ParticleCollection) -> Dict[Any, list]:
 
 
 def __positive_halves_domain(
-    particles: ParticleCollection, attr_getter: Callable[[Particle], Any]
+    particle_db: ParticleCollection, attr_getter: Callable[[Particle], Any]
 ) -> List[float]:
-    values = set(map(attr_getter, particles))
+    values = set(map(attr_getter, particle_db))
     return _halves_domain(0, max(values))
 
 
 def __positive_int_domain(
-    particles: ParticleCollection, attr_getter: Callable[[Particle], Any]
+    particle_db: ParticleCollection, attr_getter: Callable[[Particle], Any]
 ) -> List[int]:
-    values = set(map(attr_getter, particles))
+    values = set(map(attr_getter, particle_db))
     return _int_domain(0, max(values))
 
 

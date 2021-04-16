@@ -208,7 +208,7 @@ def check_reaction_violations(  # pylint: disable=too-many-arguments
 
     initial_facts = create_initial_facts(
         topology=topology,
-        particles=particle_db,
+        particle_db=particle_db,
         initial_state=initial_state,
         final_state=final_state,
     )
@@ -284,7 +284,7 @@ def generate_transitions(  # pylint: disable=too-many-arguments
     allowed_intermediate_particles: Optional[List[str]] = None,
     allowed_interaction_types: Optional[Union[str, List[str]]] = None,
     formalism_type: str = "helicity",
-    particles: Optional[ParticleCollection] = None,
+    particle_db: Optional[ParticleCollection] = None,
     mass_conservation_factor: Optional[float] = 3.0,
     max_angular_momentum: int = 2,
     max_spin_magnitude: float = 2.0,
@@ -318,7 +318,7 @@ def generate_transitions(  # pylint: disable=too-many-arguments
         formalism_type (`str`, optional): Formalism that you intend to use in
             the eventual amplitude model.
 
-        particles (`.ParticleCollection`, optional): The particles that you
+        particle_db (`.ParticleCollection`, optional): The particles that you
             want to be involved in the reaction. Uses `.load_pdg` by default.
             It's better to use a subset for larger reactions, because of
             the computation times. This argument is especially useful when you
@@ -354,7 +354,7 @@ def generate_transitions(  # pylint: disable=too-many-arguments
     ...     allowed_intermediate_particles=["a(0)(980)", "a(2)(1320)-"],
     ...     allowed_interaction_types="ew",
     ...     formalism_type="helicity",
-    ...     particles=q.load_pdg(),
+    ...     particle_db=q.load_pdg(),
     ...     topology_building="isobar",
     ... )
     >>> len(result.transitions)
@@ -369,7 +369,7 @@ def generate_transitions(  # pylint: disable=too-many-arguments
     stm = StateTransitionManager(
         initial_state=initial_state,  # type: ignore
         final_state=final_state,
-        particles=particles,
+        particle_db=particle_db,
         allowed_intermediate_particles=allowed_intermediate_particles,
         formalism_type=formalism_type,
         mass_conservation_factor=mass_conservation_factor,
@@ -432,8 +432,8 @@ def load_default_particles() -> ParticleCollection:
     :download:`additional_definitions.yml
     </../src/qrules/additional_definitions.yml>`.
     """
-    particles = load_pdg()
+    particle_db = load_pdg()
     additional_particles = io.load(ADDITIONAL_PARTICLES_DEFINITIONS_PATH)
     assert isinstance(additional_particles, ParticleCollection)
-    particles.update(additional_particles)
-    return particles
+    particle_db.update(additional_particles)
+    return particle_db

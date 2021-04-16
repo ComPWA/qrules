@@ -30,7 +30,7 @@ def test_number_of_solutions(
     result = q.generate_transitions(
         initial_state=("J/psi(1S)", [-1, +1]),
         final_state=["gamma", "pi0", "pi0"],
-        particles=particle_database,
+        particle_db=particle_database,
         allowed_interaction_types="strong and EM",
         allowed_intermediate_particles=allowed_intermediate_particles,
         number_of_threads=1,
@@ -45,7 +45,7 @@ def test_id_to_particle_mappings(particle_database):
     result = q.generate_transitions(
         initial_state=("J/psi(1S)", [-1, +1]),
         final_state=["gamma", "pi0", "pi0"],
-        particles=particle_database,
+        particle_db=particle_database,
         allowed_interaction_types="strong",
         allowed_intermediate_particles=["f(0)(980)"],
         number_of_threads=1,

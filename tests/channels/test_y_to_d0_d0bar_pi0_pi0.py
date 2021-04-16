@@ -15,7 +15,7 @@ def test_simple(formalism_type, n_solutions, particle_database):
     result = q.generate_transitions(
         initial_state=[("Y(4260)", [-1, +1])],
         final_state=["D*(2007)0", "D*(2007)~0"],
-        particles=particle_database,
+        particle_db=particle_database,
         formalism_type=formalism_type,
         allowed_interaction_types="strong",
         number_of_threads=1,
@@ -35,7 +35,7 @@ def test_full(formalism_type, n_solutions, particle_database):
     stm = StateTransitionManager(
         initial_state=[("Y(4260)", [-1, +1])],
         final_state=["D0", "D~0", "pi0", "pi0"],
-        particles=particle_database,
+        particle_db=particle_database,
         allowed_intermediate_particles=["D*"],
         formalism_type=formalism_type,
         number_of_threads=1,
