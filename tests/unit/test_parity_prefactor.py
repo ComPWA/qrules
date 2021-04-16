@@ -2,7 +2,7 @@ from typing import NamedTuple, Tuple
 
 import pytest
 
-from qrules.settings import InteractionTypes
+from qrules.settings import InteractionType
 from qrules.transition import StateTransitionManager
 
 
@@ -60,7 +60,7 @@ def test_parity_prefactor(
         number_of_threads=1,
     )
     stm.add_final_state_grouping(test_input.final_state_grouping)
-    stm.set_allowed_interaction_types([InteractionTypes.EM])
+    stm.set_allowed_interaction_types([InteractionType.EM])
     problem_sets = stm.create_problem_sets()
 
     result = stm.find_solutions(problem_sets)

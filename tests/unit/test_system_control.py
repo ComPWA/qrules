@@ -4,7 +4,7 @@ from typing import List
 
 import pytest
 
-from qrules import InteractionTypes, ProblemSet, StateTransitionManager
+from qrules import InteractionType, ProblemSet, StateTransitionManager
 from qrules._system_control import (
     create_edge_properties,
     filter_graphs,
@@ -100,7 +100,7 @@ def test_external_edge_initialization(
         number_of_threads=1,
     )
 
-    stm.set_allowed_interaction_types([InteractionTypes.STRONG])
+    stm.set_allowed_interaction_types([InteractionType.STRONG])
     for group in final_state_groupings:
         stm.add_final_state_grouping(group)
 
@@ -363,7 +363,7 @@ def test_edge_swap(particle_database, initial_state, final_state):
         formalism_type="helicity",
         number_of_threads=1,
     )
-    stm.set_allowed_interaction_types([InteractionTypes.STRONG])
+    stm.set_allowed_interaction_types([InteractionType.STRONG])
 
     problem_sets = stm.create_problem_sets()
     init_graphs: List[StateTransitionGraph[ParticleWithSpin]] = []
@@ -410,7 +410,7 @@ def test_match_external_edges(particle_database, initial_state, final_state):
         number_of_threads=1,
     )
 
-    stm.set_allowed_interaction_types([InteractionTypes.STRONG])
+    stm.set_allowed_interaction_types([InteractionType.STRONG])
 
     problem_sets = stm.create_problem_sets()
     init_graphs: List[StateTransitionGraph[ParticleWithSpin]] = []
@@ -486,7 +486,7 @@ def test_external_edge_identical_particle_combinatorics(
         formalism_type="helicity",
         number_of_threads=1,
     )
-    stm.set_allowed_interaction_types([InteractionTypes.STRONG])
+    stm.set_allowed_interaction_types([InteractionType.STRONG])
     for group in final_state_groupings:
         stm.add_final_state_grouping(group)
 

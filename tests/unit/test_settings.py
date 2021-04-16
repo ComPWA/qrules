@@ -3,7 +3,7 @@ import pytest
 from qrules.particle import ParticleCollection
 from qrules.quantum_numbers import EdgeQuantumNumbers as EdgeQN
 from qrules.settings import (
-    InteractionTypes,
+    InteractionType,
     _create_domains,
     _halves_domain,
     _int_domain,
@@ -30,14 +30,14 @@ def test_create_domains(particle_database: ParticleCollection):
     assert domains[EdgeQN.isospin_projection] == [-1, -0.5, 0, 0.5, 1]
 
 
-@pytest.mark.parametrize("interaction_type", list(InteractionTypes))
+@pytest.mark.parametrize("interaction_type", list(InteractionType))
 @pytest.mark.parametrize("nbody_topology", [False, True])
 @pytest.mark.parametrize(
     "formalism_type", ["canonical", "canonical-helicity", "helicity"]
 )
 def test_create_interaction_settings(
     particle_database: ParticleCollection,
-    interaction_type: InteractionTypes,
+    interaction_type: InteractionType,
     nbody_topology: bool,
     formalism_type: str,
 ):
@@ -46,7 +46,7 @@ def test_create_interaction_settings(
         particles=particle_database,
         nbody_topology=nbody_topology,
     )
-    assert set(settings) == set(InteractionTypes)
+    assert set(settings) == set(InteractionType)
 
     edge_settings, node_settings = settings[interaction_type]
     edge_qn_domains_str = {  # strings are easier to compare with pytest
@@ -82,7 +82,7 @@ def test_create_interaction_settings(
         expected["l_projection"] = [0]
     if (
         "helicity" in formalism_type
-        and interaction_type != InteractionTypes.WEAK
+        and interaction_type != InteractionType.WEAK
     ):
         expected["parity_prefactor"] = [-1, 1]
     if nbody_topology:
