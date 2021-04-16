@@ -251,7 +251,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
     .. seealso:: :doc:`/usage/reaction` and `.generate_transitions`
     """
 
-    def __init__(  # pylint: disable=too-many-arguments,too-many-branches
+    def __init__(  # pylint: disable=too-many-arguments, too-many-branches, too-many-locals
         self,
         initial_state: Sequence[StateDefinition],
         final_state: Sequence[StateDefinition],
@@ -266,6 +266,8 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         solving_mode: SolvingMode = SolvingMode.FAST,
         reload_pdg: bool = False,
         mass_conservation_factor: Optional[float] = 3.0,
+        max_angular_momentum: int = 1,
+        max_spin_magnitude: float = 2.0,
     ) -> None:
         if interaction_type_settings is None:
             interaction_type_settings = {}
@@ -336,6 +338,8 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
                 particles=self.__particles,
                 nbody_topology=use_nbody_topology,
                 mass_conservation_factor=mass_conservation_factor,
+                max_angular_momentum=max_angular_momentum,
+                max_spin_magnitude=max_spin_magnitude,
             )
 
         self.__user_allowed_intermediate_particles = (
