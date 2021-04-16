@@ -1,10 +1,4 @@
-"""Default settings for the framework.
-
-It is possible to change these settings from the outside, like:
-
->>> from qrules.settings import defaults
->>> defaults.MAX_SPIN_MAGNITUDE = 3
-"""
+"""Default settings for the framework."""
 
 from os.path import dirname, join, realpath
 from typing import Dict, Union
@@ -73,6 +67,3 @@ EDGE_RULE_PRIORITIES: Dict[GraphElementRule, int] = {
     isospin_validity: 61,
     spin_validity: 62,
 }
-
-MAX_SPIN_MAGNITUDE: int = 2
-"""Maximum spin magnitude over which to generate :math:`LS`-couplings."""
