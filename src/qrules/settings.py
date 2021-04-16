@@ -90,7 +90,7 @@ MAX_SPIN_MAGNITUDE: int = 2
 """Maximum spin magnitude over which to generate :math:`LS`-couplings."""
 
 
-class InteractionTypes(Enum):
+class InteractionType(Enum):
     """Types of interactions in the form of an enumerate."""
 
     STRONG = auto()
@@ -98,13 +98,15 @@ class InteractionTypes(Enum):
     WEAK = auto()
 
 
-def create_interaction_settings(
+def create_interaction_settings(  # pylint: disable=too-many-locals,too-many-arguments
     formalism_type: str,
     particles: ParticleCollection,
     nbody_topology: bool = False,
     mass_conservation_factor: Optional[float] = 3.0,
-) -> Dict[InteractionTypes, Tuple[EdgeSettings, NodeSettings]]:
-    """Create a container that holds the settings for `.InteractionTypes`."""
+    max_angular_momentum: int = 2,
+    max_spin_magnitude: int = 2,
+) -> Dict[InteractionType, Tuple[EdgeSettings, NodeSettings]]:
+    """Create a container that holds the settings for `.InteractionType`."""
     formalism_edge_settings = EdgeSettings(
         conservation_rules={
             isospin_validity,
@@ -118,14 +120,20 @@ def create_interaction_settings(
         rule_priorities=CONSERVATION_LAW_PRIORITIES
     )
 
+    angular_momentum_domain = _get_ang_mom_magnitudes(
+        nbody_topology, max_angular_momentum
+    )
+    spin_magnitude_domain = _get_spin_magnitudes(
+        nbody_topology, max_spin_magnitude
+    )
     if "helicity" in formalism_type:
         formalism_node_settings.conservation_rules = {
             spin_magnitude_conservation,
             helicity_conservation,
         }
         formalism_node_settings.qn_domains = {
-            NodeQN.l_magnitude: _get_ang_mom_magnitudes(nbody_topology),
-            NodeQN.s_magnitude: _get_spin_magnitudes(nbody_topology),
+            NodeQN.l_magnitude: angular_momentum_domain,
+            NodeQN.s_magnitude: spin_magnitude_domain,
         }
     elif formalism_type == "canonical":
         formalism_node_settings.conservation_rules = {
@@ -137,14 +145,10 @@ def create_interaction_settings(
                 ls_spin_validity,
             }
         formalism_node_settings.qn_domains = {
-            NodeQN.l_magnitude: _get_ang_mom_magnitudes(nbody_topology),
-            NodeQN.l_projection: __extend_negative(
-                _get_ang_mom_magnitudes(nbody_topology)
-            ),
-            NodeQN.s_magnitude: _get_spin_magnitudes(nbody_topology),
-            NodeQN.s_projection: __extend_negative(
-                _get_spin_magnitudes(nbody_topology)
-            ),
+            NodeQN.l_magnitude: angular_momentum_domain,
+            NodeQN.l_projection: __extend_negative(angular_momentum_domain),
+            NodeQN.s_magnitude: spin_magnitude_domain,
+            NodeQN.s_projection: __extend_negative(spin_magnitude_domain),
         }
     if formalism_type == "canonical-helicity":
         formalism_node_settings.conservation_rules.update(
@@ -156,9 +160,7 @@ def create_interaction_settings(
         formalism_node_settings.qn_domains.update(
             {
                 NodeQN.l_projection: [0],
-                NodeQN.s_projection: __extend_negative(
-                    _get_spin_magnitudes(nbody_topology)
-                ),
+                NodeQN.s_projection: __extend_negative(spin_magnitude_domain),
             }
         )
     if mass_conservation_factor is not None:
@@ -181,7 +183,7 @@ def create_interaction_settings(
     weak_node_settings.interaction_strength = 10 ** (-4)
     weak_edge_settings = deepcopy(formalism_edge_settings)
 
-    interaction_type_settings[InteractionTypes.WEAK] = (
+    interaction_type_settings[InteractionType.WEAK] = (
         weak_edge_settings,
         weak_node_settings,
     )
@@ -202,7 +204,7 @@ def create_interaction_settings(
 
     em_node_settings.interaction_strength = 1
     em_edge_settings = deepcopy(weak_edge_settings)
-    interaction_type_settings[InteractionTypes.EM] = (
+    interaction_type_settings[InteractionType.EM] = (
         em_edge_settings,
         em_node_settings,
     )
@@ -214,7 +216,7 @@ def create_interaction_settings(
 
     strong_node_settings.interaction_strength = 60
     strong_edge_settings = deepcopy(em_edge_settings)
-    interaction_type_settings[InteractionTypes.STRONG] = (
+    interaction_type_settings[InteractionType.STRONG] = (
         strong_edge_settings,
         strong_node_settings,
     )
@@ -222,16 +224,20 @@ def create_interaction_settings(
     return interaction_type_settings
 
 
-def _get_ang_mom_magnitudes(is_nbody: bool) -> List[float]:
+def _get_ang_mom_magnitudes(
+    is_nbody: bool, max_angular_momentum: int
+) -> List[float]:
     if is_nbody:
         return [0]
-    return _int_domain(0, MAX_ANGULAR_MOMENTUM)  # type: ignore
+    return _int_domain(0, max_angular_momentum)  # type: ignore
 
 
-def _get_spin_magnitudes(is_nbody: bool) -> List[float]:
+def _get_spin_magnitudes(
+    is_nbody: bool, max_spin_magnitude: int
+) -> List[float]:
     if is_nbody:
         return [0]
-    return _halves_domain(0, MAX_SPIN_MAGNITUDE)
+    return _halves_domain(0, max_spin_magnitude)
 
 
 def _create_domains(particles: ParticleCollection) -> Dict[Any, list]:

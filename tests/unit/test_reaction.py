@@ -1,7 +1,7 @@
 import pytest
 
 from qrules import _determine_interaction_types
-from qrules.settings import InteractionTypes as IT  # noqa: N817
+from qrules.settings import InteractionType as IT  # noqa: N817
 
 
 @pytest.mark.parametrize(
