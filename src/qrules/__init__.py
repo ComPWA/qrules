@@ -49,11 +49,7 @@ from .conservation_rules import (
 from .particle import ParticleCollection, load_pdg
 from .quantum_numbers import InteractionProperties
 from .settings import InteractionType, _halves_domain, _int_domain
-from .settings.defaults import (
-    ADDITIONAL_PARTICLES_DEFINITIONS_PATH,
-    MAX_ANGULAR_MOMENTUM,
-    MAX_SPIN_MAGNITUDE,
-)
+from .settings.defaults import ADDITIONAL_PARTICLES_DEFINITIONS_PATH
 from .solving import (
     GraphSettings,
     NodeSettings,
@@ -199,8 +195,8 @@ def check_reaction_violations(
     ls_combinations = [
         InteractionProperties(l_magnitude=l_magnitude, s_magnitude=s_magnitude)
         for l_magnitude, s_magnitude in product(
-            _int_domain(0, MAX_ANGULAR_MOMENTUM),
-            _halves_domain(0, MAX_SPIN_MAGNITUDE),
+            _int_domain(0, 1),
+            _halves_domain(0, 2),
         )
     ]
 

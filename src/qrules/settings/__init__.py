@@ -35,12 +35,7 @@ from qrules.quantum_numbers import NodeQuantumNumbers as NodeQN
 from qrules.quantum_numbers import arange
 from qrules.solving import EdgeSettings, NodeSettings
 
-from .defaults import (
-    CONSERVATION_LAW_PRIORITIES,
-    EDGE_RULE_PRIORITIES,
-    MAX_ANGULAR_MOMENTUM,
-    MAX_SPIN_MAGNITUDE,
-)
+from .defaults import CONSERVATION_LAW_PRIORITIES, EDGE_RULE_PRIORITIES
 
 
 class InteractionType(Enum):
@@ -51,11 +46,13 @@ class InteractionType(Enum):
     WEAK = auto()
 
 
-def create_interaction_settings(
+def create_interaction_settings(  # pylint: disable=too-many-locals,too-many-arguments
     formalism_type: str,
     particles: ParticleCollection,
     nbody_topology: bool = False,
     mass_conservation_factor: Optional[float] = 3.0,
+    max_angular_momentum: int = 2,
+    max_spin_magnitude: int = 2,
 ) -> Dict[InteractionType, Tuple[EdgeSettings, NodeSettings]]:
     """Create a container that holds the settings for `.InteractionType`."""
     formalism_edge_settings = EdgeSettings(
@@ -71,14 +68,20 @@ def create_interaction_settings(
         rule_priorities=CONSERVATION_LAW_PRIORITIES
     )
 
+    angular_momentum_domain = _get_ang_mom_magnitudes(
+        nbody_topology, max_angular_momentum
+    )
+    spin_magnitude_domain = _get_spin_magnitudes(
+        nbody_topology, max_spin_magnitude
+    )
     if "helicity" in formalism_type:
         formalism_node_settings.conservation_rules = {
             spin_magnitude_conservation,
             helicity_conservation,
         }
         formalism_node_settings.qn_domains = {
-            NodeQN.l_magnitude: _get_ang_mom_magnitudes(nbody_topology),
-            NodeQN.s_magnitude: _get_spin_magnitudes(nbody_topology),
+            NodeQN.l_magnitude: angular_momentum_domain,
+            NodeQN.s_magnitude: spin_magnitude_domain,
         }
     elif formalism_type == "canonical":
         formalism_node_settings.conservation_rules = {
@@ -90,14 +93,10 @@ def create_interaction_settings(
                 ls_spin_validity,
             }
         formalism_node_settings.qn_domains = {
-            NodeQN.l_magnitude: _get_ang_mom_magnitudes(nbody_topology),
-            NodeQN.l_projection: __extend_negative(
-                _get_ang_mom_magnitudes(nbody_topology)
-            ),
-            NodeQN.s_magnitude: _get_spin_magnitudes(nbody_topology),
-            NodeQN.s_projection: __extend_negative(
-                _get_spin_magnitudes(nbody_topology)
-            ),
+            NodeQN.l_magnitude: angular_momentum_domain,
+            NodeQN.l_projection: __extend_negative(angular_momentum_domain),
+            NodeQN.s_magnitude: spin_magnitude_domain,
+            NodeQN.s_projection: __extend_negative(spin_magnitude_domain),
         }
     if formalism_type == "canonical-helicity":
         formalism_node_settings.conservation_rules.update(
@@ -109,9 +108,7 @@ def create_interaction_settings(
         formalism_node_settings.qn_domains.update(
             {
                 NodeQN.l_projection: [0],
-                NodeQN.s_projection: __extend_negative(
-                    _get_spin_magnitudes(nbody_topology)
-                ),
+                NodeQN.s_projection: __extend_negative(spin_magnitude_domain),
             }
         )
     if mass_conservation_factor is not None:
@@ -175,16 +172,20 @@ def create_interaction_settings(
     return interaction_type_settings
 
 
-def _get_ang_mom_magnitudes(is_nbody: bool) -> List[float]:
+def _get_ang_mom_magnitudes(
+    is_nbody: bool, max_angular_momentum: int
+) -> List[float]:
     if is_nbody:
         return [0]
-    return _int_domain(0, MAX_ANGULAR_MOMENTUM)  # type: ignore
+    return _int_domain(0, max_angular_momentum)  # type: ignore
 
 
-def _get_spin_magnitudes(is_nbody: bool) -> List[float]:
+def _get_spin_magnitudes(
+    is_nbody: bool, max_spin_magnitude: int
+) -> List[float]:
     if is_nbody:
         return [0]
-    return _halves_domain(0, MAX_SPIN_MAGNITUDE)
+    return _halves_domain(0, max_spin_magnitude)
 
 
 def _create_domains(particles: ParticleCollection) -> Dict[Any, list]:
