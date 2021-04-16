@@ -38,7 +38,6 @@ from qrules.solving import EdgeSettings, NodeSettings
 from .defaults import (
     CONSERVATION_LAW_PRIORITIES,
     EDGE_RULE_PRIORITIES,
-    MAX_ANGULAR_MOMENTUM,
     MAX_SPIN_MAGNITUDE,
 )
 
@@ -56,6 +55,7 @@ def create_interaction_settings(
     particles: ParticleCollection,
     nbody_topology: bool = False,
     mass_conservation_factor: Optional[float] = 3.0,
+    max_angular_momentum: int = 2,
 ) -> Dict[InteractionType, Tuple[EdgeSettings, NodeSettings]]:
     """Create a container that holds the settings for `.InteractionType`."""
     formalism_edge_settings = EdgeSettings(
@@ -71,13 +71,16 @@ def create_interaction_settings(
         rule_priorities=CONSERVATION_LAW_PRIORITIES
     )
 
+    angular_momentum_domain = _get_ang_mom_magnitudes(
+        nbody_topology, max_angular_momentum
+    )
     if "helicity" in formalism_type:
         formalism_node_settings.conservation_rules = {
             spin_magnitude_conservation,
             helicity_conservation,
         }
         formalism_node_settings.qn_domains = {
-            NodeQN.l_magnitude: _get_ang_mom_magnitudes(nbody_topology),
+            NodeQN.l_magnitude: angular_momentum_domain,
             NodeQN.s_magnitude: _get_spin_magnitudes(nbody_topology),
         }
     elif formalism_type == "canonical":
@@ -90,10 +93,8 @@ def create_interaction_settings(
                 ls_spin_validity,
             }
         formalism_node_settings.qn_domains = {
-            NodeQN.l_magnitude: _get_ang_mom_magnitudes(nbody_topology),
-            NodeQN.l_projection: __extend_negative(
-                _get_ang_mom_magnitudes(nbody_topology)
-            ),
+            NodeQN.l_magnitude: angular_momentum_domain,
+            NodeQN.l_projection: __extend_negative(angular_momentum_domain),
             NodeQN.s_magnitude: _get_spin_magnitudes(nbody_topology),
             NodeQN.s_projection: __extend_negative(
                 _get_spin_magnitudes(nbody_topology)
@@ -175,10 +176,12 @@ def create_interaction_settings(
     return interaction_type_settings
 
 
-def _get_ang_mom_magnitudes(is_nbody: bool) -> List[float]:
+def _get_ang_mom_magnitudes(
+    is_nbody: bool, max_angular_momentum: int
+) -> List[float]:
     if is_nbody:
         return [0]
-    return _int_domain(0, MAX_ANGULAR_MOMENTUM)  # type: ignore
+    return _int_domain(0, max_angular_momentum)  # type: ignore
 
 
 def _get_spin_magnitudes(is_nbody: bool) -> List[float]:

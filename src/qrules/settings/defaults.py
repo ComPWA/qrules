@@ -3,7 +3,6 @@
 It is possible to change these settings from the outside, like:
 
 >>> from qrules.settings import defaults
->>> defaults.MAX_ANGULAR_MOMENTUM = 4
 >>> defaults.MAX_SPIN_MAGNITUDE = 3
 """
 
@@ -74,9 +73,6 @@ EDGE_RULE_PRIORITIES: Dict[GraphElementRule, int] = {
     isospin_validity: 61,
     spin_validity: 62,
 }
-
-MAX_ANGULAR_MOMENTUM: int = 2
-"""Maximum angular momentum over which to generate :math:`LS`-couplings."""
 
 MAX_SPIN_MAGNITUDE: int = 2
 """Maximum spin magnitude over which to generate :math:`LS`-couplings."""
