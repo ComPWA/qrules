@@ -48,8 +48,12 @@ from .conservation_rules import (
 )
 from .particle import ParticleCollection, load_pdg
 from .quantum_numbers import InteractionProperties
-from .settings import InteractionType, _halves_domain, _int_domain
-from .settings.defaults import ADDITIONAL_PARTICLES_DEFINITIONS_PATH
+from .settings import (
+    ADDITIONAL_PARTICLES_DEFINITIONS_PATH,
+    InteractionType,
+    _halves_domain,
+    _int_domain,
+)
 from .solving import (
     GraphSettings,
     NodeSettings,
