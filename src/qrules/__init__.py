@@ -70,11 +70,13 @@ from .transition import (
 )
 
 
-def check_reaction_violations(
+def check_reaction_violations(  # pylint: disable=too-many-arguments
     initial_state: Union[StateDefinition, Sequence[StateDefinition]],
     final_state: Sequence[StateDefinition],
     mass_conservation_factor: Optional[float] = 3.0,
     particle_db: Optional[ParticleCollection] = None,
+    max_angular_momentum: int = 4,
+    max_spin_magnitude: float = 5.0,
 ) -> Set[FrozenSet[str]]:
     """Determine violated interaction rules for a given particle reaction.
 
@@ -93,6 +95,10 @@ def check_reaction_violations(
         mass conservation.
       particle_db (Optional): Custom `.ParticleCollection` object.  Defaults to
         the `.ParticleCollection` returned by `.load_pdg`.
+      max_angular_momentum: Maximum angular momentum over which to generate
+        :math:`LS`-couplings.
+      max_spin_magnitude: Maximum spin magnitude over which to generate
+        :math:`LS`-couplings.
 
     Returns:
       Set of least violating rules. The set can have multiple entries, as
@@ -205,8 +211,8 @@ def check_reaction_violations(
     ls_combinations = [
         InteractionProperties(l_magnitude=l_magnitude, s_magnitude=s_magnitude)
         for l_magnitude, s_magnitude in product(
-            _int_domain(0, 4),
-            _halves_domain(0, 5),
+            _int_domain(0, max_angular_momentum),
+            _halves_domain(0, max_spin_magnitude),
         )
     ]
 
@@ -270,6 +276,8 @@ def generate_transitions(  # pylint: disable=too-many-arguments
     formalism_type: str = "helicity",
     particles: Optional[ParticleCollection] = None,
     mass_conservation_factor: Optional[float] = 3.0,
+    max_angular_momentum: int = 2,
+    max_spin_magnitude: float = 2.0,
     topology_building: str = "isobar",
     number_of_threads: Optional[int] = None,
 ) -> Result:
@@ -310,6 +318,12 @@ def generate_transitions(  # pylint: disable=too-many-arguments
         mass_conservation_factor: Width factor that is taken into account for
             for the `.MassConservation` rule.
 
+        max_angular_momentum: Maximum angular momentum over which to generate
+            angular momenta.
+
+        max_spin_magnitude: Maximum spin magnitude over which to generate
+            spins.
+
         topology_building (str): Technique with which to build the `.Topology`
             instances. Allowed values are:
 
@@ -349,6 +363,8 @@ def generate_transitions(  # pylint: disable=too-many-arguments
         allowed_intermediate_particles=allowed_intermediate_particles,
         formalism_type=formalism_type,
         mass_conservation_factor=mass_conservation_factor,
+        max_angular_momentum=max_angular_momentum,
+        max_spin_magnitude=max_spin_magnitude,
         topology_building=topology_building,
         number_of_threads=number_of_threads,
     )

@@ -99,7 +99,7 @@ def create_interaction_settings(  # pylint: disable=too-many-locals,too-many-arg
     nbody_topology: bool = False,
     mass_conservation_factor: Optional[float] = 3.0,
     max_angular_momentum: int = 2,
-    max_spin_magnitude: int = 2,
+    max_spin_magnitude: float = 2.0,
 ) -> Dict[InteractionType, Tuple[EdgeSettings, NodeSettings]]:
     """Create a container that holds the settings for `.InteractionType`."""
     formalism_edge_settings = EdgeSettings(
@@ -228,7 +228,7 @@ def __get_ang_mom_magnitudes(
 
 
 def __get_spin_magnitudes(
-    is_nbody: bool, max_spin_magnitude: int
+    is_nbody: bool, max_spin_magnitude: float
 ) -> List[float]:
     if is_nbody:
         return [0]
