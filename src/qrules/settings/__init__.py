@@ -43,7 +43,7 @@ from .defaults import (
 )
 
 
-class InteractionTypes(Enum):
+class InteractionType(Enum):
     """Types of interactions in the form of an enumerate."""
 
     STRONG = auto()
@@ -56,8 +56,8 @@ def create_interaction_settings(
     particles: ParticleCollection,
     nbody_topology: bool = False,
     mass_conservation_factor: Optional[float] = 3.0,
-) -> Dict[InteractionTypes, Tuple[EdgeSettings, NodeSettings]]:
-    """Create a container that holds the settings for `.InteractionTypes`."""
+) -> Dict[InteractionType, Tuple[EdgeSettings, NodeSettings]]:
+    """Create a container that holds the settings for `.InteractionType`."""
     formalism_edge_settings = EdgeSettings(
         conservation_rules={
             isospin_validity,
@@ -134,7 +134,7 @@ def create_interaction_settings(
     weak_node_settings.interaction_strength = 10 ** (-4)
     weak_edge_settings = deepcopy(formalism_edge_settings)
 
-    interaction_type_settings[InteractionTypes.WEAK] = (
+    interaction_type_settings[InteractionType.WEAK] = (
         weak_edge_settings,
         weak_node_settings,
     )
@@ -155,7 +155,7 @@ def create_interaction_settings(
 
     em_node_settings.interaction_strength = 1
     em_edge_settings = deepcopy(weak_edge_settings)
-    interaction_type_settings[InteractionTypes.EM] = (
+    interaction_type_settings[InteractionType.EM] = (
         em_edge_settings,
         em_node_settings,
     )
@@ -167,7 +167,7 @@ def create_interaction_settings(
 
     strong_node_settings.interaction_strength = 60
     strong_edge_settings = deepcopy(em_edge_settings)
-    interaction_type_settings[InteractionTypes.STRONG] = (
+    interaction_type_settings[InteractionType.STRONG] = (
         strong_edge_settings,
         strong_node_settings,
     )

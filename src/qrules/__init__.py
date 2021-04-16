@@ -48,7 +48,7 @@ from .conservation_rules import (
 )
 from .particle import ParticleCollection, load_pdg
 from .quantum_numbers import InteractionProperties
-from .settings import InteractionTypes, _halves_domain, _int_domain
+from .settings import InteractionType, _halves_domain, _int_domain
 from .settings.defaults import (
     ADDITIONAL_PARTICLES_DEFINITIONS_PATH,
     MAX_ANGULAR_MOMENTUM,
@@ -288,8 +288,8 @@ def generate_transitions(  # pylint: disable=too-many-arguments
 
         allowed_interaction_types (`str`, optional): Interaction types you want
             to consider. For instance, both :code:`"strong and EM"` and
-            :code:`["s", "em"]` results in `~.InteractionTypes.EM` and
-            `~.InteractionTypes.STRONG`.
+            :code:`["s", "em"]` results in `~.InteractionType.EM` and
+            `~.InteractionType.STRONG`.
 
         formalism_type (`str`, optional): Formalism that you intend to use in
             the eventual amplitude model.
@@ -357,8 +357,8 @@ def generate_transitions(  # pylint: disable=too-many-arguments
 
 def _determine_interaction_types(
     description: Union[str, List[str]]
-) -> Set[InteractionTypes]:
-    interaction_types: Set[InteractionTypes] = set()
+) -> Set[InteractionType]:
+    interaction_types: Set[InteractionType] = set()
     if isinstance(description, list):
         for i in description:
             interaction_types.update(
@@ -374,18 +374,18 @@ def _determine_interaction_types(
         raise ValueError('Provided an empty interaction name ("")')
     interaction_name_lower = description.lower()
     if "all" in interaction_name_lower:
-        for interaction in InteractionTypes:
+        for interaction in InteractionType:
             interaction_types.add(interaction)
     if (
         "em" in interaction_name_lower
         or "ele" in interaction_name_lower
         or interaction_name_lower.startswith("e")
     ):
-        interaction_types.add(InteractionTypes.EM)
+        interaction_types.add(InteractionType.EM)
     if "w" in interaction_name_lower:
-        interaction_types.add(InteractionTypes.WEAK)
+        interaction_types.add(InteractionType.WEAK)
     if "strong" in interaction_name_lower or interaction_name_lower == "s":
-        interaction_types.add(InteractionTypes.STRONG)
+        interaction_types.add(InteractionType.STRONG)
     if len(interaction_types) == 0:
         raise ValueError(
             f'Could not determine interaction type from "{description}"'
