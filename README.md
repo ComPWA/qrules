@@ -25,7 +25,7 @@ For an overview of **upcoming releases and planned functionality**, see
 [here](https://github.com/ComPWA/qrules/milestones?direction=asc&sort=title&state=open).
 
 QRules originates from the
-[`expertsystem`](https://pypi.org/project/expertsystem)
+[`expertsystem`](https://pypi.org/project/expertsystem).
 
 ## Available features
 

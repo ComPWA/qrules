@@ -17,13 +17,15 @@ QRules originates from its {mod}`~expertsystem.reaction` module.
 :::
 
 QRules is a system for validating and generating particle reactions, using
-quantum number conservation rules. The user only has to provide a basic
-information of the particle reaction, such as an initial state and a final
-state. Helper functions provide easy ways to configure the system, but the user
-still has full control. QRules then constructs several hypotheses for what
-happens during the transition from initial to final state.
+quantum number conservation rules. The user only has to provide some basic
+information about the particle reaction, such as an initial state and a final
+state.
 
-The {doc}`usage` pages illustrate some of the cool features of {mod}`qrules`.
+Helper functions provide easy and quick ways to configure the system. QRules
+then constructs several hypotheses for what happens during the transition from
+initial to final state.
+
+The {doc}`/usage` pages illustrate some of the cool features of {mod}`qrules`.
 You can run each of them as Jupyter notebooks with the {fa}`rocket` launch
 button in the top-right corner. Enjoy!
 
@@ -38,14 +40,15 @@ QRules consists of three major components:
    A {class}`.StateTransitionGraph` is a
    [directed graph](https://en.wikipedia.org/wiki/Directed_graph) that consists
    of **nodes** and **edges**. In a directed graph, each edge must be connected
-   to at least one node (in correspondence to Feynman graphs). This way, a
-   graph describes the transition from one state to another.
+   to at least one node (in correspondence to
+   [Feynman graphs](https://en.wikipedia.org/wiki/Feynman_diagram)). This way,
+   a graph describes the transition from one state to another.
 
-   - The edges correspond to particles/states, in other words a collection of
-     properties such as the quantum numbers that characterize the particle
-     state.
+   - **Edges** correspond to states (particles with spin). In other words,
+     edges are a collection of properties such as the quantum numbers that
+     characterize a state that the particle is in.
 
-   - Each node represents an interaction and contains all information for the
+   - **Nodes** represents interactions and contain all information for the
      transition of this specific step. Most importantly, a node contains a
      collection of conservation rules that have to be satisfied. An interaction
      node has $M$ ingoing lines and $N$ outgoing lines, where
@@ -53,17 +56,25 @@ QRules consists of three major components:
 
 2. **Conservation rules**
 
-   The central component are the
-   {mod}`conservation rules <.conservation_rules>`. They belong to individual
-   nodes and receive properties about the node itself, as well as properties of
-   the ingoing and outgoing edges of that node. Based on those properties the
-   conservation rules determine whether edges pass or not.
+   The central component are the {mod}`.conservation_rules`. They belong to
+   individual nodes and receive properties about the node itself, as well as
+   properties of the ingoing and outgoing edges of that node. Based on those
+   properties the conservation rules determine whether edges pass or not.
 
 3. **Solvers**
 
    The determination of the correct state properties in the graph is done by
    solvers. New properties are set for intermediate edges and interaction nodes
    and their validity is checked with the conservation rules.
+
+:::{margin}
+
+The main solver used by {mod}`qrules` is the
+[`constraint`](https://labix.org/doc/constraint) package for the
+[Constraint Satisfaction Problem](https://en.wikipedia.org/wiki/Constraint_satisfaction_problem)
+(CSP).
+
+:::
 
 ```{rubric} QRules workflow
 
@@ -72,8 +83,8 @@ QRules consists of three major components:
 1. **Preparation**
 
    1.1. Build all possible topologies. A **topology** is represented by a
-   {ref}`graph <index:1. State Transition Graphs>`, in which the edges and
-   nodes are empty (no particle information).
+   {class}`.StateTransitionGraph`, in which the edges and nodes are empty (no
+   particle information).
 
    1.2. Fill the topology graphs with the user provided information. Typically
    these are the graph's ingoing edges (initial state) and outgoing edges
