@@ -115,10 +115,10 @@ def create_interaction_settings(  # pylint: disable=too-many-locals,too-many-arg
         rule_priorities=CONSERVATION_LAW_PRIORITIES
     )
 
-    angular_momentum_domain = _get_ang_mom_magnitudes(
+    angular_momentum_domain = __get_ang_mom_magnitudes(
         nbody_topology, max_angular_momentum
     )
-    spin_magnitude_domain = _get_spin_magnitudes(
+    spin_magnitude_domain = __get_spin_magnitudes(
         nbody_topology, max_spin_magnitude
     )
     if "helicity" in formalism_type:
@@ -219,7 +219,7 @@ def create_interaction_settings(  # pylint: disable=too-many-locals,too-many-arg
     return interaction_type_settings
 
 
-def _get_ang_mom_magnitudes(
+def __get_ang_mom_magnitudes(
     is_nbody: bool, max_angular_momentum: int
 ) -> List[float]:
     if is_nbody:
@@ -227,7 +227,7 @@ def _get_ang_mom_magnitudes(
     return _int_domain(0, max_angular_momentum)  # type: ignore
 
 
-def _get_spin_magnitudes(
+def __get_spin_magnitudes(
     is_nbody: bool, max_spin_magnitude: int
 ) -> List[float]:
     if is_nbody:
