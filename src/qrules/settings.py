@@ -84,12 +84,6 @@ EDGE_RULE_PRIORITIES: Dict[GraphElementRule, int] = {
 }
 """Determines the order with which to verify `.Edge` conservation rules."""
 
-MAX_ANGULAR_MOMENTUM: int = 2
-"""Maximum angular momentum over which to generate :math:`LS`-couplings."""
-
-MAX_SPIN_MAGNITUDE: int = 2
-"""Maximum spin magnitude over which to generate :math:`LS`-couplings."""
-
 
 class InteractionType(Enum):
     """Types of interactions in the form of an enumerate."""
