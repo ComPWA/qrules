@@ -28,10 +28,6 @@ from .combinatorics import (
     create_initial_facts,
     match_external_edges,
 )
-from .default_settings import (
-    InteractionTypes,
-    create_default_interaction_settings,
-)
 from .particle import Particle, ParticleCollection, ParticleWithSpin, load_pdg
 from .quantum_numbers import (
     EdgeQuantumNumber,
@@ -40,6 +36,7 @@ from .quantum_numbers import (
     NodeQuantumNumber,
     NodeQuantumNumbers,
 )
+from .settings import InteractionType, create_interaction_settings
 from .solving import (
     CSPSolver,
     EdgeSettings,
@@ -254,14 +251,14 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
     .. seealso:: :doc:`/usage/reaction` and `.generate_transitions`
     """
 
-    def __init__(  # pylint: disable=too-many-arguments,too-many-branches
+    def __init__(  # pylint: disable=too-many-arguments, too-many-branches, too-many-locals
         self,
         initial_state: Sequence[StateDefinition],
         final_state: Sequence[StateDefinition],
         particles: Optional[ParticleCollection] = None,
         allowed_intermediate_particles: Optional[List[str]] = None,
         interaction_type_settings: Dict[
-            InteractionTypes, Tuple[EdgeSettings, NodeSettings]
+            InteractionType, Tuple[EdgeSettings, NodeSettings]
         ] = None,
         formalism_type: str = "helicity",
         topology_building: str = "isobar",
@@ -269,6 +266,8 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         solving_mode: SolvingMode = SolvingMode.FAST,
         reload_pdg: bool = False,
         mass_conservation_factor: Optional[float] = 3.0,
+        max_angular_momentum: int = 1,
+        max_spin_magnitude: float = 2.0,
     ) -> None:
         if interaction_type_settings is None:
             interaction_type_settings = {}
@@ -300,10 +299,10 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             GammaCheck(),
         ]
         self.final_state_groupings: Optional[List[List[List[str]]]] = None
-        self.allowed_interaction_types: List[InteractionTypes] = [
-            InteractionTypes.STRONG,
-            InteractionTypes.EM,
-            InteractionTypes.WEAK,
+        self.allowed_interaction_types: List[InteractionType] = [
+            InteractionType.STRONG,
+            InteractionType.EM,
+            InteractionType.WEAK,
         ]
         self.filter_remove_qns: Set[Type[NodeQuantumNumber]] = set()
         self.filter_ignore_qns: Set[Type[NodeQuantumNumber]] = set()
@@ -330,17 +329,18 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             if len(initial_state) > 1:
                 mass_conservation_factor = None
 
-        if not self.interaction_type_settings:
-            self.interaction_type_settings = (
-                create_default_interaction_settings(
-                    formalism_type,
-                    nbody_topology=use_nbody_topology,
-                    mass_conservation_factor=mass_conservation_factor,
-                )
-            )
-
         if reload_pdg or len(self.__particles) == 0:
             self.__particles = load_pdg()
+
+        if not self.interaction_type_settings:
+            self.interaction_type_settings = create_interaction_settings(
+                formalism_type,
+                particles=self.__particles,
+                nbody_topology=use_nbody_topology,
+                mass_conservation_factor=mass_conservation_factor,
+                max_angular_momentum=max_angular_momentum,
+                max_spin_magnitude=max_spin_magnitude,
+            )
 
         self.__user_allowed_intermediate_particles = (
             allowed_intermediate_particles
@@ -394,14 +394,14 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             self.final_state_groupings.append(fs_group)  # type: ignore
 
     def set_allowed_interaction_types(
-        self, allowed_interaction_types: List[InteractionTypes]
+        self, allowed_interaction_types: List[InteractionType]
     ) -> None:
         # verify order
         for allowed_types in allowed_interaction_types:
-            if not isinstance(allowed_types, InteractionTypes):
+            if not isinstance(allowed_types, InteractionType):
                 raise TypeError(
                     "allowed interaction types must be of type"
-                    "[InteractionTypes]"
+                    "[InteractionType]"
                 )
             if allowed_types not in self.interaction_type_settings:
                 logging.info(self.interaction_type_settings.keys())
@@ -449,7 +449,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
                 intermediate_edge_domains[
                     EdgeQuantumNumbers.spin_projection
                 ].update(
-                    self.interaction_type_settings[InteractionTypes.WEAK][
+                    self.interaction_type_settings[InteractionType.WEAK][
                         0
                     ].qn_domains[EdgeQuantumNumbers.spin_projection]
                 )
@@ -467,7 +467,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
                     }
                 )
 
-            return self.interaction_type_settings[InteractionTypes.WEAK][
+            return self.interaction_type_settings[InteractionType.WEAK][
                 0
             ].qn_domains
 
@@ -476,7 +476,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
 
         def create_edge_settings(edge_id: int) -> EdgeSettings:
             settings = copy(
-                self.interaction_type_settings[InteractionTypes.WEAK][0]
+                self.interaction_type_settings[InteractionType.WEAK][0]
             )
             if edge_id in intermediate_state_edges:
                 settings.qn_domains = int_edge_domains
@@ -498,7 +498,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         ]
 
         for node_id in topology.nodes:
-            interaction_types: List[InteractionTypes] = []
+            interaction_types: List[InteractionType] = []
             out_edge_ids = topology.get_edge_ids_outgoing_from_node(node_id)
             in_edge_ids = topology.get_edge_ids_outgoing_from_node(node_id)
             in_edge_props = [

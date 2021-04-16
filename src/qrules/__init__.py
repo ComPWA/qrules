@@ -46,12 +46,14 @@ from .conservation_rules import (
     parity_conservation,
     spin_magnitude_conservation,
 )
-from .default_settings import (
-    ADDITIONAL_PARTICLES_DEFINITIONS_PATH,
-    InteractionTypes,
-)
 from .particle import ParticleCollection, load_pdg
 from .quantum_numbers import InteractionProperties
+from .settings import (
+    ADDITIONAL_PARTICLES_DEFINITIONS_PATH,
+    InteractionType,
+    _halves_domain,
+    _int_domain,
+)
 from .solving import (
     GraphSettings,
     NodeSettings,
@@ -68,11 +70,13 @@ from .transition import (
 )
 
 
-def check_reaction_violations(
+def check_reaction_violations(  # pylint: disable=too-many-arguments
     initial_state: Union[StateDefinition, Sequence[StateDefinition]],
     final_state: Sequence[StateDefinition],
     mass_conservation_factor: Optional[float] = 3.0,
     particle_db: Optional[ParticleCollection] = None,
+    max_angular_momentum: int = 1,
+    max_spin_magnitude: float = 2.0,
 ) -> Set[FrozenSet[str]]:
     """Determine violated interaction rules for a given particle reaction.
 
@@ -89,14 +93,28 @@ def check_reaction_violations(
       mass_conservation_factor: Factor with which the width is multiplied when
         checking for `.MassConservation`. Set to `None` in order to deactivate
         mass conservation.
-      particle_db: (Optional) Custom ParticleCollection object.  Defaults to
-        the list returned by load_pdg().
+      particle_db (Optional): Custom `.ParticleCollection` object.  Defaults to
+        the `.ParticleCollection` returned by `.load_pdg`.
+      max_angular_momentum: Maximum angular momentum over which to generate
+        :math:`LS`-couplings.
+      max_spin_magnitude: Maximum spin magnitude over which to generate
+        :math:`LS`-couplings.
 
     Returns:
       Set of least violating rules. The set can have multiple entries, as
       several quantum numbers can be violated. Each entry in the frozenset
       represents a group of rules that together violate all possible quantum
       number configurations.
+
+    Example:
+        >>> import qrules as q
+        >>> q.check_reaction_violations(
+        ...     initial_state="pi0",
+        ...     final_state=["gamma", "gamma", "gamma"],
+        ... )
+        {frozenset({'c_parity_conservation'})}
+
+    .. seealso:: :ref:`usage:Check allowed reactions`
     """
     # pylint: disable=too-many-locals
     if not isinstance(initial_state, (list, tuple)):
@@ -203,7 +221,8 @@ def check_reaction_violations(
     ls_combinations = [
         InteractionProperties(l_magnitude=l_magnitude, s_magnitude=s_magnitude)
         for l_magnitude, s_magnitude in product(
-            [0, 1, 2, 3, 4], [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
+            _int_domain(0, max_angular_momentum),
+            _halves_domain(0, max_spin_magnitude),
         )
     ]
 
@@ -267,6 +286,8 @@ def generate_transitions(  # pylint: disable=too-many-arguments
     formalism_type: str = "helicity",
     particles: Optional[ParticleCollection] = None,
     mass_conservation_factor: Optional[float] = 3.0,
+    max_angular_momentum: int = 2,
+    max_spin_magnitude: float = 2.0,
     topology_building: str = "isobar",
     number_of_threads: Optional[int] = None,
 ) -> Result:
@@ -291,8 +312,8 @@ def generate_transitions(  # pylint: disable=too-many-arguments
 
         allowed_interaction_types (`str`, optional): Interaction types you want
             to consider. For instance, both :code:`"strong and EM"` and
-            :code:`["s", "em"]` results in `~.InteractionTypes.EM` and
-            `~.InteractionTypes.STRONG`.
+            :code:`["s", "em"]` results in `~.InteractionType.EM` and
+            `~.InteractionType.STRONG`.
 
         formalism_type (`str`, optional): Formalism that you intend to use in
             the eventual amplitude model.
@@ -306,6 +327,12 @@ def generate_transitions(  # pylint: disable=too-many-arguments
 
         mass_conservation_factor: Width factor that is taken into account for
             for the `.MassConservation` rule.
+
+        max_angular_momentum: Maximum angular momentum over which to generate
+            angular momenta.
+
+        max_spin_magnitude: Maximum spin magnitude over which to generate
+            spins.
 
         topology_building (str): Technique with which to build the `.Topology`
             instances. Allowed values are:
@@ -346,6 +373,8 @@ def generate_transitions(  # pylint: disable=too-many-arguments
         allowed_intermediate_particles=allowed_intermediate_particles,
         formalism_type=formalism_type,
         mass_conservation_factor=mass_conservation_factor,
+        max_angular_momentum=max_angular_momentum,
+        max_spin_magnitude=max_spin_magnitude,
         topology_building=topology_building,
         number_of_threads=number_of_threads,
     )
@@ -360,8 +389,8 @@ def generate_transitions(  # pylint: disable=too-many-arguments
 
 def _determine_interaction_types(
     description: Union[str, List[str]]
-) -> Set[InteractionTypes]:
-    interaction_types: Set[InteractionTypes] = set()
+) -> Set[InteractionType]:
+    interaction_types: Set[InteractionType] = set()
     if isinstance(description, list):
         for i in description:
             interaction_types.update(
@@ -377,18 +406,18 @@ def _determine_interaction_types(
         raise ValueError('Provided an empty interaction name ("")')
     interaction_name_lower = description.lower()
     if "all" in interaction_name_lower:
-        for interaction in InteractionTypes:
+        for interaction in InteractionType:
             interaction_types.add(interaction)
     if (
         "em" in interaction_name_lower
         or "ele" in interaction_name_lower
         or interaction_name_lower.startswith("e")
     ):
-        interaction_types.add(InteractionTypes.EM)
+        interaction_types.add(InteractionType.EM)
     if "w" in interaction_name_lower:
-        interaction_types.add(InteractionTypes.WEAK)
+        interaction_types.add(InteractionType.WEAK)
     if "strong" in interaction_name_lower or interaction_name_lower == "s":
-        interaction_types.add(InteractionTypes.STRONG)
+        interaction_types.add(InteractionType.STRONG)
     if len(interaction_types) == 0:
         raise ValueError(
             f'Could not determine interaction type from "{description}"'

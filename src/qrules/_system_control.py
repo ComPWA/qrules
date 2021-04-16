@@ -6,7 +6,6 @@ from typing import Callable, Dict, List, Optional, Set, Tuple, Type
 
 import attr
 
-from .default_settings import InteractionTypes
 from .particle import Particle, ParticleCollection, ParticleWithSpin
 from .quantum_numbers import (
     EdgeQuantumNumber,
@@ -16,6 +15,7 @@ from .quantum_numbers import (
     NodeQuantumNumbers,
     Parity,
 )
+from .settings import InteractionType
 from .solving import GraphEdgePropertyMap, GraphNodePropertyMap, GraphSettings
 from .topology import StateTransitionGraph
 
@@ -124,9 +124,9 @@ def create_interaction_properties(
 
 
 def filter_interaction_types(
-    valid_determined_interaction_types: List[InteractionTypes],
-    allowed_interaction_types: List[InteractionTypes],
-) -> List[InteractionTypes]:
+    valid_determined_interaction_types: List[InteractionType],
+    allowed_interaction_types: List[InteractionType],
+) -> List[InteractionType]:
     int_type_intersection = list(
         set(allowed_interaction_types)
         & set(valid_determined_interaction_types)
@@ -152,7 +152,7 @@ class InteractionDeterminator(ABC):
         in_edge_props: List[ParticleWithSpin],
         out_edge_props: List[ParticleWithSpin],
         node_props: InteractionProperties,
-    ) -> List[InteractionTypes]:
+    ) -> List[InteractionType]:
         pass
 
 
@@ -164,11 +164,11 @@ class GammaCheck(InteractionDeterminator):
         in_edge_props: List[ParticleWithSpin],
         out_edge_props: List[ParticleWithSpin],
         node_props: InteractionProperties,
-    ) -> List[InteractionTypes]:
-        int_types = list(InteractionTypes)
+    ) -> List[InteractionType]:
+        int_types = list(InteractionType)
         for particle, _ in in_edge_props + out_edge_props:
             if "gamma" in particle.name:
-                int_types = [InteractionTypes.EM]
+                int_types = [InteractionType.EM]
                 break
         return int_types
 
@@ -181,16 +181,16 @@ class LeptonCheck(InteractionDeterminator):
         in_edge_props: List[ParticleWithSpin],
         out_edge_props: List[ParticleWithSpin],
         node_props: InteractionProperties,
-    ) -> List[InteractionTypes]:
-        node_interaction_types = list(InteractionTypes)
+    ) -> List[InteractionType]:
+        node_interaction_types = list(InteractionType)
         for particle, _ in in_edge_props + out_edge_props:
             if particle.is_lepton():
                 if particle.name.startswith("nu("):
-                    node_interaction_types = [InteractionTypes.WEAK]
+                    node_interaction_types = [InteractionType.WEAK]
                     break
                 node_interaction_types = [
-                    InteractionTypes.EM,
-                    InteractionTypes.WEAK,
+                    InteractionType.EM,
+                    InteractionType.WEAK,
                 ]
         return node_interaction_types
 
@@ -311,10 +311,14 @@ def filter_graphs(
         Selecting only the solutions, in which the :math:`\rho` decays via
         p-wave:
 
-        >>> my_filter = require_interaction_property(
-                'rho', InteractionQuantumNumberNames.L,
-                create_spin_domain([1], True))
-        >>> filtered_solutions = filter_graphs(solutions, [my_filter])
+        .. code-block:: python
+
+            my_filter = require_interaction_property(
+                "rho",
+                InteractionQuantumNumberNames.L,
+                create_spin_domain([1], True),
+            )
+            filtered_solutions = filter_graphs(solutions, [my_filter])
     """
     filtered_graphs = graphs
     for filter_ in filters:
