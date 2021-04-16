@@ -75,8 +75,8 @@ def check_reaction_violations(  # pylint: disable=too-many-arguments
     final_state: Sequence[StateDefinition],
     mass_conservation_factor: Optional[float] = 3.0,
     particle_db: Optional[ParticleCollection] = None,
-    max_angular_momentum: int = 4,
-    max_spin_magnitude: float = 5.0,
+    max_angular_momentum: int = 1,
+    max_spin_magnitude: float = 2.0,
 ) -> Set[FrozenSet[str]]:
     """Determine violated interaction rules for a given particle reaction.
 
