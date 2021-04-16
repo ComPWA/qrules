@@ -44,7 +44,7 @@ def test_initialize_graph(
         three_body_decay,
         initial_state=[("J/psi(1S)", [-1, +1])],
         final_state=["gamma", "pi0", "pi0"],
-        particles=particle_database,
+        particle_db=particle_database,
         final_state_groupings=final_state_groupings,
     )
     assert len(initial_facts) == 4
@@ -176,7 +176,7 @@ def test_generate_permutations(
         three_body_decay,
         initial_state=[("J/psi(1S)", [-1, +1])],
         final_state=["gamma", "pi0", "pi0"],
-        particles=particle_database,
+        particle_db=particle_database,
         allowed_kinematic_groupings=[_KinematicRepresentation(["pi0", "pi0"])],
     )
     assert len(permutations) == 1
@@ -185,7 +185,7 @@ def test_generate_permutations(
         three_body_decay,
         initial_state=[("J/psi(1S)", [-1, +1])],
         final_state=["gamma", "pi0", "pi0"],
-        particles=particle_database,
+        particle_db=particle_database,
     )
     assert len(permutations) == 2
     graph0_final_state_node1 = [

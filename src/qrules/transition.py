@@ -255,7 +255,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         self,
         initial_state: Sequence[StateDefinition],
         final_state: Sequence[StateDefinition],
-        particles: Optional[ParticleCollection] = None,
+        particle_db: Optional[ParticleCollection] = None,
         allowed_intermediate_particles: Optional[List[str]] = None,
         interaction_type_settings: Dict[
             InteractionType, Tuple[EdgeSettings, NodeSettings]
@@ -283,8 +283,8 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             )
         self.__formalism_type = str(formalism_type)
         self.__particles = ParticleCollection()
-        if particles is not None:
-            self.__particles = particles
+        if particle_db is not None:
+            self.__particles = particle_db
         if number_of_threads is None:
             self.number_of_threads = multiprocessing.cpu_count()
         else:
@@ -335,7 +335,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         if not self.interaction_type_settings:
             self.interaction_type_settings = create_interaction_settings(
                 formalism_type,
-                particles=self.__particles,
+                particle_db=self.__particles,
                 nbody_topology=use_nbody_topology,
                 mass_conservation_factor=mass_conservation_factor,
                 max_angular_momentum=max_angular_momentum,
@@ -415,7 +415,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         for topology in self.__topologies:
             for initial_facts in create_initial_facts(
                 topology=topology,
-                particles=self.__particles,
+                particle_db=self.__particles,
                 initial_state=self.initial_state,
                 final_state=self.final_state,
                 final_state_groupings=self.final_state_groupings,
