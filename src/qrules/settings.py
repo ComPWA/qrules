@@ -1,7 +1,15 @@
-"""Default configuration for the `expertsystem`."""
+"""Default configuration for the `expertsystem`.
+
+It is possible to change some settings from the outside, for instance:
+
+>>> import qrules as q
+>>> q.settings.MAX_ANGULAR_MOMENTUM = 4
+>>> q.settings.MAX_SPIN_MAGNITUDE = 3
+"""
 
 from copy import deepcopy
 from enum import Enum, auto
+from os.path import dirname, join, realpath
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 from qrules.conservation_rules import (
@@ -9,7 +17,10 @@ from qrules.conservation_rules import (
     BottomnessConservation,
     ChargeConservation,
     CharmConservation,
+    ConservationRule,
+    EdgeQNConservationRule,
     ElectronLNConservation,
+    GraphElementRule,
     MassConservation,
     MuonLNConservation,
     StrangenessConservation,
@@ -35,12 +46,48 @@ from qrules.quantum_numbers import NodeQuantumNumbers as NodeQN
 from qrules.quantum_numbers import arange
 from qrules.solving import EdgeSettings, NodeSettings
 
-from .defaults import (
-    CONSERVATION_LAW_PRIORITIES,
-    EDGE_RULE_PRIORITIES,
-    MAX_ANGULAR_MOMENTUM,
-    MAX_SPIN_MAGNITUDE,
+__QRULES_PATH = dirname(realpath(__file__))
+ADDITIONAL_PARTICLES_DEFINITIONS_PATH: str = join(
+    __QRULES_PATH, "additional_definitions.yml"
 )
+
+CONSERVATION_LAW_PRIORITIES: Dict[
+    Union[GraphElementRule, EdgeQNConservationRule, ConservationRule], int
+] = {
+    MassConservation: 10,
+    ElectronLNConservation: 45,
+    MuonLNConservation: 44,
+    TauLNConservation: 43,
+    BaryonNumberConservation: 90,
+    StrangenessConservation: 69,
+    CharmConservation: 70,
+    BottomnessConservation: 68,
+    ChargeConservation: 100,
+    spin_conservation: 8,
+    spin_magnitude_conservation: 8,
+    parity_conservation: 6,
+    c_parity_conservation: 5,
+    g_parity_conservation: 3,
+    isospin_conservation: 60,
+    ls_spin_validity: 89,
+    helicity_conservation: 7,
+    parity_conservation_helicity: 4,
+    identical_particle_symmetrization: 2,
+}
+"""Determines the order with which to verify conservation rules."""
+
+
+EDGE_RULE_PRIORITIES: Dict[GraphElementRule, int] = {
+    gellmann_nishijima: 50,
+    isospin_validity: 61,
+    spin_validity: 62,
+}
+
+MAX_ANGULAR_MOMENTUM: int = 2
+"""Maximum angular momentum over which to generate :math:`LS`-couplings."""
+
+MAX_SPIN_MAGNITUDE: int = 2
+"""Maximum spin magnitude over which to generate :math:`LS`-couplings."""
 
 
 class InteractionTypes(Enum):
