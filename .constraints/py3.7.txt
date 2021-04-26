@@ -118,7 +118,7 @@ pybtex-docutils==1.0.0
 pybtex==0.24.0
 pycodestyle==2.7.0
 pycparser==2.20
-pydata-sphinx-theme==0.6.1
+pydata-sphinx-theme==0.6.2
 pydocstyle==6.0.0
 pydot==1.4.2
 pyflakes==2.3.1
