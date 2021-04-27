@@ -162,11 +162,7 @@ nitpick_ignore = [
     ("py:class", "a set-like object providing a view on D's items"),
     ("py:class", "a set-like object providing a view on D's keys"),
     ("py:class", "an object providing a view on D's values"),
-    ("py:class", "numpy.typing._array_like._SupportsArray"),
-    ("py:class", "numpy.typing._dtype_like._DTypeDict"),
-    ("py:class", "numpy.typing._dtype_like._SupportsDType"),
     ("py:class", "typing_extensions.Protocol"),
-    ("py:mod", "ampform"),
     ("py:obj", "qrules.topology._K"),
     ("py:obj", "qrules.topology._V"),
 ]
@@ -185,16 +181,10 @@ intersphinx_mapping = {
         "https://python-jsonschema.readthedocs.io/en/latest",
         None,
     ),
-    "matplotlib": ("https://matplotlib.org/stable/", None),
     "mypy": ("https://mypy.readthedocs.io/en/stable", None),
-    "numpy": ("https://numpy.org/doc/stable", None),
-    "pandas": ("https://pandas.pydata.org/pandas-docs/stable", None),
     "pwa": ("https://pwa.readthedocs.io", None),
-    "pycompwa": ("https://compwa.github.io", None),
     "python": ("https://docs.python.org/3", None),
-    "sympy": ("https://docs.sympy.org/latest", None),
     "tensorwaves": ("https://tensorwaves.readthedocs.io/en/stable", None),
-    "tox": ("https://tox.readthedocs.io/en/stable", None),
 }
 
 # Settings for autosectionlabel

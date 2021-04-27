@@ -1,4 +1,4 @@
-"""Default configuration for the `expertsystem`.
+"""Default configuration for `qrules`.
 
 It is possible to change some settings from the outside, for instance:
 

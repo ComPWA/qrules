@@ -528,9 +528,7 @@ def __convert_pdg_instance(pdg_particle: PdgDatabase) -> Particle:
     def convert_mass_width(value: Optional[float]) -> float:
         if value is None:
             return 0.0
-        return (  # https://github.com/ComPWA/expertsystem/issues/178
-            float(value) / 1e3
-        )
+        return float(value) / 1e3  # https://github.com/ComPWA/qrules/issues/14
 
     if pdg_particle.charge is None:
         raise ValueError(f"PDG instance has no charge:\n{pdg_particle}")
