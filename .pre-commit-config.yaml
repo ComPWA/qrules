@@ -73,6 +73,11 @@ repos:
       - id: nbqa-isort
         args: [--nbqa-mutate]
 
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.4.0
+    hooks:
+      - id: nbstripout
+
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v2.2.1
     hooks:
@@ -116,13 +121,6 @@ repos:
         language: system
         types:
           - python
-
-      - id: nbstripout
-        name: nbstripout
-        entry: nbstripout
-        language: system
-        types:
-          - jupyter
 
       - id: pydocstyle
         name: pydocstyle
