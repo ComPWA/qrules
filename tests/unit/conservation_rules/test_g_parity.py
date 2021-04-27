@@ -11,7 +11,7 @@ from qrules.quantum_numbers import Parity
 
 
 @pytest.mark.parametrize(
-    "rule_input, expected",
+    ("rule_input", "expected"),
     [
         (
             (
@@ -60,7 +60,7 @@ def test_g_parity_all_defined(rule_input, expected):
 
 
 @pytest.mark.parametrize(
-    "rule_input, expected",
+    ("rule_input", "expected"),
     [
         (
             (

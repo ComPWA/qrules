@@ -745,7 +745,7 @@ class CSPSolver(Solver):
         """
         variables: Tuple[Set[_NodeVariableInfo], GraphNodePropertyMap] = (
             set(),
-            dict(),
+            {},
         )
 
         if node_id in problem_set.initial_facts.node_props:
@@ -781,7 +781,7 @@ class CSPSolver(Solver):
             Dict[int, GraphEdgePropertyMap],
         ] = (
             set(),
-            dict(),
+            {},
         )
 
         for edge_id in edge_ids:
@@ -821,7 +821,7 @@ class CSPSolver(Solver):
         solutions: List[Dict[str, Scalar]],
     ) -> List[QuantumNumberSolution]:
         """Convert keys of CSP solutions from string to quantum number types."""
-        converted_solutions = list()
+        converted_solutions = []
         for solution in solutions:
             edge_quantum_numbers: Dict[
                 int, GraphEdgePropertyMap

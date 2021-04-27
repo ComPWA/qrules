@@ -398,12 +398,12 @@ def _determine_interaction_types(
             )
         return interaction_types
     if not isinstance(description, str):
-        raise ValueError(
+        raise TypeError(
             "Cannot handle interaction description of type "
             f"{description.__class__.__name__}"
         )
     if len(description) == 0:
-        raise ValueError('Provided an empty interaction name ("")')
+        raise ValueError('Provided an empty interaction type ("")')
     interaction_name_lower = description.lower()
     if "all" in interaction_name_lower:
         for interaction in InteractionType:

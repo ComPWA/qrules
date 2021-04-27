@@ -51,7 +51,7 @@ def test_initialize_graph(
 
 
 @pytest.mark.parametrize(
-    "initial_state, final_state",
+    ("initial_state", "final_state"),
     [
         (["J/psi(1S)"], ["gamma", "pi0", "pi0"]),
         (["J/psi(1S)"], ["K+", "K-", "pi+", "pi-"]),
@@ -163,9 +163,12 @@ class TestKinematicRepresentation:
         assert subset_representation in kinematic_representation
         assert [["J/psi"]] not in kinematic_representation
         assert [["gamma", "pi0"]] in kinematic_representation
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Cannot compare "):
             assert float() in kinematic_representation
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError,
+            match="Comparison representation needs to be a list of lists",
+        ):
             assert ["should be nested list"] in kinematic_representation
 
 

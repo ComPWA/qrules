@@ -534,7 +534,7 @@ def _check_magnitude(
         if len(magnitudes) == 1:
             return set(magnitudes)
 
-        coupled_magnitudes = set([magnitudes[0]])
+        coupled_magnitudes = {magnitudes[0]}
         for mag in magnitudes[1:]:
             temp_set = coupled_magnitudes
             coupled_magnitudes = set()
@@ -625,14 +625,14 @@ def __spin_couplings(spin1: _Spin, spin2: _Spin) -> Set[_Spin]:
     s_2 = spin2.magnitude
 
     sum_proj = spin1.projection + spin2.projection
-    return set(
+    return {
         _Spin(x, sum_proj)
         for x in arange(abs(s_1 - s_2), s_1 + s_2 + 1, 1.0)
         if x >= abs(sum_proj)
         and not _is_clebsch_gordan_coefficient_zero(
             spin1, spin2, _Spin(x, sum_proj)
         )
-    )
+    }
 
 
 @attr.s

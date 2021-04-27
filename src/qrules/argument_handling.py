@@ -274,7 +274,7 @@ class RuleArgumentHandler:
             rule not in self.__rule_to_requirements_check
             or rule not in self.__rule_to_argument_builder
         ):
-            rule_annotations = list()
+            rule_annotations = []
             rule_func_signature = inspect.signature(rule)
             if not rule_func_signature.return_annotation:
                 raise TypeError(
@@ -315,7 +315,7 @@ class RuleArgumentHandler:
 def get_required_qns(
     rule: Rule,
 ) -> Tuple[Set[Type[EdgeQuantumNumber]], Set[Type[NodeQuantumNumber]]]:
-    rule_annotations = list()
+    rule_annotations = []
     for par in inspect.signature(rule).parameters.values():
         if not par.annotation:
             raise TypeError(f"missing type annotations for rule {str(rule)}")

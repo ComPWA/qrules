@@ -144,7 +144,7 @@ class TestTopology:
     @pytest.mark.parametrize(
         "nodes, edges",
         [
-            ({1}, dict()),
+            ({1}, {}),
             (
                 {0, 1},
                 {
@@ -173,7 +173,7 @@ class TestTopology:
         if nodes is None:
             nodes = set()
         if edges is None:
-            edges = dict()
+            edges = {}
         assert topology.nodes == nodes
         assert topology.edges == edges
 

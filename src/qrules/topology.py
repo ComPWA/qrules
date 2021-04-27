@@ -260,7 +260,7 @@ class Topology:
         - `.outgoing_edge_ids` lies in the range :code:`[0, 1, ..., n]`
         - `.intermediate_edge_ids` lies in the range :code:`[n+1, n+2, ...]`
         """
-        new_edges = dict()
+        new_edges = {}
         # Relabel so that initial edge IDs are [-1, -2, ...]
         for new_edge_id, edge_id in zip(
             range(-1, -len(self.incoming_edge_ids) - 1, -1),
@@ -464,7 +464,7 @@ class SimpleStateTransitionTopologyBuilder:
 
         logging.info("finished building topology graphs...")
         # strip the current open end edges list from the result graph tuples
-        topologies = list()
+        topologies = []
         for graph_tuple in graph_tuple_list:
             topology = graph_tuple[0].freeze()
             topology = topology.organize_edge_ids()

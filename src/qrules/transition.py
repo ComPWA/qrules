@@ -345,9 +345,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         self.__user_allowed_intermediate_particles = (
             allowed_intermediate_particles
         )
-        self.__allowed_intermediate_particles: List[
-            GraphEdgePropertyMap
-        ] = list()
+        self.__allowed_intermediate_particles: List[GraphEdgePropertyMap] = []
         if allowed_intermediate_particles is not None:
             self.set_allowed_intermediate_particles(
                 allowed_intermediate_particles
@@ -360,7 +358,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
     def set_allowed_intermediate_particles(
         self, particle_names: List[str]
     ) -> None:
-        self.__allowed_intermediate_particles = list()
+        self.__allowed_intermediate_particles = []
         for particle_name in particle_names:
             matches = self.__particles.filter(
                 lambda p: particle_name  # pylint: disable=cell-var-from-loop
@@ -368,7 +366,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             )
             if len(matches) == 0:
                 raise LookupError(
-                    "Could not find any matches for allowed intermediate "
+                    "Could not find any matches for allowed intermediate"
                     f' particle "{particle_name}"'
                 )
             self.__allowed_intermediate_particles += [
@@ -388,7 +386,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             )
         if len(fs_group) > 0:
             if self.final_state_groupings is None:
-                self.final_state_groupings = list()
+                self.final_state_groupings = []
             if not isinstance(fs_group[0], list):
                 fs_group = [fs_group]  # type: ignore
             self.final_state_groupings.append(fs_group)  # type: ignore

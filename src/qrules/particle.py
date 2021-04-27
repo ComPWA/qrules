@@ -231,8 +231,8 @@ class ParticleCollection(abc.MutableSet):
     """Searchable collection of immutable `.Particle` instances."""
 
     def __init__(self, particles: Optional[Iterable[Particle]] = None) -> None:
-        self.__particles: Dict[str, Particle] = dict()
-        self.__pid_to_name: Dict[int, str] = dict()
+        self.__particles: Dict[str, Particle] = {}
+        self.__pid_to_name: Dict[int, str] = {}
         if particles is not None:
             self.update(particles)
 

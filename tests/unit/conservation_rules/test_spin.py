@@ -49,7 +49,7 @@ def __create_two_body_decay_spin_data(
 
 
 @pytest.mark.parametrize(
-    "rule_input, expected",
+    ("rule_input", "expected"),
     [
         (
             __create_two_body_decay_spin_data(
@@ -120,7 +120,7 @@ def test_spin_all_defined(
 
 
 @pytest.mark.parametrize(
-    "rule_input, expected",
+    ("rule_input", "expected"),
     [
         (
             __create_two_body_decay_spin_data(

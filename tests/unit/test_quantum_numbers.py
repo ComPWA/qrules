@@ -51,12 +51,14 @@ class TestParity:
     def test_exceptions():
         with pytest.raises(TypeError):
             Parity(1.2)  # type: ignore
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError, match=r"Parity can only be \+1 or -1, not 0"
+        ):
             Parity(0)
 
 
 @pytest.mark.parametrize(
-    "value, render_plus, expected",
+    ("value", "render_plus", "expected"),
     [
         (0, False, "0"),
         (0, True, "0"),

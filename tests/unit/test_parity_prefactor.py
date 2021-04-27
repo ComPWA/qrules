@@ -14,7 +14,12 @@ class Input(NamedTuple):
 
 
 @pytest.mark.parametrize(
-    "test_input, ingoing_state, related_component_names, relative_parity_prefactor",
+    (
+        "test_input",
+        "ingoing_state",
+        "related_component_names",
+        "relative_parity_prefactor",
+    ),
     [
         (
             Input(

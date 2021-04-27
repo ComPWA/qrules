@@ -19,15 +19,18 @@ def reduce_violated_rules(
     return reduced_violations
 
 
-@pytest.mark.slow
+@pytest.mark.slow()
 @pytest.mark.parametrize(
-    "test_input, expected",
+    ("test_input", "expected"),
     [
         (
             (["p", "p~"], ["pi+", "pi0"]),
             {"ChargeConservation", "isospin_conservation"},
         ),
-        ((["eta"], ["gamma", "gamma"]), {}),
+        (
+            (["eta"], ["gamma", "gamma"]),
+            {},
+        ),
         (
             (["eta"], ["pi+", "pi-"]),
             {
@@ -49,7 +52,10 @@ def reduce_violated_rules(
                 "StrangenessConservation",
             },
         ),
-        ((["e+", "e-"], ["mu+", "mu-"]), {}),
+        (
+            (["e+", "e-"], ["mu+", "mu-"]),
+            {},
+        ),
         (
             (["mu-"], ["e-", "nu(e)~"]),
             {"MuonLNConservation", "spin_magnitude_conservation"},
@@ -62,20 +68,38 @@ def reduce_violated_rules(
                 "spin_magnitude_conservation",
             },
         ),
-        ((["Delta(1232)+"], ["p", "pi0"]), {}),
-        ((["nu(e)~", "p"], ["n", "e+"]), {}),
+        (
+            (["Delta(1232)+"], ["p", "pi0"]),
+            {},
+        ),
+        (
+            (["nu(e)~", "p"], ["n", "e+"]),
+            {},
+        ),
         (
             (["e-", "p"], ["nu(e)", "pi0"]),
             {"BaryonNumberConservation", "spin_magnitude_conservation"},
         ),
-        ((["f(0)(980)"], ["pi+", "pi-"]), {}),
-        ((["pi0"], ["gamma", "gamma"]), {}),
+        (
+            (["f(0)(980)"], ["pi+", "pi-"]),
+            {},
+        ),
+        (
+            (["pi0"], ["gamma", "gamma"]),
+            {},
+        ),
         (
             (["pi0"], ["gamma", "gamma", "gamma"]),
             {"c_parity_conservation"},
         ),
-        ((["pi0"], ["e+", "e-", "gamma"]), {}),
-        ((["pi0"], ["e+", "e-"]), {}),
+        (
+            (["pi0"], ["e+", "e-", "gamma"]),
+            {},
+        ),
+        (
+            (["pi0"], ["e+", "e-"]),
+            {},
+        ),
         (
             (["J/psi(1S)"], ["pi0", "f(0)(980)"]),
             {
@@ -84,7 +108,10 @@ def reduce_violated_rules(
                 ("parity_conservation", "spin_magnitude_conservation"),
             },
         ),
-        ((["p", "p"], ["Sigma+", "n", "K0", "pi+", "pi0"]), {}),
+        (
+            (["p", "p"], ["Sigma+", "n", "K0", "pi+", "pi0"]),
+            {},
+        ),
         (
             (["p", "p"], ["Sigma+", "n", "K~0", "pi+", "pi0"]),
             {"StrangenessConservation", "isospin_conservation"},
@@ -93,8 +120,14 @@ def reduce_violated_rules(
             (["p"], ["e+", "gamma"]),
             {"ElectronLNConservation", "BaryonNumberConservation"},
         ),
-        ((["p", "p"], ["p", "p", "p", "p~"]), {}),
-        ((["n", "n~"], ["pi+", "pi-", "pi0"]), {}),
+        (
+            (["p", "p"], ["p", "p", "p", "p~"]),
+            {},
+        ),
+        (
+            (["n", "n~"], ["pi+", "pi-", "pi0"]),
+            {},
+        ),
         (
             (["pi+", "n"], ["pi-", "p"]),
             {"ChargeConservation", "isospin_conservation"},
@@ -120,10 +153,14 @@ def reduce_violated_rules(
             (["Xi0"], ["p", "pi-"]),
             {"StrangenessConservation", "isospin_conservation"},
         ),
-        ((["pi-", "p"], ["Lambda", "K0"]), {}),
-        ((["pi0"], ["gamma", "gamma"]), {}),
-        ((["pi0"], ["gamma", "gamma", "gamma"]), {"c_parity_conservation"}),
-        ((["Sigma-"], ["n", "e-", "nu(e)~"]), {"StrangenessConservation"}),
+        (
+            (["pi-", "p"], ["Lambda", "K0"]),
+            {},
+        ),
+        (
+            (["Sigma-"], ["n", "e-", "nu(e)~"]),
+            {"StrangenessConservation"},
+        ),
         (
             (["rho(770)0"], ["pi0", "pi0"]),
             {
@@ -132,8 +169,14 @@ def reduce_violated_rules(
                 "identical_particle_symmetrization",
             },
         ),
-        ((["rho(770)0"], ["gamma", "gamma"]), {"c_parity_conservation"}),
-        ((["rho(770)0"], ["gamma", "gamma", "gamma"]), {}),
+        (
+            (["rho(770)0"], ["gamma", "gamma"]),
+            {"c_parity_conservation"},
+        ),
+        (
+            (["rho(770)0"], ["gamma", "gamma", "gamma"]),
+            {},
+        ),
         (
             (["J/psi(1S)"], ["pi0", "eta"]),
             {"c_parity_conservation", "isospin_conservation"},

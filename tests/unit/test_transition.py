@@ -1,3 +1,5 @@
+import pytest
+
 from qrules.transition import StateTransitionManager
 
 
@@ -10,7 +12,8 @@ class TestStateTransitionManager:
             number_of_threads=1,
         )
         particle_name = "N(753)"
-        try:
+        with pytest.raises(
+            LookupError,
+            match="Could not find any matches for allowed intermediate particle",
+        ):
             stm.set_allowed_intermediate_particles([particle_name])
-        except LookupError as exception:
-            assert particle_name in exception.args[0]

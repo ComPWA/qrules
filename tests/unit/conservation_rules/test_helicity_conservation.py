@@ -7,7 +7,7 @@ from qrules.quantum_numbers import EdgeQuantumNumbers
 
 
 @pytest.mark.parametrize(
-    "in_edge_qns, out_edge_qns, expected",
+    ("in_edge_qns", "out_edge_qns", "expected"),
     [
         (
             [

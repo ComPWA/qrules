@@ -100,7 +100,7 @@ def test_create_interaction_settings(
 
 
 @pytest.mark.parametrize(
-    "start, stop, expected",
+    ("start", "stop", "expected"),
     [
         (-0.3, 0.5, None),
         (-2.0, 0.5, [-2, -1.5, -1, -0.5, 0, 0.5]),
@@ -109,7 +109,7 @@ def test_create_interaction_settings(
 )
 def test_halves_range(start: float, stop: float, expected: list):
     if expected is None:
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="needs to be multiple of 0.5"):
             _halves_domain(start, stop)
     else:
         assert _halves_domain(start, stop) == expected

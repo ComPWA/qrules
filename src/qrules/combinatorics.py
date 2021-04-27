@@ -258,7 +258,7 @@ def create_initial_facts(  # pylint: disable=too-many-locals
         final_state=final_state,
         allowed_kinematic_groupings=allowed_kinematic_groupings,
     )
-    edge_initial_facts = list()
+    edge_initial_facts = []
     for kinematic_permutation in kinematic_permutation_graphs:
         spin_permutations = _generate_spin_permutations(
             kinematic_permutation, particle_db
@@ -307,8 +307,8 @@ def _generate_kinematic_permutations(
         final_state, particle_db
     )
 
-    initial_facts_combinations: List[Dict[int, StateWithSpins]] = list()
-    kinematic_representations: List[_KinematicRepresentation] = list()
+    initial_facts_combinations: List[Dict[int, StateWithSpins]] = []
+    kinematic_representations: List[_KinematicRepresentation] = []
     for permutation in _generate_outer_edge_permutations(
         topology,
         initial_state_with_projections,
@@ -387,7 +387,7 @@ def _generate_spin_permutations(
             new_permutations.append(temp_permutation)
         return new_permutations
 
-    initial_facts_permutations: List[Dict[int, ParticleWithSpin]] = [dict()]
+    initial_facts_permutations: List[Dict[int, ParticleWithSpin]] = [{}]
     for edge_id, state in initial_facts.items():
         temp_permutations = initial_facts_permutations
         initial_facts_permutations = []

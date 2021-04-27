@@ -11,7 +11,7 @@ from qrules.quantum_numbers import NodeQuantumNumbers, Parity
 
 
 @pytest.mark.parametrize(
-    "in_parities, out_parities, l_magnitude, expected",
+    ("in_parities", "out_parities", "l_magnitude", "expected"),
     [
         (
             [
@@ -38,7 +38,7 @@ def test_parity_conservation(in_parities, out_parities, l_magnitude, expected):
 
 
 @pytest.mark.parametrize(
-    "in_parities, out_parities, l_magnitude, expected",
+    ("in_parities", "out_parities", "l_magnitude", "expected"),
     [
         (
             [
@@ -79,7 +79,7 @@ def test_parity_conservation_helicity_prefactor(
 
 
 @pytest.mark.parametrize(
-    "in_parities, out_parities, l_magnitude, expected",
+    ("in_parities", "out_parities", "l_magnitude", "expected"),
     [
         (
             [

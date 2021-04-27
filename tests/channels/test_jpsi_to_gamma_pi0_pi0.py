@@ -5,7 +5,7 @@ from qrules.combinatorics import _create_edge_id_particle_mapping
 
 
 @pytest.mark.parametrize(
-    "allowed_intermediate_particles, number_of_solutions",
+    ("allowed_intermediate_particles", "number_of_solutions"),
     [
         (["f(0)(1500)"], 4),
         (["f(0)(980)", "f(0)(1500)"], 8),
@@ -23,7 +23,7 @@ from qrules.combinatorics import _create_edge_id_particle_mapping
         ),
     ],
 )
-@pytest.mark.slow
+@pytest.mark.slow()
 def test_number_of_solutions(
     particle_database, allowed_intermediate_particles, number_of_solutions
 ):

@@ -208,7 +208,7 @@ def remove_duplicate_solutions(
     logging.info(f"removing these qns from graphs: {remove_qns_list}")
     logging.info(f"ignoring qns in graph comparison: {ignore_qns_list}")
 
-    filtered_solutions: List[StateTransitionGraph[ParticleWithSpin]] = list()
+    filtered_solutions: List[StateTransitionGraph[ParticleWithSpin]] = []
     remove_counter = 0
     for sol_graph in solutions:
         sol_graph = _remove_qns_from_graph(sol_graph, remove_qns_list)

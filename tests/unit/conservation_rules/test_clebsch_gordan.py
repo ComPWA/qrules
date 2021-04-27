@@ -20,7 +20,7 @@ _SpinRuleInputType = Tuple[
 
 
 @pytest.mark.parametrize(
-    "rule_input, expected",
+    ("rule_input", "expected"),
     [
         (
             __create_two_body_decay_spin_data(
@@ -112,7 +112,7 @@ def test_clebsch_gordan_ls_coupling(
 
 
 @pytest.mark.parametrize(
-    "rule_input, expected",
+    ("rule_input", "expected"),
     [
         (
             __create_two_body_decay_spin_data(
@@ -198,7 +198,7 @@ def test_clebsch_gordan_helicity_canonical(
 
 
 @pytest.mark.parametrize(
-    "coupled_isospin_mag, isospin_mag1, isospin_mag2, expected",
+    ("coupled_isospin_mag", "isospin_mag1", "isospin_mag2", "expected"),
     [
         (1, 1, 1, False),
         (2, 1, 1, True),

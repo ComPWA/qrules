@@ -160,6 +160,6 @@ def _get_file_extension(filename: str) -> str:
     path = Path(filename)
     extension = path.suffix.lower()
     if not extension:
-        raise Exception(f"No file extension in file {filename}")
+        raise ValueError(f'No file extension in file name "{filename}"')
     extension = extension[1:]
     return extension
