@@ -96,7 +96,6 @@
         "setuptools",
         "spflueger",
         "struct",
-        "sympy",
         "tensorflow",
         "tensorwaves",
         "toctree",
