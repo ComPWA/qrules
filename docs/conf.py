@@ -10,6 +10,7 @@ https://www.sphinx-doc.org/en/master/usage/configuration.html
 import os
 import shutil
 import subprocess
+import sys
 
 import sphobjinv as soi
 from pkg_resources import get_distribution
@@ -25,7 +26,10 @@ if os.path.exists(f"../src/{package}/version.py"):
     __release = get_distribution(package).version
     version = ".".join(__release.split(".")[:3])
 
-# -- Generate API skeleton ----------------------------------------------------
+# -- Generate API ------------------------------------------------------------
+sys.path.insert(0, os.path.abspath("."))
+import abbreviate_signature
+
 shutil.rmtree("api", ignore_errors=True)
 subprocess.call(
     " ".join(
@@ -120,13 +124,18 @@ autodoc_default_options = {
         ]
     ),
 }
+autodoc_insert_signature_linebreaks = True
 graphviz_output_format = "svg"
 html_copy_source = True  # needed for download notebook button
+html_css_files = []
+if autodoc_insert_signature_linebreaks:
+    html_css_files.append("linebreaks-api.css")
 html_favicon = "_static/favicon.ico"
 html_show_copyright = False
 html_show_sourcelink = False
 html_show_sphinx = False
 html_sourcelink_suffix = ""
+html_static_path = ["_static"]
 html_theme = "sphinx_book_theme"
 html_theme_options = {
     "repository_url": f"https://github.com/ComPWA/{repo_name}",
