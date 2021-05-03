@@ -168,9 +168,6 @@ nitpick_ignore = [
     ("py:class", "NoneType"),
     ("py:class", "StateTransitionGraph"),
     ("py:class", "ValueType"),
-    ("py:class", "a set-like object providing a view on D's items"),
-    ("py:class", "a set-like object providing a view on D's keys"),
-    ("py:class", "an object providing a view on D's values"),
     ("py:class", "typing_extensions.Protocol"),
     ("py:obj", "qrules.topology._K"),
     ("py:obj", "qrules.topology._V"),
@@ -179,17 +176,14 @@ nitpick_ignore = [
 # Intersphinx settings
 intersphinx_mapping = {
     "ampform": ("https://ampform.readthedocs.io/en/stable", None),
-    "expertsystem": ("https://expertsystem.readthedocs.io//en/stable", None),
+    "expertsystem": ("https://expertsystem.readthedocs.io/en/stable", None),
     "attrs": ("https://www.attrs.org/en/stable", None),
     "constraint": (
         "https://labix.org/doc/constraint/public",
         "constraint.inv",
     ),
     "graphviz": ("https://graphviz.readthedocs.io/en/stable", None),
-    "jsonschema": (
-        "https://python-jsonschema.readthedocs.io/en/latest",
-        None,
-    ),
+    "jsonschema": ("https://python-jsonschema.readthedocs.io/en/latest", None),
     "mypy": ("https://mypy.readthedocs.io/en/stable", None),
     "pwa": ("https://pwa.readthedocs.io", None),
     "python": ("https://docs.python.org/3", None),
