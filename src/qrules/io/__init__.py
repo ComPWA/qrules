@@ -63,7 +63,7 @@ __REQUIRED_TOPOLOGY_FIELDS = {
 def asdot(
     instance: object,
     *,
-    render_node: bool = True,
+    render_node: bool = False,
     render_final_state_id: bool = True,
     render_resonance_id: bool = False,
     render_initial_state_id: bool = False,
@@ -74,6 +74,34 @@ def asdot(
 
     Only works for objects that can be represented as a graph, particularly a
     `.StateTransitionGraph` or a `list` of `.StateTransitionGraph` instances.
+
+    Args:
+        instance: the input `object` that is to be rendered as DOT (graphviz)
+            language.
+
+        strip_spin: Normally, each `.StateTransitionGraph` has a `.Particle`
+            with a spin projection on its edges. This option hides the
+            projections, leaving only `.Particle` names on edges.
+
+        collapse_graphs: Group all transitions by equivalent kinematic topology
+            and combine all allowed particles on each edge.
+
+        render_node: Whether or not to render node ID (in the case of a
+            `.Topology`) and/or node properties (in the case of a
+            `.StateTransitionGraph`). Meaning of the labels:
+
+            - :math:`P`: parity prefactor
+            - :math:`s`: tuple of **coupled spin** magnitude and its
+              projection
+            - :math:`l`: tuple of **angular momentum** and its projection
+
+            See `.InteractionProperties` for more info.
+
+        render_final_state_id: Add edge IDs for the final state edges.
+
+        render_resonance_id: Add edge IDs for the intermediate state edges.
+
+        render_initial_state_id: Add edge IDs for the initial state edges.
 
     .. seealso:: :doc:`/usage/visualize`
     """

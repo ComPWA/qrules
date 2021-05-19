@@ -120,7 +120,7 @@ autodoc_default_options = {
     "special-members": ", ".join(
         [
             "__call__",
-            "__eq__",
+            "__getitem__",
         ]
     ),
 }

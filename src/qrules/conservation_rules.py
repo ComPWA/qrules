@@ -807,8 +807,8 @@ def clebsch_gordan_helicity_to_canonical(
     coupling based on the conversion of helicity to canonical amplitude sums.
 
     .. note:: This rule does not check that the spin magnitudes couple
-      correctly to L and S, as this is already performed by
-      `~.spin_magnitude_conservation`.
+      correctly to :math:`L` and :math:`S`, as this is already performed by
+      `.spin_magnitude_conservation`.
     """
     if len(ingoing_spins) == 1 and len(outgoing_spins) == 2:
         out_spin1 = _Spin(

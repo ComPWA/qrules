@@ -36,15 +36,17 @@ import attr
 
 from .quantum_numbers import InteractionProperties
 
-_K = TypeVar("_K")
-_V = TypeVar("_V")
+KeyType = TypeVar("KeyType")
+"""Type the keys of the `~typing.Mapping`, see `~typing.KeysView`."""
+ValueType = TypeVar("ValueType")
+"""Type the value of the `~typing.Mapping`, see `~typing.ValuesView`."""
 
 
 class FrozenDict(  # pylint: disable=too-many-ancestors
-    Generic[_K, _V], abc.Hashable, abc.Mapping
+    Generic[KeyType, ValueType], abc.Hashable, abc.Mapping
 ):
     def __init__(self, mapping: Optional[Mapping] = None):
-        self.__mapping: Dict[_K, _V] = {}
+        self.__mapping: Dict[KeyType, ValueType] = {}
         if mapping is not None:
             self.__mapping = dict(mapping)
         self.__hash = hash(None)
@@ -56,25 +58,25 @@ class FrozenDict(  # pylint: disable=too-many-ancestors
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.__mapping})"
 
-    def __iter__(self) -> Iterator[_K]:
+    def __iter__(self) -> Iterator[KeyType]:
         return iter(self.__mapping)
 
     def __len__(self) -> int:
         return len(self.__mapping)
 
-    def __getitem__(self, key: _K) -> _V:
+    def __getitem__(self, key: KeyType) -> ValueType:
         return self.__mapping[key]
 
     def __hash__(self) -> int:
         return self.__hash
 
-    def keys(self) -> KeysView[_K]:
+    def keys(self) -> KeysView[KeyType]:
         return self.__mapping.keys()
 
-    def items(self) -> ItemsView[_K, _V]:
+    def items(self) -> ItemsView[KeyType, ValueType]:
         return self.__mapping.items()
 
-    def values(self) -> ValuesView[_V]:
+    def values(self) -> ValuesView[ValueType]:
         return self.__mapping.values()
 
 

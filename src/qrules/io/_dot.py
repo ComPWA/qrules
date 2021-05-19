@@ -47,8 +47,17 @@ def graph_list_to_dot(
     if strip_spin and collapse_graphs:
         raise ValueError("Cannot both strip spin and collapse graphs")
     if collapse_graphs:
+        if render_node:
+            raise ValueError(
+                "Collapsed graphs cannot be rendered with node properties"
+            )
         graphs = _collapse_graphs(graphs)
     elif strip_spin:
+        if render_node:
+            raise ValueError(
+                "Graphs without spin projections cannot be rendered with node"
+                " properties"
+            )
         graphs = _get_particle_graphs(graphs)
     dot = ""
     for i, graph in enumerate(reversed(graphs)):
