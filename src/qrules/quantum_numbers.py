@@ -160,6 +160,15 @@ def _to_optional_int(optional_int: Optional[int]) -> Optional[int]:
 class InteractionProperties:
     """Immutable data structure containing interaction properties.
 
+    Interactions are represented by a node on a `.StateTransitionGraph`. This
+    class represents the properties that are carried collectively by the edges
+    that this node connects.
+
+    Interaction properties are in particular important in the canonical basis
+    of the helicity formalism. There, the *coupled spin* and angular momentum
+    of each interaction are used for the Clebsch-Gordan coefficients for each
+    term in a sequential amplitude.
+
     .. note:: As opposed to `NodeQuantumNumbers`, the `InteractionProperties`
         class serves as an interface to the user.
     """
