@@ -172,7 +172,7 @@ tqdm==4.61.1
 traitlets==4.3.3
 typed-ast==1.4.3
 types-docutils==0.1.6
-types-pyyaml==0.1.8
+types-pyyaml==5.4.0
 typing-extensions==3.10.0.0 ; python_version < "3.8.0"
 urllib3==1.26.5
 virtualenv==20.4.7
