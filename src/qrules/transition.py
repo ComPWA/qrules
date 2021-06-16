@@ -1,3 +1,4 @@
+# pylint: disable=too-many-lines
 """Find allowed transitions between an initial and final state."""
 
 import logging
@@ -8,6 +9,7 @@ from enum import Enum, auto
 from itertools import zip_longest
 from multiprocessing import Pool
 from typing import (
+    Any,
     Collection,
     DefaultDict,
     Dict,
@@ -82,6 +84,12 @@ try:
     from typing import overload
 except ImportError:
     from typing_extensions import overload  # type: ignore
+
+
+try:
+    from IPython.lib.pretty import PrettyPrinter
+except ImportError:
+    PrettyPrinter = Any
 
 
 class SolvingMode(Enum):
@@ -733,6 +741,21 @@ class State:
     particle: Particle = attr.ib(validator=instance_of(Particle))
     spin_projection: float = attr.ib(converter=_to_float)
 
+    def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
+        class_name = type(self).__name__
+        if cycle:
+            p.text(f"{class_name}(...)")
+        else:
+            with p.group(indent=2, open=f"{class_name}("):
+                for field in attr.fields(type(self)):
+                    value = getattr(self, field.name)
+                    p.breakable()
+                    p.text(f"{field.name}=")
+                    p.pretty(value)
+                    p.text(",")
+            p.breakable()
+            p.text(")")
+
 
 @attr.s(frozen=True)
 class StateTransition:
@@ -747,6 +770,21 @@ class StateTransition:
     def __attrs_post_init__(self) -> None:
         _assert_defined(self.topology.edges, self.states)
         _assert_defined(self.topology.nodes, self.interactions)
+
+    def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
+        class_name = type(self).__name__
+        if cycle:
+            p.text(f"{class_name}(...)")
+        else:
+            with p.group(indent=2, open=f"{class_name}("):
+                for field in attr.fields(type(self)):
+                    value = getattr(self, field.name)
+                    p.breakable()
+                    p.text(f"{field.name}=")
+                    p.pretty(value)
+                    p.text(",")
+            p.breakable()
+            p.text(")")
 
     @staticmethod
     def from_graph(
@@ -848,6 +886,19 @@ class StateTransitionCollection(abc.Set):
             ),
         )
 
+    def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
+        class_name = type(self).__name__
+        if cycle:
+            p.text(f"{class_name}(...)")
+        else:
+            with p.group(indent=2, open=f"{class_name}({{"):
+                for transition in self:
+                    p.breakable()
+                    p.pretty(transition)
+                    p.text(",")
+            p.breakable()
+            p.text("})")
+
     def __contains__(self, item: object) -> bool:
         return item in self.transitions
 
@@ -927,6 +978,19 @@ class ReactionInfo(abc.Sequence):
 
     def __len__(self) -> int:
         return len(self.transition_groups)
+
+    def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
+        class_name = type(self).__name__
+        if cycle:
+            p.text(f"{class_name}(...)")
+        else:
+            with p.group(indent=2, open=f"{class_name}(transition_groups=("):
+                for transition_grouping in self:
+                    p.breakable()
+                    p.pretty(transition_grouping)
+                    p.text(",")
+            p.breakable()
+            p.text("))")
 
     @staticmethod
     def from_graphs(

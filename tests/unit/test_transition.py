@@ -1,10 +1,26 @@
-# pylint: disable=no-self-use
+# pyright: reportUnusedImport=false
+# pylint: disable=eval-used, no-self-use
 import pytest
+from IPython.lib.pretty import pretty
 
-from qrules.particle import ParticleCollection
-from qrules.transition import (
+from qrules.particle import (  # noqa: F401
+    Parity,
+    Particle,
+    ParticleCollection,
+    ParticleWithSpin,
+    Spin,
+)
+from qrules.quantum_numbers import InteractionProperties  # noqa: F401
+from qrules.topology import (  # noqa: F401
+    Edge,
+    FrozenDict,
+    StateTransitionGraph,
+    Topology,
+)
+from qrules.transition import (  # noqa: F401
     ReactionInfo,
     Result,
+    State,
     StateTransition,
     StateTransitionCollection,
     StateTransitionManager,
@@ -23,14 +39,31 @@ class TestReactionInfo:
         assert isinstance(first_group, StateTransitionCollection)
         assert len(first_group) == len(result.transitions)
 
+    @pytest.mark.parametrize("repr_method", [repr, pretty])
+    def test_repr(self, repr_method, result: Result):
+        reaction_info = ReactionInfo.from_graphs(result.transitions)
+        for instance in reaction_info:
+            from_repr = eval(repr_method(instance))
+            assert from_repr == instance
+        instance = reaction_info
+        from_repr = eval(repr_method(instance))
+        assert from_repr == instance
+
 
 class TestStateTransition:
+    @pytest.fixture(scope="session")
+    def some_graph(
+        self, result: Result
+    ) -> StateTransitionGraph[ParticleWithSpin]:
+        graphs = result.transitions
+        return next(iter(graphs))
+
     def test_from_graph(
-        self, particle_database: ParticleCollection, result: Result
+        self,
+        particle_database: ParticleCollection,
+        some_graph: StateTransitionGraph[ParticleWithSpin],
     ):
         pdg = particle_database
-        graphs = result.transitions
-        some_graph = next(iter(graphs))
         transition = StateTransition.from_graph(some_graph)
         assert transition.topology == some_graph.topology
         assert len(transition.initial_states) == 1
@@ -50,6 +83,14 @@ class TestStateTransition:
             lambda p: p.name.startswith("f(0)")
         )
 
+    @pytest.mark.parametrize("repr_method", [repr, pretty])
+    def test_repr(
+        self, repr_method, some_graph: StateTransitionGraph[ParticleWithSpin]
+    ):
+        instance = StateTransition.from_graph(some_graph)
+        from_repr = eval(repr_method(instance))
+        assert from_repr == instance
+
 
 class TestStateTransitionCollection:
     def test_from_graphs(self, result: Result):
@@ -63,6 +104,12 @@ class TestStateTransitionCollection:
             raise NotImplementedError
         assert len({t.topology for t in transitions}) == 1
         assert {t.topology for t in transitions} == {transitions.topology}
+
+    @pytest.mark.parametrize("repr_method", [repr, pretty])
+    def test_repr(self, result: Result, repr_method):
+        instance = StateTransitionCollection.from_graphs(result.transitions)
+        from_repr = eval(repr_method(instance))
+        assert from_repr == instance
 
 
 class TestStateTransitionManager:
