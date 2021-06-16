@@ -5,6 +5,7 @@ import multiprocessing
 from collections import abc, defaultdict
 from copy import copy, deepcopy
 from enum import Enum, auto
+from itertools import zip_longest
 from multiprocessing import Pool
 from typing import (
     Collection,
@@ -901,6 +902,16 @@ class ReactionInfo(abc.Sequence):
             self,
             "initial_state",
             first_transition.initial_state,
+        )
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, abc.Iterable):
+            for own_transition, other_transition in zip_longest(self, other):
+                if own_transition != other_transition:
+                    return False
+            return True
+        raise NotImplementedError(
+            f"Cannot compare {self.__class__.__name__} with  {other.__class__.__name__}"
         )
 
     @overload
