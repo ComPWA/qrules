@@ -68,7 +68,7 @@ class Spin:
         if abs(self.projection) > self.magnitude:
             if self.magnitude < 0.0:
                 raise ValueError(
-                    "Spin magnitude has to be positive:\n" f" {self.magnitude}"
+                    f"Spin magnitude has to be positive, but is {self.magnitude}"
                 )
             raise ValueError(
                 "Absolute value of spin projection cannot be larger than its "
