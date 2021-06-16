@@ -13,6 +13,7 @@ import itertools
 import logging
 from collections import abc
 from typing import (
+    Any,
     Callable,
     Collection,
     Dict,
@@ -36,6 +37,11 @@ import attr
 
 from .quantum_numbers import InteractionProperties
 
+try:
+    from IPython.lib.pretty import PrettyPrinter
+except ImportError:
+    PrettyPrinter = Any
+
 KeyType = TypeVar("KeyType")
 """Type the keys of the `~typing.Mapping`, see `~typing.KeysView`."""
 ValueType = TypeVar("ValueType")
@@ -57,6 +63,20 @@ class FrozenDict(  # pylint: disable=too-many-ancestors
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.__mapping})"
+
+    def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
+        class_name = type(self).__name__
+        if cycle:
+            p.text(f"{class_name}(...)")
+        else:
+            with p.group(indent=2, open=f"{class_name}({{"):
+                for key, value in self.items():
+                    p.breakable()
+                    p.text(f"{key}: ")
+                    p.pretty(value)
+                    p.text(",")
+            p.breakable()
+            p.text("})")
 
     def __iter__(self) -> Iterator[KeyType]:
         return iter(self.__mapping)
