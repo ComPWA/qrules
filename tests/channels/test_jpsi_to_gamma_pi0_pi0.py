@@ -1,6 +1,6 @@
 import pytest
 
-import qrules as q
+import qrules
 from qrules.combinatorics import _create_edge_id_particle_mapping
 
 
@@ -27,7 +27,7 @@ from qrules.combinatorics import _create_edge_id_particle_mapping
 def test_number_of_solutions(
     particle_database, allowed_intermediate_particles, number_of_solutions
 ):
-    result = q.generate_transitions(
+    result = qrules.generate_transitions(
         initial_state=("J/psi(1S)", [-1, +1]),
         final_state=["gamma", "pi0", "pi0"],
         particle_db=particle_database,
@@ -42,7 +42,7 @@ def test_number_of_solutions(
 
 
 def test_id_to_particle_mappings(particle_database):
-    result = q.generate_transitions(
+    result = qrules.generate_transitions(
         initial_state=("J/psi(1S)", [-1, +1]),
         final_state=["gamma", "pi0", "pi0"],
         particle_db=particle_database,

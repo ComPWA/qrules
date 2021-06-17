@@ -3,7 +3,7 @@ import logging
 
 import pytest
 
-import qrules as q
+import qrules
 from qrules import Result
 
 logging.basicConfig(level=logging.ERROR)
@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.ERROR)
 
 @pytest.fixture(scope="session")
 def jpsi_to_gamma_pi_pi_canonical_solutions() -> Result:
-    return q.generate_transitions(
+    return qrules.generate_transitions(
         initial_state=[("J/psi(1S)", [-1, 1])],
         final_state=["gamma", "pi0", "pi0"],
         allowed_intermediate_particles=["f(0)(980)", "f(0)(1500)"],
@@ -22,7 +22,7 @@ def jpsi_to_gamma_pi_pi_canonical_solutions() -> Result:
 
 @pytest.fixture(scope="session")
 def jpsi_to_gamma_pi_pi_helicity_solutions() -> Result:
-    return q.generate_transitions(
+    return qrules.generate_transitions(
         initial_state=[("J/psi(1S)", [-1, 1])],
         final_state=["gamma", "pi0", "pi0"],
         allowed_intermediate_particles=["f(0)(980)", "f(0)(1500)"],
