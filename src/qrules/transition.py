@@ -145,7 +145,7 @@ class Result:
     transitions: List[StateTransitionGraph[ParticleWithSpin]] = attr.ib(
         factory=list
     )
-    formalism_type: Optional[str] = attr.ib(default=None)
+    formalism: Optional[str] = attr.ib(default=None)
 
     def get_initial_state(self) -> List[Particle]:
         graph = self.__get_first_graph()
@@ -260,7 +260,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         interaction_type_settings: Dict[
             InteractionType, Tuple[EdgeSettings, NodeSettings]
         ] = None,
-        formalism_type: str = "helicity",
+        formalism: str = "helicity",
         topology_building: str = "isobar",
         number_of_threads: Optional[int] = None,
         solving_mode: SolvingMode = SolvingMode.FAST,
@@ -271,17 +271,17 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
     ) -> None:
         if interaction_type_settings is None:
             interaction_type_settings = {}
-        allowed_formalism_types = [
+        allowed_formalisms = [
             "helicity",
             "canonical-helicity",
             "canonical",
         ]
-        if formalism_type not in allowed_formalism_types:
+        if formalism not in allowed_formalisms:
             raise NotImplementedError(
-                f"Formalism type {formalism_type} not implemented."
-                f" Use {allowed_formalism_types} instead."
+                f'Formalism "{formalism}" not implemented.'
+                f" Use one of {allowed_formalisms} instead."
             )
-        self.__formalism_type = str(formalism_type)
+        self.__formalism = str(formalism)
         self.__particles = ParticleCollection()
         if particle_db is not None:
             self.__particles = particle_db
@@ -306,14 +306,14 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         ]
         self.filter_remove_qns: Set[Type[NodeQuantumNumber]] = set()
         self.filter_ignore_qns: Set[Type[NodeQuantumNumber]] = set()
-        if formalism_type == "helicity":
+        if formalism == "helicity":
             self.filter_remove_qns = {
                 NodeQuantumNumbers.l_magnitude,
                 NodeQuantumNumbers.l_projection,
                 NodeQuantumNumbers.s_magnitude,
                 NodeQuantumNumbers.s_projection,
             }
-        if "helicity" in formalism_type:
+        if "helicity" in formalism:
             self.filter_ignore_qns = {NodeQuantumNumbers.parity_prefactor}
         use_nbody_topology = False
         topology_building = topology_building.lower()
@@ -334,7 +334,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
 
         if not self.interaction_type_settings:
             self.interaction_type_settings = create_interaction_settings(
-                formalism_type,
+                formalism,
                 particle_db=self.__particles,
                 nbody_topology=use_nbody_topology,
                 mass_conservation_factor=mass_conservation_factor,
@@ -374,8 +374,8 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             ]
 
     @property
-    def formalism_type(self) -> str:
-        return self.__formalism_type
+    def formalism(self) -> str:
+        return self.__formalism
 
     def add_final_state_grouping(
         self, fs_group: List[Union[str, List[str]]]
@@ -655,7 +655,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         match_external_edges(final_solutions)
         return Result(
             final_solutions,
-            formalism_type=self.formalism_type,
+            formalism=self.formalism,
         )
 
     def _solve(

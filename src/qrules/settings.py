@@ -94,7 +94,7 @@ class InteractionType(Enum):
 
 
 def create_interaction_settings(  # pylint: disable=too-many-locals,too-many-arguments
-    formalism_type: str,
+    formalism: str,
     particle_db: ParticleCollection,
     nbody_topology: bool = False,
     mass_conservation_factor: Optional[float] = 3.0,
@@ -121,7 +121,7 @@ def create_interaction_settings(  # pylint: disable=too-many-locals,too-many-arg
     spin_magnitude_domain = __get_spin_magnitudes(
         nbody_topology, max_spin_magnitude
     )
-    if "helicity" in formalism_type:
+    if "helicity" in formalism:
         formalism_node_settings.conservation_rules = {
             spin_magnitude_conservation,
             helicity_conservation,
@@ -130,7 +130,7 @@ def create_interaction_settings(  # pylint: disable=too-many-locals,too-many-arg
             NodeQN.l_magnitude: angular_momentum_domain,
             NodeQN.s_magnitude: spin_magnitude_domain,
         }
-    elif formalism_type == "canonical":
+    elif formalism == "canonical":
         formalism_node_settings.conservation_rules = {
             spin_magnitude_conservation
         }
@@ -145,7 +145,7 @@ def create_interaction_settings(  # pylint: disable=too-many-locals,too-many-arg
             NodeQN.s_magnitude: spin_magnitude_domain,
             NodeQN.s_projection: __extend_negative(spin_magnitude_domain),
         }
-    if formalism_type == "canonical-helicity":
+    if formalism == "canonical-helicity":
         formalism_node_settings.conservation_rules.update(
             {
                 clebsch_gordan_helicity_to_canonical,
@@ -193,7 +193,7 @@ def create_interaction_settings(  # pylint: disable=too-many-locals,too-many-arg
             c_parity_conservation,
         }
     )
-    if "helicity" in formalism_type:
+    if "helicity" in formalism:
         em_node_settings.conservation_rules.add(parity_conservation_helicity)
         em_node_settings.qn_domains.update({NodeQN.parity_prefactor: [-1, 1]})
 

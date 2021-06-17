@@ -33,16 +33,16 @@ def test_create_domains(particle_database: ParticleCollection):
 @pytest.mark.parametrize("interaction_type", list(InteractionType))
 @pytest.mark.parametrize("nbody_topology", [False, True])
 @pytest.mark.parametrize(
-    "formalism_type", ["canonical", "canonical-helicity", "helicity"]
+    "formalism", ["canonical", "canonical-helicity", "helicity"]
 )
 def test_create_interaction_settings(
     particle_database: ParticleCollection,
     interaction_type: InteractionType,
     nbody_topology: bool,
-    formalism_type: str,
+    formalism: str,
 ):
     settings = create_interaction_settings(
-        formalism_type,
+        formalism,
         particle_db=particle_database,
         nbody_topology=nbody_topology,
     )
@@ -75,20 +75,17 @@ def test_create_interaction_settings(
         "l_magnitude": _int_domain(0, 2),
         "s_magnitude": _halves_domain(0, 2),
     }
-    if "canonical" in formalism_type:
+    if "canonical" in formalism:
         expected["l_projection"] = [-2, -1, 0, 1, 2]
         expected["s_projection"] = _halves_domain(-2, 2)
-    if formalism_type == "canonical-helicity":
+    if formalism == "canonical-helicity":
         expected["l_projection"] = [0]
-    if (
-        "helicity" in formalism_type
-        and interaction_type != InteractionType.WEAK
-    ):
+    if "helicity" in formalism and interaction_type != InteractionType.WEAK:
         expected["parity_prefactor"] = [-1, 1]
     if nbody_topology:
         expected["l_magnitude"] = [0]
         expected["s_magnitude"] = [0]
-    if nbody_topology and formalism_type != "helicity":
+    if nbody_topology and formalism != "helicity":
         expected["l_projection"] = [0]
         expected["s_projection"] = [0]
 
