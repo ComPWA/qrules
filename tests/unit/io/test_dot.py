@@ -1,8 +1,5 @@
 # pylint: disable=no-self-use
-from typing import Callable, Optional
-
 import pydot
-import pytest
 
 from qrules import Result, io
 from qrules.io._dot import _collapse_graphs, _get_particle_graphs
@@ -15,31 +12,27 @@ from qrules.topology import (
 )
 
 
-@pytest.mark.parametrize("formalism", ["canonical", "helicity", None])
-def test_asdot(
-    formalism: Optional[str],
-    get_reaction: Callable[[str], Result],
-):
-    if formalism is None:
-        dot_data = io.asdot(create_n_body_topology(3, 4))
+def test_asdot(result: Result):
+    for transition in result.transitions:
+        dot_data = io.asdot(transition)
         assert pydot.graph_from_dot_data(dot_data) is not None
-        dot_data = io.asdot(create_isobar_topologies(2))
-        assert pydot.graph_from_dot_data(dot_data) is not None
-        dot_data = io.asdot(create_isobar_topologies(3))
-        assert pydot.graph_from_dot_data(dot_data) is not None
-        dot_data = io.asdot(create_isobar_topologies(4))
-        assert pydot.graph_from_dot_data(dot_data) is not None
-    else:
-        result = get_reaction(formalism)
-        for transition in result.transitions:
-            dot_data = io.asdot(transition)
-            assert pydot.graph_from_dot_data(dot_data) is not None
-        dot_data = io.asdot(result)
-        assert pydot.graph_from_dot_data(dot_data) is not None
-        dot_data = io.asdot(result, strip_spin=True)
-        assert pydot.graph_from_dot_data(dot_data) is not None
-        dot_data = io.asdot(result, collapse_graphs=True)
-        assert pydot.graph_from_dot_data(dot_data) is not None
+    dot_data = io.asdot(result)
+    assert pydot.graph_from_dot_data(dot_data) is not None
+    dot_data = io.asdot(result, strip_spin=True)
+    assert pydot.graph_from_dot_data(dot_data) is not None
+    dot_data = io.asdot(result, collapse_graphs=True)
+    assert pydot.graph_from_dot_data(dot_data) is not None
+
+
+def test_asdot_topology():
+    dot_data = io.asdot(create_n_body_topology(3, 4))
+    assert pydot.graph_from_dot_data(dot_data) is not None
+    dot_data = io.asdot(create_isobar_topologies(2))
+    assert pydot.graph_from_dot_data(dot_data) is not None
+    dot_data = io.asdot(create_isobar_topologies(3))
+    assert pydot.graph_from_dot_data(dot_data) is not None
+    dot_data = io.asdot(create_isobar_topologies(4))
+    assert pydot.graph_from_dot_data(dot_data) is not None
 
 
 class TestWrite:
@@ -57,15 +50,8 @@ class TestWrite:
             dot_data = stream.read()
         assert pydot.graph_from_dot_data(dot_data) is not None
 
-    @pytest.mark.parametrize("formalism", ["canonical", "helicity"])
-    def test_write_single_graph(
-        self,
-        output_dir,
-        formalism: str,
-        get_reaction: Callable[[str], Result],
-    ):
+    def test_write_single_graph(self, output_dir, result: Result):
         output_file = output_dir + "test_single_graph.gv"
-        result = get_reaction(formalism)
         io.write(
             instance=result.transitions[0],
             filename=output_file,
@@ -74,15 +60,8 @@ class TestWrite:
             dot_data = stream.read()
         assert pydot.graph_from_dot_data(dot_data) is not None
 
-    @pytest.mark.parametrize("formalism", ["canonical", "helicity"])
-    def test_write_graph_list(
-        self,
-        output_dir,
-        formalism: str,
-        get_reaction: Callable[[str], Result],
-    ):
+    def test_write_graph_list(self, output_dir, result: Result):
         output_file = output_dir + "test_graph_list.gv"
-        result = get_reaction(formalism)
         io.write(
             instance=result.transitions,
             filename=output_file,
@@ -91,14 +70,7 @@ class TestWrite:
             dot_data = stream.read()
         assert pydot.graph_from_dot_data(dot_data) is not None
 
-    @pytest.mark.parametrize("formalism", ["canonical", "helicity"])
-    def test_write_strip_spin(
-        self,
-        output_dir,
-        formalism: str,
-        get_reaction: Callable[[str], Result],
-    ):
-        result = get_reaction(formalism)
+    def test_write_strip_spin(self, output_dir, result: Result):
         output_file = output_dir + "test_particle_graphs.gv"
         io.write(
             instance=io.asdot(result, strip_spin=True),
@@ -109,14 +81,11 @@ class TestWrite:
         assert pydot.graph_from_dot_data(dot_data) is not None
 
 
-@pytest.mark.parametrize("formalism", ["canonical", "helicity"])
 def test_collapse_graphs(
-    formalism: str,
-    get_reaction: Callable[[str], Result],
+    result: Result,
     particle_database: ParticleCollection,
 ):
     pdg = particle_database
-    result = get_reaction(formalism)
     particle_graphs = _get_particle_graphs(result.transitions)
     assert len(particle_graphs) == 2
     collapsed_graphs = _collapse_graphs(result.transitions)
@@ -129,14 +98,10 @@ def test_collapse_graphs(
     assert intermediate_states == f_resonances
 
 
-@pytest.mark.parametrize("formalism", ["canonical", "helicity"])
 def test_get_particle_graphs(
-    formalism: str,
-    get_reaction: Callable[[str], Result],
-    particle_database: ParticleCollection,
+    result: Result, particle_database: ParticleCollection
 ):
     pdg = particle_database
-    result = get_reaction(formalism)
     particle_graphs = _get_particle_graphs(result.transitions)
     assert len(particle_graphs) == 2
     assert particle_graphs[0].get_edge_props(3) == pdg["f(0)(980)"]

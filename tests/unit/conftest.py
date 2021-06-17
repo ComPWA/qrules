@@ -1,8 +1,8 @@
 # pylint: disable=redefined-outer-name
 import logging
-from typing import Callable
 
 import pytest
+from _pytest.fixtures import SubRequest
 
 import qrules
 from qrules import Result
@@ -32,18 +32,17 @@ def jpsi_to_gamma_pi_pi_helicity_solutions() -> Result:
     )
 
 
-@pytest.fixture(scope="session")
-def get_reaction(
+@pytest.fixture(scope="session", params=["canonical", "helicity"])
+def result(
+    request: SubRequest,
     jpsi_to_gamma_pi_pi_canonical_solutions: Result,
     jpsi_to_gamma_pi_pi_helicity_solutions: Result,
-) -> Callable[[str], Result]:
-    def wrapped_function(formalism: str) -> Result:
-        if formalism.lower().startswith("cano"):
-            return jpsi_to_gamma_pi_pi_canonical_solutions
-        if formalism.lower().startswith("heli"):
-            return jpsi_to_gamma_pi_pi_helicity_solutions
-        raise NotImplementedError(
-            f'No {Result.__name__} for formalism type "{formalism}"'
-        )
-
-    return wrapped_function
+) -> Result:
+    formalism: str = request.param
+    if formalism == "canonical":
+        return jpsi_to_gamma_pi_pi_canonical_solutions
+    if formalism == "helicity":
+        return jpsi_to_gamma_pi_pi_helicity_solutions
+    raise NotImplementedError(
+        f'No {Result.__name__} for formalism type "{formalism}"'
+    )
