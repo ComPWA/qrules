@@ -417,7 +417,7 @@ def match_external_edges(
     graphs: List[StateTransitionGraph[ParticleWithSpin]],
 ) -> None:
     if not isinstance(graphs, list):
-        raise TypeError("graphs argument is not of type list!")
+        raise TypeError("graphs argument is not of type list")
     if not graphs:
         return
     ref_graph_id = 0
@@ -476,7 +476,9 @@ def perform_external_edge_identical_particle_combinatorics(
     combinatorics!
     """
     if not isinstance(graph, StateTransitionGraph):
-        raise TypeError("graph argument is not of type StateTransitionGraph!")
+        raise TypeError(
+            f"graph argument is not of type {StateTransitionGraph.__class__}"
+        )
     temp_new_graphs = _external_edge_identical_particle_combinatorics(
         graph, __get_final_state_edge_ids
     )

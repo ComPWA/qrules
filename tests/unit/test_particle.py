@@ -1,5 +1,5 @@
-# flake8: noqa
-# pylint: disable=eval-used, redefined-outer-name, no-self-use
+# pylint: disable=eval-used, no-self-use, redefined-outer-name
+# pyright: reportUnusedImport=false
 import logging
 from copy import deepcopy
 
@@ -16,20 +16,18 @@ from qrules.particle import (
 )
 
 # For eval tests
-from qrules.quantum_numbers import Parity  # pyright: reportUnusedImport=false
+from qrules.quantum_numbers import Parity  # noqa: F401
 
 
 class TestParticle:
-    @staticmethod
-    def test_repr(particle_database: ParticleCollection):
+    @pytest.mark.parametrize("repr_method", [repr, pretty])
+    def test_repr(self, particle_database: ParticleCollection, repr_method):
         for instance in particle_database:
-            from_repr = eval(repr(instance))
-            assert from_repr == instance
-            from_repr = eval(pretty(instance))
+            from_repr = eval(repr_method(instance))
             assert from_repr == instance
 
     @pytest.mark.parametrize(
-        "name, is_lepton",
+        ("name", "is_lepton"),
         [
             ("J/psi(1S)", False),
             ("p", False),
@@ -45,20 +43,19 @@ class TestParticle:
     ):
         assert particle_database[name].is_lepton() == is_lepton
 
-    @staticmethod
-    def test_exceptions():
+    def test_exceptions(self):
+        test_state = Particle(
+            name="MyParticle",
+            pid=123,
+            mass=1.2,
+            width=0.1,
+            spin=1,
+            charge=0,
+            isospin=(1, 0),
+        )
         with pytest.raises(FrozenInstanceError):
-            test_state = Particle(
-                name="MyParticle",
-                pid=123,
-                mass=1.2,
-                width=0.1,
-                spin=1,
-                charge=0,
-                isospin=(1, 0),
-            )
             test_state.charge = 1  # type: ignore
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=r"Fails Gell-Mann–Nishijima"):
             Particle(
                 name="Fails Gell-Mann–Nishijima formula",
                 pid=666,
@@ -72,8 +69,7 @@ class TestParticle:
                 charmness=1,
             )
 
-    @staticmethod
-    def test_eq():
+    def test_eq(self):
         particle = Particle(
             name="MyParticle",
             pid=123,
@@ -109,26 +105,22 @@ class TestParticle:
 
 
 class TestParticleCollection:
-    @staticmethod
-    def test_init(particle_database: ParticleCollection):
+    def test_init(self, particle_database: ParticleCollection):
         new_pdg = ParticleCollection(particle_database)
         assert new_pdg is not particle_database
         assert new_pdg == particle_database
         with pytest.raises(TypeError):
             ParticleCollection(1)  # type: ignore
 
-    @staticmethod
-    def test_equality(particle_database: ParticleCollection):
+    def test_equality(self, particle_database: ParticleCollection):
         assert list(particle_database) == particle_database
         with pytest.raises(NotImplementedError):
             assert particle_database == 0
 
-    @staticmethod
-    def test_repr(particle_database: ParticleCollection):
+    @pytest.mark.parametrize("repr_method", [repr, pretty])
+    def test_repr(self, particle_database: ParticleCollection, repr_method):
         instance = particle_database
-        from_repr = eval(repr(instance))
-        assert from_repr == instance
-        from_repr = eval(pretty(instance))
+        from_repr = eval(repr_method(instance))
         assert from_repr == instance
 
     def test_add(self, particle_database: ParticleCollection):
@@ -189,8 +181,7 @@ class TestParticleCollection:
         with pytest.raises(NotImplementedError):
             pions.discard(111)  # type: ignore
 
-    @staticmethod
-    def test_filter(particle_database: ParticleCollection):
+    def test_filter(self, particle_database: ParticleCollection):
         search_result = particle_database.filter(lambda p: "f(0)" in p.name)
         f0_1500_from_subset = search_result["f(0)(1500)"]
         assert len(search_result) == 5
@@ -214,8 +205,7 @@ class TestParticleCollection:
             "K(2)(1820)+",
         }
 
-    @staticmethod
-    def test_find(particle_database: ParticleCollection):
+    def test_find(self, particle_database: ParticleCollection):
         f2_1950 = particle_database.find(9050225)
         assert f2_1950.name == "f(2)(1950)"
         assert f2_1950.mass == 1.936
@@ -224,7 +214,7 @@ class TestParticleCollection:
         assert pytest.approx(phi.width) == 0.004249
 
     @pytest.mark.parametrize(
-        "search_term, expected",
+        ("search_term", "expected"),
         [
             (666, None),
             ("non-existing", None),
@@ -252,10 +242,12 @@ class TestParticleCollection:
             message = message.strip("]")
             assert message.endswith(expected)
 
-    @staticmethod
-    def test_exceptions(particle_database: ParticleCollection):
+    def test_exceptions(self, particle_database: ParticleCollection):
         gamma = particle_database["gamma"]
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError,
+            match='Added particle "gamma_new" is equivalent to existing particle "gamma"',
+        ):
             particle_database += create_particle(gamma, name="gamma_new")
         with pytest.raises(NotImplementedError):
             particle_database.find(3.14)  # type: ignore
@@ -268,8 +260,7 @@ class TestParticleCollection:
 
 
 class TestSpin:
-    @staticmethod
-    def test_init_and_eq():
+    def test_init_and_eq(self):
         isospin = Spin(1.5, -0.5)
         assert isospin == 1.5
         assert float(isospin) == 1.5
@@ -281,8 +272,7 @@ class TestSpin:
         assert isospin.magnitude == 1.0
         assert isospin.projection == 0.0
 
-    @staticmethod
-    def test_hash():
+    def test_hash(self):
         spin1 = Spin(0.0, 0.0)
         spin2 = Spin(1.5, -0.5)
         assert {spin2, spin1, deepcopy(spin1), deepcopy(spin2)} == {
@@ -290,33 +280,39 @@ class TestSpin:
             spin2,
         }
 
-    @staticmethod
-    def test_neg():
+    def test_neg(self):
         isospin = Spin(1.5, -0.5)
         flipped_spin = -isospin
         assert flipped_spin.magnitude == isospin.magnitude
         assert flipped_spin.projection == -isospin.projection
 
+    @pytest.mark.parametrize("repr_method", [repr, pretty])
     @pytest.mark.parametrize(
         "instance", [Spin(2.5, -0.5), Spin(1, 0), Spin(3, -1), Spin(0, 0)]
     )
-    def test_repr(self, instance):
-        from_repr = eval(repr(instance))
-        assert from_repr == instance
-        from_repr = eval(pretty(instance))
+    def test_repr(self, instance: Spin, repr_method):
+        from_repr = eval(repr_method(instance))
         assert from_repr == instance
 
     @pytest.mark.parametrize(
-        "magnitude, projection",
+        ("magnitude", "projection"),
         [(0.3, 0.3), (1.0, 0.5), (0.5, 0.0), (-0.5, 0.5)],
     )
     def test_exceptions(self, magnitude, projection):
-        with pytest.raises(ValueError):
+        regex_pattern = "|".join(
+            [
+                r"Spin magnitude \d\.\d has to be a multitude of \d\.[05]",
+                r"\(projection - magnitude\) should be integer",
+                r"Spin magnitude has to be positive",
+            ]
+        )
+        regex_pattern = f"({regex_pattern})"
+        with pytest.raises(ValueError, match=regex_pattern):
             print(Spin(magnitude, projection))
 
 
 @pytest.mark.parametrize(
-    "particle_name, anti_particle_name",
+    ("particle_name", "anti_particle_name"),
     [("D+", "D-"), ("mu+", "mu-"), ("W+", "W-")],
 )
 def test_create_antiparticle(

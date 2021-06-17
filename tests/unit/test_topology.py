@@ -1,14 +1,13 @@
-# flake8: noqa
 # pylint: disable=no-self-use, redefined-outer-name, too-many-arguments
-
+# pyright: reportUnusedImport=false
 import typing
 
 import attr
 import pytest
 
-from qrules.topology import FrozenDict  # pyright: reportUnusedImport=false
-from qrules.topology import (
+from qrules.topology import (  # noqa: F401
     Edge,
+    FrozenDict,
     InteractionNode,
     SimpleStateTransitionTopologyBuilder,
     Topology,
@@ -47,8 +46,7 @@ def two_to_three_decay() -> Topology:
 
 
 class TestEdge:
-    @staticmethod
-    def test_get_connected_nodes():
+    def test_get_connected_nodes(self):
         edge = Edge(1, 2)
         assert edge.get_connected_nodes() == {1, 2}
         edge = Edge(originating_node_id=3)
@@ -70,8 +68,7 @@ class TestEdge:
 
 
 class TestInteractionNode:
-    @staticmethod
-    def test_constructor_exceptions():
+    def test_constructor_exceptions(self):
         with pytest.raises(TypeError):
             assert InteractionNode(
                 number_of_ingoing_edges="has to be int",  # type: ignore
@@ -82,12 +79,18 @@ class TestInteractionNode:
                 number_of_outgoing_edges="has to be int",  # type: ignore
                 number_of_ingoing_edges=2,
             )
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError,
+            match=r"Number of outgoing edges has to be larger than 0",
+        ):
             assert InteractionNode(
                 number_of_outgoing_edges=0,
                 number_of_ingoing_edges=1,
             )
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError,
+            match=r"Number of incoming edges has to be larger than 0",
+        ):
             assert InteractionNode(
                 number_of_outgoing_edges=1,
                 number_of_ingoing_edges=0,
@@ -95,8 +98,7 @@ class TestInteractionNode:
 
 
 class TestMutableTopology:
-    @staticmethod
-    def test_add_and_attach(two_to_three_decay: Topology):
+    def test_add_and_attach(self, two_to_three_decay: Topology):
         topology = _MutableTopology(
             edges=two_to_three_decay.edges,
             nodes=two_to_three_decay.nodes,  # type: ignore
@@ -104,34 +106,39 @@ class TestMutableTopology:
         topology.add_node(3)
         topology.add_edges([7, 8])
         topology.attach_edges_to_node_outgoing([7, 8], 3)
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError,
+            match=r"Node 3 is not connected to any other node",
+        ):
             topology.freeze()
         topology.attach_edges_to_node_ingoing([6], 3)
         assert isinstance(topology.freeze(), Topology)
 
-    @staticmethod
-    def test_add_exceptions(two_to_three_decay: Topology):
+    def test_add_exceptions(self, two_to_three_decay: Topology):
         topology = _MutableTopology(
             edges=two_to_three_decay.edges,
             nodes=two_to_three_decay.nodes,  # type: ignore
         )
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=r"Node nr. 0 already exists"):
             topology.add_node(0)
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=r"Edge nr. 0 already exists"):
             topology.add_edges([0])
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError, match=r"Edge nr. 0 is already ingoing to node 0"
+        ):
             topology.attach_edges_to_node_ingoing([0], 0)
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=r"Edge nr. 7 does not exist"):
             topology.attach_edges_to_node_ingoing([7], 2)
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError, match=r"Edge nr. 6 is already outgoing from node 2"
+        ):
             topology.attach_edges_to_node_outgoing([6], 2)
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=r"Edge nr. 7 does not exist"):
             topology.attach_edges_to_node_outgoing([7], 2)
 
 
 class TestSimpleStateTransitionTopologyBuilder:
-    @staticmethod
-    def test_two_body_states():
+    def test_two_body_states(self):
         two_body_decay_node = InteractionNode(1, 2)
         simple_builder = SimpleStateTransitionTopologyBuilder(
             [two_body_decay_node]
@@ -142,7 +149,7 @@ class TestSimpleStateTransitionTopologyBuilder:
 
 class TestTopology:
     @pytest.mark.parametrize(
-        "nodes, edges",
+        ("nodes", "edges"),
         [
             ({1}, {}),
             (
@@ -178,7 +185,7 @@ class TestTopology:
         assert topology.edges == edges
 
     @pytest.mark.parametrize(
-        "nodes, edges",
+        ("nodes", "edges"),
         [
             ([], {0: Edge()}),
             ([], {0: Edge(None, 1)}),
@@ -188,17 +195,18 @@ class TestTopology:
         ],
     )
     def test_constructor_exceptions(self, nodes, edges):
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError,
+            match=r"(not connected to any other node|has non-existing node IDs)",
+        ):
             assert Topology(nodes=nodes, edges=edges)
 
-    @staticmethod
-    def test_repr_and_eq(two_to_three_decay: Topology):
+    def test_repr_and_eq(self, two_to_three_decay: Topology):
         topology = eval(str(two_to_three_decay))  # pylint: disable=eval-used
         assert topology == two_to_three_decay
         assert topology != float()
 
-    @staticmethod
-    def test_getters(two_to_three_decay: Topology):
+    def test_getters(self, two_to_three_decay: Topology):
         topology = two_to_three_decay  # shorter name
         assert get_originating_node_list(topology, edge_ids=[0]) == []
         assert get_originating_node_list(topology, edge_ids=[5, 6]) == [2, 2]
@@ -206,9 +214,8 @@ class TestTopology:
         assert topology.outgoing_edge_ids == {4, 5, 6}
         assert topology.intermediate_edge_ids == {2, 3}
 
-    @staticmethod
     @typing.no_type_check
-    def test_immutability(two_to_three_decay: Topology):
+    def test_immutability(self, two_to_three_decay: Topology):
         with pytest.raises(attr.exceptions.FrozenInstanceError):
             two_to_three_decay.edges = {0: Edge(None, None)}
         with pytest.raises(TypeError):
@@ -223,15 +230,13 @@ class TestTopology:
             node += 666
         assert two_to_three_decay.nodes == {0, 1, 2}
 
-    @staticmethod
-    def test_organize_edge_ids(two_to_three_decay: Topology):
+    def test_organize_edge_ids(self, two_to_three_decay: Topology):
         topology = two_to_three_decay.organize_edge_ids()
         assert topology.incoming_edge_ids == frozenset({-1, -2})
         assert topology.outgoing_edge_ids == frozenset({0, 1, 2})
         assert topology.intermediate_edge_ids == frozenset({3, 4})
 
-    @staticmethod
-    def test_swap_edges(two_to_three_decay: Topology):
+    def test_swap_edges(self, two_to_three_decay: Topology):
         original_topology = two_to_three_decay
         topology = original_topology.swap_edges(0, 1)
         assert topology == original_topology
@@ -242,7 +247,7 @@ class TestTopology:
 
 
 @pytest.mark.parametrize(
-    "n_final, n_topologies, exception",
+    ("n_final", "n_topologies", "exception"),
     [
         (0, None, ValueError),
         (1, None, ValueError),
@@ -275,7 +280,7 @@ def test_create_isobar_topologies(
 
 
 @pytest.mark.parametrize(
-    "n_initial, n_final, exception",
+    ("n_initial", "n_final", "exception"),
     [
         (1, 0, ValueError),
         (0, 1, ValueError),

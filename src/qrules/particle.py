@@ -75,7 +75,7 @@ class Spin:
         if not (self.projection - self.magnitude).is_integer():
             raise ValueError(
                 f"{self.__class__.__name__}{(self.magnitude, self.projection)}: "
-                "(projection - magnitude) should be integer! "
+                "(projection - magnitude) should be integer"
             )
 
     def __eq__(self, other: object) -> bool:

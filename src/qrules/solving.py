@@ -903,7 +903,7 @@ class _GraphElementConstraint(Generic[_QNType], Constraint):
         scoresheet: Callable[[bool], None],
     ) -> None:
         if not callable(rule):
-            raise TypeError("rule has to be a callable!")
+            raise TypeError("rule argument has to be a callable")
         self.__rule = rule
         (
             self.__check_rule_requirements,
@@ -1003,7 +1003,7 @@ class _GraphElementConstraint(Generic[_QNType], Constraint):
                 raise ValueError(
                     "The variable with name "
                     + qn_type.__name__
-                    + "does not appear in the variable mapping!"
+                    + "does not appear in the variable mapping"
                 )
 
 
@@ -1023,7 +1023,7 @@ class _ConservationRuleConstraintWrapper(Constraint):
         score_callback: Callable[[bool], None],
     ) -> None:
         if not callable(rule):
-            raise TypeError("rule has to be a callable!")
+            raise TypeError("rule argument has to be a callable")
         self.__rule = rule
         (
             self.__check_rule_requirements,
@@ -1164,5 +1164,5 @@ class _ConservationRuleConstraintWrapper(Constraint):
                 raise ValueError(
                     f"The variable with name {qn_type.__name__} and a graph "
                     f"element index of {index} does not appear in the variable "
-                    f"mapping!"
+                    f"mapping"
                 )
