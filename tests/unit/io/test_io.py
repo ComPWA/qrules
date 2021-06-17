@@ -53,7 +53,7 @@ def test_asdict_fromdict_result(result: Result):
     assert isinstance(fromdict, Result)
     assert result == fromdict
     # ReactionInfo
-    reaction = ReactionInfo.from_graphs(result.transitions)
+    reaction = ReactionInfo.from_result(result)
     fromdict = through_dict(reaction)
     assert isinstance(fromdict, ReactionInfo)
     assert reaction == fromdict

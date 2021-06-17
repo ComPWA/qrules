@@ -127,7 +127,10 @@ def build_reaction_info(definition: dict) -> ReactionInfo:
     transition_groups = [
         build_stc(graph_def) for graph_def in definition["transition_groups"]
     ]
-    return ReactionInfo(transition_groups=transition_groups)
+    return ReactionInfo(
+        transition_groups=transition_groups,
+        formalism=definition["formalism"],
+    )
 
 
 def build_result(definition: dict) -> Result:

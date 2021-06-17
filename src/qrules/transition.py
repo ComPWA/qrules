@@ -950,6 +950,7 @@ class ReactionInfo(abc.Sequence):
     )
     initial_state: FrozenDict[int, Particle] = attr.ib(init=False, repr=False)
     final_state: FrozenDict[int, Particle] = attr.ib(init=False, repr=False)
+    formalism: str = attr.ib(validator=instance_of(str))
 
     def __attrs_post_init__(self) -> None:
         if len(self.transition_groups) == 0:
@@ -997,22 +998,31 @@ class ReactionInfo(abc.Sequence):
         if cycle:
             p.text(f"{class_name}(...)")
         else:
-            with p.group(indent=2, open=f"{class_name}(transition_groups=("):
-                for transition_grouping in self:
-                    p.breakable()
-                    p.pretty(transition_grouping)
-                    p.text(",")
+            with p.group(indent=2, open=f"{class_name}("):
+                p.breakable()
+                p.text("transition_groups=")
+                with p.group(indent=2, open="("):
+                    for transition_grouping in self.transition_groups:
+                        p.breakable()
+                        p.pretty(transition_grouping)
+                        p.text(",")
+                p.breakable()
+                p.text("),")
+                p.breakable()
+                p.text("formalism=")
+                p.pretty(self.formalism)
+                p.text(",")
             p.breakable()
-            p.text("))")
+            p.text(")")
 
     @staticmethod
-    def from_graphs(
-        graphs: Iterable[StateTransitionGraph[ParticleWithSpin]],
-    ) -> "ReactionInfo":
+    def from_result(result: Result) -> "ReactionInfo":
+        if result.formalism is None:
+            raise ValueError(f"{Result.__name__} does not have a formalism")
         transition_mapping: DefaultDict[
             Topology, List[StateTransition]
         ] = defaultdict(list)
-        for graph in graphs:
+        for graph in result.transitions:
             transition_mapping[graph.topology].append(
                 StateTransition.from_graph(graph)
             )
@@ -1020,7 +1030,7 @@ class ReactionInfo(abc.Sequence):
             StateTransitionCollection(transitions)
             for transitions in transition_mapping.values()
         )
-        return ReactionInfo(transition_groups)
+        return ReactionInfo(transition_groups, result.formalism)
 
     def to_graphs(self) -> List[StateTransitionGraph[ParticleWithSpin]]:
         graphs: List[StateTransitionGraph[ParticleWithSpin]] = []

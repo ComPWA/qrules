@@ -61,7 +61,7 @@ def fromdict(definition: dict) -> object:
         return _dict.build_particle_collection(definition)
     if keys == {"transitions", "formalism"}:
         return _dict.build_result(definition)
-    if keys == {"transition_groups"}:
+    if keys == {"transition_groups", "formalism"}:
         return _dict.build_reaction_info(definition)
     if keys == {"topology", "states", "interactions"}:
         return _dict.build_state_transition(definition)

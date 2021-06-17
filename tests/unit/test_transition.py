@@ -29,8 +29,13 @@ from qrules.transition import (  # noqa: F401
 
 
 class TestReactionInfo:
+    def test_formalism(self, result: Result):
+        assert result.formalism is not None
+        reaction_info = ReactionInfo.from_result(result)
+        assert reaction_info.formalism == result.formalism
+
     def test_from_graphs(self, result: Result):
-        reaction_info = ReactionInfo.from_graphs(result.transitions)
+        reaction_info = ReactionInfo.from_result(result)
         assert reaction_info.initial_state[-1].name == "J/psi(1S)"
         assert reaction_info.final_state[0].name == "gamma"
         assert reaction_info.final_state[1].name == "pi0"
@@ -42,17 +47,14 @@ class TestReactionInfo:
 
     @pytest.mark.parametrize("repr_method", [repr, pretty])
     def test_repr(self, repr_method, result: Result):
-        reaction_info = ReactionInfo.from_graphs(result.transitions)
-        for instance in reaction_info:
-            from_repr = eval(repr_method(instance))
-            assert from_repr == instance
+        reaction_info = ReactionInfo.from_result(result)
         instance = reaction_info
         from_repr = eval(repr_method(instance))
         assert from_repr == instance
 
     def test_to_graphs(self, result: Result):
         original_graphs = result.transitions
-        reaction_info = ReactionInfo.from_graphs(original_graphs)
+        reaction_info = ReactionInfo.from_result(result)
         converted_graphs = reaction_info.to_graphs()
         assert len(converted_graphs) == len(original_graphs)
         original_graphs = _sort_graphs(original_graphs)

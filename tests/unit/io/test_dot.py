@@ -1,5 +1,5 @@
 # pylint: disable=no-self-use
-from typing import Optional, Type, Union
+from typing import Any, Callable, Optional, Union
 
 import pydot
 import pytest
@@ -17,17 +17,21 @@ from qrules.transition import ReactionInfo, StateTransitionCollection
 
 
 @pytest.mark.parametrize(
-    "conversion_class", [StateTransitionCollection, ReactionInfo, None]
+    "converter",
+    [ReactionInfo.from_result, StateTransitionCollection.from_graphs, None],
 )
 def test_asdot(
-    conversion_class: Optional[
-        Union[Type[StateTransitionCollection], Type[ReactionInfo]]
+    converter: Optional[
+        Callable[[Any], Union[ReactionInfo, StateTransitionCollection]]
     ],
     result: Result,
 ):
     transitions: object = None
-    if conversion_class is not None:
-        transitions = conversion_class.from_graphs(result.transitions)
+    if converter is not None:
+        try:
+            transitions = converter(result.transitions)
+        except AttributeError:
+            transitions = converter(result)
     else:
         transitions = result.transitions
     for transition in transitions:
