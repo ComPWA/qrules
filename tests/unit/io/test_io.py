@@ -19,11 +19,8 @@ def through_dict(instance):
     return io.fromdict(asdict)
 
 
-def test_asdict_fromdict(
-    particle_selection: ParticleCollection,
-    jpsi_to_gamma_pi_pi_canonical_solutions: Result,
-    jpsi_to_gamma_pi_pi_helicity_solutions: Result,
-):
+def test_asdict_fromdict(particle_selection: ParticleCollection):
+    # ParticleCollection
     fromdict = through_dict(particle_selection)
     assert isinstance(fromdict, ParticleCollection)
     assert particle_selection == fromdict
@@ -43,24 +40,18 @@ def test_asdict_fromdict(
             fromdict = through_dict(topology)
             assert isinstance(fromdict, Topology)
             assert topology == fromdict
+
+
+def test_asdict_fromdict_result(result: Result):
     # StateTransitionGraph
-    result = jpsi_to_gamma_pi_pi_canonical_solutions
-    for graph in result.transitions:
-        fromdict = through_dict(graph)
-        assert isinstance(fromdict, StateTransitionGraph)
-        assert graph == fromdict
-    result = jpsi_to_gamma_pi_pi_helicity_solutions
     for graph in result.transitions:
         fromdict = through_dict(graph)
         assert isinstance(fromdict, StateTransitionGraph)
         assert graph == fromdict
     # Result
-    fromdict = through_dict(jpsi_to_gamma_pi_pi_canonical_solutions)
+    fromdict = through_dict(result)
     assert isinstance(fromdict, Result)
-    assert jpsi_to_gamma_pi_pi_canonical_solutions == fromdict
-    fromdict = through_dict(jpsi_to_gamma_pi_pi_helicity_solutions)
-    assert isinstance(fromdict, Result)
-    assert jpsi_to_gamma_pi_pi_helicity_solutions == fromdict
+    assert result == fromdict
 
 
 def test_fromdict_exceptions():
