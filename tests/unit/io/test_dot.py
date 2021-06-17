@@ -1,4 +1,8 @@
+# pylint: disable=no-self-use
+from typing import Callable, Optional
+
 import pydot
+import pytest
 
 from qrules import Result, io
 from qrules.io._dot import _collapse_graphs, _get_particle_graphs
@@ -11,30 +15,35 @@ from qrules.topology import (
 )
 
 
-def test_asdot(jpsi_to_gamma_pi_pi_helicity_solutions: Result):
-    result = jpsi_to_gamma_pi_pi_helicity_solutions
-    for transition in result.transitions:
-        dot_data = io.asdot(transition)
+@pytest.mark.parametrize("formalism", ["canonical", "helicity", None])
+def test_asdot(
+    formalism: Optional[str],
+    get_reaction: Callable[[str], Result],
+):
+    if formalism is None:
+        dot_data = io.asdot(create_n_body_topology(3, 4))
         assert pydot.graph_from_dot_data(dot_data) is not None
-    dot_data = io.asdot(result)
-    assert pydot.graph_from_dot_data(dot_data) is not None
-    dot_data = io.asdot(result, strip_spin=True)
-    assert pydot.graph_from_dot_data(dot_data) is not None
-    dot_data = io.asdot(result, collapse_graphs=True)
-    assert pydot.graph_from_dot_data(dot_data) is not None
-    dot_data = io.asdot(create_n_body_topology(3, 4))
-    assert pydot.graph_from_dot_data(dot_data) is not None
-    dot_data = io.asdot(create_isobar_topologies(2))
-    assert pydot.graph_from_dot_data(dot_data) is not None
-    dot_data = io.asdot(create_isobar_topologies(3))
-    assert pydot.graph_from_dot_data(dot_data) is not None
-    dot_data = io.asdot(create_isobar_topologies(4))
-    assert pydot.graph_from_dot_data(dot_data) is not None
+        dot_data = io.asdot(create_isobar_topologies(2))
+        assert pydot.graph_from_dot_data(dot_data) is not None
+        dot_data = io.asdot(create_isobar_topologies(3))
+        assert pydot.graph_from_dot_data(dot_data) is not None
+        dot_data = io.asdot(create_isobar_topologies(4))
+        assert pydot.graph_from_dot_data(dot_data) is not None
+    else:
+        result = get_reaction(formalism)
+        for transition in result.transitions:
+            dot_data = io.asdot(transition)
+            assert pydot.graph_from_dot_data(dot_data) is not None
+        dot_data = io.asdot(result)
+        assert pydot.graph_from_dot_data(dot_data) is not None
+        dot_data = io.asdot(result, strip_spin=True)
+        assert pydot.graph_from_dot_data(dot_data) is not None
+        dot_data = io.asdot(result, collapse_graphs=True)
+        assert pydot.graph_from_dot_data(dot_data) is not None
 
 
 class TestWrite:
-    @staticmethod
-    def test_write_topology(output_dir):
+    def test_write_topology(self, output_dir):
         output_file = output_dir + "two_body_decay_topology.gv"
         topology = Topology(
             nodes={0},
@@ -48,39 +57,48 @@ class TestWrite:
             dot_data = stream.read()
         assert pydot.graph_from_dot_data(dot_data) is not None
 
-    @staticmethod
+    @pytest.mark.parametrize("formalism", ["canonical", "helicity"])
     def test_write_single_graph(
+        self,
         output_dir,
-        jpsi_to_gamma_pi_pi_helicity_solutions: Result,
+        formalism: str,
+        get_reaction: Callable[[str], Result],
     ):
         output_file = output_dir + "test_single_graph.gv"
+        result = get_reaction(formalism)
         io.write(
-            instance=jpsi_to_gamma_pi_pi_helicity_solutions.transitions[0],
+            instance=result.transitions[0],
             filename=output_file,
         )
         with open(output_file, "r") as stream:
             dot_data = stream.read()
         assert pydot.graph_from_dot_data(dot_data) is not None
 
-    @staticmethod
+    @pytest.mark.parametrize("formalism", ["canonical", "helicity"])
     def test_write_graph_list(
-        output_dir, jpsi_to_gamma_pi_pi_helicity_solutions: Result
+        self,
+        output_dir,
+        formalism: str,
+        get_reaction: Callable[[str], Result],
     ):
         output_file = output_dir + "test_graph_list.gv"
+        result = get_reaction(formalism)
         io.write(
-            instance=jpsi_to_gamma_pi_pi_helicity_solutions.transitions,
+            instance=result.transitions,
             filename=output_file,
         )
         with open(output_file, "r") as stream:
             dot_data = stream.read()
         assert pydot.graph_from_dot_data(dot_data) is not None
 
-    @staticmethod
+    @pytest.mark.parametrize("formalism", ["canonical", "helicity"])
     def test_write_strip_spin(
+        self,
         output_dir,
-        jpsi_to_gamma_pi_pi_helicity_solutions: Result,
+        formalism: str,
+        get_reaction: Callable[[str], Result],
     ):
-        result = jpsi_to_gamma_pi_pi_helicity_solutions
+        result = get_reaction(formalism)
         output_file = output_dir + "test_particle_graphs.gv"
         io.write(
             instance=io.asdot(result, strip_spin=True),
@@ -91,12 +109,14 @@ class TestWrite:
         assert pydot.graph_from_dot_data(dot_data) is not None
 
 
+@pytest.mark.parametrize("formalism", ["canonical", "helicity"])
 def test_collapse_graphs(
-    jpsi_to_gamma_pi_pi_helicity_solutions: Result,
+    formalism: str,
+    get_reaction: Callable[[str], Result],
     particle_database: ParticleCollection,
 ):
     pdg = particle_database
-    result = jpsi_to_gamma_pi_pi_helicity_solutions
+    result = get_reaction(formalism)
     particle_graphs = _get_particle_graphs(result.transitions)
     assert len(particle_graphs) == 2
     collapsed_graphs = _collapse_graphs(result.transitions)
@@ -109,12 +129,14 @@ def test_collapse_graphs(
     assert intermediate_states == f_resonances
 
 
+@pytest.mark.parametrize("formalism", ["canonical", "helicity"])
 def test_get_particle_graphs(
+    formalism: str,
+    get_reaction: Callable[[str], Result],
     particle_database: ParticleCollection,
-    jpsi_to_gamma_pi_pi_helicity_solutions: Result,
 ):
     pdg = particle_database
-    result = jpsi_to_gamma_pi_pi_helicity_solutions
+    result = get_reaction(formalism)
     particle_graphs = _get_particle_graphs(result.transitions)
     assert len(particle_graphs) == 2
     assert particle_graphs[0].get_edge_props(3) == pdg["f(0)(980)"]

@@ -20,7 +20,7 @@ def through_dict(instance):
     return io.fromdict(asdict)
 
 
-@pytest.mark.parametrize("formalism", ["canonical", "helicity"])
+@pytest.mark.parametrize("formalism", ["canonical", "helicity", None])
 def test_asdict_fromdict(
     particle_selection: ParticleCollection,
     formalism: Optional[str],
