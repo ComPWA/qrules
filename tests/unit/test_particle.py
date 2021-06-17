@@ -20,11 +20,10 @@ from qrules.quantum_numbers import Parity  # noqa: F401
 
 
 class TestParticle:
-    def test_repr(self, particle_database: ParticleCollection):
+    @pytest.mark.parametrize("repr_method", [repr, pretty])
+    def test_repr(self, particle_database: ParticleCollection, repr_method):
         for instance in particle_database:
-            from_repr = eval(repr(instance))
-            assert from_repr == instance
-            from_repr = eval(pretty(instance))
+            from_repr = eval(repr_method(instance))
             assert from_repr == instance
 
     @pytest.mark.parametrize(
@@ -118,11 +117,10 @@ class TestParticleCollection:
         with pytest.raises(NotImplementedError):
             assert particle_database == 0
 
-    def test_repr(self, particle_database: ParticleCollection):
+    @pytest.mark.parametrize("repr_method", [repr, pretty])
+    def test_repr(self, particle_database: ParticleCollection, repr_method):
         instance = particle_database
-        from_repr = eval(repr(instance))
-        assert from_repr == instance
-        from_repr = eval(pretty(instance))
+        from_repr = eval(repr_method(instance))
         assert from_repr == instance
 
     def test_add(self, particle_database: ParticleCollection):
@@ -288,13 +286,12 @@ class TestSpin:
         assert flipped_spin.magnitude == isospin.magnitude
         assert flipped_spin.projection == -isospin.projection
 
+    @pytest.mark.parametrize("repr_method", [repr, pretty])
     @pytest.mark.parametrize(
         "instance", [Spin(2.5, -0.5), Spin(1, 0), Spin(3, -1), Spin(0, 0)]
     )
-    def test_repr(self, instance):
-        from_repr = eval(repr(instance))
-        assert from_repr == instance
-        from_repr = eval(pretty(instance))
+    def test_repr(self, instance: Spin, repr_method):
+        from_repr = eval(repr_method(instance))
         assert from_repr == instance
 
     @pytest.mark.parametrize(
