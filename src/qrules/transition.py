@@ -905,6 +905,9 @@ class ReactionInfo(abc.Sequence):
     transition_groups: Tuple[StateTransitionCollection, ...] = attr.ib(
         converter=_to_tuple
     )
+    transitions: List[StateTransition] = attr.ib(
+        init=False, repr=False, eq=False
+    )
     initial_state: FrozenDict[int, Particle] = attr.ib(init=False, repr=False)
     final_state: FrozenDict[int, Particle] = attr.ib(init=False, repr=False)
     formalism: str = attr.ib(validator=instance_of(str))
@@ -914,19 +917,22 @@ class ReactionInfo(abc.Sequence):
             ValueError(
                 f"At least one {StateTransitionCollection.__name__} required"
             )
-        first_transition = self.transition_groups[0]
-        object.__setattr__(
-            self,
-            "final_state",
-            first_transition.final_state,
-        )
-        object.__setattr__(
-            self,
-            "initial_state",
-            first_transition.initial_state,
-        )
+        transitions: List[StateTransition] = []
+        for grouping in self.transition_groups:
+            transitions.extend(grouping)
+        first_grouping = self.transition_groups[0]
+        object.__setattr__(self, "transitions", transitions)
+        object.__setattr__(self, "final_state", first_grouping.final_state)
+        object.__setattr__(self, "initial_state", first_grouping.initial_state)
 
     def __eq__(self, other: object) -> bool:
+        if isinstance(other, ReactionInfo):
+            for own_grouping, other_grouping in zip_longest(
+                self.transition_groups, other.transition_groups
+            ):
+                if own_grouping != other_grouping:
+                    return False
+            return True
         if isinstance(other, abc.Iterable):
             for own_transition, other_transition in zip_longest(self, other):
                 if own_transition != other_transition:
@@ -937,18 +943,21 @@ class ReactionInfo(abc.Sequence):
         )
 
     @overload
-    def __getitem__(self, i: int) -> StateTransitionCollection:
+    def __getitem__(self, i: int) -> StateTransition:
         ...
 
     @overload
-    def __getitem__(self, i: slice) -> Sequence[StateTransitionCollection]:
+    def __getitem__(self, i: slice) -> Sequence[StateTransition]:
         ...
 
     def __getitem__(self, i):  # type: ignore
-        return self.transition_groups[i]
+        return self.transitions[i]
+
+    def __iter__(self) -> Iterator[StateTransition]:
+        return iter(self.transitions)
 
     def __len__(self) -> int:
-        return len(self.transition_groups)
+        return len(self.transitions)
 
     def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
         class_name = type(self).__name__

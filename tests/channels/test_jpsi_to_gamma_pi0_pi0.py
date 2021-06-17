@@ -42,8 +42,8 @@ def test_number_of_solutions(
         number_of_threads=1,
         formalism="helicity",
     )
-    assert len(reaction) == n_topologies
-    assert sum(map(len, reaction)) == number_of_solutions
+    assert len(reaction.transition_groups) == n_topologies
+    assert len(reaction) == number_of_solutions
     assert (
         reaction.get_intermediate_particles().names
         == allowed_intermediate_particles
@@ -60,10 +60,9 @@ def test_id_to_particle_mappings(particle_database):
         number_of_threads=1,
         formalism="helicity",
     )
-    assert len(reaction) == 1
-    transitions = reaction.transition_groups[0]
-    assert len(transitions) == 4
-    iter_transitions = iter(transitions)
+    assert len(reaction.transition_groups) == 1
+    assert len(reaction) == 4
+    iter_transitions = iter(reaction)
     first_transition = next(iter_transitions)
     graph: StateTransitionGraph[ParticleWithSpin] = first_transition.to_graph()
     ref_mapping_fs = _create_edge_id_particle_mapping(

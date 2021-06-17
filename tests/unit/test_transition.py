@@ -32,15 +32,18 @@ class TestReactionInfo:
         assert reaction.final_state[0].name == "gamma"
         assert reaction.final_state[1].name == "pi0"
         assert reaction.final_state[2].name == "pi0"
-        assert len(reaction) == 1
-        first_group = reaction[0]
-        assert isinstance(first_group, StateTransitionCollection)
+        assert len(reaction.transition_groups) == 1
+        for grouping in reaction.transition_groups:
+            assert isinstance(grouping, StateTransitionCollection)
+        if reaction.formalism.startswith("cano"):
+            assert len(reaction) == 16
+        else:
+            assert len(reaction) == 8
+        for transition in reaction:
+            assert isinstance(transition, StateTransition)
 
     @pytest.mark.parametrize("repr_method", [repr, pretty])
     def test_repr(self, repr_method, reaction: ReactionInfo):
-        for instance in reaction:
-            from_repr = eval(repr_method(instance))
-            assert from_repr == instance
         instance = reaction
         from_repr = eval(repr_method(instance))
         assert from_repr == instance
@@ -54,16 +57,14 @@ class TestReactionInfo:
 class TestStateTransition:
     @pytest.mark.parametrize("repr_method", [repr, pretty])
     def test_repr(self, repr_method, reaction: ReactionInfo):
-        for grouping in reaction.transition_groups:
-            for instance in grouping:
-                from_repr = eval(repr_method(instance))
-                assert from_repr == instance
+        for instance in reaction:
+            from_repr = eval(repr_method(instance))
+            assert from_repr == instance
 
     def test_from_to_graph(self, reaction: ReactionInfo):
-        assert len(reaction) == 1
-        transitions = reaction.transition_groups[0]
-        assert len(transitions) in {8, 16}
-        for transition in transitions:
+        assert len(reaction.transition_groups) == 1
+        assert len(reaction) in {8, 16}
+        for transition in reaction:
             graph = transition.to_graph()
             from_graph = StateTransition.from_graph(graph)
             assert transition == from_graph
@@ -77,8 +78,8 @@ class TestStateTransitionCollection:
             assert from_repr == instance
 
     def test_from_to_graphs(self, reaction: ReactionInfo):
-        assert len(reaction) == 1
-        transition_grouping = reaction[0]
+        assert len(reaction.transition_groups) == 1
+        transition_grouping = reaction.transition_groups[0]
         graphs = transition_grouping.to_graphs()
         from_graphs = StateTransitionCollection.from_graphs(graphs)
         assert transition_grouping == from_graphs

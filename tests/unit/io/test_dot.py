@@ -53,16 +53,15 @@ class TestWrite:
         assert pydot.graph_from_dot_data(dot_data) is not None
 
     def test_write_single_graph(self, output_dir: str, reaction: ReactionInfo):
-        for i, grouping in enumerate(reaction):
-            for j, transition in enumerate(grouping, i):
-                output_file = output_dir + f"test_single_graph_{j}.gv"
-                io.write(
-                    instance=transition,
-                    filename=output_file,
-                )
-                with open(output_file, "r") as stream:
-                    dot_data = stream.read()
-                assert pydot.graph_from_dot_data(dot_data) is not None
+        for i, transition in enumerate(reaction):
+            output_file = output_dir + f"test_single_graph_{i}.gv"
+            io.write(
+                instance=transition,
+                filename=output_file,
+            )
+            with open(output_file, "r") as stream:
+                dot_data = stream.read()
+            assert pydot.graph_from_dot_data(dot_data) is not None
 
     def test_write_graph_list(self, output_dir: str, reaction: ReactionInfo):
         for i, grouping in enumerate(reaction.transition_groups):

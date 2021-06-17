@@ -20,8 +20,8 @@ def test_simple(formalism, n_solutions, particle_database):
         allowed_interaction_types="strong",
         number_of_threads=1,
     )
-    assert len(reaction) == 1
-    assert len(reaction.transition_groups[0]) == n_solutions
+    assert len(reaction.transition_groups) == 1
+    assert len(reaction) == n_solutions
 
 
 @pytest.mark.slow()
@@ -45,5 +45,5 @@ def test_full(formalism, n_solutions, particle_database):
     stm.add_final_state_grouping([["D0", "pi0"], ["D~0", "pi0"]])
     problem_sets = stm.create_problem_sets()
     reaction = stm.find_solutions(problem_sets)
-    assert len(reaction) == 1
-    assert len(reaction.transition_groups[0]) == n_solutions
+    assert len(reaction.transition_groups) == 1
+    assert len(reaction) == n_solutions
