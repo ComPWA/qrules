@@ -8,15 +8,13 @@ from qrules.quantum_numbers import Parity, _to_fraction
 
 
 class TestParity:
-    @staticmethod
-    def test_init_and_eq():
+    def test_init_and_eq(self):
         parity = Parity(+1)
         assert parity == +1
         assert int(parity) == +1
 
     @typing.no_type_check  # https://github.com/python/mypy/issues/4610
-    @staticmethod
-    def test_comparison():
+    def test_comparison(self):
         neg = Parity(-1)
         pos = Parity(+1)
         assert pos > 0
@@ -29,14 +27,12 @@ class TestParity:
         assert neg <= 0
         assert 0 < pos  # pylint: disable=misplaced-comparison-constant
 
-    @staticmethod
-    def test_hash():
+    def test_hash(self):
         neg = Parity(-1)
         pos = Parity(+1)
         assert {pos, neg, deepcopy(pos)} == {neg, pos}
 
-    @staticmethod
-    def test_neg():
+    def test_neg(self):
         parity = Parity(+1)
         flipped_parity = -parity
         assert flipped_parity.value == -parity.value
@@ -47,8 +43,7 @@ class TestParity:
         from_repr = eval(repr(parity))
         assert from_repr == parity
 
-    @staticmethod
-    def test_exceptions():
+    def test_exceptions(self):
         with pytest.raises(TypeError):
             Parity(1.2)  # type: ignore
         with pytest.raises(

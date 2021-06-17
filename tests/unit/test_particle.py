@@ -1,5 +1,5 @@
 # flake8: noqa
-# pylint: disable=eval-used, redefined-outer-name, no-self-use
+# pylint: disable=eval-used, no-self-use, redefined-outer-name
 import logging
 from copy import deepcopy
 
@@ -20,8 +20,7 @@ from qrules.quantum_numbers import Parity  # pyright: reportUnusedImport=false
 
 
 class TestParticle:
-    @staticmethod
-    def test_repr(particle_database: ParticleCollection):
+    def test_repr(self, particle_database: ParticleCollection):
         for instance in particle_database:
             from_repr = eval(repr(instance))
             assert from_repr == instance
@@ -45,8 +44,7 @@ class TestParticle:
     ):
         assert particle_database[name].is_lepton() == is_lepton
 
-    @staticmethod
-    def test_exceptions():
+    def test_exceptions(self):
         with pytest.raises(FrozenInstanceError):
             test_state = Particle(
                 name="MyParticle",
@@ -72,8 +70,7 @@ class TestParticle:
                 charmness=1,
             )
 
-    @staticmethod
-    def test_eq():
+    def test_eq(self):
         particle = Particle(
             name="MyParticle",
             pid=123,
@@ -109,22 +106,19 @@ class TestParticle:
 
 
 class TestParticleCollection:
-    @staticmethod
-    def test_init(particle_database: ParticleCollection):
+    def test_init(self, particle_database: ParticleCollection):
         new_pdg = ParticleCollection(particle_database)
         assert new_pdg is not particle_database
         assert new_pdg == particle_database
         with pytest.raises(TypeError):
             ParticleCollection(1)  # type: ignore
 
-    @staticmethod
-    def test_equality(particle_database: ParticleCollection):
+    def test_equality(self, particle_database: ParticleCollection):
         assert list(particle_database) == particle_database
         with pytest.raises(NotImplementedError):
             assert particle_database == 0
 
-    @staticmethod
-    def test_repr(particle_database: ParticleCollection):
+    def test_repr(self, particle_database: ParticleCollection):
         instance = particle_database
         from_repr = eval(repr(instance))
         assert from_repr == instance
@@ -189,8 +183,7 @@ class TestParticleCollection:
         with pytest.raises(NotImplementedError):
             pions.discard(111)  # type: ignore
 
-    @staticmethod
-    def test_filter(particle_database: ParticleCollection):
+    def test_filter(self, particle_database: ParticleCollection):
         search_result = particle_database.filter(lambda p: "f(0)" in p.name)
         f0_1500_from_subset = search_result["f(0)(1500)"]
         assert len(search_result) == 5
@@ -214,8 +207,7 @@ class TestParticleCollection:
             "K(2)(1820)+",
         }
 
-    @staticmethod
-    def test_find(particle_database: ParticleCollection):
+    def test_find(self, particle_database: ParticleCollection):
         f2_1950 = particle_database.find(9050225)
         assert f2_1950.name == "f(2)(1950)"
         assert f2_1950.mass == 1.936
@@ -252,8 +244,7 @@ class TestParticleCollection:
             message = message.strip("]")
             assert message.endswith(expected)
 
-    @staticmethod
-    def test_exceptions(particle_database: ParticleCollection):
+    def test_exceptions(self, particle_database: ParticleCollection):
         gamma = particle_database["gamma"]
         with pytest.raises(ValueError):
             particle_database += create_particle(gamma, name="gamma_new")
@@ -268,8 +259,7 @@ class TestParticleCollection:
 
 
 class TestSpin:
-    @staticmethod
-    def test_init_and_eq():
+    def test_init_and_eq(self):
         isospin = Spin(1.5, -0.5)
         assert isospin == 1.5
         assert float(isospin) == 1.5
@@ -281,8 +271,7 @@ class TestSpin:
         assert isospin.magnitude == 1.0
         assert isospin.projection == 0.0
 
-    @staticmethod
-    def test_hash():
+    def test_hash(self):
         spin1 = Spin(0.0, 0.0)
         spin2 = Spin(1.5, -0.5)
         assert {spin2, spin1, deepcopy(spin1), deepcopy(spin2)} == {
@@ -290,8 +279,7 @@ class TestSpin:
             spin2,
         }
 
-    @staticmethod
-    def test_neg():
+    def test_neg(self):
         isospin = Spin(1.5, -0.5)
         flipped_spin = -isospin
         assert flipped_spin.magnitude == isospin.magnitude

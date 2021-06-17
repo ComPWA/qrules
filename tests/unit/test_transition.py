@@ -1,11 +1,11 @@
+# pylint: disable=no-self-use
 import pytest
 
 from qrules.transition import StateTransitionManager
 
 
 class TestStateTransitionManager:
-    @staticmethod
-    def test_allowed_intermediate_particles():
+    def test_allowed_intermediate_particles(self):
         stm = StateTransitionManager(
             initial_state=[("J/psi(1S)", [-1, +1])],
             final_state=["p", "p~", "eta"],

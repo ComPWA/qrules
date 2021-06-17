@@ -1,14 +1,15 @@
 # flake8: noqa
 # pylint: disable=no-self-use, redefined-outer-name, too-many-arguments
+# pyright: reportUnusedImport=false
 
 import typing
 
 import attr
 import pytest
 
-from qrules.topology import FrozenDict  # pyright: reportUnusedImport=false
 from qrules.topology import (
     Edge,
+    FrozenDict,
     InteractionNode,
     SimpleStateTransitionTopologyBuilder,
     Topology,
@@ -47,8 +48,7 @@ def two_to_three_decay() -> Topology:
 
 
 class TestEdge:
-    @staticmethod
-    def test_get_connected_nodes():
+    def test_get_connected_nodes(self):
         edge = Edge(1, 2)
         assert edge.get_connected_nodes() == {1, 2}
         edge = Edge(originating_node_id=3)
@@ -70,8 +70,7 @@ class TestEdge:
 
 
 class TestInteractionNode:
-    @staticmethod
-    def test_constructor_exceptions():
+    def test_constructor_exceptions(self):
         with pytest.raises(TypeError):
             assert InteractionNode(
                 number_of_ingoing_edges="has to be int",  # type: ignore
@@ -95,8 +94,7 @@ class TestInteractionNode:
 
 
 class TestMutableTopology:
-    @staticmethod
-    def test_add_and_attach(two_to_three_decay: Topology):
+    def test_add_and_attach(self, two_to_three_decay: Topology):
         topology = _MutableTopology(
             edges=two_to_three_decay.edges,
             nodes=two_to_three_decay.nodes,  # type: ignore
@@ -109,8 +107,7 @@ class TestMutableTopology:
         topology.attach_edges_to_node_ingoing([6], 3)
         assert isinstance(topology.freeze(), Topology)
 
-    @staticmethod
-    def test_add_exceptions(two_to_three_decay: Topology):
+    def test_add_exceptions(self, two_to_three_decay: Topology):
         topology = _MutableTopology(
             edges=two_to_three_decay.edges,
             nodes=two_to_three_decay.nodes,  # type: ignore
@@ -130,8 +127,7 @@ class TestMutableTopology:
 
 
 class TestSimpleStateTransitionTopologyBuilder:
-    @staticmethod
-    def test_two_body_states():
+    def test_two_body_states(self):
         two_body_decay_node = InteractionNode(1, 2)
         simple_builder = SimpleStateTransitionTopologyBuilder(
             [two_body_decay_node]
@@ -191,14 +187,12 @@ class TestTopology:
         with pytest.raises(ValueError):
             assert Topology(nodes=nodes, edges=edges)
 
-    @staticmethod
-    def test_repr_and_eq(two_to_three_decay: Topology):
+    def test_repr_and_eq(self, two_to_three_decay: Topology):
         topology = eval(str(two_to_three_decay))  # pylint: disable=eval-used
         assert topology == two_to_three_decay
         assert topology != float()
 
-    @staticmethod
-    def test_getters(two_to_three_decay: Topology):
+    def test_getters(self, two_to_three_decay: Topology):
         topology = two_to_three_decay  # shorter name
         assert get_originating_node_list(topology, edge_ids=[0]) == []
         assert get_originating_node_list(topology, edge_ids=[5, 6]) == [2, 2]
@@ -206,9 +200,8 @@ class TestTopology:
         assert topology.outgoing_edge_ids == {4, 5, 6}
         assert topology.intermediate_edge_ids == {2, 3}
 
-    @staticmethod
     @typing.no_type_check
-    def test_immutability(two_to_three_decay: Topology):
+    def test_immutability(self, two_to_three_decay: Topology):
         with pytest.raises(attr.exceptions.FrozenInstanceError):
             two_to_three_decay.edges = {0: Edge(None, None)}
         with pytest.raises(TypeError):
@@ -223,15 +216,13 @@ class TestTopology:
             node += 666
         assert two_to_three_decay.nodes == {0, 1, 2}
 
-    @staticmethod
-    def test_organize_edge_ids(two_to_three_decay: Topology):
+    def test_organize_edge_ids(self, two_to_three_decay: Topology):
         topology = two_to_three_decay.organize_edge_ids()
         assert topology.incoming_edge_ids == frozenset({-1, -2})
         assert topology.outgoing_edge_ids == frozenset({0, 1, 2})
         assert topology.intermediate_edge_ids == frozenset({3, 4})
 
-    @staticmethod
-    def test_swap_edges(two_to_three_decay: Topology):
+    def test_swap_edges(self, two_to_three_decay: Topology):
         original_topology = two_to_three_decay
         topology = original_topology.swap_edges(0, 1)
         assert topology == original_topology
