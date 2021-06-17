@@ -925,6 +925,9 @@ class StateTransitionCollection(abc.Set):
         transitions = [StateTransition.from_graph(g) for g in graphs]
         return StateTransitionCollection(transitions)
 
+    def to_graphs(self) -> List[StateTransitionGraph[ParticleWithSpin]]:
+        return [transition.to_graph() for transition in self]
+
 
 def _to_tuple(
     iterable: Iterable[StateTransitionCollection],

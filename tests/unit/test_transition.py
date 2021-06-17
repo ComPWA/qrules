@@ -118,6 +118,27 @@ class TestStateTransitionCollection:
         from_repr = eval(repr_method(instance))
         assert from_repr == instance
 
+    def test_to_graphs(self, result: Result):
+        original_graphs = result.transitions
+        transitions = StateTransitionCollection.from_graphs(original_graphs)
+        converted_graphs = transitions.to_graphs()
+        assert len(converted_graphs) == len(original_graphs)
+        converted_graphs = sorted(converted_graphs, key=_stringify_graph)
+        original_graphs = sorted(original_graphs, key=_stringify_graph)
+        assert converted_graphs == original_graphs
+
+
+def _stringify_graph(graph: StateTransitionGraph[ParticleWithSpin]) -> str:
+    output_str = ""
+    for i in graph.topology.edges:
+        particle, spin_projection = graph.get_edge_props(i)
+        output_str += f"{particle.name}[{spin_projection}]  "
+    output_str += "\n"
+    for i in graph.topology.nodes:
+        node_props = graph.get_node_props(i)
+        output_str += f"{node_props}  "
+    return output_str
+
 
 class TestStateTransitionManager:
     def test_allowed_intermediate_particles(self):
