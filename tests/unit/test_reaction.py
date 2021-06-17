@@ -24,7 +24,7 @@ from qrules.settings import InteractionType as IT  # noqa: N817
 )
 def test_determine_interaction_types(description, expected):
     if expected is ValueError:
-        with pytest.raises(ValueError, match="interaction type"):
+        with pytest.raises(ValueError, match=r"interaction type"):
             assert _determine_interaction_types(description)
     else:
         assert _determine_interaction_types(description) == expected

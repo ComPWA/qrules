@@ -158,11 +158,11 @@ class TestKinematicRepresentation:
         assert subset_representation in kinematic_representation
         assert [["J/psi"]] not in kinematic_representation
         assert [["gamma", "pi0"]] in kinematic_representation
-        with pytest.raises(ValueError, match="Cannot compare "):
+        with pytest.raises(ValueError, match=r"Cannot compare "):
             assert float() in kinematic_representation
         with pytest.raises(
             ValueError,
-            match="Comparison representation needs to be a list of lists",
+            match=r"Comparison representation needs to be a list of lists",
         ):
             assert ["should be nested list"] in kinematic_representation
 

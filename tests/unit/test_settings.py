@@ -109,7 +109,7 @@ def test_create_interaction_settings(
 )
 def test_halves_range(start: float, stop: float, expected: list):
     if expected is None:
-        with pytest.raises(ValueError, match="needs to be multiple of 0.5"):
+        with pytest.raises(ValueError, match=r"needs to be multiple of 0.5"):
             _halves_domain(start, stop)
     else:
         assert _halves_domain(start, stop) == expected
