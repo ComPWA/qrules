@@ -283,7 +283,7 @@ def generate_transitions(  # pylint: disable=too-many-arguments
     final_state: Sequence[StateDefinition],
     allowed_intermediate_particles: Optional[List[str]] = None,
     allowed_interaction_types: Optional[Union[str, List[str]]] = None,
-    formalism: str = "helicity",
+    formalism: str = "canonical-helicity",
     particle_db: Optional[ParticleCollection] = None,
     mass_conservation_factor: Optional[float] = 3.0,
     max_angular_momentum: int = 2,
