@@ -103,7 +103,7 @@ def create_particle(
     particle = particle_db.find(int(edge_props[EdgeQuantumNumbers.pid]))
     if EdgeQuantumNumbers.spin_projection not in edge_props:
         raise ValueError(
-            "GraphEdgePropertyMap does not contain a spin projection!"
+            f"{GraphEdgePropertyMap.__name__} does not contain a spin projection"
         )
     spin_projection = edge_props[EdgeQuantumNumbers.spin_projection]
 

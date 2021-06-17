@@ -161,7 +161,7 @@ class Topology:
             connected_nodes = edge.get_connected_nodes()
             if not connected_nodes:
                 raise ValueError(
-                    f"Edge nr. {edge_id} is not connected to any node ({edge})"
+                    f"Edge nr. {edge_id} is not connected to any other node ({edge})"
                 )
             if not connected_nodes <= self.nodes:
                 raise ValueError(
@@ -177,7 +177,7 @@ class Topology:
             surrounding_nodes = self.__get_surrounding_nodes(node_id)
             if not surrounding_nodes:
                 raise ValueError(
-                    f"Node {node_id} is unconnected to any other node"
+                    f"Node {node_id} is not connected to any other node"
                 )
 
     def __get_surrounding_nodes(self, node_id: int) -> Set[int]:
@@ -322,20 +322,20 @@ class _MutableTopology:
         )
 
     def add_node(self, node_id: int) -> None:
-        """Adds a node with id node_id.
+        """Adds a node nr. node_id.
 
         Raises:
             ValueError: if node_id already exists
         """
         if node_id in self.nodes:
-            raise ValueError(f"Node with id {node_id} already exists!")
+            raise ValueError(f"Node nr. {node_id} already exists")
         self.nodes.add(node_id)
 
     def add_edges(self, edge_ids: List[int]) -> None:
         """Add edges with the ids in the edge_ids list."""
         for edge_id in edge_ids:
             if edge_id in self.edges:
-                raise ValueError(f"Edge with id {edge_id} already exists!")
+                raise ValueError(f"Edge nr. {edge_id} already exists")
             self.edges[edge_id] = Edge()
 
     def attach_edges_to_node_ingoing(
@@ -356,10 +356,10 @@ class _MutableTopology:
         # first check if the ingoing edges are all available
         for edge_id in ingoing_edge_ids:
             if edge_id not in self.edges:
-                raise ValueError(f"Edge with id {edge_id} does not exist!")
+                raise ValueError(f"Edge nr. {edge_id} does not exist")
             if self.edges[edge_id].ending_node_id is not None:
                 raise ValueError(
-                    f"Edge with id {edge_id} is already ingoing to"
+                    f"Edge nr. {edge_id} is already ingoing to"
                     f" node {self.edges[edge_id].ending_node_id}"
                 )
 
@@ -377,10 +377,10 @@ class _MutableTopology:
         # first check if the ingoing edges are all available
         for edge_id in outgoing_edge_ids:
             if edge_id not in self.edges:
-                raise ValueError(f"Edge with id {edge_id} does not exist!")
+                raise ValueError(f"Edge nr. {edge_id} does not exist")
             if self.edges[edge_id].originating_node_id is not None:
                 raise ValueError(
-                    f"Edge with id {edge_id} is already outgoing from"
+                    f"Edge nr. {edge_id} is already outgoing from"
                     f" node {self.edges[edge_id].originating_node_id}"
                 )
 
@@ -406,9 +406,13 @@ class InteractionNode:
 
     def __attrs_post_init__(self) -> None:
         if self.number_of_ingoing_edges < 1:
-            raise ValueError("NumberOfIngoingEdges has to be larger than 0")
+            raise ValueError(
+                "Number of incoming edges has to be larger than 0"
+            )
         if self.number_of_outgoing_edges < 1:
-            raise ValueError("NumberOfOutgoingEdges has to be larger than 0")
+            raise ValueError(
+                "Number of outgoing edges has to be larger than 0"
+            )
 
 
 class SimpleStateTransitionTopologyBuilder:
