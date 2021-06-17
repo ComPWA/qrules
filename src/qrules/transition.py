@@ -926,7 +926,7 @@ class StateTransitionCollection(abc.Set):
         return StateTransitionCollection(transitions)
 
     def to_graphs(self) -> List[StateTransitionGraph[ParticleWithSpin]]:
-        return [transition.to_graph() for transition in self]
+        return _sort_graphs(transition.to_graph() for transition in self)
 
 
 def _to_tuple(
@@ -1021,3 +1021,19 @@ class ReactionInfo(abc.Sequence):
             for transitions in transition_mapping.values()
         )
         return ReactionInfo(transition_groups)
+
+
+def _sort_graphs(
+    graphs: Iterable[StateTransitionGraph[ParticleWithSpin]],
+) -> List[StateTransitionGraph[ParticleWithSpin]]:
+    def stringify_graph(graph: StateTransitionGraph[ParticleWithSpin]) -> str:
+        output_str = ""
+        for i in graph.topology.edges:
+            particle, spin_projection = graph.get_edge_props(i)
+            output_str += f"{particle.name}[{float(spin_projection)}]  "
+        for i in graph.topology.nodes:
+            node_props = graph.get_node_props(i)
+            output_str += f"{node_props}  "
+        return output_str
+
+    return sorted(graphs, key=stringify_graph)
