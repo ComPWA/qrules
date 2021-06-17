@@ -91,6 +91,13 @@ class TestStateTransition:
         from_repr = eval(repr_method(instance))
         assert from_repr == instance
 
+    def test_to_graph(self, result: Result):
+        assert len(result.transitions) in {8, 16}
+        for graph in result.transitions:
+            transition = StateTransition.from_graph(graph)
+            from_transition = transition.to_graph()
+            assert from_transition == graph
+
 
 class TestStateTransitionCollection:
     def test_from_graphs(self, result: Result):

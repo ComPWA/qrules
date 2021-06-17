@@ -803,6 +803,16 @@ class StateTransition:
             ),
         )
 
+    def to_graph(self) -> StateTransitionGraph[ParticleWithSpin]:
+        return StateTransitionGraph[ParticleWithSpin](
+            topology=self.topology,
+            edge_props={
+                i: (state.particle, state.spin_projection)
+                for i, state in self.states.items()
+            },
+            node_props=self.interactions,
+        )
+
     @property
     def initial_states(self) -> Dict[int, State]:
         return self.filter_states(self.topology.incoming_edge_ids)
