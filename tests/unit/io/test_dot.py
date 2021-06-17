@@ -1,10 +1,7 @@
 # pylint: disable=no-self-use
-from typing import Any, Callable, Optional, Union
-
 import pydot
-import pytest
 
-from qrules import Result, io
+from qrules import io
 from qrules.io._dot import _collapse_graphs, _get_particle_graphs
 from qrules.particle import ParticleCollection
 from qrules.topology import (
@@ -13,35 +10,19 @@ from qrules.topology import (
     create_isobar_topologies,
     create_n_body_topology,
 )
-from qrules.transition import ReactionInfo, StateTransitionCollection
+from qrules.transition import ReactionInfo
 
 
-@pytest.mark.parametrize(
-    "converter",
-    [ReactionInfo.from_result, StateTransitionCollection.from_graphs, None],
-)
-def test_asdot(
-    converter: Optional[
-        Callable[[Any], Union[ReactionInfo, StateTransitionCollection]]
-    ],
-    result: Result,
-):
-    transitions: object = None
-    if converter is not None:
-        try:
-            transitions = converter(result.transitions)
-        except AttributeError:
-            transitions = converter(result)
-    else:
-        transitions = result.transitions
-    for transition in transitions:
-        dot_data = io.asdot(transition)
+def test_asdot(reaction: ReactionInfo):
+    for grouping in reaction.transition_groups:
+        for transition in grouping:
+            dot_data = io.asdot(transition)
         assert pydot.graph_from_dot_data(dot_data) is not None
-    dot_data = io.asdot(result)
+    dot_data = io.asdot(reaction)
     assert pydot.graph_from_dot_data(dot_data) is not None
-    dot_data = io.asdot(result, strip_spin=True)
+    dot_data = io.asdot(reaction, strip_spin=True)
     assert pydot.graph_from_dot_data(dot_data) is not None
-    dot_data = io.asdot(result, collapse_graphs=True)
+    dot_data = io.asdot(reaction, collapse_graphs=True)
     assert pydot.graph_from_dot_data(dot_data) is not None
 
 
@@ -71,30 +52,33 @@ class TestWrite:
             dot_data = stream.read()
         assert pydot.graph_from_dot_data(dot_data) is not None
 
-    def test_write_single_graph(self, output_dir: str, result: Result):
-        output_file = output_dir + "test_single_graph.gv"
-        io.write(
-            instance=result.transitions[0],
-            filename=output_file,
-        )
-        with open(output_file, "r") as stream:
-            dot_data = stream.read()
-        assert pydot.graph_from_dot_data(dot_data) is not None
+    def test_write_single_graph(self, output_dir: str, reaction: ReactionInfo):
+        for i, grouping in enumerate(reaction):
+            for j, transition in enumerate(grouping, i):
+                output_file = output_dir + f"test_single_graph_{j}.gv"
+                io.write(
+                    instance=transition,
+                    filename=output_file,
+                )
+                with open(output_file, "r") as stream:
+                    dot_data = stream.read()
+                assert pydot.graph_from_dot_data(dot_data) is not None
 
-    def test_write_graph_list(self, output_dir: str, result: Result):
-        output_file = output_dir + "test_graph_list.gv"
-        io.write(
-            instance=result.transitions,
-            filename=output_file,
-        )
-        with open(output_file, "r") as stream:
-            dot_data = stream.read()
-        assert pydot.graph_from_dot_data(dot_data) is not None
+    def test_write_graph_list(self, output_dir: str, reaction: ReactionInfo):
+        for i, grouping in enumerate(reaction.transition_groups):
+            output_file = output_dir + f"test_graph_list_{i}.gv"
+            io.write(
+                instance=grouping,
+                filename=output_file,
+            )
+            with open(output_file, "r") as stream:
+                dot_data = stream.read()
+            assert pydot.graph_from_dot_data(dot_data) is not None
 
-    def test_write_strip_spin(self, output_dir: str, result: Result):
+    def test_write_strip_spin(self, output_dir: str, reaction: ReactionInfo):
         output_file = output_dir + "test_particle_graphs.gv"
         io.write(
-            instance=io.asdot(result, strip_spin=True),
+            instance=io.asdot(reaction, strip_spin=True),
             filename=output_file,
         )
         with open(output_file, "r") as stream:
@@ -103,13 +87,13 @@ class TestWrite:
 
 
 def test_collapse_graphs(
-    result: Result,
+    reaction: ReactionInfo,
     particle_database: ParticleCollection,
 ):
     pdg = particle_database
-    particle_graphs = _get_particle_graphs(result.transitions)
+    particle_graphs = _get_particle_graphs(reaction.to_graphs())
     assert len(particle_graphs) == 2
-    collapsed_graphs = _collapse_graphs(result.transitions)
+    collapsed_graphs = _collapse_graphs(reaction.to_graphs())
     assert len(collapsed_graphs) == 1
     graph = next(iter(collapsed_graphs))
     edge_id = next(iter(graph.topology.intermediate_edge_ids))
@@ -120,10 +104,10 @@ def test_collapse_graphs(
 
 
 def test_get_particle_graphs(
-    result: Result, particle_database: ParticleCollection
+    reaction: ReactionInfo, particle_database: ParticleCollection
 ):
     pdg = particle_database
-    particle_graphs = _get_particle_graphs(result.transitions)
+    particle_graphs = _get_particle_graphs(reaction.to_graphs())
     assert len(particle_graphs) == 2
     assert particle_graphs[0].get_edge_props(3) == pdg["f(0)(980)"]
     assert particle_graphs[1].get_edge_props(3) == pdg["f(0)(1500)"]

@@ -68,20 +68,20 @@ def test_parity_prefactor(
     stm.set_allowed_interaction_types([InteractionType.EM])
     problem_sets = stm.create_problem_sets()
 
-    result = stm.find_solutions(problem_sets)
+    reaction = stm.find_solutions(problem_sets)
 
-    for solution in result.transitions:
-        in_edge = [
-            edge_id
-            for edge_id in solution.topology.edges
-            if solution.get_edge_props(edge_id)[0].name == ingoing_state
+    assert len(reaction) == 1
+    for transition in reaction.transition_groups[0]:
+        in_edges = [
+            state_id
+            for state_id, state in transition.states.items()
+            if state.particle.name == ingoing_state
         ]
-        assert len(in_edge) == 1
-        node_id = solution.topology.edges[in_edge[0]].ending_node_id
+        assert len(in_edges) == 1
 
+        node_id = transition.topology.edges[in_edges[0]].ending_node_id
         assert isinstance(node_id, int)
-
         assert (
             relative_parity_prefactor
-            == solution.get_node_props(node_id).parity_prefactor
+            == transition.interactions[node_id].parity_prefactor
         )

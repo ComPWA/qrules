@@ -177,55 +177,6 @@ class _SolutionContainer:
             )
 
 
-@attr.s(on_setattr=attr.setters.frozen)
-class Result:
-    transitions: List[StateTransitionGraph[ParticleWithSpin]] = attr.ib(
-        factory=list
-    )
-    formalism: Optional[str] = attr.ib(default=None)
-
-    def get_initial_state(self) -> List[Particle]:
-        graph = self.__get_first_graph()
-        return [
-            x[0]
-            for x in map(
-                graph.get_edge_props, graph.topology.incoming_edge_ids
-            )
-            if x
-        ]
-
-    def get_final_state(self) -> List[Particle]:
-        graph = self.__get_first_graph()
-        return [
-            x[0]
-            for x in map(
-                graph.get_edge_props, graph.topology.outgoing_edge_ids
-            )
-            if x
-        ]
-
-    def __get_first_graph(self) -> StateTransitionGraph[ParticleWithSpin]:
-        if len(self.transitions) == 0:
-            raise ValueError(
-                f"No solutions in {self.__class__.__name__} object"
-            )
-        return next(iter(self.transitions))
-
-    def get_intermediate_particles(self) -> ParticleCollection:
-        """Extract the names of the intermediate state particles."""
-        intermediate_states = ParticleCollection()
-        for transition in self.transitions:
-            for edge_props in map(
-                transition.get_edge_props,
-                transition.topology.intermediate_edge_ids,
-            ):
-                if edge_props:
-                    particle, _ = edge_props
-                    if particle not in intermediate_states:
-                        intermediate_states.add(particle)
-        return intermediate_states
-
-
 @attr.s
 class ProblemSet:
     """Particle reaction problem set, defined as a graph like data structure.
@@ -585,7 +536,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
     def find_solutions(  # pylint: disable=too-many-branches
         self,
         problem_sets: Dict[float, List[ProblemSet]],
-    ) -> Result:
+    ) -> "ReactionInfo":
         # pylint: disable=too-many-locals
         """Check for solutions for a specific set of interaction settings."""
         results: Dict[float, _SolutionContainer] = {}
@@ -690,10 +641,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             raise ValueError("No solutions were found")
 
         match_external_edges(final_solutions)
-        return Result(
-            final_solutions,
-            formalism=self.formalism,
-        )
+        return ReactionInfo.from_graphs(final_solutions, self.formalism)
 
     def _solve(
         self, qn_problem_set: QNProblemSet
@@ -705,7 +653,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
     def __convert_result(
         self, topology: Topology, qn_result: QNResult
     ) -> _SolutionContainer:
-        """Converts a `.QNResult` with a `.Topology` into a `.Result`.
+        """Converts a `.QNResult` with a `.Topology` into `.ReactionInfo`.
 
         The ParticleCollection is used to retrieve a particle instance
         reference to lower the memory footprint.
@@ -1036,13 +984,14 @@ class ReactionInfo(abc.Sequence):
         )
 
     @staticmethod
-    def from_result(result: Result) -> "ReactionInfo":
-        if result.formalism is None:
-            raise ValueError(f"{Result.__name__} does not have a formalism")
+    def from_graphs(
+        graphs: Iterable[StateTransitionGraph[ParticleWithSpin]],
+        formalism: str,
+    ) -> "ReactionInfo":
         transition_mapping: DefaultDict[
             Topology, List[StateTransition]
         ] = defaultdict(list)
-        for graph in result.transitions:
+        for graph in graphs:
             transition_mapping[graph.topology].append(
                 StateTransition.from_graph(graph)
             )
@@ -1050,7 +999,7 @@ class ReactionInfo(abc.Sequence):
             StateTransitionCollection(transitions)
             for transitions in transition_mapping.values()
         )
-        return ReactionInfo(transition_groups, result.formalism)
+        return ReactionInfo(transition_groups, formalism)
 
     def to_graphs(self) -> List[StateTransitionGraph[ParticleWithSpin]]:
         graphs: List[StateTransitionGraph[ParticleWithSpin]] = []

@@ -10,7 +10,7 @@ from qrules.topology import (
     create_isobar_topologies,
     create_n_body_topology,
 )
-from qrules.transition import ReactionInfo, Result
+from qrules.transition import ReactionInfo
 
 
 def through_dict(instance):
@@ -42,18 +42,13 @@ def test_asdict_fromdict(particle_selection: ParticleCollection):
             assert topology == fromdict
 
 
-def test_asdict_fromdict_result(result: Result):
+def test_asdict_fromdict_reaction(reaction: ReactionInfo):
     # StateTransitionGraph
-    for graph in result.transitions:
+    for graph in reaction.to_graphs():
         fromdict = through_dict(graph)
         assert isinstance(fromdict, StateTransitionGraph)
         assert graph == fromdict
-    # Result
-    fromdict = through_dict(result)
-    assert isinstance(fromdict, Result)
-    assert result == fromdict
     # ReactionInfo
-    reaction = ReactionInfo.from_result(result)
     fromdict = through_dict(reaction)
     assert isinstance(fromdict, ReactionInfo)
     assert reaction == fromdict

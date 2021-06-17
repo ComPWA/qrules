@@ -19,7 +19,6 @@ from qrules.quantum_numbers import InteractionProperties
 from qrules.topology import Edge, StateTransitionGraph, Topology
 from qrules.transition import (
     ReactionInfo,
-    Result,
     State,
     StateTransition,
     StateTransitionCollection,
@@ -37,15 +36,6 @@ def from_particle(particle: Particle) -> dict:
         value_serializer=_value_serializer,
         filter=lambda attr, value: attr.default != value,
     )
-
-
-def from_result(result: Result) -> dict:
-    output: Dict[str, Any] = {
-        "transitions": [from_stg(graph) for graph in result.transitions],
-    }
-    if result.formalism is not None:
-        output["formalism"] = result.formalism
-    return output
 
 
 def from_stg(graph: StateTransitionGraph[ParticleWithSpin]) -> dict:
@@ -130,17 +120,6 @@ def build_reaction_info(definition: dict) -> ReactionInfo:
     return ReactionInfo(
         transition_groups=transition_groups,
         formalism=definition["formalism"],
-    )
-
-
-def build_result(definition: dict) -> Result:
-    formalism = definition.get("formalism")
-    transitions = [
-        build_stg(graph_def) for graph_def in definition["transitions"]
-    ]
-    return Result(
-        transitions=transitions,
-        formalism=formalism,
     )
 
 

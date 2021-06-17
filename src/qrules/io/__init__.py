@@ -17,7 +17,6 @@ from qrules.particle import Particle, ParticleCollection
 from qrules.topology import StateTransitionGraph, Topology
 from qrules.transition import (
     ReactionInfo,
-    Result,
     State,
     StateTransition,
     StateTransitionCollection,
@@ -42,8 +41,6 @@ def asdict(instance: object) -> dict:
             filter=lambda attr, _: attr.init,
             value_serializer=_dict._value_serializer,
         )
-    if isinstance(instance, Result):
-        return _dict.from_result(instance)
     if isinstance(instance, StateTransitionGraph):
         return _dict.from_stg(instance)
     if isinstance(instance, Topology):
@@ -59,8 +56,6 @@ def fromdict(definition: dict) -> object:
         return _dict.build_particle(definition)
     if keys == {"particles"}:
         return _dict.build_particle_collection(definition)
-    if keys == {"transitions", "formalism"}:
-        return _dict.build_result(definition)
     if keys == {"transition_groups", "formalism"}:
         return _dict.build_reaction_info(definition)
     if keys == {"topology", "states", "interactions"}:
@@ -141,9 +136,7 @@ def asdot(
         )
     if isinstance(instance, (ReactionInfo, StateTransitionCollection)):
         instance = instance.to_graphs()
-    if isinstance(instance, (Result, abc.Sequence)):
-        if isinstance(instance, Result):
-            instance = instance.transitions
+    if isinstance(instance, abc.Sequence):
         return _dot.graph_list_to_dot(
             instance,
             render_node=render_node,

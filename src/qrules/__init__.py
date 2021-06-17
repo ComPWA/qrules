@@ -1,5 +1,4 @@
 # pylint: disable=too-many-lines
-
 """A rule based system that facilitates particle reaction analysis.
 
 QRules generates allowed particle transitions from a set of conservation rules
@@ -74,7 +73,7 @@ from .topology import create_n_body_topology
 from .transition import (
     EdgeSettings,
     ProblemSet,
-    Result,
+    ReactionInfo,
     StateTransitionManager,
 )
 
@@ -299,7 +298,7 @@ def generate_transitions(  # pylint: disable=too-many-arguments
     max_spin_magnitude: float = 2.0,
     topology_building: str = "isobar",
     number_of_threads: Optional[int] = None,
-) -> Result:
+) -> ReactionInfo:
     """Generate allowed transitions between an initial and final state.
 
     Serves as a facade to the `.StateTransitionManager` (see
@@ -357,7 +356,7 @@ def generate_transitions(  # pylint: disable=too-many-arguments
     arguments) would be:
 
     >>> import qrules
-    >>> result = qrules.generate_transitions(
+    >>> reaction = qrules.generate_transitions(
     ...     initial_state="D0",
     ...     final_state=["K~0", "K+", "K-"],
     ...     allowed_intermediate_particles=["a(0)(980)", "a(2)(1320)-"],
@@ -366,7 +365,9 @@ def generate_transitions(  # pylint: disable=too-many-arguments
     ...     particle_db=qrules.load_pdg(),
     ...     topology_building="isobar",
     ... )
-    >>> len(result.transitions)
+    >>> len(reaction.transition_groups)
+    3
+    >>> sum(map(len, reaction.transition_groups))
     4
     """
     if isinstance(initial_state, str) or (
