@@ -1,4 +1,3 @@
-# pylint: disable=too-many-lines
 """Find allowed transitions between an initial and final state."""
 
 import logging
@@ -79,12 +78,6 @@ from .topology import (
     create_isobar_topologies,
     create_n_body_topology,
 )
-
-try:
-    from typing import overload
-except ImportError:
-    from typing_extensions import overload  # type: ignore
-
 
 try:
     from IPython.lib.pretty import PrettyPrinter
@@ -899,7 +892,7 @@ def _to_tuple(
 
 
 @attr.s(frozen=True, eq=False)
-class ReactionInfo(abc.Sequence):
+class ReactionInfo:
     """`StateTransitionCollection` instances, grouped by `.Topology`."""
 
     transition_groups: Tuple[StateTransitionCollection, ...] = attr.ib(
@@ -933,31 +926,9 @@ class ReactionInfo(abc.Sequence):
                 if own_grouping != other_grouping:
                     return False
             return True
-        if isinstance(other, abc.Iterable):
-            for own_transition, other_transition in zip_longest(self, other):
-                if own_transition != other_transition:
-                    return False
-            return True
         raise NotImplementedError(
             f"Cannot compare {self.__class__.__name__} with  {other.__class__.__name__}"
         )
-
-    @overload
-    def __getitem__(self, i: int) -> StateTransition:
-        ...
-
-    @overload
-    def __getitem__(self, i: slice) -> Sequence[StateTransition]:
-        ...
-
-    def __getitem__(self, i):  # type: ignore
-        return self.transitions[i]
-
-    def __iter__(self) -> Iterator[StateTransition]:
-        return iter(self.transitions)
-
-    def __len__(self) -> int:
-        return len(self.transitions)
 
     def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
         class_name = type(self).__name__

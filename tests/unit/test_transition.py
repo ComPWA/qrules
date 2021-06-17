@@ -36,10 +36,10 @@ class TestReactionInfo:
         for grouping in reaction.transition_groups:
             assert isinstance(grouping, StateTransitionCollection)
         if reaction.formalism.startswith("cano"):
-            assert len(reaction) == 16
+            assert len(reaction.transitions) == 16
         else:
-            assert len(reaction) == 8
-        for transition in reaction:
+            assert len(reaction.transitions) == 8
+        for transition in reaction.transitions:
             assert isinstance(transition, StateTransition)
 
     @pytest.mark.parametrize("repr_method", [repr, pretty])
@@ -57,14 +57,14 @@ class TestReactionInfo:
 class TestStateTransition:
     @pytest.mark.parametrize("repr_method", [repr, pretty])
     def test_repr(self, repr_method, reaction: ReactionInfo):
-        for instance in reaction:
+        for instance in reaction.transitions:
             from_repr = eval(repr_method(instance))
             assert from_repr == instance
 
     def test_from_to_graph(self, reaction: ReactionInfo):
         assert len(reaction.transition_groups) == 1
-        assert len(reaction) in {8, 16}
-        for transition in reaction:
+        assert len(reaction.transitions) in {8, 16}
+        for transition in reaction.transitions:
             graph = transition.to_graph()
             from_graph = StateTransition.from_graph(graph)
             assert transition == from_graph

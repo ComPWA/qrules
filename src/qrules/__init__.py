@@ -367,7 +367,7 @@ def generate_transitions(  # pylint: disable=too-many-arguments
     ... )
     >>> len(reaction.transition_groups)
     3
-    >>> len(reaction)
+    >>> len(reaction.transitions)
     4
     """
     if isinstance(initial_state, str) or (

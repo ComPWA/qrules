@@ -53,7 +53,7 @@ class TestWrite:
         assert pydot.graph_from_dot_data(dot_data) is not None
 
     def test_write_single_graph(self, output_dir: str, reaction: ReactionInfo):
-        for i, transition in enumerate(reaction):
+        for i, transition in enumerate(reaction.transitions):
             output_file = output_dir + f"test_single_graph_{i}.gv"
             io.write(
                 instance=transition,

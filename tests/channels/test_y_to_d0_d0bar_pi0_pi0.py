@@ -21,7 +21,7 @@ def test_simple(formalism, n_solutions, particle_database):
         number_of_threads=1,
     )
     assert len(reaction.transition_groups) == 1
-    assert len(reaction) == n_solutions
+    assert len(reaction.transitions) == n_solutions
 
 
 @pytest.mark.slow()
@@ -46,4 +46,4 @@ def test_full(formalism, n_solutions, particle_database):
     problem_sets = stm.create_problem_sets()
     reaction = stm.find_solutions(problem_sets)
     assert len(reaction.transition_groups) == 1
-    assert len(reaction) == n_solutions
+    assert len(reaction.transitions) == n_solutions
