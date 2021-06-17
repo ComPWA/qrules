@@ -37,8 +37,8 @@ def from_result(result: Result) -> dict:
     output: Dict[str, Any] = {
         "transitions": [from_stg(graph) for graph in result.transitions],
     }
-    if result.formalism_type is not None:
-        output["formalism_type"] = result.formalism_type
+    if result.formalism is not None:
+        output["formalism"] = result.formalism
     return output
 
 
@@ -116,13 +116,13 @@ def build_particle(definition: dict) -> Particle:
 
 
 def build_result(definition: dict) -> Result:
-    formalism_type = definition.get("formalism_type")
+    formalism = definition.get("formalism")
     transitions = [
         build_stg(graph_def) for graph_def in definition["transitions"]
     ]
     return Result(
         transitions=transitions,
-        formalism_type=formalism_type,
+        formalism=formalism,
     )
 
 

@@ -283,7 +283,7 @@ def generate_transitions(  # pylint: disable=too-many-arguments
     final_state: Sequence[StateDefinition],
     allowed_intermediate_particles: Optional[List[str]] = None,
     allowed_interaction_types: Optional[Union[str, List[str]]] = None,
-    formalism_type: str = "helicity",
+    formalism: str = "helicity",
     particle_db: Optional[ParticleCollection] = None,
     mass_conservation_factor: Optional[float] = 3.0,
     max_angular_momentum: int = 2,
@@ -315,7 +315,7 @@ def generate_transitions(  # pylint: disable=too-many-arguments
             :code:`["s", "em"]` results in `~.InteractionType.EM` and
             `~.InteractionType.STRONG`.
 
-        formalism_type (`str`, optional): Formalism that you intend to use in
+        formalism (`str`, optional): Formalism that you intend to use in
             the eventual amplitude model.
 
         particle_db (`.ParticleCollection`, optional): The particles that you
@@ -353,7 +353,7 @@ def generate_transitions(  # pylint: disable=too-many-arguments
     ...     final_state=["K~0", "K+", "K-"],
     ...     allowed_intermediate_particles=["a(0)(980)", "a(2)(1320)-"],
     ...     allowed_interaction_types="ew",
-    ...     formalism_type="helicity",
+    ...     formalism="helicity",
     ...     particle_db=qrules.load_pdg(),
     ...     topology_building="isobar",
     ... )
@@ -371,7 +371,7 @@ def generate_transitions(  # pylint: disable=too-many-arguments
         final_state=final_state,
         particle_db=particle_db,
         allowed_intermediate_particles=allowed_intermediate_particles,
-        formalism_type=formalism_type,
+        formalism=formalism,
         mass_conservation_factor=mass_conservation_factor,
         max_angular_momentum=max_angular_momentum,
         max_spin_magnitude=max_spin_magnitude,

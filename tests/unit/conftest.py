@@ -12,11 +12,11 @@ logging.basicConfig(level=logging.ERROR)
 
 @pytest.fixture(scope="session", params=["canonical-helicity", "helicity"])
 def result(request: SubRequest) -> Result:
-    formalism_type: str = request.param
+    formalism: str = request.param
     return qrules.generate_transitions(
         initial_state=[("J/psi(1S)", [-1, 1])],
         final_state=["gamma", "pi0", "pi0"],
         allowed_intermediate_particles=["f(0)(980)", "f(0)(1500)"],
         allowed_interaction_types="strong only",
-        formalism_type=formalism_type,
+        formalism=formalism,
     )

@@ -41,7 +41,7 @@ def fromdict(definition: dict) -> object:
         return _dict.build_particle(definition)
     if keys == {"particles"}:
         return _dict.build_particle_collection(definition)
-    if keys == {"transitions", "formalism_type"}:
+    if keys == {"transitions", "formalism"}:
         return _dict.build_result(definition)
     if keys == {"topology", "edge_props", "node_props"}:
         return _dict.build_stg(definition)
