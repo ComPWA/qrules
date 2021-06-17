@@ -50,7 +50,7 @@ class TestWrite:
             dot_data = stream.read()
         assert pydot.graph_from_dot_data(dot_data) is not None
 
-    def test_write_single_graph(self, output_dir, result: Result):
+    def test_write_single_graph(self, output_dir: str, result: Result):
         output_file = output_dir + "test_single_graph.gv"
         io.write(
             instance=result.transitions[0],
@@ -60,7 +60,7 @@ class TestWrite:
             dot_data = stream.read()
         assert pydot.graph_from_dot_data(dot_data) is not None
 
-    def test_write_graph_list(self, output_dir, result: Result):
+    def test_write_graph_list(self, output_dir: str, result: Result):
         output_file = output_dir + "test_graph_list.gv"
         io.write(
             instance=result.transitions,
@@ -70,7 +70,7 @@ class TestWrite:
             dot_data = stream.read()
         assert pydot.graph_from_dot_data(dot_data) is not None
 
-    def test_write_strip_spin(self, output_dir, result: Result):
+    def test_write_strip_spin(self, output_dir: str, result: Result):
         output_file = output_dir + "test_particle_graphs.gv"
         io.write(
             instance=io.asdot(result, strip_spin=True),
