@@ -34,6 +34,7 @@ def test_number_of_solutions(
         allowed_interaction_types="strong and EM",
         allowed_intermediate_particles=allowed_intermediate_particles,
         number_of_threads=1,
+        formalism="helicity",
     )
     assert len(result.transitions) == number_of_solutions
     assert result.get_intermediate_particles().names == set(
@@ -49,6 +50,7 @@ def test_id_to_particle_mappings(particle_database):
         allowed_interaction_types="strong",
         allowed_intermediate_particles=["f(0)(980)"],
         number_of_threads=1,
+        formalism="helicity",
     )
     assert len(result.transitions) == 4
     iter_solutions = iter(result.transitions)
