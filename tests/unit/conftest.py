@@ -1,5 +1,6 @@
 # pylint: disable=redefined-outer-name
 import logging
+from typing import Callable
 
 import pytest
 
@@ -29,3 +30,20 @@ def jpsi_to_gamma_pi_pi_helicity_solutions() -> Result:
         allowed_interaction_types="strong only",
         formalism_type="helicity",
     )
+
+
+@pytest.fixture(scope="session")
+def get_reaction(
+    jpsi_to_gamma_pi_pi_canonical_solutions: Result,
+    jpsi_to_gamma_pi_pi_helicity_solutions: Result,
+) -> Callable[[str], Result]:
+    def wrapped_function(formalism: str) -> Result:
+        if formalism.lower().startswith("cano"):
+            return jpsi_to_gamma_pi_pi_canonical_solutions
+        if formalism.lower().startswith("heli"):
+            return jpsi_to_gamma_pi_pi_helicity_solutions
+        raise NotImplementedError(
+            f'No {Result.__name__} for formalism type "{formalism}"'
+        )
+
+    return wrapped_function
