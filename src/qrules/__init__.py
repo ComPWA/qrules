@@ -107,8 +107,8 @@ def check_reaction_violations(  # pylint: disable=too-many-arguments
       number configurations.
 
     Example:
-        >>> import qrules as q
-        >>> q.check_reaction_violations(
+        >>> import qrules
+        >>> qrules.check_reaction_violations(
         ...     initial_state="pi0",
         ...     final_state=["gamma", "gamma", "gamma"],
         ... )
@@ -347,14 +347,14 @@ def generate_transitions(  # pylint: disable=too-many-arguments
     An example (where, for illustrative purposes only, we specify all
     arguments) would be:
 
-    >>> import qrules as q
-    >>> result = q.generate_transitions(
+    >>> import qrules
+    >>> result = qrules.generate_transitions(
     ...     initial_state="D0",
     ...     final_state=["K~0", "K+", "K-"],
     ...     allowed_intermediate_particles=["a(0)(980)", "a(2)(1320)-"],
     ...     allowed_interaction_types="ew",
     ...     formalism_type="helicity",
-    ...     particle_db=q.load_pdg(),
+    ...     particle_db=qrules.load_pdg(),
     ...     topology_building="isobar",
     ... )
     >>> len(result.transitions)

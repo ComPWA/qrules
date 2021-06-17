@@ -1,8 +1,8 @@
-import qrules as q
+import qrules
 
 
 def test_script():
-    result = q.generate_transitions(
+    result = qrules.generate_transitions(
         initial_state="D0",
         final_state=["K~0", "K+", "K-"],
         allowed_intermediate_particles=[

@@ -1,6 +1,6 @@
 import pytest
 
-import qrules as q
+import qrules
 from qrules import InteractionType, StateTransitionManager
 
 
@@ -12,7 +12,7 @@ from qrules import InteractionType, StateTransitionManager
     ],
 )
 def test_simple(formalism_type, n_solutions, particle_database):
-    result = q.generate_transitions(
+    result = qrules.generate_transitions(
         initial_state=[("Y(4260)", [-1, +1])],
         final_state=["D*(2007)0", "D*(2007)~0"],
         particle_db=particle_database,

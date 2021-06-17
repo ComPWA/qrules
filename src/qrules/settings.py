@@ -2,9 +2,9 @@
 
 It is possible to change some settings from the outside, for instance:
 
->>> import qrules as q
->>> q.settings.MAX_ANGULAR_MOMENTUM = 4
->>> q.settings.MAX_SPIN_MAGNITUDE = 3
+>>> import qrules
+>>> qrules.settings.MAX_ANGULAR_MOMENTUM = 4
+>>> qrules.settings.MAX_SPIN_MAGNITUDE = 3
 """
 
 from copy import deepcopy
