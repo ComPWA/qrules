@@ -1022,6 +1022,12 @@ class ReactionInfo(abc.Sequence):
         )
         return ReactionInfo(transition_groups)
 
+    def to_graphs(self) -> List[StateTransitionGraph[ParticleWithSpin]]:
+        graphs: List[StateTransitionGraph[ParticleWithSpin]] = []
+        for grouping in self.transition_groups:
+            graphs.extend(grouping.to_graphs())
+        return _sort_graphs(graphs)
+
 
 def _sort_graphs(
     graphs: Iterable[StateTransitionGraph[ParticleWithSpin]],

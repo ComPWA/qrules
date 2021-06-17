@@ -50,6 +50,14 @@ class TestReactionInfo:
         from_repr = eval(repr_method(instance))
         assert from_repr == instance
 
+    def test_to_graphs(self, result: Result):
+        original_graphs = result.transitions
+        reaction_info = ReactionInfo.from_graphs(original_graphs)
+        converted_graphs = reaction_info.to_graphs()
+        assert len(converted_graphs) == len(original_graphs)
+        original_graphs = _sort_graphs(original_graphs)
+        assert converted_graphs == original_graphs
+
 
 class TestStateTransition:
     @pytest.fixture(scope="session")
