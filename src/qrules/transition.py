@@ -928,6 +928,15 @@ class StateTransitionCollection(abc.Set):
     def to_graphs(self) -> List[StateTransitionGraph[ParticleWithSpin]]:
         return _sort_graphs(transition.to_graph() for transition in self)
 
+    def get_intermediate_particles(self) -> ParticleCollection:
+        """Extract the particle names of the intermediate states."""
+        intermediate_states = ParticleCollection()
+        for transition in self.transitions:
+            for state in transition.intermediate_states.values():
+                if state.particle not in intermediate_states:
+                    intermediate_states.add(state.particle)
+        return intermediate_states
+
 
 def _to_tuple(
     iterable: Iterable[StateTransitionCollection],
@@ -1014,6 +1023,17 @@ class ReactionInfo(abc.Sequence):
                 p.text(",")
             p.breakable()
             p.text(")")
+
+    def get_intermediate_particles(self) -> ParticleCollection:
+        """Extract the names of the intermediate state particles."""
+        return ParticleCollection(
+            set().union(
+                *[
+                    grouping.get_intermediate_particles()
+                    for grouping in self.transition_groups
+                ]
+            )
+        )
 
     @staticmethod
     def from_result(result: Result) -> "ReactionInfo":
