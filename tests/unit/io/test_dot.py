@@ -1,5 +1,8 @@
 # pylint: disable=no-self-use
+from typing import Optional, Type, Union
+
 import pydot
+import pytest
 
 from qrules import Result, io
 from qrules.io._dot import _collapse_graphs, _get_particle_graphs
@@ -10,10 +13,24 @@ from qrules.topology import (
     create_isobar_topologies,
     create_n_body_topology,
 )
+from qrules.transition import ReactionInfo, StateTransitionCollection
 
 
-def test_asdot(result: Result):
-    for transition in result.transitions:
+@pytest.mark.parametrize(
+    "conversion_class", [StateTransitionCollection, ReactionInfo, None]
+)
+def test_asdot(
+    conversion_class: Optional[
+        Union[Type[StateTransitionCollection], Type[ReactionInfo]]
+    ],
+    result: Result,
+):
+    transitions: object = None
+    if conversion_class is not None:
+        transitions = conversion_class.from_graphs(result.transitions)
+    else:
+        transitions = result.transitions
+    for transition in transitions:
         dot_data = io.asdot(transition)
         assert pydot.graph_from_dot_data(dot_data) is not None
     dot_data = io.asdot(result)

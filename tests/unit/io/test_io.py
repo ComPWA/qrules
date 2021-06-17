@@ -10,7 +10,7 @@ from qrules.topology import (
     create_isobar_topologies,
     create_n_body_topology,
 )
-from qrules.transition import Result
+from qrules.transition import ReactionInfo, Result
 
 
 def through_dict(instance):
@@ -52,6 +52,11 @@ def test_asdict_fromdict_result(result: Result):
     fromdict = through_dict(result)
     assert isinstance(fromdict, Result)
     assert result == fromdict
+    # ReactionInfo
+    reaction = ReactionInfo.from_graphs(result.transitions)
+    fromdict = through_dict(reaction)
+    assert isinstance(fromdict, ReactionInfo)
+    assert reaction == fromdict
 
 
 def test_fromdict_exceptions():

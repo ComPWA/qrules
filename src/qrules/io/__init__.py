@@ -1,3 +1,4 @@
+# pylint: disable=too-many-return-statements
 """Serialization module for the `qrules`.
 
 The `.io` module provides tools to export or import objects from `qrules` to
@@ -14,16 +15,33 @@ import yaml
 
 from qrules.particle import Particle, ParticleCollection
 from qrules.topology import StateTransitionGraph, Topology
-from qrules.transition import Result
+from qrules.transition import (
+    ReactionInfo,
+    Result,
+    State,
+    StateTransition,
+    StateTransitionCollection,
+)
 
 from . import _dict, _dot
 
 
 def asdict(instance: object) -> dict:
+    # pylint: disable=protected-access
     if isinstance(instance, Particle):
         return _dict.from_particle(instance)
     if isinstance(instance, ParticleCollection):
         return _dict.from_particle_collection(instance)
+    if isinstance(
+        instance,
+        (ReactionInfo, State, StateTransition, StateTransitionCollection),
+    ):
+        return attr.asdict(
+            instance,
+            recurse=True,
+            filter=lambda attr, _: attr.init,
+            value_serializer=_dict._value_serializer,
+        )
     if isinstance(instance, Result):
         return _dict.from_result(instance)
     if isinstance(instance, StateTransitionGraph):
@@ -43,6 +61,12 @@ def fromdict(definition: dict) -> object:
         return _dict.build_particle_collection(definition)
     if keys == {"transitions", "formalism"}:
         return _dict.build_result(definition)
+    if keys == {"transition_groups"}:
+        return _dict.build_reaction_info(definition)
+    if keys == {"topology", "states", "interactions"}:
+        return _dict.build_state_transition(definition)
+    if keys == {"transitions"}:
+        return _dict.build_stc(definition)
     if keys == {"topology", "edge_props", "node_props"}:
         return _dict.build_stg(definition)
     if keys == __REQUIRED_TOPOLOGY_FIELDS:
@@ -105,6 +129,8 @@ def asdot(
 
     .. seealso:: :doc:`/usage/visualize`
     """
+    if isinstance(instance, StateTransition):
+        instance = instance.to_graph()
     if isinstance(instance, (StateTransitionGraph, Topology)):
         return _dot.graph_to_dot(
             instance,
@@ -113,6 +139,8 @@ def asdot(
             render_resonance_id=render_resonance_id,
             render_initial_state_id=render_initial_state_id,
         )
+    if isinstance(instance, (ReactionInfo, StateTransitionCollection)):
+        instance = instance.to_graphs()
     if isinstance(instance, (Result, abc.Sequence)):
         if isinstance(instance, Result):
             instance = instance.transitions
