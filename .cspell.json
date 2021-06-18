@@ -111,6 +111,7 @@
         "arange",
         "asdict",
         "asdot",
+        "astuple",
         "cano",
         "celltoolbar",
         "codacy",

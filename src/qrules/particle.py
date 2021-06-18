@@ -14,6 +14,7 @@ import logging
 import re
 from collections import abc
 from difflib import get_close_matches
+from functools import total_ordering
 from math import copysign
 from typing import (
     Any,
@@ -21,8 +22,8 @@ from typing import (
     Dict,
     Iterable,
     Iterator,
+    List,
     Optional,
-    Set,
     SupportsFloat,
     Tuple,
     Union,
@@ -50,6 +51,7 @@ def _to_float(value: SupportsFloat) -> float:
     return float_value
 
 
+@total_ordering
 @attr.s(frozen=True, eq=False, hash=True)
 class Spin:
     """Safe, immutable data container for spin **with projection**."""
@@ -89,6 +91,11 @@ class Spin:
     def __float__(self) -> float:
         return self.magnitude
 
+    def __gt__(self, other: Any) -> bool:
+        if isinstance(other, Spin):
+            return attr.astuple(self) > attr.astuple(other)
+        return self.magnitude > other
+
     def __neg__(self) -> "Spin":
         return Spin(self.magnitude, -self.projection)
 
@@ -112,7 +119,8 @@ def _to_spin(value: Union[Spin, Tuple[float, float]]) -> Spin:
     return value
 
 
-@attr.s(frozen=True, repr=True, kw_only=True)
+@total_ordering
+@attr.s(frozen=True, order=False, repr=True, kw_only=True)
 class Particle:  # pylint: disable=too-many-instance-attributes
     """Immutable container of data defining a physical particle.
 
@@ -193,6 +201,30 @@ class Particle:  # pylint: disable=too-many-instance-attributes
                 f" T[{self.strangeness}]"
                 ")"
             )
+
+    @property
+    def name_root(self) -> str:
+        name_root = self.name
+        name_root = re.sub(r"\(.+\)", "", name_root)
+        name_root = re.sub(r"[\*\+\-~\d']", "", name_root)
+        return name_root
+
+    def __gt__(self, other: Any) -> bool:
+        if isinstance(other, Particle):
+
+            def sorting_key(particle: Particle) -> tuple:
+                name_root = particle.name_root
+                return (
+                    name_root[0].lower(),
+                    name_root,
+                    particle.mass,
+                    particle.charge,
+                )
+
+            return sorting_key(self) > sorting_key(other)
+        raise NotImplementedError(
+            f"Cannot compare {self.__class__.__name__} with {other.__class__.__name__}"
+        )
 
     def __neg__(self) -> "Particle":
         return create_antiparticle(self)
@@ -386,8 +418,8 @@ class ParticleCollection(abc.MutableSet):
             self.add(particle)
 
     @property
-    def names(self) -> Set[str]:
-        return set(self.__particles)
+    def names(self) -> List[str]:
+        return [p.name for p in sorted(self)]
 
 
 def create_particle(  # pylint: disable=too-many-arguments,too-many-locals

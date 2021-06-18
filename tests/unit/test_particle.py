@@ -98,10 +98,83 @@ class TestParticle:
         assert particle.name != different_labels.name
         assert particle.pid != different_labels.pid
 
+    @pytest.mark.parametrize(
+        ("name1", "name2"),
+        [
+            # by name
+            ("pi0", "a(0)(980)-"),
+            # by mass
+            ("pi+", "pi-"),
+            ("pi-", "pi0"),
+            ("pi+", "pi0"),
+            ("K0", "K+"),
+            # by charge
+            ("a(0)(980)+", "a(0)(980)-"),
+            ("a(0)(980)+", "a(0)(980)0"),
+            ("a(0)(980)0", "a(0)(980)-"),
+        ],
+    )
+    def test_gt(self, name1, name2, particle_database: ParticleCollection):
+        pdg = particle_database
+        assert pdg[name1] > pdg[name2]
+
+    def test_name_root(self, particle_database: ParticleCollection):
+        name_roots = {p.name_root for p in particle_database}
+        assert name_roots == {
+            "a",
+            "B",
+            "b",
+            "chi",
+            "D",
+            "Delta",
+            "e",
+            "eta",
+            "f",
+            "g",
+            "gamma",
+            "h",
+            "J/psi",
+            "K",
+            "Lambda",
+            "mu",
+            "N",
+            "n",
+            "nu",
+            "Omega",
+            "omega",
+            "p",
+            "phi",
+            "pi",
+            "psi",
+            "rho",
+            "Sigma",
+            "tau",
+            "Upsilon",
+            "W",
+            "Xi",
+            "Y",
+            "Z",
+        }
+
     def test_neg(self, particle_database: ParticleCollection):
         pip = particle_database.find(211)
         pim = particle_database.find(-211)
         assert pip == -pim
+
+    def test_total_ordering(self, particle_database: ParticleCollection):
+        pdg = particle_database
+        assert [
+            particle.name
+            for particle in sorted(
+                pdg.filter(lambda p: p.name.startswith("f(0)"))
+            )
+        ] == [
+            "f(0)(500)",
+            "f(0)(980)",
+            "f(0)(1370)",
+            "f(0)(1500)",
+            "f(0)(1710)",
+        ]
 
 
 class TestParticleCollection:
@@ -200,10 +273,10 @@ class TestParticleCollection:
             and p.spin == 2
             and p.strangeness == 1
         )
-        assert filtered_result.names == {
+        assert filtered_result.names == [
             "K(2)(1820)0",
             "K(2)(1820)+",
-        }
+        ]
 
     def test_find(self, particle_database: ParticleCollection):
         f2_1950 = particle_database.find(9050225)
@@ -279,6 +352,17 @@ class TestSpin:
             spin1,
             spin2,
         }
+
+    @pytest.mark.parametrize(
+        ("spin1", "spin2"),
+        [
+            (Spin(1, 0), Spin(0, 0)),
+            (Spin(1, 1), Spin(1, 0)),
+            (Spin(1, +1), Spin(1, -1)),
+        ],
+    )
+    def test_gt(self, spin1: Spin, spin2: Spin):
+        assert spin1 > spin2
 
     def test_neg(self):
         isospin = Spin(1.5, -0.5)
