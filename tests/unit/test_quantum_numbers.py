@@ -12,6 +12,7 @@ class TestParity:
         parity = Parity(+1)
         assert parity == +1
         assert int(parity) == +1
+        assert parity > None
 
     @typing.no_type_check  # https://github.com/python/mypy/issues/4610
     def test_comparison(self):

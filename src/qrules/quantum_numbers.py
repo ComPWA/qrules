@@ -34,6 +34,8 @@ class Parity:
         return self.value == other
 
     def __gt__(self, other: Any) -> bool:
+        if other is None:
+            return True
         return self.value > int(other)
 
     def __int__(self) -> int:
