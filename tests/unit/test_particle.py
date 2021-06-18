@@ -11,6 +11,7 @@ from qrules.particle import (
     Particle,
     ParticleCollection,
     Spin,
+    _get_name_root,
     create_antiparticle,
     create_particle,
 )
@@ -117,44 +118,6 @@ class TestParticle:
     def test_gt(self, name1, name2, particle_database: ParticleCollection):
         pdg = particle_database
         assert pdg[name1] > pdg[name2]
-
-    def test_name_root(self, particle_database: ParticleCollection):
-        name_roots = {p.name_root for p in particle_database}
-        assert name_roots == {
-            "a",
-            "B",
-            "b",
-            "chi",
-            "D",
-            "Delta",
-            "e",
-            "eta",
-            "f",
-            "g",
-            "gamma",
-            "h",
-            "J/psi",
-            "K",
-            "Lambda",
-            "mu",
-            "N",
-            "n",
-            "nu",
-            "Omega",
-            "omega",
-            "p",
-            "phi",
-            "pi",
-            "psi",
-            "rho",
-            "Sigma",
-            "tau",
-            "Upsilon",
-            "W",
-            "Xi",
-            "Y",
-            "Z",
-        }
 
     def test_neg(self, particle_database: ParticleCollection):
         pip = particle_database.find(211)
@@ -472,3 +435,42 @@ def test_create_particle(
     assert new_particle.width == 0.5
     assert new_particle.baryon_number == template_particle.baryon_number
     assert new_particle.strangeness == template_particle.strangeness
+
+
+def test_get_name_root(particle_database: ParticleCollection):
+    name_roots = {_get_name_root(p.name) for p in particle_database}
+    assert name_roots == {
+        "a",
+        "B",
+        "b",
+        "chi",
+        "D",
+        "Delta",
+        "e",
+        "eta",
+        "f",
+        "g",
+        "gamma",
+        "h",
+        "J/psi",
+        "K",
+        "Lambda",
+        "mu",
+        "N",
+        "n",
+        "nu",
+        "Omega",
+        "omega",
+        "p",
+        "phi",
+        "pi",
+        "psi",
+        "rho",
+        "Sigma",
+        "tau",
+        "Upsilon",
+        "W",
+        "Xi",
+        "Y",
+        "Z",
+    }

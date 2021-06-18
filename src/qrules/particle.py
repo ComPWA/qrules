@@ -202,18 +202,11 @@ class Particle:  # pylint: disable=too-many-instance-attributes
                 ")"
             )
 
-    @property
-    def name_root(self) -> str:
-        name_root = self.name
-        name_root = re.sub(r"\(.+\)", "", name_root)
-        name_root = re.sub(r"[\*\+\-~\d']", "", name_root)
-        return name_root
-
     def __gt__(self, other: Any) -> bool:
         if isinstance(other, Particle):
 
             def sorting_key(particle: Particle) -> tuple:
-                name_root = particle.name_root
+                name_root = _get_name_root(particle.name)
                 return (
                     name_root[0].lower(),
                     name_root,
@@ -254,6 +247,14 @@ class Particle:  # pylint: disable=too-many-instance-attributes
                         p.text(",")
             p.breakable()
             p.text(")")
+
+
+def _get_name_root(name: str) -> str:
+    """Strip a string (particularly the `.Particle.name`) of specifications."""
+    name_root = name
+    name_root = re.sub(r"\(.+\)", "", name_root)
+    name_root = re.sub(r"[\*\+\-~\d']", "", name_root)
+    return name_root
 
 
 ParticleWithSpin = Tuple[Particle, float]
