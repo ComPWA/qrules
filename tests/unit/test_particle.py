@@ -338,6 +338,17 @@ class TestSpin:
             spin2,
         }
 
+    @pytest.mark.parametrize(
+        ("spin1", "spin2"),
+        [
+            (Spin(1, 0), Spin(0, 0)),
+            (Spin(1, 1), Spin(1, 0)),
+            (Spin(1, +1), Spin(1, -1)),
+        ],
+    )
+    def test_gt(self, spin1: Spin, spin2: Spin):
+        assert spin1 > spin2
+
     def test_neg(self):
         isospin = Spin(1.5, -0.5)
         flipped_spin = -isospin

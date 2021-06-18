@@ -89,6 +89,11 @@ class Spin:
     def __float__(self) -> float:
         return self.magnitude
 
+    def __gt__(self, other: Any) -> bool:
+        if isinstance(other, Spin):
+            return attr.astuple(self) > attr.astuple(other)
+        return self.magnitude > other
+
     def __neg__(self) -> "Spin":
         return Spin(self.magnitude, -self.projection)
 
