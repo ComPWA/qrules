@@ -17,7 +17,7 @@ from attr.validators import instance_of
 
 
 @total_ordering
-@attr.s(eq=False, frozen=True, hash=True, repr=False)
+@attr.s(eq=False, frozen=True, hash=True, order=False, repr=False)
 class Parity:
     value: int = attr.ib(validator=instance_of(int))
 

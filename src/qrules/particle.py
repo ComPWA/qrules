@@ -52,7 +52,7 @@ def _to_float(value: SupportsFloat) -> float:
 
 
 @total_ordering
-@attr.s(eq=False, frozen=True, hash=True)
+@attr.s(eq=False, frozen=True, hash=True, order=False)
 class Spin:
     """Safe, immutable data container for spin **with projection**."""
 
