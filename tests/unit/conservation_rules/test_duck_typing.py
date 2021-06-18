@@ -1,4 +1,3 @@
-# cspell:ignore isclass
 """Check duck typing.
 
 Ideally, the rule input classes use a `~typing.Protocol`. This is not possible,

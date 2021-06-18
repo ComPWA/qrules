@@ -11,8 +11,11 @@ The main interface is the `.StateTransitionGraph`.
 import copy
 import itertools
 import logging
+from abc import abstractmethod
 from collections import abc
+from functools import total_ordering
 from typing import (
+    Any,
     Callable,
     Collection,
     Dict,
@@ -36,12 +39,30 @@ import attr
 
 from .quantum_numbers import InteractionProperties
 
-KeyType = TypeVar("KeyType")
+try:
+    from typing import Protocol
+except ImportError:
+    from typing_extensions import Protocol  # type: ignore
+
+try:
+    from IPython.lib.pretty import PrettyPrinter
+except ImportError:
+    PrettyPrinter = Any
+
+
+class Comparable(Protocol):
+    @abstractmethod
+    def __lt__(self, other: Any) -> bool:
+        ...
+
+
+KeyType = TypeVar("KeyType", bound=Comparable)
 """Type the keys of the `~typing.Mapping`, see `~typing.KeysView`."""
 ValueType = TypeVar("ValueType")
 """Type the value of the `~typing.Mapping`, see `~typing.ValuesView`."""
 
 
+@total_ordering
 class FrozenDict(  # pylint: disable=too-many-ancestors
     Generic[KeyType, ValueType], abc.Hashable, abc.Mapping
 ):
@@ -58,6 +79,20 @@ class FrozenDict(  # pylint: disable=too-many-ancestors
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.__mapping})"
 
+    def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
+        class_name = type(self).__name__
+        if cycle:
+            p.text(f"{class_name}(...)")
+        else:
+            with p.group(indent=2, open=f"{class_name}({{"):
+                for key, value in self.items():
+                    p.breakable()
+                    p.text(f"{key}: ")
+                    p.pretty(value)
+                    p.text(",")
+            p.breakable()
+            p.text("})")
+
     def __iter__(self) -> Iterator[KeyType]:
         return iter(self.__mapping)
 
@@ -66,6 +101,17 @@ class FrozenDict(  # pylint: disable=too-many-ancestors
 
     def __getitem__(self, key: KeyType) -> ValueType:
         return self.__mapping[key]
+
+    def __gt__(self, other: Any) -> bool:
+        if isinstance(other, abc.Mapping):
+            sorted_self = _convert_mapping_to_sorted_tuple(self)
+            sorted_other = _convert_mapping_to_sorted_tuple(other)
+            return sorted_self > sorted_other
+
+        raise NotImplementedError(
+            f"Can only compare {self.__class__.__name__} with a mapping,"
+            f" not with {other.__class__.__name__}"
+        )
 
     def __hash__(self) -> int:
         return self.__hash
@@ -78,6 +124,12 @@ class FrozenDict(  # pylint: disable=too-many-ancestors
 
     def values(self) -> ValuesView[ValueType]:
         return self.__mapping.values()
+
+
+def _convert_mapping_to_sorted_tuple(
+    mapping: Mapping[KeyType, ValueType],
+) -> Tuple[Tuple[KeyType, ValueType], ...]:
+    return tuple((key, mapping[key]) for key in sorted(mapping.keys()))
 
 
 def _to_optional_int(optional_int: Optional[int]) -> Optional[int]:
@@ -188,6 +240,23 @@ class Topology:
                 surrounding_nodes |= connected_nodes
         surrounding_nodes.discard(node_id)
         return surrounding_nodes
+
+    def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
+        class_name = type(self).__name__
+        if cycle:
+            p.text(f"{class_name}(...)")
+        else:
+            with p.group(indent=2, open=f"{class_name}("):
+                for field in attr.fields(type(self)):
+                    if not field.init:
+                        continue
+                    value = getattr(self, field.name)
+                    p.breakable()
+                    p.text(f"{field.name}=")
+                    p.pretty(value)
+                    p.text(",")
+            p.breakable()
+            p.text(")")
 
     def is_isomorphic(self, other: "Topology") -> bool:
         """Check if two graphs are isomorphic.

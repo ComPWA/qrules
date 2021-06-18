@@ -2,7 +2,7 @@ import qrules
 
 
 def test_script():
-    result = qrules.generate_transitions(
+    reaction = qrules.generate_transitions(
         initial_state="D0",
         final_state=["K~0", "K+", "K-"],
         allowed_intermediate_particles=[
@@ -12,8 +12,11 @@ def test_script():
         ],
         number_of_threads=1,
     )
-    assert len(result.transitions) == 5
-    assert result.get_intermediate_particles().names == [
+    assert len(reaction.transition_groups) == 3
+    assert len(reaction.transition_groups[0]) == 2
+    assert len(reaction.transition_groups[1]) == 1
+    assert len(reaction.transition_groups[2]) == 2
+    assert reaction.get_intermediate_particles().names == [
         "a(0)(980)-",
         "a(0)(980)0",
         "a(0)(980)+",

@@ -2,14 +2,21 @@
 
 import logging
 import multiprocessing
-from collections import defaultdict
+from collections import abc, defaultdict
 from copy import copy, deepcopy
 from enum import Enum, auto
+from itertools import zip_longest
 from multiprocessing import Pool
 from typing import (
+    Any,
+    Collection,
+    DefaultDict,
     Dict,
+    FrozenSet,
     Iterable,
+    Iterator,
     List,
+    Mapping,
     Optional,
     Sequence,
     Set,
@@ -19,6 +26,7 @@ from typing import (
 )
 
 import attr
+from attr.validators import instance_of
 from tqdm.auto import tqdm
 
 from ._system_control import (
@@ -38,7 +46,13 @@ from .combinatorics import (
     create_initial_facts,
     match_external_edges,
 )
-from .particle import Particle, ParticleCollection, ParticleWithSpin, load_pdg
+from .particle import (
+    Particle,
+    ParticleCollection,
+    ParticleWithSpin,
+    _to_float,
+    load_pdg,
+)
 from .quantum_numbers import (
     EdgeQuantumNumber,
     EdgeQuantumNumbers,
@@ -58,11 +72,17 @@ from .solving import (
     QNResult,
 )
 from .topology import (
+    FrozenDict,
     StateTransitionGraph,
     Topology,
     create_isobar_topologies,
     create_n_body_topology,
 )
+
+try:
+    from IPython.lib.pretty import PrettyPrinter
+except ImportError:
+    PrettyPrinter = Any
 
 
 class SolvingMode(Enum):
@@ -150,61 +170,12 @@ class _SolutionContainer:
             )
 
 
-@attr.s(on_setattr=attr.setters.frozen)
-class Result:
-    transitions: List[StateTransitionGraph[ParticleWithSpin]] = attr.ib(
-        factory=list
-    )
-    formalism: Optional[str] = attr.ib(default=None)
-
-    def get_initial_state(self) -> List[Particle]:
-        graph = self.__get_first_graph()
-        return [
-            x[0]
-            for x in map(
-                graph.get_edge_props, graph.topology.incoming_edge_ids
-            )
-            if x
-        ]
-
-    def get_final_state(self) -> List[Particle]:
-        graph = self.__get_first_graph()
-        return [
-            x[0]
-            for x in map(
-                graph.get_edge_props, graph.topology.outgoing_edge_ids
-            )
-            if x
-        ]
-
-    def __get_first_graph(self) -> StateTransitionGraph[ParticleWithSpin]:
-        if len(self.transitions) == 0:
-            raise ValueError(
-                f"No solutions in {self.__class__.__name__} object"
-            )
-        return next(iter(self.transitions))
-
-    def get_intermediate_particles(self) -> ParticleCollection:
-        """Extract the names of the intermediate state particles."""
-        intermediate_states = ParticleCollection()
-        for transition in self.transitions:
-            for edge_props in map(
-                transition.get_edge_props,
-                transition.topology.intermediate_edge_ids,
-            ):
-                if edge_props:
-                    particle, _ = edge_props
-                    if particle not in intermediate_states:
-                        intermediate_states.add(particle)
-        return intermediate_states
-
-
 @attr.s
 class ProblemSet:
     """Particle reaction problem set, defined as a graph like data structure.
 
     Args:
-        topology: `~.Topology` that contains the structure of the reaction.
+        topology: `.Topology` that contains the structure of the reaction.
         initial_facts: `~.InitialFacts` that contain the info of initial and
           final state in connection with the topology.
         solving_settings: Solving related settings such as the conservation
@@ -558,7 +529,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
     def find_solutions(  # pylint: disable=too-many-branches
         self,
         problem_sets: Dict[float, List[ProblemSet]],
-    ) -> Result:
+    ) -> "ReactionInfo":
         # pylint: disable=too-many-locals
         """Check for solutions for a specific set of interaction settings."""
         results: Dict[float, _SolutionContainer] = {}
@@ -663,10 +634,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             raise ValueError("No solutions were found")
 
         match_external_edges(final_solutions)
-        return Result(
-            final_solutions,
-            formalism=self.formalism,
-        )
+        return ReactionInfo.from_graphs(final_solutions, self.formalism)
 
     def _solve(
         self, qn_problem_set: QNProblemSet
@@ -678,7 +646,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
     def __convert_result(
         self, topology: Topology, qn_result: QNResult
     ) -> _SolutionContainer:
-        """Converts a `.QNResult` with a `.Topology` into a `.Result`.
+        """Converts a `.QNResult` with a `.Topology` into `.ReactionInfo`.
 
         The ParticleCollection is used to retrieve a particle instance
         reference to lower the memory footprint.
@@ -707,3 +675,314 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
                 not_executed_edge_rules=qn_result.not_executed_edge_rules,
             ),
         )
+
+
+@attr.s(frozen=True)
+class State:
+    particle: Particle = attr.ib(validator=instance_of(Particle))
+    spin_projection: float = attr.ib(converter=_to_float)
+
+    def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
+        class_name = type(self).__name__
+        if cycle:
+            p.text(f"{class_name}(...)")
+        else:
+            with p.group(indent=2, open=f"{class_name}("):
+                for field in attr.fields(type(self)):
+                    value = getattr(self, field.name)
+                    p.breakable()
+                    p.text(f"{field.name}=")
+                    p.pretty(value)
+                    p.text(",")
+            p.breakable()
+            p.text(")")
+
+
+@attr.s(frozen=True)
+class StateTransition:
+    """Frozen instance of a `.StateTransitionGraph` of `.Particle` with spin."""
+
+    topology: Topology = attr.ib(validator=instance_of(Topology))
+    states: FrozenDict[int, State] = attr.ib(converter=FrozenDict)
+    interactions: FrozenDict[int, InteractionProperties] = attr.ib(
+        converter=FrozenDict
+    )
+
+    def __attrs_post_init__(self) -> None:
+        _assert_defined(self.topology.edges, self.states)
+        _assert_defined(self.topology.nodes, self.interactions)
+
+    def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
+        class_name = type(self).__name__
+        if cycle:
+            p.text(f"{class_name}(...)")
+        else:
+            with p.group(indent=2, open=f"{class_name}("):
+                for field in attr.fields(type(self)):
+                    value = getattr(self, field.name)
+                    p.breakable()
+                    p.text(f"{field.name}=")
+                    p.pretty(value)
+                    p.text(",")
+            p.breakable()
+            p.text(")")
+
+    @staticmethod
+    def from_graph(
+        graph: StateTransitionGraph[ParticleWithSpin],
+    ) -> "StateTransition":
+        return StateTransition(
+            topology=graph.topology,
+            states=FrozenDict(
+                {
+                    i: State(*graph.get_edge_props(i))
+                    for i in graph.topology.edges
+                }
+            ),
+            interactions=FrozenDict(
+                {i: graph.get_node_props(i) for i in graph.topology.nodes}
+            ),
+        )
+
+    def to_graph(self) -> StateTransitionGraph[ParticleWithSpin]:
+        return StateTransitionGraph[ParticleWithSpin](
+            topology=self.topology,
+            edge_props={
+                i: (state.particle, state.spin_projection)
+                for i, state in self.states.items()
+            },
+            node_props=self.interactions,
+        )
+
+    @property
+    def initial_states(self) -> Dict[int, State]:
+        return self.filter_states(self.topology.incoming_edge_ids)
+
+    @property
+    def final_states(self) -> Dict[int, State]:
+        return self.filter_states(self.topology.outgoing_edge_ids)
+
+    @property
+    def intermediate_states(self) -> Dict[int, State]:
+        return self.filter_states(self.topology.intermediate_edge_ids)
+
+    def filter_states(self, edge_ids: Iterable[int]) -> Dict[int, State]:
+        return {i: self.states[i] for i in edge_ids}
+
+    @property
+    def particles(self) -> Dict[int, Particle]:
+        return {i: edge_prop.particle for i, edge_prop in self.states.items()}
+
+
+def _assert_defined(items: Collection, properties: Mapping) -> None:
+    existing = set(items)
+    defined = set(properties)
+    if existing & defined != existing:
+        raise ValueError(
+            "Some items have no property assigned to them."
+            f" Available items: {existing}, items with property: {defined}"
+        )
+
+
+def _to_frozenset(
+    iterable: Iterable[StateTransition],
+) -> FrozenSet[StateTransition]:
+    if not all(map(lambda t: isinstance(t, StateTransition), iterable)):
+        raise TypeError(
+            f"Not all instances are of type {StateTransition.__name__}"
+        )
+    return frozenset(iterable)
+
+
+@attr.s(frozen=True, eq=False)
+class StateTransitionCollection(abc.Set):
+    """`.StateTransition` instances with the same `.Topology` and edge IDs."""
+
+    transitions: FrozenSet[StateTransition] = attr.ib(converter=_to_frozenset)
+    topology: Topology = attr.ib(init=False, repr=False)
+    initial_state: FrozenDict[int, Particle] = attr.ib(init=False, repr=False)
+    final_state: FrozenDict[int, Particle] = attr.ib(init=False, repr=False)
+
+    def __attrs_post_init__(self) -> None:
+        if not any(self.transitions):
+            ValueError(f"At least one {StateTransition.__name__} required")
+        some_transition = next(iter(self.transitions))
+        topology = some_transition.topology
+        if not all(map(lambda t: t.topology == topology, self.transitions)):
+            raise TypeError(
+                f"Not all {StateTransition.__name__} items have the same"
+                f" underlying topology. Expecting: {topology}"
+            )
+        object.__setattr__(self, "topology", topology)
+        object.__setattr__(
+            self,
+            "initial_state",
+            FrozenDict(
+                {
+                    i: s.particle
+                    for i, s in some_transition.states.items()
+                    if i in some_transition.topology.incoming_edge_ids
+                }
+            ),
+        )
+        object.__setattr__(
+            self,
+            "final_state",
+            FrozenDict(
+                {
+                    i: s.particle
+                    for i, s in some_transition.states.items()
+                    if i in some_transition.topology.outgoing_edge_ids
+                }
+            ),
+        )
+
+    def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
+        class_name = type(self).__name__
+        if cycle:
+            p.text(f"{class_name}(...)")
+        else:
+            with p.group(indent=2, open=f"{class_name}({{"):
+                for transition in self:
+                    p.breakable()
+                    p.pretty(transition)
+                    p.text(",")
+            p.breakable()
+            p.text("})")
+
+    def __contains__(self, item: object) -> bool:
+        return item in self.transitions
+
+    def __iter__(self) -> Iterator[StateTransition]:
+        return iter(self.transitions)
+
+    def __len__(self) -> int:
+        return len(self.transitions)
+
+    @staticmethod
+    def from_graphs(
+        graphs: Iterable[StateTransitionGraph[ParticleWithSpin]],
+    ) -> "StateTransitionCollection":
+        transitions = [StateTransition.from_graph(g) for g in graphs]
+        return StateTransitionCollection(transitions)
+
+    def to_graphs(self) -> List[StateTransitionGraph[ParticleWithSpin]]:
+        return [transition.to_graph() for transition in sorted(self)]
+
+    def get_intermediate_particles(self) -> ParticleCollection:
+        """Extract the particle names of the intermediate states."""
+        intermediate_states = ParticleCollection()
+        for transition in self.transitions:
+            for state in transition.intermediate_states.values():
+                if state.particle not in intermediate_states:
+                    intermediate_states.add(state.particle)
+        return intermediate_states
+
+
+def _to_tuple(
+    iterable: Iterable[StateTransitionCollection],
+) -> Tuple[StateTransitionCollection, ...]:
+    if not all(
+        map(lambda t: isinstance(t, StateTransitionCollection), iterable)
+    ):
+        raise TypeError(
+            f"Not all instances are of type {StateTransitionCollection.__name__}"
+        )
+    return tuple(iterable)
+
+
+@attr.s(frozen=True, eq=False)
+class ReactionInfo:
+    """`StateTransitionCollection` instances, grouped by `.Topology`."""
+
+    transition_groups: Tuple[StateTransitionCollection, ...] = attr.ib(
+        converter=_to_tuple
+    )
+    transitions: List[StateTransition] = attr.ib(
+        init=False, repr=False, eq=False
+    )
+    initial_state: FrozenDict[int, Particle] = attr.ib(init=False, repr=False)
+    final_state: FrozenDict[int, Particle] = attr.ib(init=False, repr=False)
+    formalism: str = attr.ib(validator=instance_of(str))
+
+    def __attrs_post_init__(self) -> None:
+        if len(self.transition_groups) == 0:
+            ValueError(
+                f"At least one {StateTransitionCollection.__name__} required"
+            )
+        transitions: List[StateTransition] = []
+        for grouping in self.transition_groups:
+            transitions.extend(sorted(grouping))
+        first_grouping = self.transition_groups[0]
+        object.__setattr__(self, "transitions", transitions)
+        object.__setattr__(self, "final_state", first_grouping.final_state)
+        object.__setattr__(self, "initial_state", first_grouping.initial_state)
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, ReactionInfo):
+            for own_grouping, other_grouping in zip_longest(
+                self.transition_groups, other.transition_groups
+            ):
+                if own_grouping != other_grouping:
+                    return False
+            return True
+        raise NotImplementedError(
+            f"Cannot compare {self.__class__.__name__} with  {other.__class__.__name__}"
+        )
+
+    def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
+        class_name = type(self).__name__
+        if cycle:
+            p.text(f"{class_name}(...)")
+        else:
+            with p.group(indent=2, open=f"{class_name}("):
+                p.breakable()
+                p.text("transition_groups=")
+                with p.group(indent=2, open="("):
+                    for transition_grouping in self.transition_groups:
+                        p.breakable()
+                        p.pretty(transition_grouping)
+                        p.text(",")
+                p.breakable()
+                p.text("),")
+                p.breakable()
+                p.text("formalism=")
+                p.pretty(self.formalism)
+                p.text(",")
+            p.breakable()
+            p.text(")")
+
+    def get_intermediate_particles(self) -> ParticleCollection:
+        """Extract the names of the intermediate state particles."""
+        return ParticleCollection(
+            set().union(
+                *[
+                    grouping.get_intermediate_particles()
+                    for grouping in self.transition_groups
+                ]
+            )
+        )
+
+    @staticmethod
+    def from_graphs(
+        graphs: Iterable[StateTransitionGraph[ParticleWithSpin]],
+        formalism: str,
+    ) -> "ReactionInfo":
+        transition_mapping: DefaultDict[
+            Topology, List[StateTransition]
+        ] = defaultdict(list)
+        for graph in graphs:
+            transition_mapping[graph.topology].append(
+                StateTransition.from_graph(graph)
+            )
+        transition_groups = tuple(
+            StateTransitionCollection(transitions)
+            for transitions in transition_mapping.values()
+        )
+        return ReactionInfo(transition_groups, formalism)
+
+    def to_graphs(self) -> List[StateTransitionGraph[ParticleWithSpin]]:
+        graphs: List[StateTransitionGraph[ParticleWithSpin]] = []
+        for grouping in self.transition_groups:
+            graphs.extend(grouping.to_graphs())
+        return graphs

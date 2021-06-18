@@ -17,7 +17,12 @@ from qrules.particle import (
 )
 from qrules.quantum_numbers import InteractionProperties
 from qrules.topology import Edge, StateTransitionGraph, Topology
-from qrules.transition import Result
+from qrules.transition import (
+    ReactionInfo,
+    State,
+    StateTransition,
+    StateTransitionCollection,
+)
 
 
 def from_particle_collection(particles: ParticleCollection) -> dict:
@@ -28,18 +33,9 @@ def from_particle(particle: Particle) -> dict:
     return attr.asdict(
         particle,
         recurse=True,
-        value_serializer=__value_serializer,
+        value_serializer=_value_serializer,
         filter=lambda attr, value: attr.default != value,
     )
-
-
-def from_result(result: Result) -> dict:
-    output: Dict[str, Any] = {
-        "transitions": [from_stg(graph) for graph in result.transitions],
-    }
-    if result.formalism is not None:
-        output["formalism"] = result.formalism
-    return output
 
 
 def from_stg(graph: StateTransitionGraph[ParticleWithSpin]) -> dict:
@@ -70,19 +66,21 @@ def from_topology(topology: Topology) -> dict:
     return attr.asdict(
         topology,
         recurse=True,
-        value_serializer=__value_serializer,
+        value_serializer=_value_serializer,
         filter=lambda a, v: a.init and a.default != v,
     )
 
 
-def __value_serializer(  # pylint: disable=unused-argument
+def _value_serializer(  # pylint: disable=unused-argument
     inst: type, field: attr.Attribute, value: Any
 ) -> Any:
     if isinstance(value, abc.Mapping):
         if all(map(lambda p: isinstance(p, Particle), value.values())):
             return {k: v.name for k, v in value.items()}
         return dict(value)
-    if isinstance(value, Particle):
+    if not isinstance(
+        inst, (ReactionInfo, State, StateTransition, StateTransitionCollection)
+    ) and isinstance(value, Particle):
         return value.name
     if isinstance(value, Parity):
         return {"value": value.value}
@@ -115,14 +113,13 @@ def build_particle(definition: dict) -> Particle:
     return Particle(**definition)
 
 
-def build_result(definition: dict) -> Result:
-    formalism = definition.get("formalism")
-    transitions = [
-        build_stg(graph_def) for graph_def in definition["transitions"]
+def build_reaction_info(definition: dict) -> ReactionInfo:
+    transition_groups = [
+        build_stc(graph_def) for graph_def in definition["transition_groups"]
     ]
-    return Result(
-        transitions=transitions,
-        formalism=formalism,
+    return ReactionInfo(
+        transition_groups=transition_groups,
+        formalism=definition["formalism"],
     )
 
 
@@ -145,6 +142,34 @@ def build_stg(definition: dict) -> StateTransitionGraph[ParticleWithSpin]:
         topology=topology,
         edge_props=edge_props,
         node_props=node_props,
+    )
+
+
+def build_stc(definition: dict) -> StateTransitionCollection:
+    transitions = [
+        build_state_transition(graph_def)
+        for graph_def in definition["transitions"]
+    ]
+    return StateTransitionCollection(transitions=transitions)
+
+
+def build_state_transition(definition: dict) -> StateTransition:
+    topology = build_topology(definition["topology"])
+    states = {
+        int(i): State(
+            particle=build_particle(state_def["particle"]),
+            spin_projection=float(state_def["spin_projection"]),
+        )
+        for i, state_def in definition["states"].items()
+    }
+    interactions = {
+        int(i): InteractionProperties(**interaction_def)
+        for i, interaction_def in definition["interactions"].items()
+    }
+    return StateTransition(
+        topology=topology,
+        states=states,
+        interactions=interactions,
     )
 
 

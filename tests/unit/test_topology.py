@@ -1,9 +1,10 @@
-# pylint: disable=no-self-use, redefined-outer-name, too-many-arguments
+# pylint: disable=eval-used, no-self-use, redefined-outer-name, too-many-arguments
 # pyright: reportUnusedImport=false
 import typing
 
 import attr
 import pytest
+from IPython.lib.pretty import pretty
 
 from qrules.topology import (  # noqa: F401
     Edge,
@@ -201,8 +202,9 @@ class TestTopology:
         ):
             assert Topology(nodes=nodes, edges=edges)
 
-    def test_repr_and_eq(self, two_to_three_decay: Topology):
-        topology = eval(str(two_to_three_decay))  # pylint: disable=eval-used
+    @pytest.mark.parametrize("repr_method", [repr, pretty])
+    def test_repr_and_eq(self, repr_method, two_to_three_decay: Topology):
+        topology = eval(repr_method(two_to_three_decay))
         assert topology == two_to_three_decay
         assert topology != float()
 

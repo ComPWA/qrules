@@ -1,9 +1,10 @@
 """A collection of particle info containers.
 
-The `.particle` module is the starting point of `qrules`. Its main interface is
-the `ParticleCollection`, which is a collection of immutable `Particle`
-instances that are uniquely defined by their properties. As such, it can be
-used stand-alone as a database of quantum numbers (see :doc:`/usage/particle`).
+The :mod:`.particle` module is the starting point of `qrules`. Its main
+interface is the `ParticleCollection`, which is a collection of immutable
+`Particle` instances that are uniquely defined by their properties. As such, it
+can be used stand-alone as a database of quantum numbers (see
+:doc:`/usage/particle`).
 
 The `.transition` module uses the properties of `Particle` instances when it
 computes which `.StateTransitionGraph` s are allowed between an initial state
@@ -67,7 +68,7 @@ class Spin:
         if abs(self.projection) > self.magnitude:
             if self.magnitude < 0.0:
                 raise ValueError(
-                    "Spin magnitude has to be positive:\n" f" {self.magnitude}"
+                    f"Spin magnitude has to be positive, but is {self.magnitude}"
                 )
             raise ValueError(
                 "Absolute value of spin projection cannot be larger than its "

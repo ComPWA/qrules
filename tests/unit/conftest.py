@@ -5,13 +5,13 @@ import pytest
 from _pytest.fixtures import SubRequest
 
 import qrules
-from qrules import Result
+from qrules import ReactionInfo
 
 logging.basicConfig(level=logging.ERROR)
 
 
 @pytest.fixture(scope="session", params=["canonical-helicity", "helicity"])
-def result(request: SubRequest) -> Result:
+def reaction(request: SubRequest) -> ReactionInfo:
     formalism: str = request.param
     return qrules.generate_transitions(
         initial_state=[("J/psi(1S)", [-1, 1])],

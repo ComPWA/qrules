@@ -2,15 +2,17 @@ import pytest
 
 import qrules
 from qrules.combinatorics import _create_edge_id_particle_mapping
+from qrules.particle import ParticleWithSpin
+from qrules.topology import StateTransitionGraph
 
 
 @pytest.mark.parametrize(
-    ("allowed_intermediate_particles", "number_of_solutions"),
+    ("allowed_intermediate_particles", "n_topologies", "number_of_solutions"),
     [
-        (["f(0)(1500)"], 4),
-        (["f(0)(980)", "f(0)(1500)"], 8),
-        (["f(2)(1270)"], 12),
-        (["omega(782)"], 8),
+        (["f(0)(1500)"], 1, 4),
+        (["f(0)(980)", "f(0)(1500)"], 1, 8),
+        (["f(2)(1270)"], 1, 12),
+        (["omega(782)"], 1, 8),
         (
             [
                 "f(0)(980)",
@@ -19,15 +21,19 @@ from qrules.combinatorics import _create_edge_id_particle_mapping
                 "f(2)(1950)",
                 "omega(782)",
             ],
+            2,
             40,
         ),
     ],
 )
 @pytest.mark.slow()
 def test_number_of_solutions(
-    particle_database, allowed_intermediate_particles, number_of_solutions
+    particle_database,
+    allowed_intermediate_particles,
+    n_topologies,
+    number_of_solutions,
 ):
-    result = qrules.generate_transitions(
+    reaction = qrules.generate_transitions(
         initial_state=("J/psi(1S)", [-1, +1]),
         final_state=["gamma", "pi0", "pi0"],
         particle_db=particle_database,
@@ -36,15 +42,16 @@ def test_number_of_solutions(
         number_of_threads=1,
         formalism="helicity",
     )
-    assert len(result.transitions) == number_of_solutions
+    assert len(reaction.transition_groups) == n_topologies
+    assert len(reaction.transitions) == number_of_solutions
     assert (
-        result.get_intermediate_particles().names
+        reaction.get_intermediate_particles().names
         == allowed_intermediate_particles
     )
 
 
 def test_id_to_particle_mappings(particle_database):
-    result = qrules.generate_transitions(
+    reaction = qrules.generate_transitions(
         initial_state=("J/psi(1S)", [-1, +1]),
         final_state=["gamma", "pi0", "pi0"],
         particle_db=particle_database,
@@ -53,19 +60,22 @@ def test_id_to_particle_mappings(particle_database):
         number_of_threads=1,
         formalism="helicity",
     )
-    assert len(result.transitions) == 4
-    iter_solutions = iter(result.transitions)
-    first_solution = next(iter_solutions)
+    assert len(reaction.transition_groups) == 1
+    assert len(reaction.transitions) == 4
+    iter_transitions = iter(reaction.transitions)
+    first_transition = next(iter_transitions)
+    graph: StateTransitionGraph[ParticleWithSpin] = first_transition.to_graph()
     ref_mapping_fs = _create_edge_id_particle_mapping(
-        first_solution, first_solution.topology.outgoing_edge_ids
+        graph, graph.topology.outgoing_edge_ids
     )
     ref_mapping_is = _create_edge_id_particle_mapping(
-        first_solution, first_solution.topology.incoming_edge_ids
+        graph, graph.topology.incoming_edge_ids
     )
-    for solution in iter_solutions:
+    for transition in iter_transitions:
+        graph = transition.to_graph()
         assert ref_mapping_fs == _create_edge_id_particle_mapping(
-            solution, solution.topology.outgoing_edge_ids
+            graph, graph.topology.outgoing_edge_ids
         )
         assert ref_mapping_is == _create_edge_id_particle_mapping(
-            solution, solution.topology.incoming_edge_ids
+            graph, graph.topology.incoming_edge_ids
         )

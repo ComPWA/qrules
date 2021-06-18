@@ -8,6 +8,7 @@ from typing import Callable, Iterable, List, Optional, Sequence, Union
 from qrules.particle import Particle, ParticleCollection, ParticleWithSpin
 from qrules.quantum_numbers import InteractionProperties, _to_fraction
 from qrules.topology import StateTransitionGraph, Topology
+from qrules.transition import StateTransition
 
 _DOT_HEAD = """digraph {
     rankdir=LR;
@@ -100,7 +101,7 @@ def __graph_to_dot_content(  # pylint: disable=too-many-locals,too-many-branches
     render_initial_state_id: bool,
 ) -> str:
     dot = ""
-    if isinstance(graph, StateTransitionGraph):
+    if isinstance(graph, (StateTransition, StateTransitionGraph)):
         topology = graph.topology
     elif isinstance(graph, Topology):
         topology = graph
@@ -170,6 +171,8 @@ def __get_edge_label(
     edge_id: int,
     render_edge_id: bool,
 ) -> str:
+    if isinstance(graph, StateTransition):
+        graph = graph.to_graph()
     if isinstance(graph, StateTransitionGraph):
         edge_prop = graph.get_edge_props(edge_id)
         if not edge_prop:
@@ -239,6 +242,8 @@ def _get_particle_graphs(
     """
     inventory: List[StateTransitionGraph[Particle]] = []
     for transition in graphs:
+        if isinstance(transition, StateTransition):
+            transition = transition.to_graph()
         if any(
             transition.compare(
                 other, edge_comparator=lambda e1, e2: e1[0] == e2
@@ -246,28 +251,8 @@ def _get_particle_graphs(
             for other in inventory
         ):
             continue
-        new_edge_props = {}
-        for edge_id in transition.topology.edges:
-            edge_props = transition.get_edge_props(edge_id)
-            if edge_props:
-                new_edge_props[edge_id] = edge_props[0]
-        inventory.append(
-            StateTransitionGraph[Particle](
-                topology=transition.topology,
-                node_props={
-                    i: node_props
-                    for i, node_props in zip(
-                        transition.topology.nodes,
-                        map(
-                            transition.get_node_props,
-                            transition.topology.nodes,
-                        ),
-                    )
-                    if node_props
-                },
-                edge_props=new_edge_props,
-            )
-        )
+        stripped_graph = __strip_spin(transition)
+        inventory.append(stripped_graph)
     inventory = sorted(
         inventory,
         key=lambda g: [
@@ -275,6 +260,33 @@ def _get_particle_graphs(
         ],
     )
     return inventory
+
+
+def __strip_spin(
+    graph: StateTransitionGraph[ParticleWithSpin],
+) -> StateTransitionGraph[Particle]:
+    if isinstance(graph, StateTransition):
+        graph = graph.to_graph()
+    new_edge_props = {}
+    for edge_id in graph.topology.edges:
+        edge_props = graph.get_edge_props(edge_id)
+        if edge_props:
+            new_edge_props[edge_id] = edge_props[0]
+    return StateTransitionGraph[Particle](
+        topology=graph.topology,
+        node_props={
+            i: node_props
+            for i, node_props in zip(
+                graph.topology.nodes,
+                map(
+                    graph.get_node_props,
+                    graph.topology.nodes,
+                ),
+            )
+            if node_props
+        },
+        edge_props=new_edge_props,
+    )
 
 
 def _collapse_graphs(
