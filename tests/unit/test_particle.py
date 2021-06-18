@@ -161,6 +161,21 @@ class TestParticle:
         pim = particle_database.find(-211)
         assert pip == -pim
 
+    def test_total_ordering(self, particle_database: ParticleCollection):
+        pdg = particle_database
+        assert [
+            particle.name
+            for particle in sorted(
+                pdg.filter(lambda p: p.name.startswith("f(0)"))
+            )
+        ] == [
+            "f(0)(500)",
+            "f(0)(980)",
+            "f(0)(1370)",
+            "f(0)(1500)",
+            "f(0)(1710)",
+        ]
+
 
 class TestParticleCollection:
     def test_init(self, particle_database: ParticleCollection):

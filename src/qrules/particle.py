@@ -14,6 +14,7 @@ import logging
 import re
 from collections import abc
 from difflib import get_close_matches
+from functools import total_ordering
 from math import copysign
 from typing import (
     Any,
@@ -50,6 +51,7 @@ def _to_float(value: SupportsFloat) -> float:
     return float_value
 
 
+@total_ordering
 @attr.s(frozen=True, eq=False, hash=True)
 class Spin:
     """Safe, immutable data container for spin **with projection**."""
@@ -117,6 +119,7 @@ def _to_spin(value: Union[Spin, Tuple[float, float]]) -> Spin:
     return value
 
 
+@total_ordering
 @attr.s(frozen=True, order=False, repr=True, kw_only=True)
 class Particle:  # pylint: disable=too-many-instance-attributes
     """Immutable container of data defining a physical particle.
