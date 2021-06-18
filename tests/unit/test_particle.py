@@ -98,6 +98,44 @@ class TestParticle:
         assert particle.name != different_labels.name
         assert particle.pid != different_labels.pid
 
+    def test_name_root(self, particle_database: ParticleCollection):
+        name_roots = {p.name_root for p in particle_database}
+        assert name_roots == {
+            "a",
+            "B",
+            "b",
+            "chi",
+            "D",
+            "Delta",
+            "e",
+            "eta",
+            "f",
+            "g",
+            "gamma",
+            "h",
+            "J/psi",
+            "K",
+            "Lambda",
+            "mu",
+            "N",
+            "n",
+            "nu",
+            "Omega",
+            "omega",
+            "p",
+            "phi",
+            "pi",
+            "psi",
+            "rho",
+            "Sigma",
+            "tau",
+            "Upsilon",
+            "W",
+            "Xi",
+            "Y",
+            "Z",
+        }
+
     def test_neg(self, particle_database: ParticleCollection):
         pip = particle_database.find(211)
         pim = particle_database.find(-211)

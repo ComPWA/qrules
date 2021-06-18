@@ -194,6 +194,13 @@ class Particle:  # pylint: disable=too-many-instance-attributes
                 ")"
             )
 
+    @property
+    def name_root(self) -> str:
+        name_root = self.name
+        name_root = re.sub(r"\(.+\)", "", name_root)
+        name_root = re.sub(r"[\*\+\-~\d']", "", name_root)
+        return name_root
+
     def __neg__(self) -> "Particle":
         return create_antiparticle(self)
 
