@@ -13,10 +13,10 @@ def test_script():
         number_of_threads=1,
     )
     assert len(result.transitions) == 5
-    assert result.get_intermediate_particles().names == {
-        "a(0)(980)+",
+    assert result.get_intermediate_particles().names == [
         "a(0)(980)-",
         "a(0)(980)0",
+        "a(0)(980)+",
         "a(2)(1320)-",
         "phi(1020)",
-    }
+    ]

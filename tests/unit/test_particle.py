@@ -273,10 +273,10 @@ class TestParticleCollection:
             and p.spin == 2
             and p.strangeness == 1
         )
-        assert filtered_result.names == {
+        assert filtered_result.names == [
             "K(2)(1820)0",
             "K(2)(1820)+",
-        }
+        ]
 
     def test_find(self, particle_database: ParticleCollection):
         f2_1950 = particle_database.find(9050225)

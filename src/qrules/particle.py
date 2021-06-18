@@ -22,8 +22,8 @@ from typing import (
     Dict,
     Iterable,
     Iterator,
+    List,
     Optional,
-    Set,
     SupportsFloat,
     Tuple,
     Union,
@@ -418,8 +418,8 @@ class ParticleCollection(abc.MutableSet):
             self.add(particle)
 
     @property
-    def names(self) -> Set[str]:
-        return set(self.__particles)
+    def names(self) -> List[str]:
+        return [p.name for p in sorted(self)]
 
 
 def create_particle(  # pylint: disable=too-many-arguments,too-many-locals

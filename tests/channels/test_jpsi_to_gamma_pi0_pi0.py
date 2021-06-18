@@ -14,8 +14,8 @@ from qrules.combinatorics import _create_edge_id_particle_mapping
         (
             [
                 "f(0)(980)",
-                "f(0)(1500)",
                 "f(2)(1270)",
+                "f(0)(1500)",
                 "f(2)(1950)",
                 "omega(782)",
             ],
@@ -37,8 +37,9 @@ def test_number_of_solutions(
         formalism="helicity",
     )
     assert len(result.transitions) == number_of_solutions
-    assert result.get_intermediate_particles().names == set(
-        allowed_intermediate_particles
+    assert (
+        result.get_intermediate_particles().names
+        == allowed_intermediate_particles
     )
 
 
