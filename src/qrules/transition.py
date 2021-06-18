@@ -867,7 +867,7 @@ class StateTransitionCollection(abc.Set):
         return StateTransitionCollection(transitions)
 
     def to_graphs(self) -> List[StateTransitionGraph[ParticleWithSpin]]:
-        return _sort_graphs(transition.to_graph() for transition in self)
+        return [transition.to_graph() for transition in sorted(self)]
 
     def get_intermediate_particles(self) -> ParticleCollection:
         """Extract the particle names of the intermediate states."""
@@ -912,7 +912,7 @@ class ReactionInfo:
             )
         transitions: List[StateTransition] = []
         for grouping in self.transition_groups:
-            transitions.extend(grouping)
+            transitions.extend(sorted(grouping))
         first_grouping = self.transition_groups[0]
         object.__setattr__(self, "transitions", transitions)
         object.__setattr__(self, "final_state", first_grouping.final_state)
@@ -985,20 +985,4 @@ class ReactionInfo:
         graphs: List[StateTransitionGraph[ParticleWithSpin]] = []
         for grouping in self.transition_groups:
             graphs.extend(grouping.to_graphs())
-        return _sort_graphs(graphs)
-
-
-def _sort_graphs(
-    graphs: Iterable[StateTransitionGraph[ParticleWithSpin]],
-) -> List[StateTransitionGraph[ParticleWithSpin]]:
-    def stringify_graph(graph: StateTransitionGraph[ParticleWithSpin]) -> str:
-        output_str = ""
-        for i in graph.topology.edges:
-            particle, spin_projection = graph.get_edge_props(i)
-            output_str += f"{particle.name}[{float(spin_projection)}]  "
-        for i in graph.topology.nodes:
-            node_props = graph.get_node_props(i)
-            output_str += f"{node_props}  "
-        return output_str
-
-    return sorted(graphs, key=stringify_graph)
+        return graphs

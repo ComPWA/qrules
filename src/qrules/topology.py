@@ -11,7 +11,9 @@ The main interface is the `.StateTransitionGraph`.
 import copy
 import itertools
 import logging
+from abc import abstractmethod
 from collections import abc
+from functools import total_ordering
 from typing import (
     Any,
     Callable,
@@ -38,16 +40,29 @@ import attr
 from .quantum_numbers import InteractionProperties
 
 try:
+    from typing import Protocol
+except ImportError:
+    from typing_extensions import Protocol  # type: ignore
+
+try:
     from IPython.lib.pretty import PrettyPrinter
 except ImportError:
     PrettyPrinter = Any
 
-KeyType = TypeVar("KeyType")
+
+class Comparable(Protocol):
+    @abstractmethod
+    def __lt__(self, other: Any) -> bool:
+        ...
+
+
+KeyType = TypeVar("KeyType", bound=Comparable)
 """Type the keys of the `~typing.Mapping`, see `~typing.KeysView`."""
 ValueType = TypeVar("ValueType")
 """Type the value of the `~typing.Mapping`, see `~typing.ValuesView`."""
 
 
+@total_ordering
 class FrozenDict(  # pylint: disable=too-many-ancestors
     Generic[KeyType, ValueType], abc.Hashable, abc.Mapping
 ):
@@ -87,6 +102,17 @@ class FrozenDict(  # pylint: disable=too-many-ancestors
     def __getitem__(self, key: KeyType) -> ValueType:
         return self.__mapping[key]
 
+    def __gt__(self, other: Any) -> bool:
+        if isinstance(other, abc.Mapping):
+            sorted_self = _convert_mapping_to_sorted_tuple(self)
+            sorted_other = _convert_mapping_to_sorted_tuple(other)
+            return sorted_self > sorted_other
+
+        raise NotImplementedError(
+            f"Can only compare {self.__class__.__name__} with a mapping,"
+            f" not with {other.__class__.__name__}"
+        )
+
     def __hash__(self) -> int:
         return self.__hash
 
@@ -98,6 +124,12 @@ class FrozenDict(  # pylint: disable=too-many-ancestors
 
     def values(self) -> ValuesView[ValueType]:
         return self.__mapping.values()
+
+
+def _convert_mapping_to_sorted_tuple(
+    mapping: Mapping[KeyType, ValueType],
+) -> Tuple[Tuple[KeyType, ValueType], ...]:
+    return tuple((key, mapping[key]) for key in sorted(mapping.keys()))
 
 
 def _to_optional_int(optional_int: Optional[int]) -> Optional[int]:
