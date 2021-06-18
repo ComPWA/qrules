@@ -19,7 +19,16 @@ this framework.
 """
 
 from itertools import product
-from typing import Dict, FrozenSet, List, Optional, Sequence, Set, Union
+from typing import (
+    Dict,
+    FrozenSet,
+    Iterable,
+    List,
+    Optional,
+    Sequence,
+    Set,
+    Union,
+)
 
 import attr
 
@@ -282,7 +291,7 @@ def generate_transitions(  # pylint: disable=too-many-arguments
     initial_state: Union[StateDefinition, Sequence[StateDefinition]],
     final_state: Sequence[StateDefinition],
     allowed_intermediate_particles: Optional[List[str]] = None,
-    allowed_interaction_types: Optional[Union[str, List[str]]] = None,
+    allowed_interaction_types: Optional[Union[str, Iterable[str]]] = None,
     formalism: str = "canonical-helicity",
     particle_db: Optional[ParticleCollection] = None,
     mass_conservation_factor: Optional[float] = 3.0,
@@ -310,9 +319,9 @@ def generate_transitions(  # pylint: disable=too-many-arguments
             states that you want to allow as intermediate states. This helps
             (1) filter out resonances and (2) speed up computation time.
 
-        allowed_interaction_types (`str`, optional): Interaction types you want
-            to consider. For instance, both :code:`"strong and EM"` and
-            :code:`["s", "em"]` results in `~.InteractionType.EM` and
+        allowed_interaction_types: Interaction types you want to consider. For
+            instance, :code:`["s", "em"]` results in `~.InteractionType.EM` and
+            `~.InteractionType.STRONG` and :code:`["strong"]` results in
             `~.InteractionType.STRONG`.
 
         formalism (`str`, optional): Formalism that you intend to use in
@@ -352,7 +361,7 @@ def generate_transitions(  # pylint: disable=too-many-arguments
     ...     initial_state="D0",
     ...     final_state=["K~0", "K+", "K-"],
     ...     allowed_intermediate_particles=["a(0)(980)", "a(2)(1320)-"],
-    ...     allowed_interaction_types="ew",
+    ...     allowed_interaction_types=["e", "w"],
     ...     formalism="helicity",
     ...     particle_db=qrules.load_pdg(),
     ...     topology_building="isobar",
@@ -379,50 +388,18 @@ def generate_transitions(  # pylint: disable=too-many-arguments
         number_of_threads=number_of_threads,
     )
     if allowed_interaction_types is not None:
-        interaction_types = _determine_interaction_types(
-            allowed_interaction_types
-        )
+        if isinstance(allowed_interaction_types, str):
+            interaction_types = [
+                InteractionType.from_str(allowed_interaction_types)
+            ]
+        else:
+            interaction_types = [
+                InteractionType.from_str(description)
+                for description in allowed_interaction_types
+            ]
         stm.set_allowed_interaction_types(list(interaction_types))
     problem_sets = stm.create_problem_sets()
     return stm.find_solutions(problem_sets)
-
-
-def _determine_interaction_types(
-    description: Union[str, List[str]]
-) -> Set[InteractionType]:
-    interaction_types: Set[InteractionType] = set()
-    if isinstance(description, list):
-        for i in description:
-            interaction_types.update(
-                _determine_interaction_types(description=i)
-            )
-        return interaction_types
-    if not isinstance(description, str):
-        raise TypeError(
-            "Cannot handle interaction description of type "
-            f"{description.__class__.__name__}"
-        )
-    if len(description) == 0:
-        raise ValueError('Provided an empty interaction type ("")')
-    interaction_name_lower = description.lower()
-    if "all" in interaction_name_lower:
-        for interaction in InteractionType:
-            interaction_types.add(interaction)
-    if (
-        "em" in interaction_name_lower
-        or "ele" in interaction_name_lower
-        or interaction_name_lower.startswith("e")
-    ):
-        interaction_types.add(InteractionType.EM)
-    if "w" in interaction_name_lower:
-        interaction_types.add(InteractionType.WEAK)
-    if "strong" in interaction_name_lower or interaction_name_lower == "s":
-        interaction_types.add(InteractionType.STRONG)
-    if len(interaction_types) == 0:
-        raise ValueError(
-            f'Could not determine interaction type from "{description}"'
-        )
-    return interaction_types
 
 
 def load_default_particles() -> ParticleCollection:

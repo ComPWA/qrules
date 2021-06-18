@@ -92,6 +92,19 @@ class InteractionType(Enum):
     EM = auto()
     WEAK = auto()
 
+    @staticmethod
+    def from_str(description: str) -> "InteractionType":
+        description_lower = description.lower()
+        if description_lower.startswith("e"):
+            return InteractionType.EM
+        if description_lower.startswith("s"):
+            return InteractionType.STRONG
+        if description_lower.startswith("w"):
+            return InteractionType.WEAK
+        raise ValueError(
+            f'Could not determine interaction type from "{description}"'
+        )
+
 
 def create_interaction_settings(  # pylint: disable=too-many-locals,too-many-arguments
     formalism: str,
