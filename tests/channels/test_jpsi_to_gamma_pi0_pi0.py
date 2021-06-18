@@ -31,7 +31,7 @@ def test_number_of_solutions(
         initial_state=("J/psi(1S)", [-1, +1]),
         final_state=["gamma", "pi0", "pi0"],
         particle_db=particle_database,
-        allowed_interaction_types="strong and EM",
+        allowed_interaction_types=["strong", "EM"],
         allowed_intermediate_particles=allowed_intermediate_particles,
         number_of_threads=1,
         formalism="helicity",

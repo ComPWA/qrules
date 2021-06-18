@@ -6,7 +6,17 @@ from collections import defaultdict
 from copy import copy, deepcopy
 from enum import Enum, auto
 from multiprocessing import Pool
-from typing import Dict, List, Optional, Sequence, Set, Tuple, Type, Union
+from typing import (
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    Type,
+    Union,
+)
 
 import attr
 from tqdm.auto import tqdm
@@ -392,7 +402,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             self.final_state_groupings.append(fs_group)  # type: ignore
 
     def set_allowed_interaction_types(
-        self, allowed_interaction_types: List[InteractionType]
+        self, allowed_interaction_types: Iterable[InteractionType]
     ) -> None:
         # verify order
         for allowed_types in allowed_interaction_types:
@@ -406,7 +416,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
                 raise ValueError(
                     f"interaction {allowed_types} not found in settings"
                 )
-        self.allowed_interaction_types = allowed_interaction_types
+        self.allowed_interaction_types = list(allowed_interaction_types)
 
     def create_problem_sets(self) -> Dict[float, List[ProblemSet]]:
         problem_sets = []

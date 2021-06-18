@@ -17,6 +17,6 @@ def result(request: SubRequest) -> Result:
         initial_state=[("J/psi(1S)", [-1, 1])],
         final_state=["gamma", "pi0", "pi0"],
         allowed_intermediate_particles=["f(0)(980)", "f(0)(1500)"],
-        allowed_interaction_types="strong only",
+        allowed_interaction_types="strong",
         formalism=formalism,
     )

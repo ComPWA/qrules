@@ -1,3 +1,4 @@
+# pylint: disable=no-self-use
 import pytest
 
 from qrules.particle import ParticleCollection
@@ -9,6 +10,29 @@ from qrules.settings import (
     _int_domain,
     create_interaction_settings,
 )
+
+
+class TestInteractionType:
+    @pytest.mark.parametrize(
+        ("description", "expected"),
+        [
+            ("EM", InteractionType.EM),
+            ("e", InteractionType.EM),
+            ("electromagnetic", InteractionType.EM),
+            ("w", InteractionType.WEAK),
+            ("weak", InteractionType.WEAK),
+            ("strong", InteractionType.STRONG),
+            ("S", InteractionType.STRONG),
+            ("", ValueError),
+            ("non-existing", ValueError),
+        ],
+    )
+    def test_from_str(self, description: str, expected: InteractionType):
+        if expected is ValueError:
+            with pytest.raises(ValueError, match=r"interaction type"):
+                assert InteractionType.from_str(description)
+        else:
+            assert InteractionType.from_str(description) == expected
 
 
 def test_create_domains(particle_database: ParticleCollection):
