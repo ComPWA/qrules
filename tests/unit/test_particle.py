@@ -98,6 +98,26 @@ class TestParticle:
         assert particle.name != different_labels.name
         assert particle.pid != different_labels.pid
 
+    @pytest.mark.parametrize(
+        ("name1", "name2"),
+        [
+            # by name
+            ("pi0", "a(0)(980)-"),
+            # by mass
+            ("pi+", "pi-"),
+            ("pi-", "pi0"),
+            ("pi+", "pi0"),
+            ("K0", "K+"),
+            # by charge
+            ("a(0)(980)+", "a(0)(980)-"),
+            ("a(0)(980)+", "a(0)(980)0"),
+            ("a(0)(980)0", "a(0)(980)-"),
+        ],
+    )
+    def test_gt(self, name1, name2, particle_database: ParticleCollection):
+        pdg = particle_database
+        assert pdg[name1] > pdg[name2]
+
     def test_name_root(self, particle_database: ParticleCollection):
         name_roots = {p.name_root for p in particle_database}
         assert name_roots == {

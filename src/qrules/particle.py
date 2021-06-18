@@ -112,7 +112,7 @@ def _to_spin(value: Union[Spin, Tuple[float, float]]) -> Spin:
     return value
 
 
-@attr.s(frozen=True, repr=True, kw_only=True)
+@attr.s(frozen=True, order=False, repr=True, kw_only=True)
 class Particle:  # pylint: disable=too-many-instance-attributes
     """Immutable container of data defining a physical particle.
 
@@ -200,6 +200,23 @@ class Particle:  # pylint: disable=too-many-instance-attributes
         name_root = re.sub(r"\(.+\)", "", name_root)
         name_root = re.sub(r"[\*\+\-~\d']", "", name_root)
         return name_root
+
+    def __gt__(self, other: Any) -> bool:
+        if isinstance(other, Particle):
+
+            def sorting_key(particle: Particle) -> tuple:
+                name_root = particle.name_root
+                return (
+                    name_root[0].lower(),
+                    name_root,
+                    particle.mass,
+                    particle.charge,
+                )
+
+            return sorting_key(self) > sorting_key(other)
+        raise NotImplementedError(
+            f"Cannot compare {self.__class__.__name__} with {other.__class__.__name__}"
+        )
 
     def __neg__(self) -> "Particle":
         return create_antiparticle(self)
