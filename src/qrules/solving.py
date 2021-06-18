@@ -1,5 +1,4 @@
 # pylint: disable=too-many-lines
-
 """Functions to solve a particle reaction problem.
 
 This module is responsible for solving a particle reaction problem stated by a
