@@ -3,7 +3,8 @@
 See :doc:`/usage/visualize` for more info.
 """
 
-from typing import Callable, Iterable, List, Optional, Sequence, Union
+from collections import abc
+from typing import Callable, Iterable, List, Optional, Union
 
 from qrules.particle import Particle, ParticleCollection, ParticleWithSpin
 from qrules.quantum_numbers import InteractionProperties, _to_fraction
@@ -36,7 +37,7 @@ def embed_dot(func: Callable) -> Callable:
 
 @embed_dot
 def graph_list_to_dot(
-    graphs: Sequence[StateTransitionGraph],
+    graphs: Iterable[StateTransitionGraph],
     *,
     render_node: bool,
     render_final_state_id: bool,
@@ -61,6 +62,8 @@ def graph_list_to_dot(
             )
         graphs = _get_particle_graphs(graphs)
     dot = ""
+    if not isinstance(graphs, abc.Sequence):
+        graphs = list(graphs)
     for i, graph in enumerate(reversed(graphs)):
         dot += __graph_to_dot_content(
             graph,

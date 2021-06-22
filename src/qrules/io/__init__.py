@@ -136,7 +136,7 @@ def asdot(
         )
     if isinstance(instance, (ReactionInfo, StateTransitionCollection)):
         instance = instance.to_graphs()
-    if isinstance(instance, abc.Sequence):
+    if isinstance(instance, abc.Iterable):
         return _dot.graph_list_to_dot(
             instance,
             render_node=render_node,
