@@ -1,3 +1,4 @@
+# pylint: disable=too-many-lines
 """Find allowed transitions between an initial and final state."""
 
 import logging
@@ -12,7 +13,6 @@ from typing import (
     Collection,
     DefaultDict,
     Dict,
-    FrozenSet,
     Iterable,
     Iterator,
     List,
@@ -83,6 +83,11 @@ try:
     from IPython.lib.pretty import PrettyPrinter
 except ImportError:
     PrettyPrinter = Any
+
+try:
+    from typing import overload
+except ImportError:
+    from typing_extensions import overload
 
 
 class SolvingMode(Enum):
@@ -305,7 +310,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
                 create_n_body_topology(len(initial_state), len(final_state)),
             )
             use_nbody_topology = True
-            # turn of mass conservation, in case more than one initial state
+            # turn off mass conservation, in case more than one initial state
             # particle is present
             if len(initial_state) > 1:
                 mass_conservation_factor = None
@@ -784,21 +789,23 @@ def _assert_defined(items: Collection, properties: Mapping) -> None:
         )
 
 
-def _to_frozenset(
+def _to_sorted_tuple(
     iterable: Iterable[StateTransition],
-) -> FrozenSet[StateTransition]:
+) -> Tuple[StateTransition, ...]:
     if not all(map(lambda t: isinstance(t, StateTransition), iterable)):
         raise TypeError(
             f"Not all instances are of type {StateTransition.__name__}"
         )
-    return frozenset(iterable)
+    return tuple(sorted(iterable))
 
 
-@attr.s(frozen=True, eq=False)
-class StateTransitionCollection(abc.Set):
+@attr.s(frozen=True)
+class StateTransitionCollection(abc.Sequence):
     """`.StateTransition` instances with the same `.Topology` and edge IDs."""
 
-    transitions: FrozenSet[StateTransition] = attr.ib(converter=_to_frozenset)
+    transitions: Tuple[StateTransition, ...] = attr.ib(
+        converter=_to_sorted_tuple
+    )
     topology: Topology = attr.ib(init=False, repr=False)
     initial_state: FrozenDict[int, Particle] = attr.ib(init=False, repr=False)
     final_state: FrozenDict[int, Particle] = attr.ib(init=False, repr=False)
@@ -842,16 +849,27 @@ class StateTransitionCollection(abc.Set):
         if cycle:
             p.text(f"{class_name}(...)")
         else:
-            with p.group(indent=2, open=f"{class_name}({{"):
+            with p.group(indent=2, open=f"{class_name}(transitions=("):
                 for transition in self:
                     p.breakable()
                     p.pretty(transition)
                     p.text(",")
             p.breakable()
-            p.text("})")
+            p.text("))")
 
     def __contains__(self, item: object) -> bool:
         return item in self.transitions
+
+    @overload
+    def __getitem__(self, idx: int) -> StateTransition:
+        ...
+
+    @overload
+    def __getitem__(self, idx: slice) -> Tuple[StateTransition]:
+        ...
+
+    def __getitem__(self, idx: Any) -> Any:
+        return self.transitions[idx]
 
     def __iter__(self) -> Iterator[StateTransition]:
         return iter(self.transitions)
