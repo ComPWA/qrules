@@ -4,7 +4,7 @@ See :doc:`/usage/visualize` for more info.
 """
 
 from collections import abc
-from typing import Callable, Iterable, List, Optional, Union
+from typing import Callable, Iterable, List, Mapping, Optional, Union
 
 from qrules.particle import Particle, ParticleCollection, ParticleWithSpin
 from qrules.quantum_numbers import InteractionProperties, _to_fraction
@@ -95,7 +95,7 @@ def graph_to_dot(
 
 
 def __graph_to_dot_content(  # pylint: disable=too-many-locals,too-many-branches
-    graph: Union[StateTransitionGraph, Topology],
+    graph: Union[StateTransition, StateTransitionGraph, Topology],
     prefix: str = "",
     *,
     render_node: bool,
@@ -136,9 +136,14 @@ def __graph_to_dot_content(  # pylint: disable=too-many-locals,too-many-branches
                 prefix + __node_name(i, j),
                 __get_edge_label(graph, i, render_resonance_id),
             )
-    if isinstance(graph, StateTransitionGraph):
-        for node_id in topology.nodes:
-            node_prop = graph.get_node_props(node_id)
+    if isinstance(graph, (StateTransition, StateTransitionGraph)):
+        if isinstance(graph, StateTransition):
+            interactions: Mapping[
+                int, InteractionProperties
+            ] = graph.interactions
+        else:
+            interactions = {i: graph.get_node_props(i) for i in topology.nodes}
+        for node_id, node_prop in interactions.items():
             node_label = ""
             if render_node:
                 node_label = __node_label(node_prop)
@@ -170,7 +175,7 @@ def __rank_string(node_edge_ids: Iterable[int], prefix: str = "") -> str:
 
 
 def __get_edge_label(
-    graph: Union[StateTransitionGraph, Topology],
+    graph: Union[StateTransition, StateTransitionGraph, Topology],
     edge_id: int,
     render_edge_id: bool,
 ) -> str:
