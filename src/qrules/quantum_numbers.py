@@ -22,7 +22,7 @@ class Parity:
     value: int = attr.ib(validator=instance_of(int))
 
     @value.validator
-    def __check_plusminus(  # type: ignore  # pylint: disable=no-self-use,unused-argument
+    def __check_plusminus(  # type: ignore  # pylint: disable=no-self-use, unused-argument, unused-private-member
         self, _: attr.Attribute, value: int
     ) -> None:
         if value not in [-1, +1]:
