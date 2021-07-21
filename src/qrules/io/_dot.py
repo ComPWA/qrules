@@ -191,22 +191,32 @@ def __get_edge_label(
         graph = graph.to_graph()
     if isinstance(graph, StateTransitionGraph):
         edge_prop = graph.get_edge_props(edge_id)
-        if not edge_prop:
-            return str(edge_id)
-        edge_label = __edge_label(edge_prop)
-        if not render_edge_id:
-            return edge_label
-        if "\n" in edge_label:
-            return f"{edge_id}:\n{edge_label}"
-        return f"{edge_id}: {edge_label}"
+        return ___render_edge_with_id(edge_id, edge_prop, render_edge_id)
     if isinstance(graph, Topology):
         if render_edge_id:
             return str(edge_id)
         return ""
-    raise NotImplementedError
+    raise NotImplementedError(
+        f"Cannot render {graph.__class__.__name__} as dot"
+    )
 
 
-def __edge_label(
+def ___render_edge_with_id(
+    edge_id: int,
+    edge_prop: Optional[Union[ParticleCollection, Particle, ParticleWithSpin]],
+    render_edge_id: bool,
+) -> str:
+    if edge_prop is None or not edge_prop:
+        return str(edge_id)
+    edge_label = __render_edge_property(edge_prop)
+    if not render_edge_id:
+        return edge_label
+    if "\n" in edge_label:
+        return f"{edge_id}:\n{edge_label}"
+    return f"{edge_id}: {edge_label}"
+
+
+def __render_edge_property(
     edge_prop: Union[ParticleCollection, Particle, ParticleWithSpin]
 ) -> str:
     if isinstance(edge_prop, Particle):
