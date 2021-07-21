@@ -1,6 +1,8 @@
 # pylint: disable=no-self-use
 import pydot
+import pytest
 
+import qrules
 from qrules import io
 from qrules.io._dot import _collapse_graphs, _get_particle_graphs
 from qrules.particle import ParticleCollection
@@ -24,6 +26,25 @@ def test_asdot(reaction: ReactionInfo):
     assert pydot.graph_from_dot_data(dot_data) is not None
     dot_data = io.asdot(reaction, collapse_graphs=True)
     assert pydot.graph_from_dot_data(dot_data) is not None
+
+
+@pytest.mark.parametrize(
+    "formalism",
+    ["canonical", "canonical-helicity", "helicity"],
+)
+def test_asdot_problemset(formalism: str):
+    stm = qrules.StateTransitionManager(
+        initial_state=[("J/psi(1S)", [+1])],
+        final_state=["gamma", "pi0", "pi0"],
+        formalism=formalism,
+    )
+    problem_sets = stm.create_problem_sets()
+    for problem_set_list in problem_sets.values():
+        for problem_set in problem_set_list:
+            dot_data = io.asdot(problem_set)
+            assert pydot.graph_from_dot_data(dot_data) is not None
+        dot_data = io.asdot(problem_set_list)
+        assert pydot.graph_from_dot_data(dot_data) is not None
 
 
 def test_asdot_topology():

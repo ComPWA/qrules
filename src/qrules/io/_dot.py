@@ -3,13 +3,15 @@
 See :doc:`/usage/visualize` for more info.
 """
 
+import re
 from collections import abc
 from typing import Callable, Iterable, List, Mapping, Optional, Union
 
 from qrules.particle import Particle, ParticleCollection, ParticleWithSpin
 from qrules.quantum_numbers import InteractionProperties, _to_fraction
+from qrules.solving import EdgeSettings, NodeSettings
 from qrules.topology import StateTransitionGraph, Topology
-from qrules.transition import StateTransition
+from qrules.transition import ProblemSet, StateTransition
 
 _DOT_HEAD = """digraph {
     rankdir=LR;
@@ -95,7 +97,12 @@ def graph_to_dot(
 
 
 def __graph_to_dot_content(  # pylint: disable=too-many-locals,too-many-branches
-    graph: Union[StateTransition, StateTransitionGraph, Topology],
+    graph: Union[
+        ProblemSet,
+        StateTransition,
+        StateTransitionGraph,
+        Topology,
+    ],
     prefix: str = "",
     *,
     render_node: bool,
@@ -106,10 +113,14 @@ def __graph_to_dot_content(  # pylint: disable=too-many-locals,too-many-branches
     dot = ""
     if isinstance(graph, (StateTransition, StateTransitionGraph)):
         rendered_graph: Union[
+            ProblemSet,
             StateTransition,
             StateTransitionGraph,
             Topology,
         ] = graph
+        topology = graph.topology
+    elif isinstance(graph, ProblemSet):
+        rendered_graph = graph
         topology = graph.topology
     elif isinstance(graph, Topology):
         rendered_graph = graph
@@ -143,6 +154,15 @@ def __graph_to_dot_content(  # pylint: disable=too-many-locals,too-many-branches
                 prefix + __node_name(i, k),
                 prefix + __node_name(i, j),
                 __get_edge_label(rendered_graph, i, render_resonance_id),
+            )
+    if isinstance(graph, ProblemSet):
+        node_props = graph.solving_settings.node_settings
+        for node_id, settings in node_props.items():
+            node_label = ""
+            if render_node:
+                node_label = __node_label(settings)
+            dot += _DOT_DEFAULT_NODE.format(
+                f"{prefix}node{node_id}", node_label
             )
     if isinstance(graph, (StateTransition, StateTransitionGraph)):
         if isinstance(graph, StateTransition):
@@ -183,10 +203,24 @@ def __rank_string(node_edge_ids: Iterable[int], prefix: str = "") -> str:
 
 
 def __get_edge_label(
-    graph: Union[StateTransition, StateTransitionGraph, Topology],
+    graph: Union[
+        ProblemSet,
+        StateTransition,
+        StateTransitionGraph,
+        Topology,
+    ],
     edge_id: int,
     render_edge_id: bool,
 ) -> str:
+    if isinstance(graph, ProblemSet):
+        edge_setting = graph.solving_settings.edge_settings.get(edge_id)
+        initial_fact = graph.initial_facts.edge_props.get(edge_id)
+        edge_property: Optional[Union[EdgeSettings, ParticleWithSpin]] = None
+        if edge_setting:
+            edge_property = edge_setting
+        if initial_fact:
+            edge_property = initial_fact
+        return ___render_edge_with_id(edge_id, edge_property, render_edge_id)
     if isinstance(graph, StateTransition):
         graph = graph.to_graph()
     if isinstance(graph, StateTransitionGraph):
@@ -203,7 +237,9 @@ def __get_edge_label(
 
 def ___render_edge_with_id(
     edge_id: int,
-    edge_prop: Optional[Union[ParticleCollection, Particle, ParticleWithSpin]],
+    edge_prop: Optional[
+        Union[EdgeSettings, ParticleCollection, Particle, ParticleWithSpin]
+    ],
     render_edge_id: bool,
 ) -> str:
     if edge_prop is None or not edge_prop:
@@ -217,8 +253,12 @@ def ___render_edge_with_id(
 
 
 def __render_edge_property(
-    edge_prop: Union[ParticleCollection, Particle, ParticleWithSpin]
+    edge_prop: Optional[
+        Union[EdgeSettings, ParticleCollection, Particle, ParticleWithSpin]
+    ]
 ) -> str:
+    if isinstance(edge_prop, EdgeSettings):
+        return __render_settings(edge_prop)
     if isinstance(edge_prop, Particle):
         return edge_prop.name
     if isinstance(edge_prop, tuple):
@@ -230,7 +270,9 @@ def __render_edge_property(
     raise NotImplementedError
 
 
-def __node_label(node_prop: Union[InteractionProperties]) -> str:
+def __node_label(node_prop: Union[InteractionProperties, NodeSettings]) -> str:
+    if isinstance(node_prop, NodeSettings):
+        return __render_settings(node_prop)
     if isinstance(node_prop, InteractionProperties):
         output = ""
         if node_prop.l_magnitude is not None:
@@ -254,6 +296,32 @@ def __node_label(node_prop: Union[InteractionProperties]) -> str:
             output += f"P={label}"
         return output
     raise NotImplementedError
+
+
+def __render_settings(settings: Union[EdgeSettings, NodeSettings]) -> str:
+    output = ""
+    if settings.rule_priorities:
+        output += "RULE PRIORITIES\n"
+        rule_names = map(
+            lambda item: f"{item[0].__name__} - {item[1]}",  # type: ignore
+            settings.rule_priorities.items(),
+        )
+        sorted_names = sorted(
+            rule_names,
+            key=lambda s: int(re.match(r".* \- ([0-9]+)$", s)[1]),  # type: ignore
+            reverse=True,
+        )
+        output += "\n".join(sorted_names)
+    if settings.qn_domains:
+        if output:
+            output += "\n"
+        domains = map(
+            lambda item: f"{item[0].__name__} ∊ {item[1]}",  # type: ignore
+            settings.qn_domains.items(),
+        )
+        output += "DOMAINS\n"
+        output += "\n".join(sorted(domains))
+    return output
 
 
 def _get_particle_graphs(

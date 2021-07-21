@@ -16,6 +16,7 @@ import yaml
 from qrules.particle import Particle, ParticleCollection
 from qrules.topology import StateTransitionGraph, Topology
 from qrules.transition import (
+    ProblemSet,
     ReactionInfo,
     State,
     StateTransition,
@@ -126,7 +127,7 @@ def asdot(
     """
     if isinstance(instance, StateTransition):
         instance = instance.to_graph()
-    if isinstance(instance, (StateTransitionGraph, Topology)):
+    if isinstance(instance, (ProblemSet, StateTransitionGraph, Topology)):
         return _dot.graph_to_dot(
             instance,
             render_node=render_node,
