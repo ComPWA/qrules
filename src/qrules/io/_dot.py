@@ -5,11 +5,12 @@ See :doc:`/usage/visualize` for more info.
 
 import re
 from collections import abc
-from typing import Callable, Iterable, List, Mapping, Optional, Union
+from typing import Callable, Iterable, List, Mapping, Optional, Tuple, Union
 
+from qrules.combinatorics import InitialFacts
 from qrules.particle import Particle, ParticleCollection, ParticleWithSpin
 from qrules.quantum_numbers import InteractionProperties, _to_fraction
-from qrules.solving import EdgeSettings, NodeSettings
+from qrules.solving import EdgeSettings, GraphSettings, NodeSettings
 from qrules.topology import StateTransitionGraph, Topology
 from qrules.transition import ProblemSet, StateTransition
 
@@ -96,12 +97,14 @@ def graph_to_dot(
     )
 
 
-def __graph_to_dot_content(  # pylint: disable=too-many-locals,too-many-branches
+def __graph_to_dot_content(  # pylint: disable=too-many-branches,too-many-locals,too-many-statements
     graph: Union[
         ProblemSet,
         StateTransition,
         StateTransitionGraph,
         Topology,
+        Tuple[Topology, InitialFacts],
+        Tuple[Topology, GraphSettings],
     ],
     prefix: str = "",
     *,
@@ -111,15 +114,20 @@ def __graph_to_dot_content(  # pylint: disable=too-many-locals,too-many-branches
     render_initial_state_id: bool,
 ) -> str:
     dot = ""
-    if isinstance(graph, (StateTransition, StateTransitionGraph)):
+    if isinstance(graph, tuple) and len(graph) == 2:
+        topology: Topology = graph[0]
         rendered_graph: Union[
+            GraphSettings,
+            InitialFacts,
             ProblemSet,
             StateTransition,
             StateTransitionGraph,
             Topology,
-        ] = graph
-        topology = graph.topology
+        ] = graph[1]
     elif isinstance(graph, ProblemSet):
+        rendered_graph = graph
+        topology = graph.topology
+    elif isinstance(graph, (StateTransition, StateTransitionGraph)):
         rendered_graph = graph
         topology = graph.topology
     elif isinstance(graph, Topology):
@@ -204,6 +212,8 @@ def __rank_string(node_edge_ids: Iterable[int], prefix: str = "") -> str:
 
 def __get_edge_label(
     graph: Union[
+        GraphSettings,
+        InitialFacts,
         ProblemSet,
         StateTransition,
         StateTransitionGraph,
@@ -212,6 +222,12 @@ def __get_edge_label(
     edge_id: int,
     render_edge_id: bool,
 ) -> str:
+    if isinstance(graph, GraphSettings):
+        edge_setting = graph.edge_settings.get(edge_id)
+        return ___render_edge_with_id(edge_id, edge_setting, render_edge_id)
+    if isinstance(graph, InitialFacts):
+        initial_fact = graph.edge_props.get(edge_id)
+        return ___render_edge_with_id(edge_id, initial_fact, render_edge_id)
     if isinstance(graph, ProblemSet):
         edge_setting = graph.solving_settings.edge_settings.get(edge_id)
         initial_fact = graph.initial_facts.edge_props.get(edge_id)

@@ -43,6 +43,13 @@ def test_asdot_problemset(formalism: str):
         for problem_set in problem_set_list:
             dot_data = io.asdot(problem_set)
             assert pydot.graph_from_dot_data(dot_data) is not None
+            topology = problem_set.topology
+            initial_facts = problem_set.initial_facts
+            settings = problem_set.solving_settings
+            dot_data = io.asdot([(topology, initial_facts)])
+            assert pydot.graph_from_dot_data(dot_data) is not None
+            dot_data = io.asdot([(topology, settings)])
+            assert pydot.graph_from_dot_data(dot_data) is not None
         dot_data = io.asdot(problem_set_list)
         assert pydot.graph_from_dot_data(dot_data) is not None
 
