@@ -105,11 +105,19 @@ def __graph_to_dot_content(  # pylint: disable=too-many-locals,too-many-branches
 ) -> str:
     dot = ""
     if isinstance(graph, (StateTransition, StateTransitionGraph)):
+        rendered_graph: Union[
+            StateTransition,
+            StateTransitionGraph,
+            Topology,
+        ] = graph
         topology = graph.topology
     elif isinstance(graph, Topology):
+        rendered_graph = graph
         topology = graph
     else:
-        raise NotImplementedError
+        raise NotImplementedError(
+            f"Cannot render {graph.__class__.__name__} as dot"
+        )
     top = topology.incoming_edge_ids
     outs = topology.outgoing_edge_ids
     for edge_id in top | outs:
@@ -117,7 +125,7 @@ def __graph_to_dot_content(  # pylint: disable=too-many-locals,too-many-branches
             render = render_initial_state_id
         else:
             render = render_final_state_id
-        edge_label = __get_edge_label(graph, edge_id, render)
+        edge_label = __get_edge_label(rendered_graph, edge_id, render)
         dot += _DOT_DEFAULT_NODE.format(
             prefix + __node_name(edge_id),
             edge_label,
@@ -134,7 +142,7 @@ def __graph_to_dot_content(  # pylint: disable=too-many-locals,too-many-branches
             dot += _DOT_LABEL_EDGE.format(
                 prefix + __node_name(i, k),
                 prefix + __node_name(i, j),
-                __get_edge_label(graph, i, render_resonance_id),
+                __get_edge_label(rendered_graph, i, render_resonance_id),
             )
     if isinstance(graph, (StateTransition, StateTransitionGraph)):
         if isinstance(graph, StateTransition):
