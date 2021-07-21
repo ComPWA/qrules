@@ -1,6 +1,6 @@
 """A collection of implementation tools that can be used accross all modules."""
 
-from typing import Any, Callable
+from typing import Any, Callable, Type, TypeVar
 
 import attr
 
@@ -10,10 +10,17 @@ except ImportError:
     PrettyPrinter = Any
 
 
-def implement_pretty_repr() -> Callable[[type], type]:
+_DecoratedClass = TypeVar("_DecoratedClass")
+
+
+def implement_pretty_repr() -> Callable[
+    [Type[_DecoratedClass]], Type[_DecoratedClass]
+]:
     """Implement a pretty :code:`repr` in a `attr` decorated class."""
 
-    def decorator(decorated_class: type) -> type:
+    def decorator(
+        decorated_class: Type[_DecoratedClass],
+    ) -> Type[_DecoratedClass]:
         if not attr.has(decorated_class):
             raise TypeError(
                 "Can only implement a pretty repr for a class created with attrs"

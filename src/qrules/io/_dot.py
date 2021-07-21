@@ -3,13 +3,16 @@
 See :doc:`/usage/visualize` for more info.
 """
 
+import re
 from collections import abc
-from typing import Callable, Iterable, List, Mapping, Optional, Union
+from typing import Callable, Iterable, List, Mapping, Optional, Tuple, Union
 
+from qrules.combinatorics import InitialFacts
 from qrules.particle import Particle, ParticleCollection, ParticleWithSpin
 from qrules.quantum_numbers import InteractionProperties, _to_fraction
+from qrules.solving import EdgeSettings, GraphSettings, NodeSettings
 from qrules.topology import StateTransitionGraph, Topology
-from qrules.transition import StateTransition
+from qrules.transition import ProblemSet, StateTransition
 
 _DOT_HEAD = """digraph {
     rankdir=LR;
@@ -94,8 +97,15 @@ def graph_to_dot(
     )
 
 
-def __graph_to_dot_content(  # pylint: disable=too-many-locals,too-many-branches
-    graph: Union[StateTransition, StateTransitionGraph, Topology],
+def __graph_to_dot_content(  # pylint: disable=too-many-branches,too-many-locals,too-many-statements
+    graph: Union[
+        ProblemSet,
+        StateTransition,
+        StateTransitionGraph,
+        Topology,
+        Tuple[Topology, InitialFacts],
+        Tuple[Topology, GraphSettings],
+    ],
     prefix: str = "",
     *,
     render_node: bool,
@@ -104,12 +114,29 @@ def __graph_to_dot_content(  # pylint: disable=too-many-locals,too-many-branches
     render_initial_state_id: bool,
 ) -> str:
     dot = ""
-    if isinstance(graph, (StateTransition, StateTransitionGraph)):
+    if isinstance(graph, tuple) and len(graph) == 2:
+        topology: Topology = graph[0]
+        rendered_graph: Union[
+            GraphSettings,
+            InitialFacts,
+            ProblemSet,
+            StateTransition,
+            StateTransitionGraph,
+            Topology,
+        ] = graph[1]
+    elif isinstance(graph, ProblemSet):
+        rendered_graph = graph
+        topology = graph.topology
+    elif isinstance(graph, (StateTransition, StateTransitionGraph)):
+        rendered_graph = graph
         topology = graph.topology
     elif isinstance(graph, Topology):
+        rendered_graph = graph
         topology = graph
     else:
-        raise NotImplementedError
+        raise NotImplementedError(
+            f"Cannot render {graph.__class__.__name__} as dot"
+        )
     top = topology.incoming_edge_ids
     outs = topology.outgoing_edge_ids
     for edge_id in top | outs:
@@ -117,7 +144,7 @@ def __graph_to_dot_content(  # pylint: disable=too-many-locals,too-many-branches
             render = render_initial_state_id
         else:
             render = render_final_state_id
-        edge_label = __get_edge_label(graph, edge_id, render)
+        edge_label = __get_edge_label(rendered_graph, edge_id, render)
         dot += _DOT_DEFAULT_NODE.format(
             prefix + __node_name(edge_id),
             edge_label,
@@ -134,7 +161,16 @@ def __graph_to_dot_content(  # pylint: disable=too-many-locals,too-many-branches
             dot += _DOT_LABEL_EDGE.format(
                 prefix + __node_name(i, k),
                 prefix + __node_name(i, j),
-                __get_edge_label(graph, i, render_resonance_id),
+                __get_edge_label(rendered_graph, i, render_resonance_id),
+            )
+    if isinstance(graph, ProblemSet):
+        node_props = graph.solving_settings.node_settings
+        for node_id, settings in node_props.items():
+            node_label = ""
+            if render_node:
+                node_label = __node_label(settings)
+            dot += _DOT_DEFAULT_NODE.format(
+                f"{prefix}node{node_id}", node_label
             )
     if isinstance(graph, (StateTransition, StateTransitionGraph)):
         if isinstance(graph, StateTransition):
@@ -175,32 +211,70 @@ def __rank_string(node_edge_ids: Iterable[int], prefix: str = "") -> str:
 
 
 def __get_edge_label(
-    graph: Union[StateTransition, StateTransitionGraph, Topology],
+    graph: Union[
+        GraphSettings,
+        InitialFacts,
+        ProblemSet,
+        StateTransition,
+        StateTransitionGraph,
+        Topology,
+    ],
     edge_id: int,
     render_edge_id: bool,
 ) -> str:
+    if isinstance(graph, GraphSettings):
+        edge_setting = graph.edge_settings.get(edge_id)
+        return ___render_edge_with_id(edge_id, edge_setting, render_edge_id)
+    if isinstance(graph, InitialFacts):
+        initial_fact = graph.edge_props.get(edge_id)
+        return ___render_edge_with_id(edge_id, initial_fact, render_edge_id)
+    if isinstance(graph, ProblemSet):
+        edge_setting = graph.solving_settings.edge_settings.get(edge_id)
+        initial_fact = graph.initial_facts.edge_props.get(edge_id)
+        edge_property: Optional[Union[EdgeSettings, ParticleWithSpin]] = None
+        if edge_setting:
+            edge_property = edge_setting
+        if initial_fact:
+            edge_property = initial_fact
+        return ___render_edge_with_id(edge_id, edge_property, render_edge_id)
     if isinstance(graph, StateTransition):
         graph = graph.to_graph()
     if isinstance(graph, StateTransitionGraph):
         edge_prop = graph.get_edge_props(edge_id)
-        if not edge_prop:
-            return str(edge_id)
-        edge_label = __edge_label(edge_prop)
-        if not render_edge_id:
-            return edge_label
-        if "\n" in edge_label:
-            return f"{edge_id}:\n{edge_label}"
-        return f"{edge_id}: {edge_label}"
+        return ___render_edge_with_id(edge_id, edge_prop, render_edge_id)
     if isinstance(graph, Topology):
         if render_edge_id:
             return str(edge_id)
         return ""
-    raise NotImplementedError
+    raise NotImplementedError(
+        f"Cannot render {graph.__class__.__name__} as dot"
+    )
 
 
-def __edge_label(
-    edge_prop: Union[ParticleCollection, Particle, ParticleWithSpin]
+def ___render_edge_with_id(
+    edge_id: int,
+    edge_prop: Optional[
+        Union[EdgeSettings, ParticleCollection, Particle, ParticleWithSpin]
+    ],
+    render_edge_id: bool,
 ) -> str:
+    if edge_prop is None or not edge_prop:
+        return str(edge_id)
+    edge_label = __render_edge_property(edge_prop)
+    if not render_edge_id:
+        return edge_label
+    if "\n" in edge_label:
+        return f"{edge_id}:\n{edge_label}"
+    return f"{edge_id}: {edge_label}"
+
+
+def __render_edge_property(
+    edge_prop: Optional[
+        Union[EdgeSettings, ParticleCollection, Particle, ParticleWithSpin]
+    ]
+) -> str:
+    if isinstance(edge_prop, EdgeSettings):
+        return __render_settings(edge_prop)
     if isinstance(edge_prop, Particle):
         return edge_prop.name
     if isinstance(edge_prop, tuple):
@@ -212,7 +286,9 @@ def __edge_label(
     raise NotImplementedError
 
 
-def __node_label(node_prop: Union[InteractionProperties]) -> str:
+def __node_label(node_prop: Union[InteractionProperties, NodeSettings]) -> str:
+    if isinstance(node_prop, NodeSettings):
+        return __render_settings(node_prop)
     if isinstance(node_prop, InteractionProperties):
         output = ""
         if node_prop.l_magnitude is not None:
@@ -236,6 +312,32 @@ def __node_label(node_prop: Union[InteractionProperties]) -> str:
             output += f"P={label}"
         return output
     raise NotImplementedError
+
+
+def __render_settings(settings: Union[EdgeSettings, NodeSettings]) -> str:
+    output = ""
+    if settings.rule_priorities:
+        output += "RULE PRIORITIES\n"
+        rule_names = map(
+            lambda item: f"{item[0].__name__} - {item[1]}",  # type: ignore
+            settings.rule_priorities.items(),
+        )
+        sorted_names = sorted(
+            rule_names,
+            key=lambda s: int(re.match(r".* \- ([0-9]+)$", s)[1]),  # type: ignore
+            reverse=True,
+        )
+        output += "\n".join(sorted_names)
+    if settings.qn_domains:
+        if output:
+            output += "\n"
+        domains = map(
+            lambda item: f"{item[0].__name__} ∊ {item[1]}",  # type: ignore
+            settings.qn_domains.items(),
+        )
+        output += "DOMAINS\n"
+        output += "\n".join(sorted(domains))
+    return output
 
 
 def _get_particle_graphs(
