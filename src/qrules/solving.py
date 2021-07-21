@@ -38,6 +38,8 @@ from constraint import (
     Variable,
 )
 
+from qrules._implementers import implement_pretty_repr
+
 from .argument_handling import (
     GraphEdgePropertyMap,
     GraphElementRule,
@@ -55,6 +57,7 @@ from .quantum_numbers import (
 from .topology import Topology
 
 
+@implement_pretty_repr()
 @attr.s
 class EdgeSettings:
     """Solver settings for a specific edge of a graph."""
@@ -64,6 +67,7 @@ class EdgeSettings:
     qn_domains: Dict[Any, list] = attr.ib(factory=dict)
 
 
+@implement_pretty_repr()
 @attr.s
 class NodeSettings:
     """Container class for the interaction settings.
@@ -84,18 +88,21 @@ class NodeSettings:
     interaction_strength: float = 1.0
 
 
+@implement_pretty_repr()
 @attr.s
 class GraphSettings:
     edge_settings: Dict[int, EdgeSettings] = attr.ib(factory=dict)
     node_settings: Dict[int, NodeSettings] = attr.ib(factory=dict)
 
 
+@implement_pretty_repr()
 @attr.s
 class GraphElementProperties:
     edge_props: Dict[int, GraphEdgePropertyMap] = attr.ib(factory=dict)
     node_props: Dict[int, GraphNodePropertyMap] = attr.ib(factory=dict)
 
 
+@implement_pretty_repr()
 @attr.s(frozen=True)
 class QNProblemSet:
     """Particle reaction problem set, defined as a graph like data structure.
@@ -115,6 +122,7 @@ class QNProblemSet:
     solving_settings: GraphSettings = attr.ib()
 
 
+@implement_pretty_repr()
 @attr.s(frozen=True)
 class QuantumNumberSolution:
     node_quantum_numbers: Dict[int, GraphNodePropertyMap] = attr.ib()
@@ -165,6 +173,7 @@ def _convert_non_executed_rules_to_names(
     return converted_dict
 
 
+@implement_pretty_repr()
 @attr.s(on_setattr=attr.setters.frozen)
 class QNResult:
     """Defines a result to a problem set processed by the solving code."""

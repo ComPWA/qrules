@@ -29,6 +29,8 @@ import attr
 from attr.validators import instance_of
 from tqdm.auto import tqdm
 
+from qrules._implementers import implement_pretty_repr
+
 from ._system_control import (
     GammaCheck,
     InteractionDeterminator,
@@ -99,6 +101,7 @@ class SolvingMode(Enum):
     """Find all possible solutions."""
 
 
+@implement_pretty_repr()
 @attr.s(on_setattr=attr.setters.frozen)
 class ExecutionInfo:
     not_executed_node_rules: Dict[int, Set[str]] = attr.ib(
@@ -175,6 +178,7 @@ class _SolutionContainer:
             )
 
 
+@implement_pretty_repr()
 @attr.s
 class ProblemSet:
     """Particle reaction problem set, defined as a graph like data structure.
@@ -682,27 +686,14 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         )
 
 
+@implement_pretty_repr()
 @attr.s(frozen=True)
 class State:
     particle: Particle = attr.ib(validator=instance_of(Particle))
     spin_projection: float = attr.ib(converter=_to_float)
 
-    def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
-        class_name = type(self).__name__
-        if cycle:
-            p.text(f"{class_name}(...)")
-        else:
-            with p.group(indent=2, open=f"{class_name}("):
-                for field in attr.fields(type(self)):
-                    value = getattr(self, field.name)
-                    p.breakable()
-                    p.text(f"{field.name}=")
-                    p.pretty(value)
-                    p.text(",")
-            p.breakable()
-            p.text(")")
 
-
+@implement_pretty_repr()
 @attr.s(frozen=True)
 class StateTransition:
     """Frozen instance of a `.StateTransitionGraph` of `.Particle` with spin."""
@@ -716,21 +707,6 @@ class StateTransition:
     def __attrs_post_init__(self) -> None:
         _assert_defined(self.topology.edges, self.states)
         _assert_defined(self.topology.nodes, self.interactions)
-
-    def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
-        class_name = type(self).__name__
-        if cycle:
-            p.text(f"{class_name}(...)")
-        else:
-            with p.group(indent=2, open=f"{class_name}("):
-                for field in attr.fields(type(self)):
-                    value = getattr(self, field.name)
-                    p.breakable()
-                    p.text(f"{field.name}=")
-                    p.pretty(value)
-                    p.text(",")
-            p.breakable()
-            p.text(")")
 
     @staticmethod
     def from_graph(

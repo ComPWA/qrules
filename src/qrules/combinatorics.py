@@ -26,6 +26,7 @@ from typing import (
 
 import attr
 
+from qrules._implementers import implement_pretty_repr
 from qrules.particle import Particle, ParticleCollection
 
 from .particle import ParticleWithSpin
@@ -36,6 +37,7 @@ StateWithSpins = Tuple[str, Sequence[float]]
 StateDefinition = Union[str, StateWithSpins]
 
 
+@implement_pretty_repr()
 @attr.s(frozen=True)
 class InitialFacts:
     edge_props: Dict[int, ParticleWithSpin] = attr.ib(factory=dict)

@@ -37,6 +37,8 @@ from typing import (
 
 import attr
 
+from qrules._implementers import implement_pretty_repr
+
 from .quantum_numbers import InteractionProperties
 
 try:
@@ -161,6 +163,7 @@ def _to_frozenset(iterable: Iterable[int]) -> FrozenSet[int]:
     return frozenset(iterable)
 
 
+@implement_pretty_repr()
 @attr.s(frozen=True)
 class Topology:
     """Directed Feynman-like graph without edge or node properties.
@@ -240,23 +243,6 @@ class Topology:
                 surrounding_nodes |= connected_nodes
         surrounding_nodes.discard(node_id)
         return surrounding_nodes
-
-    def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
-        class_name = type(self).__name__
-        if cycle:
-            p.text(f"{class_name}(...)")
-        else:
-            with p.group(indent=2, open=f"{class_name}("):
-                for field in attr.fields(type(self)):
-                    if not field.init:
-                        continue
-                    value = getattr(self, field.name)
-                    p.breakable()
-                    p.text(f"{field.name}=")
-                    p.pretty(value)
-                    p.text(",")
-            p.breakable()
-            p.text(")")
 
     def is_isomorphic(self, other: "Topology") -> bool:
         """Check if two graphs are isomorphic.
