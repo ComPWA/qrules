@@ -1,0 +1,42 @@
+"""A collection of implementation tools that can be used accross all modules."""
+
+from typing import Any, Callable
+
+import attr
+
+try:
+    from IPython.lib.pretty import PrettyPrinter
+except ImportError:
+    PrettyPrinter = Any
+
+
+def implement_pretty_repr() -> Callable[[type], type]:
+    """Implement a pretty :code:`repr` in a `attr` decorated class."""
+
+    def decorator(decorated_class: type) -> type:
+        if not attr.has(decorated_class):
+            raise TypeError(
+                "Can only implement a pretty repr for a class created with attrs"
+            )
+
+        def repr_pretty(self: Any, p: PrettyPrinter, cycle: bool) -> None:
+            class_name = type(self).__name__
+            if cycle:
+                p.text(f"{class_name}(...)")
+            else:
+                with p.group(indent=2, open=f"{class_name}("):
+                    for field in attr.fields(type(self)):
+                        if not field.init:
+                            continue
+                        value = getattr(self, field.name)
+                        p.breakable()
+                        p.text(f"{field.name}=")
+                        p.pretty(value)
+                        p.text(",")
+                p.breakable()
+                p.text(")")
+
+        decorated_class._repr_pretty_ = repr_pretty  # type: ignore  # pylint: disable=protected-access
+        return decorated_class
+
+    return decorator
