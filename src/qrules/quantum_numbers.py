@@ -15,6 +15,8 @@ from typing import Any, Generator, NewType, Optional, Union
 import attr
 from attr.validators import instance_of
 
+from qrules._implementers import implement_pretty_repr
+
 
 @total_ordering
 @attr.s(eq=False, frozen=True, hash=True, order=False, repr=False)
@@ -158,6 +160,7 @@ def _to_optional_int(optional_int: Optional[int]) -> Optional[int]:
     return int(optional_int)
 
 
+@implement_pretty_repr()
 @attr.s(frozen=True)
 class InteractionProperties:
     """Immutable data structure containing interaction properties.

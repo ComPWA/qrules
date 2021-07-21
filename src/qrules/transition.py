@@ -101,6 +101,7 @@ class SolvingMode(Enum):
     """Find all possible solutions."""
 
 
+@implement_pretty_repr()
 @attr.s(on_setattr=attr.setters.frozen)
 class ExecutionInfo:
     not_executed_node_rules: Dict[int, Set[str]] = attr.ib(
