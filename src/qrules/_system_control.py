@@ -245,7 +245,7 @@ def _check_equal_ignoring_qns(
     solutions: List[StateTransitionGraph],
     ignored_qn_list: Set[Type[NodeQuantumNumber]],
 ) -> Optional[StateTransitionGraph]:
-    """Define equal operator for the graphs ignoring certain quantum numbers."""
+    """Define equal operator for graphs, ignoring certain quantum numbers."""
     if not isinstance(ref_graph, StateTransitionGraph):
         raise TypeError(
             "Reference graph has to be of type StateTransitionGraph"

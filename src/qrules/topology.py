@@ -170,9 +170,9 @@ class Topology:
 
     Forms the underlying topology of `StateTransitionGraph`. The graphs are
     directed, meaning the edges are ingoing and outgoing to specific nodes
-    (since feynman graphs also have a time axis).
-    Note that a `Topology` is not strictly speaking a graph from graph theory,
-    because it allows open edges, like a Feynman-diagram.
+    (since feynman graphs also have a time axis). Note that a `Topology` is not
+    strictly speaking a graph from graph theory, because it allows open edges,
+    like a Feynman-diagram.
     """
 
     nodes: FrozenSet[int] = attr.ib(converter=_to_frozenset)
@@ -654,9 +654,8 @@ class StateTransitionGraph(Generic[EdgeType]):
 
     This class should contain the full information of a state transition from a
     initial state to a final state. This information can be attached to the
-    nodes and edges via properties.
-    In case not all information is provided, error can be raised on property
-    retrieval.
+    nodes and edges via properties. In case not all information is provided,
+    error can be raised on property retrieval.
     """
 
     def __init__(

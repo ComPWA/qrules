@@ -828,7 +828,7 @@ class CSPSolver(Solver):
         self,
         solutions: List[Dict[str, Scalar]],
     ) -> List[QuantumNumberSolution]:
-        """Convert keys of CSP solutions from string to quantum number types."""
+        """Convert keys of CSP solutions from `str` to quantum number types."""
         converted_solutions = []
         for solution in solutions:
             edge_quantum_numbers: Dict[

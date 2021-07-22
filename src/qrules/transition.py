@@ -696,7 +696,7 @@ class State:
 @implement_pretty_repr()
 @attr.s(frozen=True)
 class StateTransition:
-    """Frozen instance of a `.StateTransitionGraph` of `.Particle` with spin."""
+    """Frozen instance of a `.StateTransitionGraph` of a particle with spin."""
 
     topology: Topology = attr.ib(validator=instance_of(Topology))
     states: FrozenDict[int, State] = attr.ib(converter=FrozenDict)

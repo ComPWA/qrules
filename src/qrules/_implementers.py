@@ -1,4 +1,4 @@
-"""A collection of implementation tools that can be used accross all modules."""
+"""A collection of implementation tools to can be used accross all modules."""
 
 from typing import Any, Callable, Type, TypeVar
 
