@@ -30,3 +30,7 @@ jobs:
           pre-commit run mypy -a --color always
           pre-commit run pylint -a --color always
           pre-commit run pyright -a --color always
+      - name: Run pre-commit hooks that don't work on pre-commit.ci
+        # cspell:ignore editorconfig
+        run: |
+          pre-commit run editorconfig-checker -a --color always

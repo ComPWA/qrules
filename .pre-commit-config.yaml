@@ -7,6 +7,8 @@ ci:
     - mypy
     - pylint
     - pyright
+    # hooks that don't work on pre-commit.ci
+    - editorconfig-checker
 
 repos:
   - repo: meta
