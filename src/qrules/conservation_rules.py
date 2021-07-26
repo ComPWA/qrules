@@ -44,6 +44,8 @@ The module is therefore strongly typed (both
 for the reader of the code and for type checking with :doc:`mypy
 <mypy:index>`). An example is `.HelicityParityEdgeInput`, which has been
 defined to provide type checks on `.parity_conservation_helicity`.
+
+.. seealso:: :doc:`/usage/conservation`
 """
 
 from copy import deepcopy
