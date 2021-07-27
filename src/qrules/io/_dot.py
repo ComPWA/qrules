@@ -3,6 +3,7 @@
 See :doc:`/usage/visualize` for more info.
 """
 
+import functools
 import re
 from collections import abc
 from typing import Callable, Iterable, List, Mapping, Optional, Tuple, Union
@@ -29,6 +30,7 @@ _DOT_LABEL_EDGE = '    "{}" -> "{}" [label="{}"];\n'
 def embed_dot(func: Callable) -> Callable:
     """Add a DOT head and tail to some DOT content."""
 
+    @functools.wraps(func)
     def wrapper(*args, **kwargs):  # type: ignore
         dot = _DOT_HEAD
         dot += func(*args, **kwargs)
