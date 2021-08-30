@@ -177,6 +177,7 @@ nitpick_ignore = [
 # Intersphinx settings
 intersphinx_mapping = {
     "ampform": ("https://ampform.readthedocs.io/en/stable", None),
+    "compwa-org": ("https://compwa-org.readthedocs.io/en/stable", None),
     "expertsystem": ("https://expertsystem.readthedocs.io/en/stable", None),
     "attrs": ("https://www.attrs.org/en/stable", None),
     "constraint": (
