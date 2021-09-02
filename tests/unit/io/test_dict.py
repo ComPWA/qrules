@@ -22,7 +22,7 @@ def test_serialization(
     output_dir: str, particle_selection: ParticleCollection
 ):
     io.write(particle_selection, output_dir + "particle_selection.yml")
-    assert len(particle_selection) == 181
+    assert len(particle_selection) == 193
     asdict = io.asdict(particle_selection)
     imported_collection = io.fromdict(asdict)
     assert isinstance(imported_collection, ParticleCollection)

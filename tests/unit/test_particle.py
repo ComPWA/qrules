@@ -239,6 +239,8 @@ class TestParticleCollection:
         assert filtered_result.names == [
             "K(2)(1820)0",
             "K(2)(1820)+",
+            "K(2)*(1980)0",
+            "K(2)*(1980)+",
         ]
 
     def test_find(self, particle_database: ParticleCollection):
@@ -378,10 +380,11 @@ def test_create_antiparticle(
 
 def test_create_antiparticle_tilde(particle_database: ParticleCollection):
     anti_particles = particle_database.filter(lambda p: "~" in p.name)
-    assert len(anti_particles) in [
+    assert len(anti_particles) in {
         165,  # particle==0.13
-        172,  # particle==0.14
-    ]
+        172,  # particle==0.14, 0.15
+        175,  # particle==0.16
+    }
     for anti_particle in anti_particles:
         particle_name = anti_particle.name.replace("~", "")
         if "+" in particle_name:
@@ -408,7 +411,8 @@ def test_create_antiparticle_by_pid(particle_database: ParticleCollection):
         assert particle == particle_from_anti
     assert n_particles_with_neg_pid in [
         428,  # particle==0.13
-        442,  # particle==0.14
+        442,  # particle==0.14,0.15
+        454,  # particle==0.16
     ]
 
 
