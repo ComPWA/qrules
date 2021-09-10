@@ -40,13 +40,6 @@ line_length = 79
 known_third_party = "THIRDPARTY,particle"
 
 [tool.nbqa.addopts]
-# smaller line length for sphinx-book-theme
-black = [
-    "--line-length=73",
-]
 flake8 = [
     "--extend-ignore=E402,F821",
-]
-isort = [
-    "--line-length=73",
 ]
