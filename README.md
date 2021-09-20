@@ -38,24 +38,23 @@ For an overview of **upcoming releases and planned functionality**, see
 ## Available features
 
 - **Input**: Particle database
-  - [x] Source of truth: PDG
-  - [x] Predefined particle list file
-  - [x] Option to overwrite and append with custom particle definitions
+  - Source of truth: PDG
+  - Predefined particle list file
+  - Option to overwrite and append with custom particle definitions
 - **State transition graph**
-  - [x] Feynman graph like description of the reactions
-  - [x] Visualization of the decay topology
+  - Feynman graph like description of the reactions
+  - Visualization of the decay topology
 - **Conservation rules**
-  - [x] Open-closed design
-  - [x] Large set of predefined rules
-    - [x] Spin/Angular momentum conservation
-    - [x] Quark and Lepton flavor conservation (incl. isospin)
-    - [x] Baryon number conservation
-    - [x] EM-charge conservation
-    - [x] Parity, C-Parity, G-Parity conservation
-    - [ ] CP-Parity conservation
-    - [x] Mass conservation
-  - [x] Predefined sets of conservation rules representing Strong, EM, Weak
-        interactions
+  - Open-closed design
+  - Large set of predefined rules
+    - Spin/Angular momentum conservation
+    - Quark and Lepton flavor conservation (incl. isospin)
+    - Baryon number conservation
+    - EM-charge conservation
+    - Parity, C-Parity, G-Parity conservation
+    - Mass conservation
+  - Predefined sets of conservation rules representing Strong, EM, Weak
+    interactions
 
 ## Contribute
 
