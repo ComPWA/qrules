@@ -16,18 +16,21 @@ QRules originates from its {mod}`~expertsystem.reaction` module.
 
 :::
 
-QRules is a system for validating and generating particle reactions, using
-quantum number conservation rules. The user only has to provide some basic
-information about the particle reaction, such as an initial state and a final
-state.
+QRules is a Python package for **validating and generating particle reactions**
+using quantum number conservation rules. The user only has to provide a certain
+set of boundary conditions (initial and final state, allowed interaction types,
+expected decay topologies, etc.). QRules will then span the space of allowed
+quantum numbers over all allowed decay topologies and particle instances that
+correspond with the sets of allowed quantum numbers it has found.
 
-Helper functions provide easy and quick ways to configure the system. QRules
-then constructs several hypotheses for what happens during the transition from
-initial to final state.
+The resulting state transition objects are particularly useful for **amplitude
+analysis / Partial Wave Analysis** as they contain all information (such as
+expected masses, widths, and spin projections) that is needed to formulate an
+amplitude model.
 
-The {doc}`/usage` pages illustrate some of the cool features of {mod}`qrules`.
-You can run each of them as Jupyter notebooks with the {fa}`rocket` launch
-button in the top-right corner. Enjoy!
+The {doc}`/usage` pages illustrate several features of {mod}`qrules`. You can
+run each of them as Jupyter notebooks with the {fa}`rocket` launch button in
+the top-right corner. Enjoy!
 
 ```{rubric} Internal design
 

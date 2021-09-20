@@ -18,35 +18,43 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort)
 
+QRules is a Python package for **validating and generating particle reactions**
+using quantum number conservation rules. The user only has to provide a certain
+set of boundary conditions (initial and final state, allowed interaction types,
+expected decay topologies, etc.). QRules will then span the space of allowed
+quantum numbers over all allowed decay topologies and particle instances that
+correspond with the sets of allowed quantum numbers it has found.
+
+The resulting state transition objects are particularly useful for **amplitude
+analysis / Partial Wave Analysis** as they contain all information (such as
+expected masses, widths, and spin projections) that is needed to formulate an
+amplitude model.
+
 Visit [qrules.rtfd.io](https://qrules.readthedocs.io) for more information!
 
 For an overview of **upcoming releases and planned functionality**, see
 [here](https://github.com/ComPWA/qrules/milestones?direction=asc&sort=title&state=open).
 
-QRules originates from the
-[`expertsystem`](https://pypi.org/project/expertsystem).
-
 ## Available features
 
 - **Input**: Particle database
-  - [x] Source of truth: PDG
-  - [x] Predefined particle list file
-  - [x] Option to overwrite and append with custom particle definitions
+  - Source of truth: PDG
+  - Predefined particle list file
+  - Option to overwrite and append with custom particle definitions
 - **State transition graph**
-  - [x] Feynman graph like description of the reactions
-  - [x] Visualization of the decay topology
+  - Feynman graph like description of the reactions
+  - Visualization of the decay topology
 - **Conservation rules**
-  - [x] Open-closed design
-  - [x] Large set of predefined rules
-    - [x] Spin/Angular momentum conservation
-    - [x] Quark and Lepton flavor conservation (incl. isospin)
-    - [x] Baryon number conservation
-    - [x] EM-charge conservation
-    - [x] Parity, C-Parity, G-Parity conservation
-    - [ ] CP-Parity conservation
-    - [x] Mass conservation
-  - [x] Predefined sets of conservation rules representing Strong, EM, Weak
-        interactions
+  - Open-closed design
+  - Large set of predefined rules
+    - Spin/Angular momentum conservation
+    - Quark and Lepton flavor conservation (incl. isospin)
+    - Baryon number conservation
+    - EM-charge conservation
+    - Parity, C-Parity, G-Parity conservation
+    - Mass conservation
+  - Predefined sets of conservation rules representing Strong, EM, Weak
+    interactions
 
 ## Contribute
 
