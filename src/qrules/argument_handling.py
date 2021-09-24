@@ -154,16 +154,14 @@ class _ValueExtractor(Generic[_ElementType]):
 class _CompositeArgumentCreator:
     def __init__(self, class_type: type) -> None:
         self.__class_type = class_type
-        self.__extractors = dict(
-            {
-                class_field.name: _ValueExtractor[EdgeQuantumNumber](
-                    class_field.type
-                )
-                if _is_edge_quantum_number(class_field.type)
-                else _ValueExtractor[NodeQuantumNumber](class_field.type)
-                for class_field in attr.fields(class_type)
-            }
-        )
+        self.__extractors = {
+            class_field.name: _ValueExtractor[EdgeQuantumNumber](
+                class_field.type
+            )
+            if _is_edge_quantum_number(class_field.type)
+            else _ValueExtractor[NodeQuantumNumber](class_field.type)
+            for class_field in attr.fields(class_type)
+        }
 
     def __call__(
         self,

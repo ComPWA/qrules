@@ -445,15 +445,13 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
                     for edge_qn, qn_value in particle_props.items():
                         intermediate_edge_domains[edge_qn].add(qn_value)
 
-                return dict(
-                    {
-                        k: list(v)
-                        for k, v in intermediate_edge_domains.items()
-                        if k is not EdgeQuantumNumbers.pid
-                        and k is not EdgeQuantumNumbers.mass
-                        and k is not EdgeQuantumNumbers.width
-                    }
-                )
+                return {
+                    k: list(v)
+                    for k, v in intermediate_edge_domains.items()
+                    if k is not EdgeQuantumNumbers.pid
+                    and k is not EdgeQuantumNumbers.mass
+                    and k is not EdgeQuantumNumbers.width
+                }
 
             return self.interaction_type_settings[InteractionType.WEAK][
                 0
