@@ -11,8 +11,11 @@
 
 :::{margin}
 
-The original project was the {doc}`PWA Expert System <expertsystem:index>`.
-QRules originates from its {mod}`~expertsystem.reaction` module.
+The original project was the
+[PWA Expert System](https://expertsystem.readthedocs.io). QRules originates
+from its
+[`reaction`](https://expertsystem.readthedocs.io/en/stable/api/expertsystem.reaction.html)
+module.
 
 :::
 
