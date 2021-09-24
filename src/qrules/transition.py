@@ -308,9 +308,12 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         use_nbody_topology = False
         topology_building = topology_building.lower()
         if topology_building == "isobar":
-            self.__topologies = create_isobar_topologies(len(final_state))
+            self.topologies: Tuple[Topology, ...] = create_isobar_topologies(
+                len(final_state)
+            )
+            """`.Topology` instances over which the STM propagates quantum numbers."""
         elif "n-body" in topology_building or "nbody" in topology_building:
-            self.__topologies = (
+            self.topologies = (
                 create_n_body_topology(len(initial_state), len(final_state)),
             )
             use_nbody_topology = True
@@ -400,7 +403,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
 
     def create_problem_sets(self) -> Dict[float, List[ProblemSet]]:
         problem_sets = []
-        for topology in self.__topologies:
+        for topology in self.topologies:
             for initial_facts in create_initial_facts(
                 topology=topology,
                 particle_db=self.__particles,
