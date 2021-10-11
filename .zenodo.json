@@ -1,0 +1,50 @@
+{
+  "access_right": "open",
+  "creators": [
+    {
+      "affiliation": "Ruhr University Bochum",
+      "name": "Pfl\u00fcger, Stefan"
+    },
+    {
+      "affiliation": "Ruhr University Bochum",
+      "name": "de Boer. Remco"
+    },
+    {
+      "affiliation": "Ruhr University Bochum",
+      "name": "Fritsch, Miriam"
+    },
+    {
+      "affiliation": "Johannes Gutenberg University Mainz",
+      "name": "Gradl, Wolfgang"
+    },
+    {
+      "affiliation": "Ruhr University Bochum",
+      "name": "Wollenberg, Leonard"
+    },
+    {
+      "affiliation": "Ruhr University Bochum",
+      "name": "J\u00e4ger, Sebastian"
+    }
+  ],
+  "description": "<p>QRules is a Python package for <strong>validating and generating particle reactions</strong>&nbsp;using quantum number conservation rules. The user only has to provide a certain set of boundary conditions (initial and final state, allowed interaction types, expected decay topologies, etc.). QRules will then span the space of allowed quantum numbers over all allowed decay topologies and particle instances that correspond with the sets of allowed quantum numbers it has found.</p>\n\n<p>The resulting state transition objects are particularly useful for <strong>amplitude analysis / Partial Wave Analysis</strong> as they contain all information (such as expected masses, widths, and spin projections) that is needed to formulate an amplitude model.</p>",
+  "keywords": [
+    "particle",
+    "physics",
+    "rule-based",
+    "conservation rules",
+    "quantum numbers",
+    "amplitude analysis",
+    "partial wave analysis"
+  ],
+  "language": "eng",
+  "license": "GPL-3.0-or-later",
+  "related_identifiers": [
+    {
+      "scheme": "doi",
+      "identifier": "10.5281/zenodo.5526360",
+      "relation": "continues"
+    }
+  ],
+  "title": "ComPWA/qrules: Rule-based particle reaction problem solver on a quantum number level",
+  "upload_type": "software"
+}
