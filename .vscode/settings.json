@@ -43,6 +43,10 @@
     {
       "fileMatch": ["*particle*.json"],
       "url": "./src/qrules/particle-validation.json"
+    },
+    {
+      "fileMatch": [".zenodo.json"],
+      "url": "https://zenodo.org/schemas/deposits/records/legacyrecord.json"
     }
   ],
   "python.analysis.autoImportCompletions": false,
