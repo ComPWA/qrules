@@ -11,6 +11,7 @@ The main interface is the `.StateTransitionGraph`.
 import copy
 import itertools
 import logging
+import sys
 from abc import abstractmethod
 from collections import abc
 from functools import total_ordering
@@ -41,10 +42,10 @@ from qrules._implementers import implement_pretty_repr
 
 from .quantum_numbers import InteractionProperties
 
-try:
+if sys.version_info >= (3, 8):
     from typing import Protocol
-except ImportError:
-    from typing_extensions import Protocol  # type: ignore
+else:
+    from typing_extensions import Protocol
 
 try:
     from IPython.lib.pretty import PrettyPrinter

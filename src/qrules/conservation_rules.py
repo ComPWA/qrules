@@ -48,6 +48,7 @@ defined to provide type checks on `.parity_conservation_helicity`.
 .. seealso:: :doc:`/usage/conservation`
 """
 
+import sys
 from copy import deepcopy
 from functools import reduce
 from typing import Any, Callable, List, Optional, Set, Tuple, Union
@@ -59,10 +60,10 @@ from .quantum_numbers import EdgeQuantumNumbers as EdgeQN
 from .quantum_numbers import NodeQuantumNumbers as NodeQN
 from .quantum_numbers import arange
 
-try:
+if sys.version_info >= (3, 8):
     from typing import Protocol
-except ImportError:
-    from typing_extensions import Protocol  # type: ignore
+else:
+    from typing_extensions import Protocol
 
 
 def _is_boson(spin_magnitude: float) -> bool:

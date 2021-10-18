@@ -23,6 +23,7 @@ from typing import (
     Tuple,
     Type,
     Union,
+    overload,
 )
 
 import attr
@@ -85,11 +86,6 @@ try:
     from IPython.lib.pretty import PrettyPrinter
 except ImportError:
     PrettyPrinter = Any
-
-try:
-    from typing import overload
-except ImportError:
-    from typing_extensions import overload
 
 
 class SolvingMode(Enum):
