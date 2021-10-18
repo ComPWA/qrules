@@ -118,7 +118,7 @@ def _check_all_arguments(checks: List[Callable]) -> Callable[..., bool]:
 class _ValueExtractor(Generic[_ElementType]):
     def __init__(self, obj_type: Optional[Type[_ElementType]]) -> None:
         self.__obj_type: Type[_ElementType] = obj_type  # type: ignore
-        self.__function = self.__extract  # type: ignore
+        self.__function = self.__extract
 
         if _is_optional(obj_type):
             self.__obj_type = obj_type.__args__[0]  # type: ignore

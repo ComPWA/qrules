@@ -668,9 +668,7 @@ class CSPSolver(Solver):
                     self.__edge_rules[edge_id].add(rule)  # type: ignore
                     self.__problem.addConstraint(constraint, var_strings)
                 else:
-                    self.__non_executable_edge_rules[edge_id].add(
-                        rule  # type: ignore
-                    )
+                    self.__non_executable_edge_rules[edge_id].add(rule)  # type: ignore
 
         for node_id in problem_set.topology.nodes:
             for rule in get_rules_by_priority(
@@ -843,13 +841,9 @@ class CSPSolver(Solver):
                 if qn_type in getattr(  # noqa: B009
                     EdgeQuantumNumber, "__args__"
                 ):
-                    edge_quantum_numbers[ele_id].update(
-                        {qn_type: value}  # type: ignore
-                    )
+                    edge_quantum_numbers[ele_id].update({qn_type: value})  # type: ignore
                 else:
-                    node_quantum_numbers[ele_id].update(
-                        {qn_type: value}  # type: ignore
-                    )
+                    node_quantum_numbers[ele_id].update({qn_type: value})  # type: ignore
             converted_solutions.append(
                 QuantumNumberSolution(
                     node_quantum_numbers, edge_quantum_numbers
@@ -940,7 +934,7 @@ class _GraphElementConstraint(Generic[_QNType], Constraint):
         linking the var name to a list that consists of the particle list index
         and the qn name.
         """
-        self.__qns.update(list(fixed_variables.values())[0])  # type: ignore
+        self.__qns.update(list(fixed_variables.values())[0])
         for element_id, qn_type in variables:
             self.__var_string_to_data[
                 _create_variable_string(element_id, qn_type)
@@ -1006,7 +1000,7 @@ class _GraphElementConstraint(Generic[_QNType], Constraint):
         for var_string, value in parameters:
             qn_type = self.__var_string_to_data[var_string]
             if qn_type in self.__qns:
-                self.__qns[qn_type] = value  # type: ignore
+                self.__qns[qn_type] = value
             else:
                 raise ValueError(
                     "The variable with name "
@@ -1065,7 +1059,7 @@ class _ConservationRuleConstraintWrapper(Constraint):
             fixed_variables: Dict[int, Dict[Type[EdgeQuantumNumber], Scalar]],
             container: Dict[int, GraphEdgePropertyMap],
         ) -> None:
-            container.update(fixed_variables)  # type: ignore
+            container.update(fixed_variables)
             for element_id, qn_type in variable_set:
                 self.__var_string_to_data[
                     _create_variable_string(element_id, qn_type)

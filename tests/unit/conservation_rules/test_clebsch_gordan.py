@@ -218,10 +218,10 @@ def test_isospin_clebsch_gordan_zeros(
 ) -> None:
     assert (
         isospin_conservation(
-            [IsoSpinEdgeInput(coupled_isospin_mag, 0)],  # type: ignore
+            [IsoSpinEdgeInput(coupled_isospin_mag, 0)],
             [
-                IsoSpinEdgeInput(isospin_mag1, 0),  # type: ignore
-                IsoSpinEdgeInput(isospin_mag2, 0),  # type: ignore
+                IsoSpinEdgeInput(isospin_mag1, 0),
+                IsoSpinEdgeInput(isospin_mag2, 0),
             ],
         )
         is expected

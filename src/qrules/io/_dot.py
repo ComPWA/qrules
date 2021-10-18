@@ -334,7 +334,7 @@ def __render_settings(settings: Union[EdgeSettings, NodeSettings]) -> str:
         if output:
             output += "\n"
         domains = map(
-            lambda item: f"{item[0].__name__} ∊ {item[1]}",  # type: ignore
+            lambda item: f"{item[0].__name__} ∊ {item[1]}",
             settings.qn_domains.items(),
         )
         output += "DOMAINS\n"

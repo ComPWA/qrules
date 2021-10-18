@@ -87,7 +87,7 @@ class TestKinematicRepresentation:
     def test_constructor(self):
         representation = _KinematicRepresentation(
             initial_state=["J/psi"],
-            final_state=["gamma", "pi0"],  # type: ignore
+            final_state=["gamma", "pi0"],
         )
         assert representation.initial_state == [["J/psi"]]
         assert representation.final_state == [["gamma", "pi0"]]
