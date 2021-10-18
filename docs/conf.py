@@ -14,11 +14,13 @@ import sys
 
 import sphobjinv as soi
 from pkg_resources import get_distribution
+from pybtex.database import Entry
 from pybtex.plugin import register_plugin
 from pybtex.richtext import Tag, Text
 from pybtex.style.formatting.unsrt import Style as UnsrtStyle
 from pybtex.style.template import (
     FieldIsMissing,
+    Node,
     _format_list,
     field,
     href,
@@ -296,10 +298,10 @@ def names(children, context, role, **kwargs):
 
 
 class MyStyle(UnsrtStyle):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(abbreviate_names=True)
 
-    def format_names(self, role, as_sentence=True):
+    def format_names(self, role: Entry, as_sentence: bool = True) -> Node:
         formatted_names = names(
             role, sep=", ", sep2=" and ", last_sep=", and "
         )
@@ -308,7 +310,7 @@ class MyStyle(UnsrtStyle):
         else:
             return formatted_names
 
-    def format_url(self, e):
+    def format_url(self, e: Entry) -> Node:
         return words[
             href[
                 field("url", raw=True),
@@ -316,7 +318,7 @@ class MyStyle(UnsrtStyle):
             ]
         ]
 
-    def format_isbn(self, e):
+    def format_isbn(self, e: Entry) -> Node:
         return href[
             join[
                 "https://isbnsearch.org/isbn/",

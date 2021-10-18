@@ -44,8 +44,7 @@ GraphNodePropertyMap = GraphElementPropertyMap[NodeQuantumNumber]
 
 def _is_optional(field_type: Optional[type]) -> bool:
     if (
-        hasattr(field_type, "__origin__")
-        and field_type.__origin__ is Union  # type: ignore
+        getattr(field_type, "__origin__", None) is Union
         and type(None) in field_type.__args__  # type: ignore
     ):
         return True
@@ -53,13 +52,8 @@ def _is_optional(field_type: Optional[type]) -> bool:
 
 
 def _is_sequence_type(input_type: type) -> bool:
-    # pylint: disable=unidiomatic-typecheck
-    return hasattr(input_type, "__origin__") and (
-        input_type.__origin__ is list  # type: ignore
-        or input_type.__origin__ is tuple  # type: ignore
-        or input_type.__origin__ is List  # type: ignore
-        or input_type.__origin__ is Tuple  # type: ignore
-    )
+    origin = getattr(input_type, "__origin__", None)
+    return origin in {list, tuple, List, Tuple}
 
 
 def _is_edge_quantum_number(qn_type: Any) -> bool:

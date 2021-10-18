@@ -6,7 +6,16 @@ See :doc:`/usage/visualize` for more info.
 import functools
 import re
 from collections import abc
-from typing import Callable, Iterable, List, Mapping, Optional, Tuple, Union
+from typing import (
+    Any,
+    Callable,
+    Iterable,
+    List,
+    Mapping,
+    Optional,
+    Tuple,
+    Union,
+)
 
 from qrules.combinatorics import InitialFacts
 from qrules.particle import Particle, ParticleCollection, ParticleWithSpin
@@ -31,7 +40,7 @@ def embed_dot(func: Callable) -> Callable:
     """Add a DOT head and tail to some DOT content."""
 
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):  # type: ignore
+    def wrapper(*args: Any, **kwargs: Any) -> str:
         dot = _DOT_HEAD
         dot += func(*args, **kwargs)
         dot += _DOT_TAIL
@@ -324,11 +333,7 @@ def __render_settings(settings: Union[EdgeSettings, NodeSettings]) -> str:
             lambda item: f"{item[0].__name__} - {item[1]}",  # type: ignore
             settings.rule_priorities.items(),
         )
-        sorted_names = sorted(
-            rule_names,
-            key=lambda s: int(re.match(r".* \- ([0-9]+)$", s)[1]),  # type: ignore
-            reverse=True,
-        )
+        sorted_names = sorted(rule_names, key=__extract_priority, reverse=True)
         output += "\n".join(sorted_names)
     if settings.qn_domains:
         if output:
@@ -340,6 +345,14 @@ def __render_settings(settings: Union[EdgeSettings, NodeSettings]) -> str:
         output += "DOMAINS\n"
         output += "\n".join(sorted(domains))
     return output
+
+
+def __extract_priority(description: str) -> int:
+    matches = re.match(r".* \- ([0-9]+)$", description)
+    if matches is None:
+        raise ValueError(f"{description} does not contain a priority number")
+    priority = matches[1]
+    return int(priority)
 
 
 def _get_particle_graphs(

@@ -51,7 +51,7 @@ defined to provide type checks on `.parity_conservation_helicity`.
 import sys
 from copy import deepcopy
 from functools import reduce
-from typing import Any, Callable, List, Optional, Set, Tuple, Union
+from typing import Any, Callable, List, Optional, Set, Tuple, Type, Union
 
 import attr
 from attr.converters import optional
@@ -118,8 +118,9 @@ def additive_quantum_number_rule(
     """
 
     def decorator(rule_class: Any) -> EdgeQNConservationRule:
-        def new_call(  # type: ignore
-            self,  # pylint: disable=unused-argument
+        def new_call(
+            # pylint: disable=unused-argument
+            self: Type[EdgeQNConservationRule],
             ingoing_edge_qns: List[quantum_number],  # type: ignore
             outgoing_edge_qns: List[quantum_number],  # type: ignore
         ) -> bool:
