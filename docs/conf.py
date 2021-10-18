@@ -10,6 +10,7 @@ import shutil
 import subprocess
 import sys
 
+# pyright: reportMissingImports=false
 import sphobjinv as soi
 from pkg_resources import get_distribution
 from pybtex.database import Entry
