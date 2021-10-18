@@ -45,7 +45,7 @@ GraphNodePropertyMap = GraphElementPropertyMap[NodeQuantumNumber]
 def _is_optional(field_type: Optional[type]) -> bool:
     if (
         getattr(field_type, "__origin__", None) is Union
-        and type(None) in field_type.__args__  # type: ignore
+        and type(None) in field_type.__args__  # type: ignore[union-attr]
     ):
         return True
     return False
@@ -57,11 +57,11 @@ def _is_sequence_type(input_type: type) -> bool:
 
 
 def _is_edge_quantum_number(qn_type: Any) -> bool:
-    return qn_type in EdgeQuantumNumber.__args__  # type: ignore
+    return qn_type in EdgeQuantumNumber.__args__  # type: ignore[attr-defined]
 
 
 def _is_node_quantum_number(qn_type: Any) -> bool:
-    return qn_type in NodeQuantumNumber.__args__  # type: ignore
+    return qn_type in NodeQuantumNumber.__args__  # type: ignore[attr-defined]
 
 
 class _CompositeArgumentCheck:
@@ -111,12 +111,12 @@ def _check_all_arguments(checks: List[Callable]) -> Callable[..., bool]:
 
 class _ValueExtractor(Generic[_ElementType]):
     def __init__(self, obj_type: Optional[Type[_ElementType]]) -> None:
-        self.__obj_type: Type[_ElementType] = obj_type  # type: ignore
+        self.__obj_type: Type[_ElementType] = obj_type  # type: ignore[assignment]
         self.__function = self.__extract
 
         if _is_optional(obj_type):
-            self.__obj_type = obj_type.__args__[0]  # type: ignore
-            self.__function = self.__optional_extract  # type: ignore
+            self.__obj_type = obj_type.__args__[0]  # type: ignore[union-attr]
+            self.__function = self.__optional_extract  # type: ignore[assignment]
 
     def __call__(
         self, props: GraphElementPropertyMap[_ElementType]
@@ -139,10 +139,10 @@ class _ValueExtractor(Generic[_ElementType]):
             return None
         if (
             "__supertype__" in self.__obj_type.__dict__
-            and self.__obj_type.__supertype__ == Parity  # type: ignore
+            and self.__obj_type.__supertype__ == Parity  # type: ignore[attr-defined]
         ):
-            return self.__obj_type.__supertype__(value)  # type: ignore
-        return self.__obj_type(value)  # type: ignore
+            return self.__obj_type.__supertype__(value)  # type: ignore[attr-defined]
+        return self.__obj_type(value)  # type: ignore[call-arg]
 
 
 class _CompositeArgumentCreator:
@@ -163,7 +163,7 @@ class _CompositeArgumentCreator:
     ) -> Any:
         return self.__class_type(
             **{
-                arg_name: extractor(props)  # type: ignore
+                arg_name: extractor(props)  # type: ignore[operator]
                 for arg_name, extractor in self.__extractors.items()
             }
         )
@@ -203,7 +203,7 @@ class RuleArgumentHandler:
             is_list = False
             qn_type = input_type
             if _is_sequence_type(input_type):
-                qn_type = input_type.__args__[0]  # type: ignore
+                qn_type = input_type.__args__[0]  # type: ignore[attr-defined]
                 is_list = True
 
             if attr.has(qn_type):
@@ -215,7 +215,7 @@ class RuleArgumentHandler:
                 qn_check_function: Callable[
                     ..., bool
                 ] = _CompositeArgumentCheck(
-                    class_field_types  # type: ignore
+                    class_field_types  # type: ignore[arg-type]
                 )
             else:
                 qn_check_function = _direct_qn_check(qn_type)
@@ -236,7 +236,7 @@ class RuleArgumentHandler:
             is_list = False
             qn_type = input_type
             if _is_sequence_type(input_type):
-                qn_type = input_type.__args__[0]  # type: ignore
+                qn_type = input_type.__args__[0]  # type: ignore[attr-defined]
                 is_list = True
 
             if attr.has(qn_type):
@@ -325,7 +325,7 @@ def get_required_qns(
         if attr.has(class_type):
             for class_field in attr.fields(class_type):
                 field_type = (
-                    class_field.type.__args__[0]  # type: ignore
+                    class_field.type.__args__[0]  # type: ignore[union-attr]
                     if _is_optional(class_field.type)
                     else class_field.type
                 )

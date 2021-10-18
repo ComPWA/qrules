@@ -155,7 +155,7 @@ class Edge:
     def get_connected_nodes(self) -> Set[int]:
         connected_nodes = {self.ending_node_id, self.originating_node_id}
         connected_nodes.discard(None)
-        return connected_nodes  # type: ignore
+        return connected_nodes  # type: ignore[return-value]
 
 
 def _to_frozenset(iterable: Iterable[int]) -> FrozenSet[int]:
@@ -556,10 +556,10 @@ class SimpleStateTransitionTopologyBuilder:
                 # remove all combinations that originate from the same nodes
                 for comb1, comb2 in itertools.combinations(combis, 2):
                     if get_originating_node_list(
-                        topology, comb1  # type: ignore
+                        topology, comb1  # type: ignore[arg-type]
                     ) == get_originating_node_list(
-                        topology, comb2  # type: ignore
-                    ):
+                        topology, comb2  # type: ignore[arg-type]
+                    ):  # type: ignore[arg-type]
                         combis.remove(comb2)
 
                 for combi in combis:

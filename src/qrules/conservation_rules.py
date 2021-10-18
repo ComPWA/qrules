@@ -121,8 +121,8 @@ def additive_quantum_number_rule(
         def new_call(
             # pylint: disable=unused-argument
             self: Type[EdgeQNConservationRule],
-            ingoing_edge_qns: List[quantum_number],  # type: ignore
-            outgoing_edge_qns: List[quantum_number],  # type: ignore
+            ingoing_edge_qns: List[quantum_number],  # type: ignore[valid-type]
+            outgoing_edge_qns: List[quantum_number],  # type: ignore[valid-type]
         ) -> bool:
             return sum(ingoing_edge_qns) == sum(outgoing_edge_qns)
 

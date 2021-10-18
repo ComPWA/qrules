@@ -1,5 +1,3 @@
-# type: ignore
-
 """Configuration file for the Sphinx documentation builder.
 
 This file only contains a selection of the most common options. For a full
@@ -265,7 +263,7 @@ thebe_config = {
 
 # Specify bibliography style
 @node
-def et_al(children, data, sep="", sep2=None, last_sep=None):
+def et_al(children, data, sep="", sep2=None, last_sep=None):  # type: ignore[no-untyped-def]
     if sep2 is None:
         sep2 = sep
     if last_sep is None:
@@ -282,7 +280,7 @@ def et_al(children, data, sep="", sep2=None, last_sep=None):
 
 
 @node
-def names(children, context, role, **kwargs):
+def names(children, context, role, **kwargs):  # type: ignore[no-untyped-def]
     """Return formatted names."""
     assert not children
     try:

@@ -330,7 +330,7 @@ def __render_settings(settings: Union[EdgeSettings, NodeSettings]) -> str:
     if settings.rule_priorities:
         output += "RULE PRIORITIES\n"
         rule_names = map(
-            lambda item: f"{item[0].__name__} - {item[1]}",  # type: ignore
+            lambda item: f"{item[0].__name__} - {item[1]}",  # type: ignore[union-attr]
             settings.rule_priorities.items(),
         )
         sorted_names = sorted(rule_names, key=__extract_priority, reverse=True)

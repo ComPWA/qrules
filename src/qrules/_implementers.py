@@ -44,7 +44,7 @@ def implement_pretty_repr() -> Callable[
                 p.text(")")
 
         # pylint: disable=protected-access
-        decorated_class._repr_pretty_ = repr_pretty  # type: ignore
+        decorated_class._repr_pretty_ = repr_pretty  # type: ignore[attr-defined]
         return decorated_class
 
     return decorator

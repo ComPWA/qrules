@@ -237,7 +237,7 @@ def __get_ang_mom_magnitudes(
 ) -> List[float]:
     if is_nbody:
         return [0]
-    return _int_domain(0, max_angular_momentum)  # type: ignore
+    return _int_domain(0, max_angular_momentum)  # type: ignore[return-value]
 
 
 def __get_spin_magnitudes(

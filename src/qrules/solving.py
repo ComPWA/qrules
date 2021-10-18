@@ -654,7 +654,7 @@ class CSPSolver(Solver):
 
                 score_callback = self.__scoresheet.register_rule(edge_id, rule)
                 constraint = _GraphElementConstraint[EdgeQuantumNumber](
-                    rule,  # type: ignore
+                    rule,  # type: ignore[arg-type]
                     edge_vars,
                     fixed_edge_vars,
                     arg_handler,
@@ -665,10 +665,10 @@ class CSPSolver(Solver):
                     var_strings = [
                         _create_variable_string(*x) for x in edge_vars
                     ]
-                    self.__edge_rules[edge_id].add(rule)  # type: ignore
+                    self.__edge_rules[edge_id].add(rule)  # type: ignore[arg-type]
                     self.__problem.addConstraint(constraint, var_strings)
                 else:
-                    self.__non_executable_edge_rules[edge_id].add(rule)  # type: ignore
+                    self.__non_executable_edge_rules[edge_id].add(rule)  # type: ignore[arg-type]
 
         for node_id in problem_set.topology.nodes:
             for rule in get_rules_by_priority(
@@ -717,7 +717,7 @@ class CSPSolver(Solver):
                 score_callback = self.__scoresheet.register_rule(node_id, rule)
                 if len(inspect.signature(rule).parameters) == 1:
                     constraint = _GraphElementConstraint[NodeQuantumNumber](
-                        rule,  # type: ignore
+                        rule,  # type: ignore[arg-type]
                         int_node_vars[0],
                         {node_id: int_node_vars[1]},
                         arg_handler,
@@ -841,9 +841,9 @@ class CSPSolver(Solver):
                 if qn_type in getattr(  # noqa: B009
                     EdgeQuantumNumber, "__args__"
                 ):
-                    edge_quantum_numbers[ele_id].update({qn_type: value})  # type: ignore
+                    edge_quantum_numbers[ele_id].update({qn_type: value})  # type: ignore[dict-item]
                 else:
-                    node_quantum_numbers[ele_id].update({qn_type: value})  # type: ignore
+                    node_quantum_numbers[ele_id].update({qn_type: value})  # type: ignore[dict-item]
             converted_solutions.append(
                 QuantumNumberSolution(
                     node_quantum_numbers, edge_quantum_numbers
@@ -1066,7 +1066,7 @@ class _ConservationRuleConstraintWrapper(Constraint):
                 ] = (element_id, qn_type)
                 if element_id not in container:
                     container[element_id] = {}
-                container[element_id].update({qn_type: None})  # type: ignore
+                container[element_id].update({qn_type: None})  # type: ignore[dict-item]
 
         _initialize_edge_container(
             variables.ingoing_edge_variables,
@@ -1080,7 +1080,7 @@ class _ConservationRuleConstraintWrapper(Constraint):
         )
         # and now interaction node variables
         for var_info in variables.node_variables:
-            self.__node_qns[var_info[1]] = None  # type: ignore
+            self.__node_qns[var_info[1]] = None  # type: ignore[assignment]
             self.__var_string_to_data[
                 _create_variable_string(*var_info)
             ] = var_info
@@ -1154,14 +1154,14 @@ class _ConservationRuleConstraintWrapper(Constraint):
                 index in self.__in_edges_qns
                 and qn_type in self.__in_edges_qns[index]
             ):
-                self.__in_edges_qns[index][qn_type] = value  # type: ignore
+                self.__in_edges_qns[index][qn_type] = value  # type: ignore[index]
             elif (
                 index in self.__out_edges_qns
                 and qn_type in self.__out_edges_qns[index]
             ):
-                self.__out_edges_qns[index][qn_type] = value  # type: ignore
+                self.__out_edges_qns[index][qn_type] = value  # type: ignore[index]
             elif qn_type in self.__node_qns:
-                self.__node_qns[qn_type] = value  # type: ignore
+                self.__node_qns[qn_type] = value  # type: ignore[index]
             else:
                 raise ValueError(
                     f"The variable with name {qn_type.__name__} and a graph "

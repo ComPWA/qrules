@@ -55,7 +55,7 @@ class TestParticle:
             isospin=(1, 0),
         )
         with pytest.raises(FrozenInstanceError):
-            test_state.charge = 1  # type: ignore
+            test_state.charge = 1  # type: ignore[misc]
         with pytest.raises(ValueError, match=r"Fails Gell-Mann–Nishijima"):
             Particle(
                 name="Fails Gell-Mann–Nishijima formula",
@@ -146,7 +146,7 @@ class TestParticleCollection:
         assert new_pdg is not particle_database
         assert new_pdg == particle_database
         with pytest.raises(TypeError):
-            ParticleCollection(1)  # type: ignore
+            ParticleCollection(1)  # type: ignore[arg-type]
 
     def test_equality(self, particle_database: ParticleCollection):
         assert list(particle_database) == particle_database
@@ -215,7 +215,7 @@ class TestParticleCollection:
         assert pim.name == "pi-"  # still exists
 
         with pytest.raises(NotImplementedError):
-            pions.discard(111)  # type: ignore
+            pions.discard(111)  # type: ignore[arg-type]
 
     def test_filter(self, particle_database: ParticleCollection):
         search_result = particle_database.filter(lambda p: "f(0)" in p.name)
@@ -288,9 +288,9 @@ class TestParticleCollection:
         ):
             particle_database += create_particle(gamma, name="gamma_new")
         with pytest.raises(NotImplementedError):
-            particle_database.find(3.14)  # type: ignore
+            particle_database.find(3.14)  # type: ignore[arg-type]
         with pytest.raises(NotImplementedError):
-            particle_database += 3.14  # type: ignore
+            particle_database += 3.14  # type: ignore[arg-type]
         with pytest.raises(NotImplementedError):
             assert 3.14 in particle_database
         with pytest.raises(AssertionError):
