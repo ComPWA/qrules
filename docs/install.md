@@ -1,5 +1,9 @@
 # Installation
 
+[![PyPI package](https://badge.fury.io/py/qrules.svg)](https://pypi.org/project/qrules)
+[![Conda package](https://anaconda.org/conda-forge/qrules/badges/version.svg)](https://anaconda.org/conda-forge/qrules)
+[![Supported Python versions](https://img.shields.io/pypi/pyversions/qrules)](https://pypi.org/project/qrules)
+
 The fastest way of installing this package is through PyPI:
 
 ```shell
