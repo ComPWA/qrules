@@ -14,6 +14,19 @@ import sys
 
 import sphobjinv as soi
 from pkg_resources import get_distribution
+from pybtex.plugin import register_plugin
+from pybtex.richtext import Tag, Text
+from pybtex.style.formatting.unsrt import Style as UnsrtStyle
+from pybtex.style.template import (
+    FieldIsMissing,
+    _format_list,
+    field,
+    href,
+    join,
+    node,
+    sentence,
+    words,
+)
 
 # -- Project information -----------------------------------------------------
 project = "QRules"
@@ -249,21 +262,6 @@ thebe_config = {
 
 
 # Specify bibliography style
-from pybtex.plugin import register_plugin
-from pybtex.richtext import Tag, Text
-from pybtex.style.formatting.unsrt import Style as UnsrtStyle
-from pybtex.style.template import (
-    FieldIsMissing,
-    _format_list,
-    field,
-    href,
-    join,
-    node,
-    sentence,
-    words,
-)
-
-
 @node
 def et_al(children, data, sep="", sep2=None, last_sep=None):
     if sep2 is None:
