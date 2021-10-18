@@ -17,6 +17,8 @@ ignore = # more info: https://www.flake8rules.com/
     RST201 # block quote ends without a blank line (black formatting)
     RST301 # unexpected indentation (related to google style docstring)
     W503 # https://github.com/psf/black#line-breaks--binary-operators
+    ; enforce type ignore with mypy error codes (TI100)
+    TI101, TI102, TI103, TI104, TI105, TI106, TI107, TI108, TI109, TI11, TI12, TI13
 rst-roles =
     attr,
     cite,
