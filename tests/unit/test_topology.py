@@ -72,12 +72,12 @@ class TestInteractionNode:
     def test_constructor_exceptions(self):
         with pytest.raises(TypeError):
             assert InteractionNode(
-                number_of_ingoing_edges="has to be int",  # type: ignore
+                number_of_ingoing_edges="has to be int",  # type: ignore[arg-type]
                 number_of_outgoing_edges=2,
             )
         with pytest.raises(TypeError):
             assert InteractionNode(
-                number_of_outgoing_edges="has to be int",  # type: ignore
+                number_of_outgoing_edges="has to be int",  # type: ignore[arg-type]
                 number_of_ingoing_edges=2,
             )
         with pytest.raises(
@@ -102,7 +102,7 @@ class TestMutableTopology:
     def test_add_and_attach(self, two_to_three_decay: Topology):
         topology = _MutableTopology(
             edges=two_to_three_decay.edges,
-            nodes=two_to_three_decay.nodes,  # type: ignore
+            nodes=two_to_three_decay.nodes,  # type: ignore[arg-type]
         )
         topology.add_node(3)
         topology.add_edges([7, 8])
@@ -118,7 +118,7 @@ class TestMutableTopology:
     def test_add_exceptions(self, two_to_three_decay: Topology):
         topology = _MutableTopology(
             edges=two_to_three_decay.edges,
-            nodes=two_to_three_decay.nodes,  # type: ignore
+            nodes=two_to_three_decay.nodes,  # type: ignore[arg-type]
         )
         with pytest.raises(ValueError, match=r"Node nr. 0 already exists"):
             topology.add_node(0)

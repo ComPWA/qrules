@@ -155,4 +155,4 @@ def test_spin_all_defined(
 def test_spin_ignore_z_component(
     rule_input: _SpinRuleInputType, expected: bool
 ) -> None:
-    assert spin_magnitude_conservation(*rule_input) is expected  # type: ignore
+    assert spin_magnitude_conservation(*rule_input) is expected  # type: ignore[arg-type]

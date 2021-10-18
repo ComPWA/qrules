@@ -11,6 +11,7 @@ The main interface is the `.StateTransitionGraph`.
 import copy
 import itertools
 import logging
+import sys
 from abc import abstractmethod
 from collections import abc
 from functools import total_ordering
@@ -41,10 +42,10 @@ from qrules._implementers import implement_pretty_repr
 
 from .quantum_numbers import InteractionProperties
 
-try:
+if sys.version_info >= (3, 8):
     from typing import Protocol
-except ImportError:
-    from typing_extensions import Protocol  # type: ignore
+else:
+    from typing_extensions import Protocol
 
 try:
     from IPython.lib.pretty import PrettyPrinter
@@ -154,7 +155,7 @@ class Edge:
     def get_connected_nodes(self) -> Set[int]:
         connected_nodes = {self.ending_node_id, self.originating_node_id}
         connected_nodes.discard(None)
-        return connected_nodes  # type: ignore
+        return connected_nodes  # type: ignore[return-value]
 
 
 def _to_frozenset(iterable: Iterable[int]) -> FrozenSet[int]:
@@ -555,10 +556,10 @@ class SimpleStateTransitionTopologyBuilder:
                 # remove all combinations that originate from the same nodes
                 for comb1, comb2 in itertools.combinations(combis, 2):
                     if get_originating_node_list(
-                        topology, comb1  # type: ignore
+                        topology, comb1  # type: ignore[arg-type]
                     ) == get_originating_node_list(
-                        topology, comb2  # type: ignore
-                    ):
+                        topology, comb2  # type: ignore[arg-type]
+                    ):  # type: ignore[arg-type]
                         combis.remove(comb2)
 
                 for combi in combis:

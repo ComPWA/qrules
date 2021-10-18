@@ -1,5 +1,3 @@
-# type: ignore
-
 """Configuration file for the Sphinx documentation builder.
 
 This file only contains a selection of the most common options. For a full
@@ -12,8 +10,24 @@ import shutil
 import subprocess
 import sys
 
+# pyright: reportMissingImports=false
 import sphobjinv as soi
 from pkg_resources import get_distribution
+from pybtex.database import Entry
+from pybtex.plugin import register_plugin
+from pybtex.richtext import Tag, Text
+from pybtex.style.formatting.unsrt import Style as UnsrtStyle
+from pybtex.style.template import (
+    FieldIsMissing,
+    Node,
+    _format_list,
+    field,
+    href,
+    join,
+    node,
+    sentence,
+    words,
+)
 
 # -- Project information -----------------------------------------------------
 project = "QRules"
@@ -28,8 +42,9 @@ if os.path.exists(f"../src/{package}/version.py"):
 
 # -- Generate API ------------------------------------------------------------
 sys.path.insert(0, os.path.abspath("."))
-import abbreviate_signature
+from abbreviate_signature import abbreviate_signature
 
+abbreviate_signature()
 shutil.rmtree("api", ignore_errors=True)
 subprocess.call(
     " ".join(
@@ -248,23 +263,8 @@ thebe_config = {
 
 
 # Specify bibliography style
-from pybtex.plugin import register_plugin
-from pybtex.richtext import Tag, Text
-from pybtex.style.formatting.unsrt import Style as UnsrtStyle
-from pybtex.style.template import (
-    FieldIsMissing,
-    _format_list,
-    field,
-    href,
-    join,
-    node,
-    sentence,
-    words,
-)
-
-
 @node
-def et_al(children, data, sep="", sep2=None, last_sep=None):
+def et_al(children, data, sep="", sep2=None, last_sep=None):  # type: ignore[no-untyped-def]
     if sep2 is None:
         sep2 = sep
     if last_sep is None:
@@ -281,7 +281,7 @@ def et_al(children, data, sep="", sep2=None, last_sep=None):
 
 
 @node
-def names(children, context, role, **kwargs):
+def names(children, context, role, **kwargs):  # type: ignore[no-untyped-def]
     """Return formatted names."""
     assert not children
     try:
@@ -297,10 +297,10 @@ def names(children, context, role, **kwargs):
 
 
 class MyStyle(UnsrtStyle):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(abbreviate_names=True)
 
-    def format_names(self, role, as_sentence=True):
+    def format_names(self, role: Entry, as_sentence: bool = True) -> Node:
         formatted_names = names(
             role, sep=", ", sep2=" and ", last_sep=", and "
         )
@@ -309,7 +309,7 @@ class MyStyle(UnsrtStyle):
         else:
             return formatted_names
 
-    def format_url(self, e):
+    def format_url(self, e: Entry) -> Node:
         return words[
             href[
                 field("url", raw=True),
@@ -317,7 +317,7 @@ class MyStyle(UnsrtStyle):
             ]
         ]
 
-    def format_isbn(self, e):
+    def format_isbn(self, e: Entry) -> Node:
         return href[
             join[
                 "https://isbnsearch.org/isbn/",

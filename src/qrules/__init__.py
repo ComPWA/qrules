@@ -126,7 +126,7 @@ def check_reaction_violations(  # pylint: disable=too-many-arguments
     """
     # pylint: disable=too-many-locals
     if not isinstance(initial_state, (list, tuple)):
-        initial_state = [initial_state]  # type: ignore
+        initial_state = [initial_state]  # type: ignore[list-item]
 
     if particle_db is None:
         particle_db = load_pdg()
@@ -375,9 +375,9 @@ def generate_transitions(  # pylint: disable=too-many-arguments
         and len(initial_state) == 2
         and isinstance(initial_state[0], str)
     ):
-        initial_state = [initial_state]  # type: ignore
+        initial_state = [initial_state]  # type: ignore[list-item]
     stm = StateTransitionManager(
-        initial_state=initial_state,  # type: ignore
+        initial_state=initial_state,  # type: ignore[arg-type]
         final_state=final_state,
         particle_db=particle_db,
         allowed_intermediate_particles=allowed_intermediate_particles,

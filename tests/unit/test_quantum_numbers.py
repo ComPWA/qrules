@@ -46,7 +46,7 @@ class TestParity:
 
     def test_exceptions(self):
         with pytest.raises(TypeError):
-            Parity(1.2)  # type: ignore
+            Parity(1.2)  # type: ignore[arg-type]
         with pytest.raises(
             ValueError, match=r"Parity can only be \+1 or -1, not 0"
         ):

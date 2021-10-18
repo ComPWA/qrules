@@ -18,17 +18,20 @@ from attr.validators import instance_of
 from qrules._implementers import implement_pretty_repr
 
 
+def _check_plus_minus(_: Any, __: attr.Attribute, value: Any) -> None:
+    if not isinstance(value, int):
+        raise TypeError(
+            f"Input for {Parity.__name__} has to be of type {int.__name__},"
+            f" not {type(value).__name__}"
+        )
+    if value not in [-1, +1]:
+        raise ValueError(f"Parity can only be +1 or -1, not {value}")
+
+
 @total_ordering
 @attr.s(eq=False, frozen=True, hash=True, order=False, repr=False)
 class Parity:
-    value: int = attr.ib(validator=instance_of(int))
-
-    @value.validator
-    def __check_plusminus(  # type: ignore  # pylint: disable=no-self-use, unused-argument, unused-private-member
-        self, _: attr.Attribute, value: int
-    ) -> None:
-        if value not in [-1, +1]:
-            raise ValueError(f"Parity can only be +1 or -1, not {value}")
+    value: int = attr.ib(validator=[instance_of(int), _check_plus_minus])
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Parity):

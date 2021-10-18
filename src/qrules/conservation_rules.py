@@ -48,9 +48,10 @@ defined to provide type checks on `.parity_conservation_helicity`.
 .. seealso:: :doc:`/usage/conservation`
 """
 
+import sys
 from copy import deepcopy
 from functools import reduce
-from typing import Any, Callable, List, Optional, Set, Tuple, Union
+from typing import Any, Callable, List, Optional, Set, Tuple, Type, Union
 
 import attr
 from attr.converters import optional
@@ -59,10 +60,10 @@ from .quantum_numbers import EdgeQuantumNumbers as EdgeQN
 from .quantum_numbers import NodeQuantumNumbers as NodeQN
 from .quantum_numbers import arange
 
-try:
+if sys.version_info >= (3, 8):
     from typing import Protocol
-except ImportError:
-    from typing_extensions import Protocol  # type: ignore
+else:
+    from typing_extensions import Protocol
 
 
 def _is_boson(spin_magnitude: float) -> bool:
@@ -117,10 +118,11 @@ def additive_quantum_number_rule(
     """
 
     def decorator(rule_class: Any) -> EdgeQNConservationRule:
-        def new_call(  # type: ignore
-            self,  # pylint: disable=unused-argument
-            ingoing_edge_qns: List[quantum_number],  # type: ignore
-            outgoing_edge_qns: List[quantum_number],  # type: ignore
+        def new_call(
+            # pylint: disable=unused-argument
+            self: Type[EdgeQNConservationRule],
+            ingoing_edge_qns: List[quantum_number],  # type: ignore[valid-type]
+            outgoing_edge_qns: List[quantum_number],  # type: ignore[valid-type]
         ) -> bool:
             return sum(ingoing_edge_qns) == sum(outgoing_edge_qns)
 

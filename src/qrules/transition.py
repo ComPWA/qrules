@@ -3,6 +3,7 @@
 
 import logging
 import multiprocessing
+import sys
 from collections import abc, defaultdict
 from copy import copy, deepcopy
 from enum import Enum, auto
@@ -23,6 +24,7 @@ from typing import (
     Tuple,
     Type,
     Union,
+    overload,
 )
 
 import attr
@@ -81,15 +83,15 @@ from .topology import (
     create_n_body_topology,
 )
 
+if sys.version_info >= (3, 10):
+    from typing import TypeGuard
+else:
+    from typing_extensions import TypeGuard
+
 try:
     from IPython.lib.pretty import PrettyPrinter
 except ImportError:
     PrettyPrinter = Any
-
-try:
-    from typing import overload
-except ImportError:
-    from typing_extensions import overload
 
 
 class SolvingMode(Enum):
@@ -371,7 +373,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         return self.__formalism
 
     def add_final_state_grouping(
-        self, fs_group: List[Union[str, List[str]]]
+        self, fs_group: Union[List[str], List[List[str]]]
     ) -> None:
         if not isinstance(fs_group, list):
             raise ValueError(
@@ -380,9 +382,16 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         if len(fs_group) > 0:
             if self.final_state_groupings is None:
                 self.final_state_groupings = []
-            if not isinstance(fs_group[0], list):
-                fs_group = [fs_group]  # type: ignore
-            self.final_state_groupings.append(fs_group)  # type: ignore
+            if _is_list_of_lists(fs_group):
+                nested_list = fs_group
+            elif _is_list_of_str(fs_group):
+                nested_list = [fs_group]
+            else:
+                raise TypeError(
+                    f"Input final state grouping {fs_group} does not comply"
+                    " with function signature"
+                )
+            self.final_state_groupings.append(nested_list)
 
     def set_allowed_interaction_types(
         self, allowed_interaction_types: Iterable[InteractionType]
@@ -685,6 +694,22 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
                 not_executed_edge_rules=qn_result.not_executed_edge_rules,
             ),
         )
+
+
+def _is_list_of_lists(
+    nested_list: Union[List[str], List[List[str]]]
+) -> TypeGuard[List[List[str]]]:
+    if all(map(lambda i: isinstance(i, list), nested_list)):
+        return True
+    return True
+
+
+def _is_list_of_str(
+    nested_list: Union[List[str], List[List[str]]]
+) -> TypeGuard[List[str]]:
+    if all(map(lambda i: isinstance(i, str), nested_list)):
+        return True
+    return False
 
 
 @implement_pretty_repr()
