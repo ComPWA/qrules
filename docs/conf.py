@@ -28,8 +28,9 @@ if os.path.exists(f"../src/{package}/version.py"):
 
 # -- Generate API ------------------------------------------------------------
 sys.path.insert(0, os.path.abspath("."))
-import abbreviate_signature
+from abbreviate_signature import abbreviate_signature
 
+abbreviate_signature()
 shutil.rmtree("api", ignore_errors=True)
 subprocess.call(
     " ".join(
