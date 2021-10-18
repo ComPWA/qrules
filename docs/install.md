@@ -1,14 +1,31 @@
 # Installation
 
-The fastest way of installing this package is through PyPI:
+[![PyPI package](https://badge.fury.io/py/qrules.svg)](https://pypi.org/project/qrules)
+[![Conda package](https://anaconda.org/conda-forge/qrules/badges/version.svg)](https://anaconda.org/conda-forge/qrules)
+[![Supported Python versions](https://img.shields.io/pypi/pyversions/qrules)](https://pypi.org/project/qrules)
+
+The fastest way of installing this package is through PyPI or Conda:
+
+:::{tabbed} PyPI
 
 ```shell
 python3 -m pip install qrules
 ```
 
-This installs the [latest, stable release](https://pypi.org/project/qrules)
-that you can find on the
-[`stable`](https://github.com/ComPWA/qrules/tree/stable) branch.
+::::
+
+:::{tabbed} Conda
+
+```shell
+conda install -c conda-forge qrules
+```
+
+:::
+
+This installs the
+[latest, stable release](https://github.com/ComPWA/qrules/releases) that you
+can find on the [`stable`](https://github.com/ComPWA/qrules/tree/stable)
+branch.
 
 The latest version on the [`main`](https://github.com/ComPWA/qrules/tree/main)
 branch can be installed as follows:
