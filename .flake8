@@ -2,36 +2,47 @@
 application-import-names =
     qrules
 filename =
+    ./docs/*.py
     ./src/*.py
     ./tests/*.py
 exclude =
-    __pycache__
-    docs/conf.py
-    typings/**
-ignore = # more info: https://www.flake8rules.com/
-    E203 # https://github.com/psf/black#slices
-    E231 # allowed by black
-    E501 # https://github.com/psf/black#line-length
-    FS003 # should be possible to use {} in latex strings
-    RST299 # missing pygments
-    RST201 # block quote ends without a blank line (black formatting)
-    RST301 # unexpected indentation (related to google style docstring)
-    W503 # https://github.com/psf/black#line-breaks--binary-operators
-    ; enforce type ignore with mypy error codes (TI100)
-    TI101, TI102, TI103, TI104, TI105, TI106, TI107, TI108, TI109, TI11, TI12, TI13
+    **/__pycache__
+    **/_build
+    /typings/**
+extend-ignore =
+    # https://github.com/psf/black#slices
+    E203
+    # allowed by black
+    E231
+    # https://github.com/psf/black#line-length
+    E501
+    # should be possible to use {} in latex strings
+    FS003
+    # missing pygments
+    RST299
+    # block quote ends without a blank line (black formatting)
+    RST201
+    # unexpected indentation (related to google style docstring)
+    RST301
+    # enforce type ignore with mypy error codes (combined --extend-select=TI100)
+    TI1
+    # https://github.com/psf/black#line-breaks--binary-operators
+    W503
+extend-select =
+    TI100
 rst-roles =
-    attr,
-    cite,
-    class,
-    doc,
-    download,
-    file,
-    func,
-    meth,
-    mod,
-    ref,
+    attr
+    cite
+    class
+    doc
+    download
+    file
+    func
+    meth
+    mod
+    ref
 rst-directives =
-    deprecated,
-    envvar,
-    exception,
-    seealso,
+    deprecated
+    envvar
+    exception
+    seealso
