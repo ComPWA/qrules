@@ -33,7 +33,7 @@ from pybtex.style.template import (
 project = "QRules"
 package = "qrules"
 repo_name = "qrules"
-copyright = "2020, ComPWA"
+copyright = "2020, ComPWA"  # noqa: A001
 author = "Common Partial Wave Analysis"
 
 if os.path.exists(f"../src/{package}/version.py"):
@@ -42,7 +42,7 @@ if os.path.exists(f"../src/{package}/version.py"):
 
 # -- Generate API ------------------------------------------------------------
 sys.path.insert(0, os.path.abspath("."))
-from abbreviate_signature import abbreviate_signature
+from abbreviate_signature import abbreviate_signature  # noqa: E402
 
 abbreviate_signature()
 shutil.rmtree("api", ignore_errors=True)
@@ -337,11 +337,11 @@ def remove_dashes_and_spaces(isbn: str) -> str:
     return isbn
 
 
-def remove_http(input: str) -> str:
+def remove_http(url: str) -> str:
     to_remove = ["https://", "http://"]
     for remove in to_remove:
-        input = input.replace(remove, "")
-    return input
+        url = url.replace(remove, "")
+    return url
 
 
 register_plugin("pybtex.style.formatting", "unsrt_et_al", MyStyle)
