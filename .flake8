@@ -9,7 +9,7 @@ exclude =
     **/__pycache__
     **/_build
     /typings/**
-ignore =
+extend-ignore =
     # https://github.com/psf/black#slices
     E203
     # allowed by black
@@ -24,10 +24,12 @@ ignore =
     RST201
     # unexpected indentation (related to google style docstring)
     RST301
+    # enforce type ignore with mypy error codes (combined --extend-select=TI100)
+    TI1
     # https://github.com/psf/black#line-breaks--binary-operators
     W503
-    # enforce type ignore with mypy error codes (TI100)
-    TI101 TI102 TI103 TI104 TI105 TI106 TI107 TI108 TI109 TI11 TI12 TI13
+extend-select =
+    TI100
 rst-roles =
     attr
     cite
