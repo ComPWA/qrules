@@ -27,20 +27,20 @@ ignore =
     # https://github.com/psf/black#line-breaks--binary-operators
     W503
     # enforce type ignore with mypy error codes (TI100)
-    TI101, TI102, TI103, TI104, TI105, TI106, TI107, TI108, TI109, TI11, TI12, TI13
+    TI101 TI102 TI103 TI104 TI105 TI106 TI107 TI108 TI109 TI11 TI12 TI13
 rst-roles =
-    attr,
-    cite,
-    class,
-    doc,
-    download,
-    file,
-    func,
-    meth,
-    mod,
-    ref,
+    attr
+    cite
+    class
+    doc
+    download
+    file
+    func
+    meth
+    mod
+    ref
 rst-directives =
-    deprecated,
-    envvar,
-    exception,
-    seealso,
+    deprecated
+    envvar
+    exception
+    seealso
