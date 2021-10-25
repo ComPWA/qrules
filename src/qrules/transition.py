@@ -3,7 +3,6 @@
 
 import logging
 import multiprocessing
-import sys
 from collections import abc, defaultdict
 from copy import copy, deepcopy
 from enum import Enum, auto
@@ -82,11 +81,6 @@ from .topology import (
     create_isobar_topologies,
     create_n_body_topology,
 )
-
-if sys.version_info >= (3, 10):
-    from typing import TypeGuard
-else:
-    from typing_extensions import TypeGuard
 
 try:
     from IPython.lib.pretty import PrettyPrinter
@@ -382,15 +376,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         if len(fs_group) > 0:
             if self.final_state_groupings is None:
                 self.final_state_groupings = []
-            if _is_list_of_lists(fs_group):
-                nested_list = fs_group
-            elif _is_list_of_str(fs_group):
-                nested_list = [fs_group]
-            else:
-                raise TypeError(
-                    f"Input final state grouping {fs_group} does not comply"
-                    " with function signature"
-                )
+            nested_list = _safe_wrap_list(fs_group)
             self.final_state_groupings.append(nested_list)
 
     def set_allowed_interaction_types(
@@ -696,20 +682,17 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         )
 
 
-def _is_list_of_lists(
+def _safe_wrap_list(
     nested_list: Union[List[str], List[List[str]]]
-) -> TypeGuard[List[List[str]]]:
+) -> List[List[str]]:
     if all(map(lambda i: isinstance(i, list), nested_list)):
-        return True
-    return True
-
-
-def _is_list_of_str(
-    nested_list: Union[List[str], List[List[str]]]
-) -> TypeGuard[List[str]]:
+        return nested_list  # type: ignore[return-value]
     if all(map(lambda i: isinstance(i, str), nested_list)):
-        return True
-    return False
+        return [nested_list]  # type: ignore[list-item]
+    raise TypeError(
+        f"Input final state grouping {nested_list} is not a list of lists of"
+        " strings"
+    )
 
 
 @implement_pretty_repr()
