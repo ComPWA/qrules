@@ -6,6 +6,7 @@ https://www.sphinx-doc.org/en/master/usage/configuration.html
 """
 
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -33,14 +34,21 @@ from pybtex.style.template import (
 
 # -- Project information -----------------------------------------------------
 project = "QRules"
-package = "qrules"
-repo_name = "qrules"
+PACKAGE = "qrules"
+REPO_NAME = "qrules"
 copyright = "2020, ComPWA"  # noqa: A001
 author = "Common Partial Wave Analysis"
 
-if os.path.exists(f"../src/{package}/version.py"):
-    __release = get_distribution(package).version
-    version = ".".join(__release.split(".")[:3])
+# https://docs.readthedocs.io/en/stable/builds.html
+BRANCH = os.environ.get("READTHEDOCS_VERSION", default="stable")
+if BRANCH == "latest":
+    BRANCH = "main"
+if re.match(r"^\d+$", BRANCH):  # PR preview
+    BRANCH = "stable"
+
+if os.path.exists(f"../src/{PACKAGE}/version.py"):
+    __RELEASE = get_distribution(PACKAGE).version
+    version = ".".join(__RELEASE.split(".")[:3])
 
 
 # -- Fetch logo --------------------------------------------------------------
@@ -52,16 +60,16 @@ def fetch_logo(url: str, output_path: str) -> None:
         stream.write(online_content.content)
 
 
-logo_path = "_static/logo.svg"
+LOGO_PATH = "_static/logo.svg"
 try:
     fetch_logo(
         url="https://raw.githubusercontent.com/ComPWA/ComPWA/04e5199/doc/images/logo.svg",
-        output_path=logo_path,
+        output_path=LOGO_PATH,
     )
 except requests.exceptions.ConnectionError:
     pass
-if os.path.exists(logo_path):
-    html_logo = logo_path
+if os.path.exists(LOGO_PATH):
+    html_logo = LOGO_PATH
 
 # -- Generate API ------------------------------------------------------------
 sys.path.insert(0, os.path.abspath("."))
@@ -73,7 +81,8 @@ subprocess.call(
     " ".join(
         [
             "sphinx-apidoc",
-            f"../src/{package}/",
+            f"../src/{PACKAGE}/",
+            f"../src/{PACKAGE}/version.py",
             "-o api/",
             "--force",
             "--no-toc",
@@ -123,7 +132,7 @@ source_suffix = {
 # The master toctree document.
 master_doc = "index"
 modindex_common_prefix = [
-    f"{package}.",
+    f"{PACKAGE}.",
 ]
 
 extensions = [
@@ -163,11 +172,11 @@ autodoc_default_options = {
         ]
     ),
 }
-autodoc_insert_signature_linebreaks = True
+AUTODOC_INSERT_SIGNATURE_LINEBREAKS = True
 graphviz_output_format = "svg"
 html_copy_source = True  # needed for download notebook button
 html_css_files = []
-if autodoc_insert_signature_linebreaks:
+if AUTODOC_INSERT_SIGNATURE_LINEBREAKS:
     html_css_files.append("linebreaks-api.css")
 html_favicon = "_static/favicon.ico"
 html_show_copyright = False
@@ -177,8 +186,8 @@ html_sourcelink_suffix = ""
 html_static_path = ["_static"]
 html_theme = "sphinx_book_theme"
 html_theme_options = {
-    "repository_url": f"https://github.com/ComPWA/{repo_name}",
-    "repository_branch": "stable",
+    "repository_url": f"https://github.com/ComPWA/{REPO_NAME}",
+    "repository_branch": BRANCH,
     "path_to_docs": "docs",
     "use_download_button": True,
     "use_edit_page_button": True,
@@ -213,21 +222,45 @@ nitpick_ignore = [
     ("py:obj", "qrules.topology._V"),
 ]
 
+
 # Intersphinx settings
+def get_version(package_name: str) -> str:
+    python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
+    constraints_path = f"../.constraints/py{python_version}.txt"
+    with open(constraints_path) as stream:
+        constraints = stream.read()
+    for line in constraints.split("\n"):
+        line = line.split("#")[0]  # remove comments
+        line = line.strip()
+        if not line.startswith(package_name):
+            continue
+        if not line:
+            continue
+        line_segments = line.split("==")
+        if len(line_segments) != 2:
+            continue
+        installed_version = line_segments[1]
+        installed_version = installed_version.strip()
+        return installed_version
+    return "stable"
+
+
 intersphinx_mapping = {
     "ampform": ("https://ampform.readthedocs.io/en/stable", None),
-    "attrs": ("https://www.attrs.org/en/stable", None),
+    "attrs": (f"https://www.attrs.org/en/{get_version('attrs')}", None),
     "compwa-org": ("https://compwa-org.readthedocs.io/en/stable", None),
     "constraint": (
         "https://labix.org/doc/constraint/public",
         "constraint.inv",
     ),
     "graphviz": ("https://graphviz.readthedocs.io/en/stable", None),
-    "jsonschema": ("https://python-jsonschema.readthedocs.io/en/latest", None),
+    "jsonschema": (
+        f"https://python-jsonschema.readthedocs.io/en/v{get_version('jsonschema')}",
+        None,
+    ),
     "mypy": ("https://mypy.readthedocs.io/en/stable", None),
     "pwa": ("https://pwa.readthedocs.io", None),
     "python": ("https://docs.python.org/3", None),
-    "tensorwaves": ("https://tensorwaves.readthedocs.io/en/stable", None),
 }
 
 # Settings for autosectionlabel
@@ -275,7 +308,19 @@ myst_enable_extensions = [
     "colon_fence",
     "dollarmath",
     "smartquotes",
+    "substitution",
 ]
+BINDER_LINK = f"https://mybinder.org/v2/gh/ComPWA/{REPO_NAME}/{BRANCH}?filepath=docs/usage"
+myst_substitutions = {
+    "branch": BRANCH,
+    "run_interactive": f"""
+```{{margin}}
+Run this notebook [on Binder]({BINDER_LINK}) or
+{{ref}}`locally on Jupyter Lab <compwa-org:develop:Jupyter Notebooks>` to
+interactively modify the parameters.
+```
+""",
+}
 myst_update_mathjax = False
 
 # Settings for Thebe cell output
