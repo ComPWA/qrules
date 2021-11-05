@@ -4,15 +4,21 @@
 
 ```
 
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
 [![PyPI package](https://badge.fury.io/py/qrules.svg)](https://pypi.org/project/qrules)
 [![Supported Python versions](https://img.shields.io/pypi/pyversions/qrules)](https://pypi.org/project/qrules)
-[![Google Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ComPWA/qrules/blob/stable)
-[![Binder](https://static.mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/ComPWA/qrules/stable?filepath=docs/usage)
+{{ '[![Google Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ComPWA/qrules/blob/{})'.format(branch) }}
+{{ '[![Binder](https://static.mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/ComPWA/qrules/{}?filepath=docs/usage)'.format(branch) }}
+<!-- markdownlint-enable -->
+<!-- prettier-ignore-end -->
 
 :::{margin}
 
-The original project was the {doc}`PWA Expert System <expertsystem:index>`.
-QRules originates from its {mod}`~expertsystem.reaction` module.
+The original project was the [PWA Expert System](https://expertsystem.rtfd.io).
+QRules originates from its
+[`reaction`](https://expertsystem.readthedocs.io/en/stable/api/expertsystem.reaction.html)
+module.
 
 :::
 
