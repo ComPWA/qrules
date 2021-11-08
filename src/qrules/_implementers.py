@@ -23,7 +23,8 @@ def implement_pretty_repr() -> Callable[
     ) -> Type[_DecoratedClass]:
         if not attr.has(decorated_class):
             raise TypeError(
-                "Can only implement a pretty repr for a class created with attrs"
+                "Can only implement a pretty repr for a class created with"
+                " attrs"
             )
 
         def repr_pretty(self: Any, p: PrettyPrinter, cycle: bool) -> None:

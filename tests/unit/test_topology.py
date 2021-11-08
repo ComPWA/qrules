@@ -198,7 +198,9 @@ class TestTopology:
     def test_constructor_exceptions(self, nodes, edges):
         with pytest.raises(
             ValueError,
-            match=r"(not connected to any other node|has non-existing node IDs)",
+            match=(
+                r"(not connected to any other node|has non-existing node IDs)"
+            ),
         ):
             assert Topology(nodes=nodes, edges=edges)
 

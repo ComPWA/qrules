@@ -156,8 +156,8 @@ class _SolutionContainer:
             or self.execution_info.violated_edge_rules
         ):
             raise ValueError(
-                f"Invalid {self.__class__.__name__}!"
-                f" Found {len(self.solutions)} solutions, but also violated rules.",
+                f"Invalid {self.__class__.__name__}! Found"
+                f" {len(self.solutions)} solutions, but also violated rules.",
                 self.execution_info.violated_node_rules,
                 self.execution_info.violated_edge_rules,
             )
@@ -889,7 +889,8 @@ def _to_tuple(
         map(lambda t: isinstance(t, StateTransitionCollection), iterable)
     ):
         raise TypeError(
-            f"Not all instances are of type {StateTransitionCollection.__name__}"
+            "Not all instances are of type"
+            f" {StateTransitionCollection.__name__}"
         )
     return tuple(iterable)
 
@@ -930,7 +931,8 @@ class ReactionInfo:
                     return False
             return True
         raise NotImplementedError(
-            f"Cannot compare {self.__class__.__name__} with  {other.__class__.__name__}"
+            f"Cannot compare {self.__class__.__name__} with "
+            f" {other.__class__.__name__}"
         )
 
     def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:

@@ -68,7 +68,8 @@ class Spin:
         if abs(self.projection) > self.magnitude:
             if self.magnitude < 0.0:
                 raise ValueError(
-                    f"Spin magnitude has to be positive, but is {self.magnitude}"
+                    "Spin magnitude has to be positive, but is"
+                    f" {self.magnitude}"
                 )
             raise ValueError(
                 "Absolute value of spin projection cannot be larger than its "
@@ -77,8 +78,8 @@ class Spin:
             )
         if not (self.projection - self.magnitude).is_integer():
             raise ValueError(
-                f"{self.__class__.__name__}{(self.magnitude, self.projection)}: "
-                "(projection - magnitude) should be integer"
+                f"{self.__class__.__name__}{(self.magnitude, self.projection)}:"
+                " (projection - magnitude) should be integer"
             )
 
     def __eq__(self, other: object) -> bool:
@@ -217,7 +218,8 @@ class Particle:  # pylint: disable=too-many-instance-attributes
 
             return sorting_key(self) > sorting_key(other)
         raise NotImplementedError(
-            f"Cannot compare {self.__class__.__name__} with {other.__class__.__name__}"
+            f"Cannot compare {self.__class__.__name__} with"
+            f" {other.__class__.__name__}"
         )
 
     def __neg__(self) -> "Particle":
@@ -285,7 +287,8 @@ class ParticleCollection(abc.MutableSet):
         if isinstance(other, abc.Iterable):
             return set(self) == set(other)
         raise NotImplementedError(
-            f"Cannot compare {self.__class__.__name__} with  {self.__class__.__name__}"
+            f"Cannot compare {self.__class__.__name__} with "
+            f" {self.__class__.__name__}"
         )
 
     def __getitem__(self, particle_name: str) -> Particle:
@@ -356,7 +359,8 @@ class ParticleCollection(abc.MutableSet):
             logging.warning(f'Overwriting particle with name "{value.name}"')
         if value.pid in self.__pid_to_name:
             logging.warning(
-                f'Particle with PID {value.pid} already exists: "{self.find(value.pid).name}"'
+                f"Particle with PID {value.pid} already exists:"
+                f' "{self.find(value.pid).name}"'
             )
         self.__particles[value.name] = value
         self.__pid_to_name[value.pid] = value.name

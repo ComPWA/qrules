@@ -284,7 +284,10 @@ class TestParticleCollection:
         gamma = particle_database["gamma"]
         with pytest.raises(
             ValueError,
-            match='Added particle "gamma_new" is equivalent to existing particle "gamma"',
+            match=(
+                'Added particle "gamma_new" is equivalent to existing particle'
+                ' "gamma"'
+            ),
         ):
             particle_database += create_particle(gamma, name="gamma_new")
         with pytest.raises(NotImplementedError):
