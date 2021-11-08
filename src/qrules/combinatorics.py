@@ -144,7 +144,7 @@ class _KinematicRepresentation:
 
     @staticmethod
     def __sort(nested_list: List[List[Any]]) -> List[List[Any]]:
-        return sorted([sorted(sub_list) for sub_list in nested_list])
+        return sorted(sorted(sub_list) for sub_list in nested_list)
 
     @staticmethod
     def __extract_particle_name(item: object) -> str:

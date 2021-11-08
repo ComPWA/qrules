@@ -76,7 +76,7 @@ class TestWrite:
             instance=topology,
             filename=output_file,
         )
-        with open(output_file, "r") as stream:
+        with open(output_file) as stream:
             dot_data = stream.read()
         assert pydot.graph_from_dot_data(dot_data) is not None
 
@@ -87,7 +87,7 @@ class TestWrite:
                 instance=transition,
                 filename=output_file,
             )
-            with open(output_file, "r") as stream:
+            with open(output_file) as stream:
                 dot_data = stream.read()
             assert pydot.graph_from_dot_data(dot_data) is not None
 
@@ -98,7 +98,7 @@ class TestWrite:
                 instance=grouping,
                 filename=output_file,
             )
-            with open(output_file, "r") as stream:
+            with open(output_file) as stream:
                 dot_data = stream.read()
             assert pydot.graph_from_dot_data(dot_data) is not None
 
@@ -108,7 +108,7 @@ class TestWrite:
             instance=io.asdot(reaction, strip_spin=True),
             filename=output_file,
         )
-        with open(output_file, "r") as stream:
+        with open(output_file) as stream:
             dot_data = stream.read()
         assert pydot.graph_from_dot_data(dot_data) is not None
 
