@@ -199,6 +199,8 @@ class TestStateTransitionManager:
         particle_name = "N(753)"
         with pytest.raises(
             LookupError,
-            match=r"Could not find any matches for allowed intermediate particle",
+            match=(
+                r"Could not find any matches for allowed intermediate particle"
+            ),
         ):
             stm.set_allowed_intermediate_particles([particle_name])

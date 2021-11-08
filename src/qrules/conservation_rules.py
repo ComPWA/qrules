@@ -678,8 +678,8 @@ def isospin_conservation(
     Also checks :math:`I_{1,z} + I_{2,z} = I_z` and if Clebsch-Gordan
     coefficients are all 0.
     """
-    if not sum([x.isospin_projection for x in ingoing_isospins]) == sum(
-        [x.isospin_projection for x in outgoing_isospins]
+    if not sum(x.isospin_projection for x in ingoing_isospins) == sum(
+        x.isospin_projection for x in outgoing_isospins
     ):
         return False
     if not all(
@@ -758,8 +758,8 @@ def spin_conservation(
     # otherwise don't use S and L and just check magnitude
     # are integral or non integral on both sides
     return (
-        sum([float(x.spin_magnitude) for x in ingoing_spins]).is_integer()
-        == sum([float(x.spin_magnitude) for x in outgoing_spins]).is_integer()
+        sum(float(x.spin_magnitude) for x in ingoing_spins).is_integer()
+        == sum(float(x.spin_magnitude) for x in outgoing_spins).is_integer()
     )
 
 
@@ -795,8 +795,8 @@ def spin_magnitude_conservation(
     # otherwise don't use S and L and just check magnitude
     # are integral or non integral on both sides
     return (
-        sum([float(x.spin_magnitude) for x in ingoing_spins]).is_integer()
-        == sum([float(x.spin_magnitude) for x in outgoing_spins]).is_integer()
+        sum(float(x.spin_magnitude) for x in ingoing_spins).is_integer()
+        == sum(float(x.spin_magnitude) for x in outgoing_spins).is_integer()
     )
 
 
@@ -928,15 +928,13 @@ def gellmann_nishijima(edge_qns: GellMannNishijimaInput) -> bool:
     ) -> float:
         """Calculate the hypercharge :math:`Y=S+C+B+T+B`."""
         return sum(
-            [
-                0.0 if x is None else x
-                for x in [
-                    particle.strangeness,
-                    particle.charmness,
-                    particle.bottomness,
-                    particle.topness,
-                    particle.baryon_number,
-                ]
+            0.0 if x is None else x
+            for x in [
+                particle.strangeness,
+                particle.charmness,
+                particle.bottomness,
+                particle.topness,
+                particle.baryon_number,
             ]
         )
 
@@ -983,10 +981,10 @@ class MassConservation:
         smaller than the net mass of the ingoing state :math:`M_{in}`. Also the
         width :math:`W` of the states is taken into account.
         """
-        mass_in = sum([x.mass for x in ingoing_edge_qns])
-        width_in = sum([x.width for x in ingoing_edge_qns if x.width])
-        mass_out = sum([x.mass for x in outgoing_edge_qns])
-        width_out = sum([x.width for x in outgoing_edge_qns if x.width])
+        mass_in = sum(x.mass for x in ingoing_edge_qns)
+        width_in = sum(x.width for x in ingoing_edge_qns if x.width)
+        mass_out = sum(x.mass for x in outgoing_edge_qns)
+        width_out = sum(x.width for x in outgoing_edge_qns if x.width)
 
         return (mass_out - self.__width_factor * width_out) < (
             mass_in + self.__width_factor * width_in

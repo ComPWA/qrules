@@ -217,7 +217,8 @@ class Topology:
             connected_nodes = edge.get_connected_nodes()
             if not connected_nodes:
                 raise ValueError(
-                    f"Edge nr. {edge_id} is not connected to any other node ({edge})"
+                    f"Edge nr. {edge_id} is not connected to any other node"
+                    f" ({edge})"
                 )
             if not connected_nodes <= self.nodes:
                 raise ValueError(

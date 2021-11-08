@@ -170,7 +170,7 @@ def check_reaction_violations(  # pylint: disable=too-many-arguments
 
         if edge_check_result.violated_edge_rules:
             raise ValueError(
-                f"Some edges violate"
+                "Some edges violate"
                 f" {edge_check_result.violated_edge_rules.values()}"
             )
 

@@ -48,7 +48,8 @@ def asdict(instance: object) -> dict:
     if isinstance(instance, Topology):
         return _dict.from_topology(instance)
     raise NotImplementedError(
-        f"No conversion for dict available for class {instance.__class__.__name__}"
+        "No conversion for dict available for class"
+        f" {instance.__class__.__name__}"
     )
 
 

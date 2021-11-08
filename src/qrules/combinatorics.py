@@ -72,7 +72,8 @@ class _KinematicRepresentation:
                 and self.final_state == other.final_state
             )
         raise ValueError(
-            f"Cannot compare {self.__class__.__name__} with {other.__class__.__name__}"
+            f"Cannot compare {self.__class__.__name__} with"
+            f" {other.__class__.__name__}"
         )
 
     def __repr__(self) -> str:
@@ -122,7 +123,8 @@ class _KinematicRepresentation:
                     )
             return is_sublist(other, self.final_state)
         raise ValueError(
-            f"Cannot compare {self.__class__.__name__} with {other.__class__.__name__}"
+            f"Cannot compare {self.__class__.__name__} with"
+            f" {other.__class__.__name__}"
         )
 
     def __import(
@@ -142,7 +144,7 @@ class _KinematicRepresentation:
 
     @staticmethod
     def __sort(nested_list: List[List[Any]]) -> List[List[Any]]:
-        return sorted([sorted(sub_list) for sub_list in nested_list])
+        return sorted(sorted(sub_list) for sub_list in nested_list)
 
     @staticmethod
     def __extract_particle_name(item: object) -> str:
@@ -285,8 +287,8 @@ def _generate_kinematic_permutations(
     ) -> None:
         if len(state_definitions) != len(edge_ids):
             raise ValueError(
-                "Number of state definitions is not same as number of edge IDs:"
-                f"(len({state_definitions}) != len({edge_ids})"
+                "Number of state definitions is not same as number of edge"
+                f" IDs:(len({state_definitions}) != len({edge_ids})"
             )
 
     assert_number_of_states(initial_state, topology.incoming_edge_ids)

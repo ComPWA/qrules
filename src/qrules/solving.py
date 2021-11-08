@@ -197,8 +197,8 @@ class QNResult:
             self.violated_node_rules or self.violated_edge_rules
         ):
             raise ValueError(
-                f"Invalid {self.__class__.__name__}!"
-                f" Found {len(self.solutions)} solutions, but also violated rules.",
+                f"Invalid {self.__class__.__name__}! Found"
+                f" {len(self.solutions)} solutions, but also violated rules.",
                 self.violated_node_rules,
                 self.violated_edge_rules,
             )
@@ -1164,7 +1164,7 @@ class _ConservationRuleConstraintWrapper(Constraint):
                 self.__node_qns[qn_type] = value  # type: ignore[index]
             else:
                 raise ValueError(
-                    f"The variable with name {qn_type.__name__} and a graph "
-                    f"element index of {index} does not appear in the variable "
-                    f"mapping"
+                    f"The variable with name {qn_type.__name__} and a graph"
+                    f" element index of {index} does not appear in the"
+                    " variable mapping"
                 )
