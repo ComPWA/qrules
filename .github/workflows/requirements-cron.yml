@@ -45,7 +45,7 @@ jobs:
       - uses: actions/download-artifact@v2
       - run: |
           [[ -f .pre-commit-config.yaml ]] && mv -f .pre-commit-config.yaml ..
-          mv -f * ../.constraints/
+          [[ -d .constraints ]] && mv -f * ../.constraints/
         working-directory: artifact
       - run: git status -s
       - name: Create Pull Request
