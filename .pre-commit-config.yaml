@@ -41,7 +41,7 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/ComPWA/repo-maintenance
-    rev: 0.0.82
+    rev: 0.0.86
     hooks:
       - id: check-dev-files
         args:
@@ -163,6 +163,7 @@ repos:
         name: mypy
         entry: mypy
         language: system
+        require_serial: true
         types:
           - python
 
