@@ -72,11 +72,16 @@ def graph_list_to_dot(
         graphs = _collapse_graphs(graphs)
     elif strip_spin:
         if render_node:
-            raise ValueError(
-                "Graphs without spin projections cannot be rendered with node"
-                " properties"
-            )
-        graphs = _get_particle_graphs(graphs)
+            stripped_graphs = []
+            for graph in graphs:
+                if isinstance(graph, StateTransition):
+                    graph = graph.to_graph()
+                stripped_graph = _strip_projections(graph)
+                if stripped_graph not in stripped_graphs:
+                    stripped_graphs.append(stripped_graph)
+            graphs = stripped_graphs
+        else:
+            graphs = _get_particle_graphs(graphs)
     dot = ""
     if not isinstance(graphs, abc.Sequence):
         graphs = list(graphs)
