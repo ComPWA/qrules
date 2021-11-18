@@ -4,7 +4,11 @@ import pytest
 
 import qrules
 from qrules import io
-from qrules.io._dot import _collapse_graphs, _get_particle_graphs
+from qrules.io._dot import (
+    _collapse_graphs,
+    _get_particle_graphs,
+    _strip_projections,
+)
 from qrules.particle import ParticleCollection
 from qrules.topology import (
     Edge,
@@ -143,3 +147,31 @@ def test_get_particle_graphs(
         assert particle_graphs[0].get_edge_props(edge_id) is particle_graphs[
             1
         ].get_edge_props(edge_id)
+
+
+def test_strip_projections():
+    resonance = "Sigma(1670)~-"
+    reaction = qrules.generate_transitions(
+        initial_state=[("J/psi(1S)", [+1])],
+        final_state=["K0", ("Sigma+", [+0.5]), ("p~", [+0.5])],
+        allowed_intermediate_particles=[resonance],
+        allowed_interaction_types="strong",
+    )
+
+    assert len(reaction.transitions) == 5
+    transition = reaction.transitions[0]
+
+    assert transition.intermediate_states[3].particle.name == resonance
+    assert transition.intermediate_states[3].spin_projection == -0.5
+    assert len(transition.interactions) == 2
+    assert transition.interactions[0].s_projection == 1
+    assert transition.interactions[0].l_projection == 0
+    assert transition.interactions[1].s_projection == -0.5
+    assert transition.interactions[1].l_projection == 0
+
+    stripped_transition = _strip_projections(transition)  # type: ignore[arg-type]
+    assert stripped_transition.get_edge_props(3).name == resonance
+    assert stripped_transition.get_node_props(0).s_projection is None
+    assert stripped_transition.get_node_props(0).l_projection is None
+    assert stripped_transition.get_node_props(1).s_projection is None
+    assert stripped_transition.get_node_props(1).l_projection is None

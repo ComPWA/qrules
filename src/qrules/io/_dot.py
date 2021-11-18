@@ -17,6 +17,8 @@ from typing import (
     Union,
 )
 
+import attr
+
 from qrules.combinatorics import InitialFacts
 from qrules.particle import Particle, ParticleCollection, ParticleWithSpin
 from qrules.quantum_numbers import InteractionProperties, _to_fraction
@@ -376,7 +378,7 @@ def _get_particle_graphs(
             for other in inventory
         ):
             continue
-        stripped_graph = __strip_spin(transition)
+        stripped_graph = _strip_projections(transition)
         inventory.append(stripped_graph)
     inventory = sorted(
         inventory,
@@ -387,7 +389,7 @@ def _get_particle_graphs(
     return inventory
 
 
-def __strip_spin(
+def _strip_projections(
     graph: StateTransitionGraph[ParticleWithSpin],
 ) -> StateTransitionGraph[Particle]:
     if isinstance(graph, StateTransition):
@@ -397,19 +399,16 @@ def __strip_spin(
         edge_props = graph.get_edge_props(edge_id)
         if edge_props:
             new_edge_props[edge_id] = edge_props[0]
+    new_node_props = {}
+    for node_id in graph.topology.nodes:
+        node_props = graph.get_node_props(node_id)
+        if node_props:
+            new_node_props[node_id] = attr.evolve(
+                node_props, l_projection=None, s_projection=None
+            )
     return StateTransitionGraph[Particle](
         topology=graph.topology,
-        node_props={
-            i: node_props
-            for i, node_props in zip(
-                graph.topology.nodes,
-                map(
-                    graph.get_node_props,
-                    graph.topology.nodes,
-                ),
-            )
-            if node_props
-        },
+        node_props=new_node_props,
         edge_props=new_edge_props,
     )
 
