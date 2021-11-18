@@ -735,6 +735,8 @@ def spin_conservation(
 
     Also checks :math:`M_1 + M_2 = M` and if Clebsch-Gordan coefficients
     are all 0.
+
+    .. seealso:: /docs/usage/ls-coupling
     """
     # L and S can only be used if one side is a single state
     # and the other side contains of two states (isobar)
