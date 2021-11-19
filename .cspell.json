@@ -134,6 +134,7 @@
         "dtype",
         "einsum",
         "epem",
+        "eqnarray",
         "eval",
         "evalf",
         "expertsystem",
