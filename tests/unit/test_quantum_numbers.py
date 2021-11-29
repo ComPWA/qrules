@@ -26,7 +26,7 @@ class TestParity:
         assert pos >= neg
         assert pos >= 0
         assert neg <= 0
-        assert 0 < pos  # pylint: disable=misplaced-comparison-constant
+        assert 0 < pos
 
     def test_hash(self):
         neg = Parity(-1)
