@@ -92,9 +92,9 @@ class SolvingMode(Enum):
     """Types of modes for solving."""
 
     FAST = auto()
-    """Find "likeliest" solutions only."""
+    """Find "likeliest" solutions only."""  # noqa: B018
     FULL = auto()
-    """Find all possible solutions."""
+    """Find all possible solutions."""  # noqa: B018
 
 
 @implement_pretty_repr()
