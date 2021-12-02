@@ -189,7 +189,7 @@ def parity_conservation(
     return True
 
 
-@attr.s(frozen=True)
+@attr.frozen
 class HelicityParityEdgeInput:
     parity: EdgeQN.parity = attr.ib(converter=EdgeQN.parity)
     spin_magnitude: EdgeQN.spin_magnitude = attr.ib(
@@ -239,7 +239,7 @@ def parity_conservation_helicity(
     return True
 
 
-@attr.s(frozen=True)
+@attr.frozen
 class CParityEdgeInput:
     spin_magnitude: EdgeQN.spin_magnitude = attr.ib(
         converter=EdgeQN.spin_magnitude
@@ -250,7 +250,7 @@ class CParityEdgeInput:
     )
 
 
-@attr.s(frozen=True)
+@attr.frozen
 class CParityNodeInput:
     l_magnitude: NodeQN.l_magnitude = attr.ib(converter=NodeQN.l_magnitude)
     s_magnitude: NodeQN.s_magnitude = attr.ib(converter=NodeQN.s_magnitude)
@@ -303,7 +303,7 @@ def c_parity_conservation(
     return c_parity_in == c_parity_out
 
 
-@attr.s(frozen=True)
+@attr.frozen
 class GParityEdgeInput:
     isospin_magnitude: EdgeQN.isospin_magnitude = attr.ib(
         converter=EdgeQN.isospin_magnitude
@@ -317,7 +317,7 @@ class GParityEdgeInput:
     )
 
 
-@attr.s(frozen=True)
+@attr.frozen
 class GParityNodeInput:
     l_magnitude: NodeQN.l_magnitude = attr.ib(converter=NodeQN.l_magnitude)
     s_magnitude: NodeQN.s_magnitude = attr.ib(converter=NodeQN.s_magnitude)
@@ -404,7 +404,7 @@ def g_parity_conservation(
     return True
 
 
-@attr.s(frozen=True)
+@attr.frozen
 class IdenticalParticleSymmetryOutEdgeInput:
     spin_magnitude: EdgeQN.spin_magnitude = attr.ib(
         converter=EdgeQN.spin_magnitude
@@ -466,7 +466,7 @@ def identical_particle_symmetrization(
     return True
 
 
-@attr.s(frozen=True)
+@attr.frozen
 class _Spin:
     magnitude: float = attr.ib()
     projection: float = attr.ib()
@@ -493,7 +493,7 @@ def _is_clebsch_gordan_coefficient_zero(
     return False
 
 
-@attr.s(frozen=True)
+@attr.frozen
 class SpinNodeInput:
     l_magnitude: NodeQN.l_magnitude = attr.ib(converter=NodeQN.l_magnitude)
     l_projection: NodeQN.l_projection = attr.ib(converter=NodeQN.l_projection)
@@ -501,7 +501,7 @@ class SpinNodeInput:
     s_projection: NodeQN.s_projection = attr.ib(converter=NodeQN.s_projection)
 
 
-@attr.s(frozen=True)
+@attr.frozen
 class SpinMagnitudeNodeInput:
     l_magnitude: NodeQN.l_magnitude = attr.ib(converter=NodeQN.l_magnitude)
     s_magnitude: NodeQN.s_magnitude = attr.ib(converter=NodeQN.s_magnitude)
@@ -639,7 +639,7 @@ def __spin_couplings(spin1: _Spin, spin2: _Spin) -> Set[_Spin]:
     }
 
 
-@attr.s
+@attr.define
 class IsoSpinEdgeInput:
     isospin_magnitude: EdgeQN.isospin_magnitude = attr.ib(
         converter=EdgeQN.isospin_magnitude
@@ -699,7 +699,7 @@ def isospin_conservation(
     )
 
 
-@attr.s
+@attr.define
 class SpinEdgeInput:
     spin_magnitude: EdgeQN.spin_magnitude = attr.ib(
         converter=EdgeQN.spin_magnitude
@@ -873,7 +873,7 @@ def helicity_conservation(
     return False
 
 
-@attr.s(frozen=True)
+@attr.frozen
 class GellMannNishijimaInput:
     # pylint: disable=too-many-instance-attributes
     charge: EdgeQN.charge = attr.ib(converter=EdgeQN.charge)
@@ -956,7 +956,7 @@ def gellmann_nishijima(edge_qns: GellMannNishijimaInput) -> bool:
     return True
 
 
-@attr.s(frozen=True)
+@attr.frozen
 class MassEdgeInput:
     mass: EdgeQN.mass = attr.ib(converter=EdgeQN.mass)
     width: Optional[EdgeQN.width] = attr.ib(

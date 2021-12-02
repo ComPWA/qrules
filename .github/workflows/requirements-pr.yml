@@ -9,6 +9,9 @@ on:
 jobs:
   pip-constraints:
     name: Update pip constraints files
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    # Only run if PR does not come from a fork
+    # https://docs.github.com/en/actions/security-guides/encrypted-secrets#using-encrypted-secrets-in-a-workflow
     runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
@@ -35,6 +38,7 @@ jobs:
 
   pre-commit:
     name: pre-commit autoupdate
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -51,8 +55,6 @@ jobs:
   push:
     name: Push changes
     if: github.event.pull_request.head.repo.full_name == github.repository
-    # Only run if PR does not come from a fork
-    # https://docs.github.com/en/actions/security-guides/encrypted-secrets#using-encrypted-secrets-in-a-workflow
     runs-on: ubuntu-20.04
     needs:
       - pip-constraints

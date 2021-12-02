@@ -38,7 +38,7 @@ StateDefinition = Union[str, StateWithSpins]
 
 
 @implement_pretty_repr()
-@attr.s(frozen=True)
+@attr.frozen
 class InitialFacts:
     edge_props: Dict[int, ParticleWithSpin] = attr.ib(factory=dict)
     node_props: Dict[int, InteractionProperties] = attr.ib(factory=dict)

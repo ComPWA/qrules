@@ -141,7 +141,7 @@ def _to_optional_int(optional_int: Optional[int]) -> Optional[int]:
     return int(optional_int)
 
 
-@attr.s(frozen=True)
+@attr.frozen
 class Edge:
     """Struct-like definition of an edge, used in `Topology`."""
 
@@ -165,7 +165,7 @@ def _to_frozenset(iterable: Iterable[int]) -> FrozenSet[int]:
 
 
 @implement_pretty_repr()
-@attr.s(frozen=True)
+@attr.frozen
 class Topology:
     """Directed Feynman-like graph without edge or node properties.
 
@@ -367,7 +367,7 @@ def get_originating_node_list(
     ]
 
 
-@attr.s(kw_only=True)
+@attr.define(kw_only=True)
 class _MutableTopology:
     edges: Dict[int, Edge] = attr.ib(factory=dict, converter=dict)
     nodes: Set[int] = attr.ib(factory=set, converter=set)
@@ -450,7 +450,7 @@ class _MutableTopology:
             )
 
 
-@attr.s
+@attr.define
 class InteractionNode:
     """Helper class for the `.SimpleStateTransitionTopologyBuilder`."""
 

@@ -29,7 +29,7 @@ def _check_plus_minus(_: Any, __: attr.Attribute, value: Any) -> None:
 
 
 @total_ordering
-@attr.s(eq=False, frozen=True, hash=True, order=False, repr=False)
+@attr.frozen(eq=False, hash=True, order=False, repr=False)
 class Parity:
     value: int = attr.ib(validator=[instance_of(int), _check_plus_minus])
 
@@ -60,7 +60,7 @@ def _to_fraction(value: Union[float, int], render_plus: bool = False) -> str:
     return label
 
 
-@attr.s(frozen=True, init=False)
+@attr.frozen(init=False)
 class EdgeQuantumNumbers:  # pylint: disable=too-many-instance-attributes
     """Definition of quantum numbers for edges.
 
@@ -124,7 +124,7 @@ EdgeQuantumNumber = Union[
 ]
 
 
-@attr.s(frozen=True, init=False)
+@attr.frozen(init=False)
 class NodeQuantumNumbers:
     """Definition of quantum numbers for interaction nodes."""
 
@@ -164,7 +164,7 @@ def _to_optional_int(optional_int: Optional[int]) -> Optional[int]:
 
 
 @implement_pretty_repr()
-@attr.s(frozen=True)
+@attr.frozen(order=True)
 class InteractionProperties:
     """Immutable data structure containing interaction properties.
 

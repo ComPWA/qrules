@@ -53,7 +53,7 @@ def _to_float(value: SupportsFloat) -> float:
 
 
 @total_ordering
-@attr.s(eq=False, frozen=True, hash=True, order=False)
+@attr.frozen(eq=False, hash=True, order=False)
 class Spin:
     """Safe, immutable data container for spin **with projection**."""
 
@@ -122,7 +122,7 @@ def _to_spin(value: Union[Spin, Tuple[float, float]]) -> Spin:
 
 
 @total_ordering
-@attr.s(frozen=True, kw_only=True, order=False, repr=True)
+@attr.frozen(kw_only=True, order=False, repr=True)
 class Particle:  # pylint: disable=too-many-instance-attributes
     """Immutable container of data defining a physical particle.
 
