@@ -696,14 +696,14 @@ def _safe_wrap_list(
 
 
 @implement_pretty_repr()
-@attr.frozen
+@attr.frozen(order=True)
 class State:
     particle: Particle = attr.ib(validator=instance_of(Particle))
     spin_projection: float = attr.ib(converter=_to_float)
 
 
 @implement_pretty_repr()
-@attr.frozen
+@attr.frozen(order=True)
 class StateTransition:
     """Frozen instance of a `.StateTransitionGraph` of a particle with spin."""
 
