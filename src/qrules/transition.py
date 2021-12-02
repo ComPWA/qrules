@@ -98,7 +98,7 @@ class SolvingMode(Enum):
 
 
 @implement_pretty_repr()
-@attr.s(on_setattr=attr.setters.frozen)
+@attr.define(on_setattr=attr.setters.frozen)
 class ExecutionInfo:
     not_executed_node_rules: Dict[int, Set[str]] = attr.ib(
         factory=lambda: defaultdict(set)
@@ -141,14 +141,14 @@ class ExecutionInfo:
         self.violated_edge_rules.clear()
 
 
-@attr.s(frozen=True)
+@attr.frozen
 class _SolutionContainer:
     """Defines a result of a `.ProblemSet`."""
 
     solutions: List[StateTransitionGraph[ParticleWithSpin]] = attr.ib(
         factory=list
     )
-    execution_info: ExecutionInfo = attr.ib(ExecutionInfo())
+    execution_info: ExecutionInfo = attr.ib(default=ExecutionInfo())
 
     def __attrs_post_init__(self) -> None:
         if self.solutions and (
@@ -175,7 +175,7 @@ class _SolutionContainer:
 
 
 @implement_pretty_repr()
-@attr.s
+@attr.define
 class ProblemSet:
     """Particle reaction problem set, defined as a graph like data structure.
 
@@ -696,14 +696,14 @@ def _safe_wrap_list(
 
 
 @implement_pretty_repr()
-@attr.s(frozen=True)
+@attr.frozen
 class State:
     particle: Particle = attr.ib(validator=instance_of(Particle))
     spin_projection: float = attr.ib(converter=_to_float)
 
 
 @implement_pretty_repr()
-@attr.s(frozen=True)
+@attr.frozen
 class StateTransition:
     """Frozen instance of a `.StateTransitionGraph` of a particle with spin."""
 
@@ -784,7 +784,7 @@ def _to_sorted_tuple(
     return tuple(sorted(iterable))
 
 
-@attr.s(frozen=True)
+@attr.frozen
 class StateTransitionCollection(abc.Sequence):
     """`.StateTransition` instances with the same `.Topology` and edge IDs."""
 
@@ -895,7 +895,7 @@ def _to_tuple(
     return tuple(iterable)
 
 
-@attr.s(frozen=True, eq=False)
+@attr.frozen(eq=False)
 class ReactionInfo:
     """`StateTransitionCollection` instances, grouped by `.Topology`."""
 
