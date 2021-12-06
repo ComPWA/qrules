@@ -16,6 +16,7 @@ from abc import abstractmethod
 from collections import abc
 from functools import total_ordering
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     Collection,
@@ -47,10 +48,11 @@ if sys.version_info >= (3, 8):
 else:
     from typing_extensions import Protocol
 
-try:
-    from IPython.lib.pretty import PrettyPrinter
-except ImportError:
-    PrettyPrinter = Any
+if TYPE_CHECKING:
+    try:
+        from IPython.lib.pretty import PrettyPrinter
+    except ImportError:
+        PrettyPrinter = Any
 
 
 class Comparable(Protocol):
@@ -82,7 +84,7 @@ class FrozenDict(  # pylint: disable=too-many-ancestors
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.__mapping})"
 
-    def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
+    def _repr_pretty_(self, p: "PrettyPrinter", cycle: bool) -> None:
         class_name = type(self).__name__
         if cycle:
             p.text(f"{class_name}(...)")

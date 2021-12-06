@@ -1,3 +1,4 @@
+# pylint: disable=import-outside-toplevel
 """A collection of particle info containers.
 
 The :mod:`.particle` module is the starting point of `qrules`. Its main
@@ -18,6 +19,7 @@ from difflib import get_close_matches
 from functools import total_ordering
 from math import copysign
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     Dict,
@@ -33,16 +35,18 @@ from typing import (
 import attr
 from attr.converters import optional
 from attr.validators import instance_of
-from particle import Particle as PdgDatabase
-from particle.particle import enums
 
 from .conservation_rules import GellMannNishijimaInput, gellmann_nishijima
 from .quantum_numbers import Parity, _to_fraction
 
-try:
-    from IPython.lib.pretty import PrettyPrinter
-except ImportError:
-    PrettyPrinter = Any
+if TYPE_CHECKING:
+    from particle import Particle as PdgDatabase
+    from particle.particle import enums
+
+    try:
+        from IPython.lib.pretty import PrettyPrinter
+    except ImportError:
+        PrettyPrinter = Any
 
 
 def _to_float(value: SupportsFloat) -> float:
@@ -104,7 +108,7 @@ class Spin:
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}{(self.magnitude, self.projection)}"
 
-    def _repr_pretty_(self, p: PrettyPrinter, _: bool) -> None:
+    def _repr_pretty_(self, p: "PrettyPrinter", _: bool) -> None:
         class_name = type(self).__name__
         magnitude = _to_fraction(self.magnitude)
         projection = _to_fraction(self.projection, render_plus=True)
@@ -232,7 +236,7 @@ class Particle:  # pylint: disable=too-many-instance-attributes
             or self.tau_lepton_number != 0
         )
 
-    def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
+    def _repr_pretty_(self, p: "PrettyPrinter", cycle: bool) -> None:
         class_name = type(self).__name__
         if cycle:
             p.text(f"{class_name}(...)")
@@ -334,7 +338,7 @@ class ParticleCollection(abc.MutableSet):
         output += "})"
         return output
 
-    def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
+    def _repr_pretty_(self, p: "PrettyPrinter", cycle: bool) -> None:
         class_name = type(self).__name__
         if cycle:
             p.text(f"{class_name}(...)")
@@ -534,6 +538,8 @@ def load_pdg() -> ParticleCollection:
     PDG info is imported from the `scikit-hep/particle
     <https://github.com/scikit-hep/particle>`_ package.
     """
+    from particle import Particle as PdgDatabase
+
     all_pdg_particles = PdgDatabase.findall(
         lambda item: item.charge is not None
         and item.charge.is_integer()  # remove quarks
@@ -562,7 +568,7 @@ def __sign(value: Union[float, int]) -> int:
 
 
 # cspell:ignore pdgid
-def __convert_pdg_instance(pdg_particle: PdgDatabase) -> Particle:
+def __convert_pdg_instance(pdg_particle: "PdgDatabase") -> Particle:
     def convert_mass_width(value: Optional[float]) -> float:
         if value is None:
             return 0.0
@@ -603,7 +609,7 @@ def __convert_pdg_instance(pdg_particle: PdgDatabase) -> Particle:
 
 
 def __compute_quark_numbers(
-    pdg_particle: PdgDatabase,
+    pdg_particle: "PdgDatabase",
 ) -> Tuple[int, int, int, int]:
     strangeness = 0
     charmness = 0
@@ -624,7 +630,7 @@ def __compute_quark_numbers(
 
 
 def __compute_lepton_numbers(
-    pdg_particle: PdgDatabase,
+    pdg_particle: "PdgDatabase",
 ) -> Tuple[int, int, int]:
     electron_lepton_number = 0
     muon_lepton_number = 0
@@ -640,11 +646,11 @@ def __compute_lepton_numbers(
     return electron_lepton_number, muon_lepton_number, tau_lepton_number
 
 
-def __compute_baryonnumber(pdg_particle: PdgDatabase) -> int:
+def __compute_baryonnumber(pdg_particle: "PdgDatabase") -> int:
     return int(__sign(pdg_particle.pdgid) * pdg_particle.pdgid.is_baryon)
 
 
-def __create_isospin(pdg_particle: PdgDatabase) -> Optional[Spin]:
+def __create_isospin(pdg_particle: "PdgDatabase") -> Optional[Spin]:
     if pdg_particle.I is None:
         return None
     magnitude = pdg_particle.I
@@ -652,7 +658,7 @@ def __create_isospin(pdg_particle: PdgDatabase) -> Optional[Spin]:
     return Spin(magnitude, projection)
 
 
-def __isospin_projection_from_pdg(pdg_particle: PdgDatabase) -> float:
+def __isospin_projection_from_pdg(pdg_particle: "PdgDatabase") -> float:
     if pdg_particle.charge is None:
         raise ValueError(f"PDG instance has no charge:\n{pdg_particle}")
     if "qq" in pdg_particle.quarks.lower():
@@ -678,14 +684,16 @@ def __isospin_projection_from_pdg(pdg_particle: PdgDatabase) -> float:
     return projection
 
 
-def __filter_quark_content(pdg_particle: PdgDatabase) -> str:
+def __filter_quark_content(pdg_particle: "PdgDatabase") -> str:
     matches = re.search(r"([dDuUsScCbBtT+-]{2,})", pdg_particle.quarks)
     if matches is None:
         return ""
     return matches[1]
 
 
-def __create_parity(parity_enum: enums.Parity) -> Optional[Parity]:
+def __create_parity(parity_enum: "enums.Parity") -> Optional[Parity]:
+    from particle.particle import enums
+
     if parity_enum is None or parity_enum == enums.Parity.u:
         return None
     if parity_enum == getattr(parity_enum, "o", None):  # particle < 0.14

@@ -9,6 +9,7 @@ from enum import Enum, auto
 from itertools import zip_longest
 from multiprocessing import Pool
 from typing import (
+    TYPE_CHECKING,
     Any,
     Collection,
     DefaultDict,
@@ -82,10 +83,11 @@ from .topology import (
     create_n_body_topology,
 )
 
-try:
-    from IPython.lib.pretty import PrettyPrinter
-except ImportError:
-    PrettyPrinter = Any
+if TYPE_CHECKING:
+    try:
+        from IPython.lib.pretty import PrettyPrinter
+    except ImportError:
+        PrettyPrinter = Any
 
 
 class SolvingMode(Enum):
@@ -829,7 +831,7 @@ class StateTransitionCollection(abc.Sequence):
             ),
         )
 
-    def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
+    def _repr_pretty_(self, p: "PrettyPrinter", cycle: bool) -> None:
         class_name = type(self).__name__
         if cycle:
             p.text(f"{class_name}(...)")
@@ -935,7 +937,7 @@ class ReactionInfo:
             f" {other.__class__.__name__}"
         )
 
-    def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
+    def _repr_pretty_(self, p: "PrettyPrinter", cycle: bool) -> None:
         class_name = type(self).__name__
         if cycle:
             p.text(f"{class_name}(...)")

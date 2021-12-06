@@ -1,13 +1,14 @@
 """A collection of implementation tools to can be used accross all modules."""
 
-from typing import Any, Callable, Type, TypeVar
+from typing import TYPE_CHECKING, Any, Callable, Type, TypeVar
 
 import attr
 
-try:
-    from IPython.lib.pretty import PrettyPrinter
-except ImportError:
-    PrettyPrinter = Any
+if TYPE_CHECKING:
+    try:
+        from IPython.lib.pretty import PrettyPrinter
+    except ImportError:
+        PrettyPrinter = Any
 
 
 _DecoratedClass = TypeVar("_DecoratedClass")
@@ -27,7 +28,7 @@ def implement_pretty_repr() -> Callable[
                 " attrs"
             )
 
-        def repr_pretty(self: Any, p: PrettyPrinter, cycle: bool) -> None:
+        def repr_pretty(self: Any, p: "PrettyPrinter", cycle: bool) -> None:
             class_name = type(self).__name__
             if cycle:
                 p.text(f"{class_name}(...)")
