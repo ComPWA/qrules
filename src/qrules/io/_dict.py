@@ -1,3 +1,4 @@
+# pylint: disable=import-outside-toplevel
 """Serialization from and to a `dict`."""
 
 import json
@@ -6,7 +7,6 @@ from os.path import dirname, realpath
 from typing import Any, Dict
 
 import attr
-import jsonschema
 
 from qrules.particle import (
     Parity,
@@ -184,6 +184,8 @@ def build_topology(definition: dict) -> Topology:
 
 
 def validate_particle_collection(instance: dict) -> None:
+    import jsonschema
+
     jsonschema.validate(instance=instance, schema=__SCHEMA_PARTICLES)
 
 
