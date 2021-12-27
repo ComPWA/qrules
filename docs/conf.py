@@ -40,7 +40,7 @@ copyright = "2020, ComPWA"  # noqa: A001
 author = "Common Partial Wave Analysis"
 
 # https://docs.readthedocs.io/en/stable/builds.html
-BRANCH = os.environ.get("READTHEDOCS_VERSION", default="stable")
+BRANCH = os.environ.get("READTHEDOCS_VERSION", "stable")
 if BRANCH == "latest":
     BRANCH = "main"
 if re.match(r"^\d+$", BRANCH):  # PR preview
@@ -224,6 +224,11 @@ nitpick_ignore = [
 
 
 # Intersphinx settings
+version_remapping = {
+    "jsonschema": {"4.3.2": "4.3.1"},
+}
+
+
 def get_version(package_name: str) -> str:
     python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
     constraints_path = f"../.constraints/py{python_version}.txt"
@@ -236,11 +241,16 @@ def get_version(package_name: str) -> str:
             continue
         if not line:
             continue
-        line_segments = line.split("==")
+        line_segments = tuple(line.split("=="))
         if len(line_segments) != 2:
             continue
-        installed_version = line_segments[1]
+        _, installed_version, *_ = line_segments
         installed_version = installed_version.strip()
+        remapped_versions = version_remapping.get(package_name)
+        if remapped_versions is not None:
+            existing_version = remapped_versions.get(installed_version)
+            if existing_version is not None:
+                return existing_version
         return installed_version
     return "stable"
 
