@@ -225,7 +225,10 @@ nitpick_ignore = [
 
 # Intersphinx settings
 version_remapping = {
-    "jsonschema": {"4.3.2": "4.3.1"},
+    "jsonschema": {
+        "4.3.2": "4.3.1",
+        "4.3.3": "4.3.1",
+    },
 }
 
 
