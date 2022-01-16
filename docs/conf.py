@@ -196,6 +196,7 @@ html_theme_options = {
     "launch_buttons": {
         "binderhub_url": "https://mybinder.org",
         "colab_url": "https://colab.research.google.com",
+        "deepnote_url": "https://deepnote.com",
         "notebook_interface": "jupyterlab",
         "thebe": True,
         "thebelab": True,
@@ -228,6 +229,7 @@ version_remapping = {
     "jsonschema": {
         "4.3.2": "4.3.1",
         "4.3.3": "4.3.1",
+        "4.4.0": "4.3.1",
     },
 }
 
