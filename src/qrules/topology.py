@@ -337,6 +337,12 @@ class Topology:
             new_edges[new_edge_id] = self.edges[edge_id]
         return attr.evolve(self, edges=new_edges)
 
+    def relabel_edges(self, old_to_new_id: Mapping[int, int]) -> "Topology":
+        new_edges = {
+            old_to_new_id.get(i, i): edge for i, edge in self.edges.items()
+        }
+        return attr.evolve(self, edges=new_edges)
+
     def swap_edges(self, edge_id1: int, edge_id2: int) -> "Topology":
         new_edges = dict(self.edges.items())
         new_edges.update(
