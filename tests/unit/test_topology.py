@@ -240,6 +240,13 @@ class TestTopology:
         assert topology.outgoing_edge_ids == frozenset({0, 1, 2})
         assert topology.intermediate_edge_ids == frozenset({3, 4})
 
+    def test_relabel_edges(self, two_to_three_decay: Topology):
+        assert set(two_to_three_decay.edges) == {0, 1, 2, 3, 4, 5, 6}
+        relabeled_topology = two_to_three_decay.relabel_edges({0: -2, 1: -1})
+        assert set(relabeled_topology.edges) == {-2, -1, 2, 3, 4, 5, 6}
+        relabeled_topology = relabeled_topology.relabel_edges({2: 0, 3: 1})
+        assert set(relabeled_topology.edges) == {-2, -1, 0, 1, 4, 5, 6}
+
     def test_swap_edges(self, two_to_three_decay: Topology):
         original_topology = two_to_three_decay
         topology = original_topology.swap_edges(0, 1)
