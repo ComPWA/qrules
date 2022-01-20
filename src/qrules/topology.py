@@ -340,7 +340,7 @@ class Topology:
         >>> len(topologies)
         1
         >>> topology = topologies[0]
-        >>> final_state_ids = topologies[0].outgoing_edge_ids
+        >>> final_state_ids = topology.outgoing_edge_ids
         >>> permuted_topologies = {
         ...     topology.relabel_edges(dict(zip(final_state_ids, permutation)))
         ...     for permutation in itertools.permutations(final_state_ids)
