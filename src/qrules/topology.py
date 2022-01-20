@@ -143,7 +143,7 @@ def _to_optional_int(optional_int: Optional[int]) -> Optional[int]:
     return int(optional_int)
 
 
-@attr.frozen
+@attr.frozen(order=True)
 class Edge:
     """Struct-like definition of an edge, used in `Topology`."""
 
@@ -167,7 +167,7 @@ def _to_frozenset(iterable: Iterable[int]) -> FrozenSet[int]:
 
 
 @implement_pretty_repr()
-@attr.frozen
+@attr.frozen(order=True)
 class Topology:
     """Directed Feynman-like graph without edge or node properties.
 

@@ -249,6 +249,22 @@ class TestTopology:
         topology = topology.swap_edges(4, 6)
         assert topology != original_topology
 
+    @pytest.mark.parametrize(
+        ("n_final_states", "expected_order"),
+        [
+            (2, [0]),
+            (3, [0]),
+            (4, [1, 0]),
+            (5, [3, 2, 4, 1, 0]),
+            (6, [13, 9, 7, 10, 6, 5, 14, 11, 8, 15, 3, 2, 12, 4, 1, 0]),
+        ],
+    )
+    def test_unique_ordering(self, n_final_states, expected_order):
+        topologies = create_isobar_topologies(n_final_states)
+        sorted_topologies = sorted(topologies)
+        order = [sorted_topologies.index(t) for t in topologies]
+        assert order == expected_order
+
 
 @pytest.mark.parametrize(
     ("n_final", "n_topologies", "exception"),
