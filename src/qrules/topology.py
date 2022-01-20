@@ -321,21 +321,14 @@ class Topology:
         - `.outgoing_edge_ids` lies in the range :code:`[0, 1, ..., n]`
         - `.intermediate_edge_ids` lies in the range :code:`[n+1, n+2, ...]`
         """
-        new_edges = {}
-        # Relabel so that initial edge IDs are [-1, -2, ...]
-        for new_edge_id, edge_id in zip(
-            range(-1, -len(self.incoming_edge_ids) - 1, -1),
-            self.incoming_edge_ids,
-        ):
-            new_edges[new_edge_id] = self.edges[edge_id]
-        # Relabel so that
-        # outgoing edge IDs are [0, 1, 2, ..., n]
-        # intermediate edge IDs are [n+1, n+2, ...]
-        for new_edge_id, edge_id in enumerate(
-            tuple(self.outgoing_edge_ids) + tuple(self.intermediate_edge_ids)
-        ):
-            new_edges[new_edge_id] = self.edges[edge_id]
-        return attr.evolve(self, edges=new_edges)
+        new_to_old_id = enumerate(
+            tuple(self.incoming_edge_ids)
+            + tuple(self.outgoing_edge_ids)
+            + tuple(self.intermediate_edge_ids),
+            start=-len(self.incoming_edge_ids),
+        )
+        old_to_new_id = {j: i for i, j in new_to_old_id}
+        return self.relabel_edges(old_to_new_id)
 
     def relabel_edges(self, old_to_new_id: Mapping[int, int]) -> "Topology":
         new_edges = {
@@ -344,14 +337,7 @@ class Topology:
         return attr.evolve(self, edges=new_edges)
 
     def swap_edges(self, edge_id1: int, edge_id2: int) -> "Topology":
-        new_edges = dict(self.edges.items())
-        new_edges.update(
-            {
-                edge_id1: self.edges[edge_id2],
-                edge_id2: self.edges[edge_id1],
-            }
-        )
-        return attr.evolve(self, edges=FrozenDict(new_edges))
+        return self.relabel_edges({edge_id1: edge_id2, edge_id2: edge_id1})
 
 
 def get_originating_node_list(
