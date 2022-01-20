@@ -2,7 +2,7 @@
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Callable, Dict, List, Optional, Set, Tuple, Type
+from typing import Callable, Dict, Iterable, List, Optional, Set, Tuple, Type
 
 import attr
 
@@ -289,7 +289,8 @@ class NodePropertyComparator:
 
 
 def filter_graphs(
-    graphs: List[StateTransitionGraph], filters: List[Callable]
+    graphs: List[StateTransitionGraph],
+    filters: Iterable[Callable[[StateTransitionGraph], bool]],
 ) -> List[StateTransitionGraph]:
     r"""Implement filtering of a list of `.StateTransitionGraph` 's.
 
@@ -299,14 +300,6 @@ def filter_graphs(
 
     Note:
         For the more advanced user, lambda functions can be used as filters.
-
-    Args:
-        graphs ([`.StateTransitionGraph`]): list of graphs to be
-            filtered
-        filters (list): list of functions, which take a single
-            `.StateTransitionGraph` as an argument
-    Returns:
-        [`.StateTransitionGraph`]: filtered list of graphs
 
     Example:
         Selecting only the solutions, in which the :math:`\rho` decays via

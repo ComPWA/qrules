@@ -251,10 +251,8 @@ class Topology:
     def is_isomorphic(self, other: "Topology") -> bool:
         """Check if two graphs are isomorphic.
 
-        Returns:
-            bool:
-                True if the two graphs have a one-to-one mapping of the node IDs
-                and edge IDs.
+        Returns `True` if the two graphs have a one-to-one mapping of the node
+        IDs and edge IDs.
         """
         raise NotImplementedError
 
@@ -363,11 +361,9 @@ def get_originating_node_list(
     """Get list of node ids from which the supplied edges originate from.
 
     Args:
-        edge_ids ([int]): list of edge ids for which the origin node is
-            searched for
-
-    Returns:
-        [int]: a list of node ids
+        topology: The `Topology` on which to perform the search.
+        edge_ids ([int]): A list of edge ids for which the origin node is
+            searched for.
     """
 
     def __get_originating_node(edge_id: int) -> Optional[int]:
