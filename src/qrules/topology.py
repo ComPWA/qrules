@@ -331,6 +331,23 @@ class Topology:
         return self.relabel_edges(old_to_new_id)
 
     def relabel_edges(self, old_to_new_id: Mapping[int, int]) -> "Topology":
+        """Create a new `Topology` with new edge IDs.
+
+        This method is particularly useful when creating permutations of a
+        `Topology`, e.g.:
+
+        >>> topologies = create_isobar_topologies(3)
+        >>> len(topologies)
+        1
+        >>> topology = topologies[0]
+        >>> final_state_ids = topologies[0].outgoing_edge_ids
+        >>> permuted_topologies = {
+        ...     topology.relabel_edges(dict(zip(final_state_ids, permutation)))
+        ...     for permutation in itertools.permutations(final_state_ids)
+        ... }
+        >>> len(permuted_topologies)
+        3
+        """
         new_edges = {
             old_to_new_id.get(i, i): edge for i, edge in self.edges.items()
         }
