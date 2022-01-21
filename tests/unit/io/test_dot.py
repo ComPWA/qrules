@@ -32,6 +32,15 @@ def test_asdot(reaction: ReactionInfo):
     assert pydot.graph_from_dot_data(dot_data) is not None
 
 
+def test_asdot_graphviz_attrs(reaction: ReactionInfo):
+    dot_data = io.asdot(reaction, size=12)
+    assert pydot.graph_from_dot_data(dot_data) is not None
+    dot_data = io.asdot(reaction, bgcolor="red", size=12)
+    assert pydot.graph_from_dot_data(dot_data) is not None
+    assert '\n    bgcolor="red";\n' in dot_data
+    assert "\n    size=12;\n" in dot_data
+
+
 @pytest.mark.parametrize(
     "formalism",
     ["canonical", "canonical-helicity", "helicity"],

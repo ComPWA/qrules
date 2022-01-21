@@ -51,6 +51,29 @@ def embed_dot(func: Callable) -> Callable:
     return wrapper
 
 
+def insert_graphviz_styling(dot: str, **kwargs: Any) -> str:
+    header = __dot_kwargs_to_header(**kwargs)
+    return dot.replace(_DOT_HEAD, _DOT_HEAD + header)
+
+
+def __dot_kwargs_to_header(**kwargs: Any) -> str:
+    r"""Create DOT-compatible header lines from Graphviz attributes.
+
+    >>> __dot_kwargs_to_header(size=12)
+    '    size=12;\n'
+    >>> __dot_kwargs_to_header(bgcolor="red", size=8)
+    '    bgcolor="red";\n    size=8;\n'
+    """
+    if not kwargs:
+        return ""
+    header = ""
+    for key, value in kwargs.items():
+        if isinstance(value, str):
+            value = f'"{value}"'
+        header += f"    {key}={value};\n"
+    return header
+
+
 @embed_dot
 def graph_list_to_dot(
     graphs: Iterable[StateTransitionGraph],
