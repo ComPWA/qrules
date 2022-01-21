@@ -12,7 +12,7 @@ The fastest way of installing this package is through PyPI or Conda:
 python3 -m pip install qrules
 ```
 
-::::
+:::
 
 :::{tabbed} Conda
 
