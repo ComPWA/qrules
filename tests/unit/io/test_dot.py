@@ -32,6 +32,53 @@ def test_asdot(reaction: ReactionInfo):
     assert pydot.graph_from_dot_data(dot_data) is not None
 
 
+def test_asdot_exact_format(reaction: ReactionInfo):
+    dot = io.asdot(reaction.transitions[0], render_node=True)
+    if reaction.formalism == "helicity":
+        expected_dot = """
+digraph {
+    rankdir=LR;
+    node [shape=point, width=0];
+    edge [arrowhead=none];
+    "edge0" [shape=none, label="0: gamma[-1]"];
+    "edge1" [shape=none, label="1: pi0[0]"];
+    "edge2" [shape=none, label="2: pi0[0]"];
+    "edge-1" [shape=none, label="J/psi(1S)[-1]"];
+    { rank=same "edge-1" };
+    { rank=same "edge0", "edge1", "edge2" };
+    "edge-1" -> "node0";
+    "node0" -> "node1" [label="f(0)(980)[0]"];
+    "node0" -> "edge0";
+    "node1" -> "edge1";
+    "node1" -> "edge2";
+    "node0" [shape=none, label="P=+1"];
+    "node1" [shape=none, label="P=+1"];
+}
+        """
+    else:
+        expected_dot = """
+digraph {
+    rankdir=LR;
+    node [shape=point, width=0];
+    edge [arrowhead=none];
+    "edge0" [shape=none, label="0: gamma[-1]"];
+    "edge1" [shape=none, label="1: pi0[0]"];
+    "edge2" [shape=none, label="2: pi0[0]"];
+    "edge-1" [shape=none, label="J/psi(1S)[-1]"];
+    { rank=same "edge-1" };
+    { rank=same "edge0", "edge1", "edge2" };
+    "edge-1" -> "node0";
+    "node0" -> "node1" [label="f(0)(980)[0]"];
+    "node0" -> "edge0";
+    "node1" -> "edge1";
+    "node1" -> "edge2";
+    "node0" [shape=none, label="l=(0, 0)\ns=(1, -1)\nP=+1"];
+    "node1" [shape=none, label="l=(0, 0)\ns=(0, 0)\nP=+1"];
+}
+        """
+    assert dot.strip() == expected_dot.strip()
+
+
 def test_asdot_graphviz_attrs(reaction: ReactionInfo):
     dot_data = io.asdot(reaction, size=12)
     assert pydot.graph_from_dot_data(dot_data) is not None
