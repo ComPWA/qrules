@@ -9,6 +9,7 @@ from collections import abc
 from typing import (
     Any,
     Callable,
+    Dict,
     Iterable,
     List,
     Mapping,
@@ -51,12 +52,12 @@ def embed_dot(func: Callable) -> Callable:
     return wrapper
 
 
-def insert_graphviz_styling(dot: str, **kwargs: Any) -> str:
-    header = __dot_kwargs_to_header(**kwargs)
+def insert_graphviz_styling(dot: str, graphviz_attrs: Dict[str, Any]) -> str:
+    header = __dot_kwargs_to_header(graphviz_attrs)
     return dot.replace(_DOT_HEAD, _DOT_HEAD + header)
 
 
-def __dot_kwargs_to_header(**kwargs: Any) -> str:
+def __dot_kwargs_to_header(graphviz_attrs: Dict[str, Any]) -> str:
     r"""Create DOT-compatible header lines from Graphviz attributes.
 
     >>> __dot_kwargs_to_header(size=12)
@@ -64,10 +65,10 @@ def __dot_kwargs_to_header(**kwargs: Any) -> str:
     >>> __dot_kwargs_to_header(bgcolor="red", size=8)
     '    bgcolor="red";\n    size=8;\n'
     """
-    if not kwargs:
+    if not graphviz_attrs:
         return ""
     header = ""
-    for key, value in kwargs.items():
+    for key, value in graphviz_attrs.items():
         if isinstance(value, str):
             value = f'"{value}"'
         header += f"    {key}={value};\n"

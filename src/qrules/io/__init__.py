@@ -91,7 +91,7 @@ def asdot(
     render_initial_state_id: bool = False,
     strip_spin: bool = False,
     collapse_graphs: bool = False,
-    **graphviz_attributes: Any,
+    **figure_style: Any,
 ) -> str:
     """Convert a `object` to a DOT language `str`.
 
@@ -123,7 +123,7 @@ def asdot(
         render_final_state_id: Add edge IDs for the final state edges.
         render_resonance_id: Add edge IDs for the intermediate state edges.
         render_initial_state_id: Add edge IDs for the initial state edges.
-        graphviz_attributes: See
+        figure_style: See
             `Graphviz attributes <https://graphviz.org/doc/info/attrs.html>`_
             for the available arguments.
 
@@ -139,7 +139,7 @@ def asdot(
             render_resonance_id=render_resonance_id,
             render_initial_state_id=render_initial_state_id,
         )
-        return _dot.insert_graphviz_styling(dot, **graphviz_attributes)
+        return _dot.insert_graphviz_styling(dot, graphviz_attrs=figure_style)
     if isinstance(instance, (ReactionInfo, StateTransitionCollection)):
         instance = instance.to_graphs()
     if isinstance(instance, abc.Iterable):
@@ -152,7 +152,7 @@ def asdot(
             strip_spin=strip_spin,
             collapse_graphs=collapse_graphs,
         )
-        return _dot.insert_graphviz_styling(dot, **graphviz_attributes)
+        return _dot.insert_graphviz_styling(dot, graphviz_attrs=figure_style)
     raise NotImplementedError(
         f"Cannot convert a {instance.__class__.__name__} to DOT language"
     )
