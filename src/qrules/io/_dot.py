@@ -34,9 +34,6 @@ _DOT_HEAD = """digraph {
 """
 _DOT_TAIL = "}\n"
 _DOT_RANK_SAME = "    {{ rank=same {} }};\n"
-_DOT_DEFAULT_NODE = '    "{}" [shape=none, label="{}"];\n'
-_DOT_DEFAULT_EDGE = '    "{}" -> "{}";\n'
-_DOT_LABEL_EDGE = '    "{}" -> "{}" [label="{}"];\n'
 
 
 def embed_dot(func: Callable) -> Callable:
@@ -57,6 +54,28 @@ def insert_graphviz_styling(dot: str, graphviz_attrs: Dict[str, Any]) -> str:
     return dot.replace(_DOT_HEAD, _DOT_HEAD + header)
 
 
+def _create_graphviz_edge(
+    from_node: str,
+    to_node: str,
+    *,
+    label: str = "",
+    graphviz_attrs: Dict[str, Any],
+) -> str:
+    updated_graphviz_attrs = dict(graphviz_attrs)
+    if label:
+        updated_graphviz_attrs["label"] = label
+    styling = __create_graphviz_edge_node_styling(updated_graphviz_attrs)
+    return f'    "{from_node}" -> "{to_node}"{styling};\n'
+
+
+def _create_graphviz_node(
+    name: str, label: str, graphviz_attrs: Dict[str, Any]
+) -> str:
+    updated_graphviz_attrs = {"shape": None, "label": label, **graphviz_attrs}
+    styling = __create_graphviz_edge_node_styling(updated_graphviz_attrs)
+    return f'    "{name}"{styling};\n'
+
+
 def __dot_kwargs_to_header(graphviz_attrs: Dict[str, Any]) -> str:
     r"""Create DOT-compatible header lines from Graphviz attributes.
 
@@ -67,12 +86,50 @@ def __dot_kwargs_to_header(graphviz_attrs: Dict[str, Any]) -> str:
     """
     if not graphviz_attrs:
         return ""
-    header = ""
+    assignments = __create_graphviz_assignments(graphviz_attrs)
+    indent = "    "
+    line_ending = ";\n"
+    return indent + f"{line_ending}{indent}".join(assignments) + line_ending
+
+
+def __create_graphviz_edge_node_styling(graphviz_attrs: Dict[str, Any]) -> str:
+    """Create a `str` of Graphviz attribute assignments for a node or edge.
+
+    See `Graphviz attributes <https://graphviz.org/doc/info/attrs.html>`_ for
+    the assignment syntax.
+
+    >>> __create_graphviz_edge_node_styling(size=12)
+    ' [size=12]'
+    >>> __create_graphviz_edge_node_styling(color="red", size=8)
+    ' [color="red", size=8]'
+    """
+    if not graphviz_attrs:
+        return ""
+    assignments = __create_graphviz_assignments(graphviz_attrs)
+    return f" [{', '.join(assignments)}]"
+
+
+def __create_graphviz_assignments(graphviz_attrs: Dict[str, Any]) -> List[str]:
+    """Create a `list` of graphviz attribute assignments.
+
+    See `Graphviz attributes <https://graphviz.org/doc/info/attrs.html>`_ for
+    the assignment syntax.
+
+    >>> __create_graphviz_assignments(size=12)
+    ['size=12']
+    >>> __create_graphviz_assignments(color="red", size=8)
+    ['color="red"', 'size=8']
+    >>> __create_graphviz_assignments(shape=None)
+    ['shape=none']
+    """
+    items = []
     for key, value in graphviz_attrs.items():
-        if isinstance(value, str):
+        if value is None:
+            value = "none"
+        elif isinstance(value, str):
             value = f'"{value}"'
-        header += f"    {key}={value};\n"
-    return header
+        items.append(f"{key}={value}")
+    return items
 
 
 @embed_dot
@@ -85,6 +142,8 @@ def graph_list_to_dot(
     render_initial_state_id: bool,
     strip_spin: bool,
     collapse_graphs: bool,
+    edge_style: Dict[str, Any],
+    node_style: Dict[str, Any],
 ) -> str:
     if strip_spin and collapse_graphs:
         raise ValueError("Cannot both strip spin and collapse graphs")
@@ -117,6 +176,8 @@ def graph_list_to_dot(
             render_final_state_id=render_final_state_id,
             render_resonance_id=render_resonance_id,
             render_initial_state_id=render_initial_state_id,
+            edge_style=edge_style,
+            node_style=node_style,
         )
     return dot
 
@@ -129,6 +190,8 @@ def graph_to_dot(
     render_final_state_id: bool,
     render_resonance_id: bool,
     render_initial_state_id: bool,
+    edge_style: Dict[str, Any],
+    node_style: Dict[str, Any],
 ) -> str:
     return __graph_to_dot_content(
         graph,
@@ -136,6 +199,8 @@ def graph_to_dot(
         render_final_state_id=render_final_state_id,
         render_resonance_id=render_resonance_id,
         render_initial_state_id=render_initial_state_id,
+        edge_style=edge_style,
+        node_style=node_style,
     )
 
 
@@ -154,6 +219,8 @@ def __graph_to_dot_content(  # pylint: disable=too-many-branches,too-many-locals
     render_final_state_id: bool,
     render_resonance_id: bool,
     render_initial_state_id: bool,
+    edge_style: Dict[str, Any],
+    node_style: Dict[str, Any],
 ) -> str:
     dot = ""
     if isinstance(graph, tuple) and len(graph) == 2:
@@ -187,23 +254,25 @@ def __graph_to_dot_content(  # pylint: disable=too-many-branches,too-many-locals
         else:
             render = render_final_state_id
         edge_label = __get_edge_label(rendered_graph, edge_id, render)
-        dot += _DOT_DEFAULT_NODE.format(
-            prefix + __node_name(edge_id),
-            edge_label,
+        dot += _create_graphviz_node(
+            name=prefix + __node_name(edge_id),
+            label=edge_label,
+            graphviz_attrs=edge_style,
         )
     dot += __rank_string(top, prefix)
     dot += __rank_string(outs, prefix)
     for i, edge in topology.edges.items():
         j, k = edge.ending_node_id, edge.originating_node_id
+        from_node = prefix + __node_name(i, k)
+        to_node = prefix + __node_name(i, j)
         if j is None or k is None:
-            dot += _DOT_DEFAULT_EDGE.format(
-                prefix + __node_name(i, k), prefix + __node_name(i, j)
+            dot += _create_graphviz_edge(
+                from_node, to_node, graphviz_attrs=edge_style
             )
         else:
-            dot += _DOT_LABEL_EDGE.format(
-                prefix + __node_name(i, k),
-                prefix + __node_name(i, j),
-                __get_edge_label(rendered_graph, i, render_resonance_id),
+            label = __get_edge_label(rendered_graph, i, render_resonance_id)
+            dot += _create_graphviz_edge(
+                from_node, to_node, label=label, graphviz_attrs=edge_style
             )
     if isinstance(graph, ProblemSet):
         node_props = graph.solving_settings.node_settings
@@ -211,8 +280,10 @@ def __graph_to_dot_content(  # pylint: disable=too-many-branches,too-many-locals
             node_label = ""
             if render_node:
                 node_label = __node_label(settings)
-            dot += _DOT_DEFAULT_NODE.format(
-                f"{prefix}node{node_id}", node_label
+            dot += _create_graphviz_node(
+                name=f"{prefix}node{node_id}",
+                label=node_label,
+                graphviz_attrs=node_style,
             )
     if isinstance(graph, (StateTransition, StateTransitionGraph)):
         if isinstance(graph, StateTransition):
@@ -225,8 +296,10 @@ def __graph_to_dot_content(  # pylint: disable=too-many-branches,too-many-locals
             node_label = ""
             if render_node:
                 node_label = __node_label(node_prop)
-            dot += _DOT_DEFAULT_NODE.format(
-                f"{prefix}node{node_id}", node_label
+            dot += _create_graphviz_node(
+                name=f"{prefix}node{node_id}",
+                label=node_label,
+                graphviz_attrs=node_style,
             )
     if isinstance(graph, Topology):
         if len(topology.nodes) > 1:
@@ -234,8 +307,10 @@ def __graph_to_dot_content(  # pylint: disable=too-many-branches,too-many-locals
                 node_label = ""
                 if render_node:
                     node_label = f"({node_id})"
-                dot += _DOT_DEFAULT_NODE.format(
-                    f"{prefix}node{node_id}", node_label
+                dot += _create_graphviz_node(
+                    name=f"{prefix}node{node_id}",
+                    label=node_label,
+                    graphviz_attrs=node_style,
                 )
     return dot
 

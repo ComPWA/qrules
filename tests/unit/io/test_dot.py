@@ -88,6 +88,25 @@ def test_asdot_graphviz_attrs(reaction: ReactionInfo):
     assert "\n    size=12;\n" in dot_data
 
 
+def test_asdot_with_styled_edges_and_nodes(reaction: ReactionInfo, output_dir):
+    transition = reaction.transitions[0]
+    dot = io.asdot(
+        transition,
+        edge_style={"fontcolor": "blue"},
+        node_style={"fontcolor": "darkgreen", "shape": "ellipse"},
+    )
+    assert pydot.graph_from_dot_data(dot) is not None
+    with open(output_dir + f"styled_{reaction.formalism}.gv", "w") as stream:
+        stream.write(dot)
+    assert (
+        '"edge0" [shape=none, fontcolor="blue", label="0: gamma[-1]"];' in dot
+    )
+    assert (
+        '"node0" -> "node1" [fontcolor="blue", label="f(0)(980)[0]"];' in dot
+    )
+    assert '"node0" [shape="ellipse", fontcolor="darkgreen", label=""];' in dot
+
+
 @pytest.mark.parametrize(
     "formalism",
     ["canonical", "canonical-helicity", "helicity"],
