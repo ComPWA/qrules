@@ -9,7 +9,7 @@ and from disk, so that they can be used by external packages, or just to store
 import json
 from collections import abc
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, Optional
 
 import attr
 import yaml
@@ -91,6 +91,9 @@ def asdot(
     render_initial_state_id: bool = False,
     strip_spin: bool = False,
     collapse_graphs: bool = False,
+    edge_style: Optional[Dict[str, Any]] = None,
+    node_style: Optional[Dict[str, Any]] = None,
+    **figure_style: Any,
 ) -> str:
     """Convert a `object` to a DOT language `str`.
 
@@ -120,27 +123,40 @@ def asdot(
             See `.InteractionProperties` for more info.
 
         render_final_state_id: Add edge IDs for the final state edges.
-
         render_resonance_id: Add edge IDs for the intermediate state edges.
-
         render_initial_state_id: Add edge IDs for the initial state edges.
+        edge_style: Styling of a Graphviz edge.
+        node_style: Styling of a Graphviz node.
+        figure_style: Styling of the whole figure.
+
+    .. seealso::
+
+        See `Graphviz attributes <https://graphviz.org/doc/info/attrs.html>`_
+        for the available styling arguments.
 
     .. seealso:: :doc:`/usage/visualize`
     """
+    if edge_style is None:
+        edge_style = {}
+    if node_style is None:
+        node_style = {}
     if isinstance(instance, StateTransition):
         instance = instance.to_graph()
     if isinstance(instance, (ProblemSet, StateTransitionGraph, Topology)):
-        return _dot.graph_to_dot(
+        dot = _dot.graph_to_dot(
             instance,
             render_node=render_node,
             render_final_state_id=render_final_state_id,
             render_resonance_id=render_resonance_id,
             render_initial_state_id=render_initial_state_id,
+            edge_style=edge_style,
+            node_style=node_style,
         )
+        return _dot.insert_graphviz_styling(dot, graphviz_attrs=figure_style)
     if isinstance(instance, (ReactionInfo, StateTransitionCollection)):
         instance = instance.to_graphs()
     if isinstance(instance, abc.Iterable):
-        return _dot.graph_list_to_dot(
+        dot = _dot.graph_list_to_dot(
             instance,
             render_node=render_node,
             render_final_state_id=render_final_state_id,
@@ -148,7 +164,10 @@ def asdot(
             render_initial_state_id=render_initial_state_id,
             strip_spin=strip_spin,
             collapse_graphs=collapse_graphs,
+            edge_style=edge_style,
+            node_style=node_style,
         )
+        return _dot.insert_graphviz_styling(dot, graphviz_attrs=figure_style)
     raise NotImplementedError(
         f"Cannot convert a {instance.__class__.__name__} to DOT language"
     )
