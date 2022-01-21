@@ -81,9 +81,9 @@ def _create_graphviz_node(
 def __dot_kwargs_to_header(graphviz_attrs: Dict[str, Any]) -> str:
     r"""Create DOT-compatible header lines from Graphviz attributes.
 
-    >>> __dot_kwargs_to_header(size=12)
+    >>> __dot_kwargs_to_header({"size": 12})
     '    size=12;\n'
-    >>> __dot_kwargs_to_header(bgcolor="red", size=8)
+    >>> __dot_kwargs_to_header({"bgcolor": "red", "size": 8})
     '    bgcolor="red";\n    size=8;\n'
     """
     if not graphviz_attrs:
@@ -100,9 +100,9 @@ def __create_graphviz_edge_node_styling(graphviz_attrs: Dict[str, Any]) -> str:
     See `Graphviz attributes <https://graphviz.org/doc/info/attrs.html>`_ for
     the assignment syntax.
 
-    >>> __create_graphviz_edge_node_styling(size=12)
+    >>> __create_graphviz_edge_node_styling({"size": 12})
     ' [size=12]'
-    >>> __create_graphviz_edge_node_styling(color="red", size=8)
+    >>> __create_graphviz_edge_node_styling({"color": "red", "size": 8})
     ' [color="red", size=8]'
     """
     if not graphviz_attrs:
@@ -117,11 +117,11 @@ def __create_graphviz_assignments(graphviz_attrs: Dict[str, Any]) -> List[str]:
     See `Graphviz attributes <https://graphviz.org/doc/info/attrs.html>`_ for
     the assignment syntax.
 
-    >>> __create_graphviz_assignments(size=12)
+    >>> __create_graphviz_assignments({"size": 12})
     ['size=12']
-    >>> __create_graphviz_assignments(color="red", size=8)
+    >>> __create_graphviz_assignments({"color": "red", "size": 8})
     ['color="red"', 'size=8']
-    >>> __create_graphviz_assignments(shape=None)
+    >>> __create_graphviz_assignments({"shape": None})
     ['shape=none']
     """
     items = []
