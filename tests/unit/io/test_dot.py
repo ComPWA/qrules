@@ -107,6 +107,18 @@ def test_asdot_with_styled_edges_and_nodes(reaction: ReactionInfo, output_dir):
     assert '"node0" [shape="ellipse", fontcolor="darkgreen", label=""];' in dot
 
 
+def test_asdot_no_label_overwriting(reaction: ReactionInfo):
+    transition = reaction.transitions[0]
+    label = "should be ignored"
+    dot_data = io.asdot(
+        transition,
+        edge_style={"label": label},
+        node_style={"label": label},
+    )
+    assert pydot.graph_from_dot_data(dot_data) is not None
+    assert label not in dot_data
+
+
 @pytest.mark.parametrize(
     "formalism",
     ["canonical", "canonical-helicity", "helicity"],

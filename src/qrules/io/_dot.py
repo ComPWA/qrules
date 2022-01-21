@@ -62,6 +62,8 @@ def _create_graphviz_edge(
     graphviz_attrs: Dict[str, Any],
 ) -> str:
     updated_graphviz_attrs = dict(graphviz_attrs)
+    if "label" in updated_graphviz_attrs:
+        del updated_graphviz_attrs["label"]
     if label:
         updated_graphviz_attrs["label"] = label
     styling = __create_graphviz_edge_node_styling(updated_graphviz_attrs)
@@ -71,7 +73,7 @@ def _create_graphviz_edge(
 def _create_graphviz_node(
     name: str, label: str, graphviz_attrs: Dict[str, Any]
 ) -> str:
-    updated_graphviz_attrs = {"shape": None, "label": label, **graphviz_attrs}
+    updated_graphviz_attrs = {"shape": None, **graphviz_attrs, "label": label}
     styling = __create_graphviz_edge_node_styling(updated_graphviz_attrs)
     return f'    "{name}"{styling};\n'
 
