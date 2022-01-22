@@ -2,7 +2,6 @@
 """Find allowed transitions between an initial and final state."""
 
 import logging
-import multiprocessing
 from collections import abc, defaultdict
 from copy import copy, deepcopy
 from enum import Enum, auto
@@ -64,7 +63,11 @@ from .quantum_numbers import (
     NodeQuantumNumber,
     NodeQuantumNumbers,
 )
-from .settings import InteractionType, create_interaction_settings
+from .settings import (
+    InteractionType,
+    NumberOfThreads,
+    create_interaction_settings,
+)
 from .solving import (
     CSPSolver,
     EdgeSettings,
@@ -250,13 +253,16 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         ] = None,
         formalism: str = "helicity",
         topology_building: str = "isobar",
-        number_of_threads: Optional[int] = None,
         solving_mode: SolvingMode = SolvingMode.FAST,
         reload_pdg: bool = False,
         mass_conservation_factor: Optional[float] = 3.0,
         max_angular_momentum: int = 1,
         max_spin_magnitude: float = 2.0,
+        number_of_threads: Optional[int] = None,
     ) -> None:
+        if number_of_threads is not None:
+            NumberOfThreads.set(number_of_threads)
+        self.__number_of_threads = NumberOfThreads.get()
         if interaction_type_settings is None:
             interaction_type_settings = {}
         allowed_formalisms = [
@@ -273,10 +279,6 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         self.__particles = ParticleCollection()
         if particle_db is not None:
             self.__particles = particle_db
-        if number_of_threads is None:
-            self.number_of_threads = multiprocessing.cpu_count()
-        else:
-            self.number_of_threads = int(number_of_threads)
         self.reaction_mode = str(solving_mode)
         self.initial_state = initial_state
         self.final_state = final_state
@@ -556,7 +558,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
                 f"strength {strength}",
             )
             logging.info(f"{len(problems)} entries in this group")
-            logging.info(f"running with {self.number_of_threads} threads...")
+            logging.info(f"running with {self.__number_of_threads} threads...")
 
             qn_problems = [x.to_qn_problem_set() for x in problems]
 
@@ -565,8 +567,8 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             # QNProblemSet's and QNResult's. So the appropriate conversions
             # have to be done before and after
             temp_qn_results: List[Tuple[QNProblemSet, QNResult]] = []
-            if self.number_of_threads > 1:
-                with Pool(self.number_of_threads) as pool:
+            if self.__number_of_threads > 1:
+                with Pool(self.__number_of_threads) as pool:
                     for qn_result in pool.imap_unordered(
                         self._solve, qn_problems, 1
                     ):

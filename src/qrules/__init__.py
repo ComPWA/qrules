@@ -349,8 +349,9 @@ def generate_transitions(  # pylint: disable=too-many-arguments
             - :code:`"nbody"`: Use one central node and connect initial and final
               states to it
 
-        number_of_threads (int): Number of cores with which to compute the
-            allowed transitions. Defaults to all cores on the system.
+        number_of_threads: Number of cores with which to compute the allowed
+            transitions. Defaults to the current value returned by
+            :meth:`.settings.NumberOfThreads.get`.
 
     An example (where, for illustrative purposes only, we specify all
     arguments) would be:

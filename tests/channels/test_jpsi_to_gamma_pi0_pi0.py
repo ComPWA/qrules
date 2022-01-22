@@ -39,7 +39,6 @@ def test_number_of_solutions(
         particle_db=particle_database,
         allowed_interaction_types=["strong", "EM"],
         allowed_intermediate_particles=allowed_intermediate_particles,
-        number_of_threads=1,
         formalism="helicity",
     )
     assert len(reaction.transition_groups) == n_topologies
@@ -57,7 +56,6 @@ def test_id_to_particle_mappings(particle_database):
         particle_db=particle_database,
         allowed_interaction_types="strong",
         allowed_intermediate_particles=["f(0)(980)"],
-        number_of_threads=1,
         formalism="helicity",
     )
     assert len(reaction.transition_groups) == 1
