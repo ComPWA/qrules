@@ -102,7 +102,6 @@ def test_external_edge_initialization(
         final_state,
         particle_database,
         formalism="helicity",
-        number_of_threads=1,
     )
 
     stm.set_allowed_interaction_types([InteractionType.STRONG])
@@ -366,7 +365,6 @@ def test_edge_swap(particle_database, initial_state, final_state):
         final_state,
         particle_database,
         formalism="helicity",
-        number_of_threads=1,
     )
     stm.set_allowed_interaction_types([InteractionType.STRONG])
 
@@ -412,7 +410,6 @@ def test_match_external_edges(particle_database, initial_state, final_state):
         final_state,
         particle_database,
         formalism="helicity",
-        number_of_threads=1,
     )
 
     stm.set_allowed_interaction_types([InteractionType.STRONG])
@@ -494,7 +491,6 @@ def test_external_edge_identical_particle_combinatorics(
         final_state,
         particle_database,
         formalism="helicity",
-        number_of_threads=1,
     )
     stm.set_allowed_interaction_types([InteractionType.STRONG])
     for group in final_state_groupings:

@@ -18,7 +18,6 @@ def test_simple(formalism, n_solutions, particle_database):
         particle_db=particle_database,
         formalism=formalism,
         allowed_interaction_types="strong",
-        number_of_threads=1,
     )
     assert len(reaction.transition_groups) == 1
     assert len(reaction.transitions) == n_solutions
@@ -39,7 +38,6 @@ def test_full(formalism, n_solutions, particle_database):
         particle_db=particle_database,
         allowed_intermediate_particles=["D*"],
         formalism=formalism,
-        number_of_threads=1,
     )
     stm.set_allowed_interaction_types([InteractionType.STRONG])
     stm.add_final_state_grouping([["D0", "pi0"], ["D~0", "pi0"]])

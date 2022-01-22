@@ -7,6 +7,7 @@ It is possible to change some settings from the outside, for instance:
 >>> qrules.settings.MAX_SPIN_MAGNITUDE = 3
 """
 
+import multiprocessing
 from copy import deepcopy
 from enum import Enum, auto
 from os.path import dirname, join, realpath
@@ -283,6 +284,26 @@ def _create_domains(particle_db: ParticleCollection) -> Dict[Any, list]:
         domains[EdgeQN.isospin_magnitude]
     )
     return domains
+
+
+class NumberOfThreads:
+    __n_cores: Optional[int] = None
+
+    @classmethod
+    def get(cls) -> int:
+        if cls.__n_cores is None:
+            return multiprocessing.cpu_count()
+        return cls.__n_cores
+
+    @classmethod
+    def set(cls, n_cores: Optional[int]) -> None:  # noqa: A003
+        """Set the number of threads; use `None` for all available cores."""
+        if n_cores is not None and not isinstance(n_cores, int):
+            raise TypeError(
+                "Can only set the number of cores to an integer or to None"
+                " (meaning all available cores)"
+            )
+        cls.__n_cores = n_cores
 
 
 def __positive_halves_domain(

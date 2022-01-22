@@ -10,7 +10,6 @@ def test_script():
             "a(2)(1320)-",
             "phi(1020)",
         ],
-        number_of_threads=1,
     )
     assert len(reaction.transition_groups) == 3
     assert len(reaction.transition_groups[0]) == 2
