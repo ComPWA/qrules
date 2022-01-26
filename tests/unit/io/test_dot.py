@@ -40,6 +40,7 @@ digraph {
     rankdir=LR;
     node [shape=point, width=0];
     edge [arrowhead=none];
+    bgcolor=none;
     "edge0" [shape=none, label="0: gamma[-1]"];
     "edge1" [shape=none, label="1: pi0[0]"];
     "edge2" [shape=none, label="2: pi0[0]"];
@@ -61,6 +62,7 @@ digraph {
     rankdir=LR;
     node [shape=point, width=0];
     edge [arrowhead=none];
+    bgcolor=none;
     "edge0" [shape=none, label="0: gamma[-1]"];
     "edge1" [shape=none, label="1: pi0[0]"];
     "edge2" [shape=none, label="2: pi0[0]"];
@@ -86,6 +88,7 @@ def test_asdot_graphviz_attrs(reaction: ReactionInfo):
     assert pydot.graph_from_dot_data(dot_data) is not None
     assert '\n    bgcolor="red";\n' in dot_data
     assert "\n    size=12;\n" in dot_data
+    assert "bgcolor=none" not in dot_data
 
 
 def test_asdot_with_styled_edges_and_nodes(reaction: ReactionInfo, output_dir):

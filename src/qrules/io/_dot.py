@@ -50,6 +50,8 @@ def embed_dot(func: Callable) -> Callable:
 
 
 def insert_graphviz_styling(dot: str, graphviz_attrs: Dict[str, Any]) -> str:
+    if "bgcolor" not in graphviz_attrs:
+        graphviz_attrs["bgcolor"] = None
     header = __dot_kwargs_to_header(graphviz_attrs)
     return dot.replace(_DOT_HEAD, _DOT_HEAD + header)
 
