@@ -69,7 +69,7 @@ ValueType = TypeVar("ValueType")
 
 @total_ordering
 class FrozenDict(  # pylint: disable=too-many-ancestors
-    Generic[KeyType, ValueType], abc.Hashable, abc.Mapping
+    abc.Hashable, abc.Mapping, Generic[KeyType, ValueType]
 ):
     def __init__(self, mapping: Optional[Mapping] = None):
         self.__mapping: Dict[KeyType, ValueType] = {}
