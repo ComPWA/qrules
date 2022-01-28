@@ -643,6 +643,10 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             raise ValueError("No solutions were found")
 
         match_external_edges(final_solutions)
+        final_solutions = [
+            _match_final_state_ids(graph, self.final_state)
+            for graph in final_solutions
+        ]
         return ReactionInfo.from_graphs(final_solutions, self.formalism)
 
     def _solve(
@@ -697,6 +701,38 @@ def _safe_wrap_list(
         f"Input final state grouping {nested_list} is not a list of lists of"
         " strings"
     )
+
+
+def _match_final_state_ids(
+    graph: StateTransitionGraph[ParticleWithSpin],
+    state_definition: Sequence[StateDefinition],
+) -> StateTransitionGraph[ParticleWithSpin]:
+    """Temporary fix to https://github.com/ComPWA/qrules/issues/143."""
+    particle_names = _strip_spin(state_definition)
+    name_to_id = {name: i for i, name in enumerate(particle_names)}
+    id_remapping = {
+        name_to_id[graph.get_edge_props(i)[0].name]: i
+        for i in graph.topology.outgoing_edge_ids
+    }
+    new_topology = graph.topology.relabel_edges(id_remapping)
+    return StateTransitionGraph(
+        new_topology,
+        edge_props={
+            i: graph.get_edge_props(id_remapping.get(i, i))
+            for i in graph.topology.edges
+        },
+        node_props={i: graph.get_node_props(i) for i in graph.topology.nodes},
+    )
+
+
+def _strip_spin(state_definition: Sequence[StateDefinition]) -> List[str]:
+    particle_names = []
+    for state in state_definition:
+        if isinstance(state, str):
+            particle_names.append(state)
+        else:
+            particle_names.append(state[0])
+    return particle_names
 
 
 @implement_pretty_repr()
