@@ -15,7 +15,7 @@ from sphinx import addnodes
 from sphinx.environment import BuildEnvironment
 
 
-def replace_link(text: str) -> str:
+def _replace_link(text: str) -> str:
     replacements = {
         "a set-like object providing a view on D's items": "typing.ItemsView",
         "a set-like object providing a view on D's keys": "typing.KeysView",
@@ -28,7 +28,7 @@ def replace_link(text: str) -> str:
     return text
 
 
-def new_type_to_xref(
+def _new_type_to_xref(
     text: str, env: BuildEnvironment = None
 ) -> addnodes.pending_xref:
     """Convert a type string to a cross reference node."""
@@ -45,7 +45,7 @@ def new_type_to_xref(
     else:
         kwargs = {}
 
-    text = replace_link(text)
+    text = _replace_link(text)
     short_text = text.split(".")[-1]
 
     return addnodes.pending_xref(
@@ -58,5 +58,5 @@ def new_type_to_xref(
     )
 
 
-def abbreviate_signature() -> None:
-    sphinx.domains.python.type_to_xref = new_type_to_xref
+def relink_references() -> None:
+    sphinx.domains.python.type_to_xref = _new_type_to_xref  # type: ignore[assignment]
