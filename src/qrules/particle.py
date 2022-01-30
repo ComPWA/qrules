@@ -512,7 +512,7 @@ def create_antiparticle(
         pid=-template_particle.pid,
         latex=new_latex
         if new_latex
-        else fR"\overline{{{template_particle.latex}}}",
+        else Rf"\overline{{{template_particle.latex}}}",
         mass=template_particle.mass,
         width=template_particle.width,
         charge=-template_particle.charge,
