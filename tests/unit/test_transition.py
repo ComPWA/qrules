@@ -56,6 +56,11 @@ class TestReactionInfo:
         from_graphs = ReactionInfo.from_graphs(graphs, reaction.formalism)
         assert from_graphs == reaction
 
+    def test_hash(self, reaction: ReactionInfo):
+        graphs = reaction.to_graphs()
+        from_graphs = ReactionInfo.from_graphs(graphs, reaction.formalism)
+        assert hash(from_graphs) == hash(reaction)
+
 
 class TestState:
     @pytest.mark.parametrize(

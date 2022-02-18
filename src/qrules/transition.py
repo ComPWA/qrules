@@ -935,14 +935,14 @@ def _to_tuple(
     return tuple(iterable)
 
 
-@attr.frozen(eq=False)
+@attr.frozen(eq=False, hash=True)
 class ReactionInfo:
     """`StateTransitionCollection` instances, grouped by `.Topology`."""
 
     transition_groups: Tuple[StateTransitionCollection, ...] = attr.ib(
         converter=_to_tuple
     )
-    transitions: List[StateTransition] = attr.ib(
+    transitions: Tuple[StateTransition, ...] = attr.ib(
         init=False, repr=False, eq=False
     )
     initial_state: FrozenDict[int, Particle] = attr.ib(init=False, repr=False)
@@ -958,7 +958,7 @@ class ReactionInfo:
         for grouping in self.transition_groups:
             transitions.extend(sorted(grouping))
         first_grouping = self.transition_groups[0]
-        object.__setattr__(self, "transitions", transitions)
+        object.__setattr__(self, "transitions", tuple(transitions))
         object.__setattr__(self, "final_state", first_grouping.final_state)
         object.__setattr__(self, "initial_state", first_grouping.initial_state)
 
