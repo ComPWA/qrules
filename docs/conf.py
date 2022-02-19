@@ -223,6 +223,7 @@ nitpick_ignore = [
     ("py:class", "NoneType"),
     ("py:class", "StateTransitionGraph"),
     ("py:class", "ValueType"),
+    ("py:class", "json.encoder.JSONEncoder"),
     ("py:class", "typing_extensions.Protocol"),
     ("py:obj", "qrules.topology._K"),
     ("py:obj", "qrules.topology._V"),

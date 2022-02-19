@@ -14,8 +14,9 @@ from qrules.transition import ReactionInfo
 
 
 def through_dict(instance):
+    # Check JSON serialization
     asdict = io.asdict(instance)
-    asdict = json.loads(json.dumps(asdict))  # check JSON serialization
+    asdict = json.loads(json.dumps(asdict, cls=io.JSONSetEncoder))
     return io.fromdict(asdict)
 
 
