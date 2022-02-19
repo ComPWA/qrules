@@ -193,9 +193,9 @@ class ProblemSet:
           rules and the quantum number domains.
     """
 
-    topology: Topology = field()
-    initial_facts: InitialFacts = field()
-    solving_settings: GraphSettings = field()
+    topology: Topology
+    initial_facts: InitialFacts
+    solving_settings: GraphSettings
 
     def to_qn_problem_set(self) -> QNProblemSet:
         node_props = {

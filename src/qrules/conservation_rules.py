@@ -468,8 +468,8 @@ def identical_particle_symmetrization(
 
 @frozen
 class _Spin:
-    magnitude: float = field()
-    projection: float = field()
+    magnitude: float
+    projection: float
 
 
 def _is_clebsch_gordan_coefficient_zero(

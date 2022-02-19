@@ -118,16 +118,16 @@ class QNProblemSet:
         topology
     """
 
-    topology: Topology = field()
-    initial_facts: GraphElementProperties = field()
-    solving_settings: GraphSettings = field()
+    topology: Topology
+    initial_facts: GraphElementProperties
+    solving_settings: GraphSettings
 
 
 @implement_pretty_repr()
 @frozen
 class QuantumNumberSolution:
-    node_quantum_numbers: Dict[int, GraphNodePropertyMap] = field()
-    edge_quantum_numbers: Dict[int, GraphEdgePropertyMap] = field()
+    node_quantum_numbers: Dict[int, GraphNodePropertyMap]
+    edge_quantum_numbers: Dict[int, GraphEdgePropertyMap]
 
 
 def _convert_violated_rules_to_names(
