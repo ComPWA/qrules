@@ -53,8 +53,8 @@ from copy import deepcopy
 from functools import reduce
 from typing import Any, Callable, List, Optional, Set, Tuple, Type, Union
 
-import attr
-from attr.converters import optional
+from attrs import define, field, frozen
+from attrs.converters import optional
 
 from .quantum_numbers import EdgeQuantumNumbers as EdgeQN
 from .quantum_numbers import NodeQuantumNumbers as NodeQN
@@ -189,13 +189,13 @@ def parity_conservation(
     return True
 
 
-@attr.frozen
+@frozen
 class HelicityParityEdgeInput:
-    parity: EdgeQN.parity = attr.ib(converter=EdgeQN.parity)
-    spin_magnitude: EdgeQN.spin_magnitude = attr.ib(
+    parity: EdgeQN.parity = field(converter=EdgeQN.parity)
+    spin_magnitude: EdgeQN.spin_magnitude = field(
         converter=EdgeQN.spin_magnitude
     )
-    spin_projection: EdgeQN.spin_projection = attr.ib(
+    spin_projection: EdgeQN.spin_projection = field(
         converter=EdgeQN.spin_projection
     )
 
@@ -239,21 +239,21 @@ def parity_conservation_helicity(
     return True
 
 
-@attr.frozen
+@frozen
 class CParityEdgeInput:
-    spin_magnitude: EdgeQN.spin_magnitude = attr.ib(
+    spin_magnitude: EdgeQN.spin_magnitude = field(
         converter=EdgeQN.spin_magnitude
     )
-    pid: EdgeQN.pid = attr.ib(converter=EdgeQN.pid)
-    c_parity: Optional[EdgeQN.c_parity] = attr.ib(
+    pid: EdgeQN.pid = field(converter=EdgeQN.pid)
+    c_parity: Optional[EdgeQN.c_parity] = field(
         converter=EdgeQN.c_parity, default=None
     )
 
 
-@attr.frozen
+@frozen
 class CParityNodeInput:
-    l_magnitude: NodeQN.l_magnitude = attr.ib(converter=NodeQN.l_magnitude)
-    s_magnitude: NodeQN.s_magnitude = attr.ib(converter=NodeQN.s_magnitude)
+    l_magnitude: NodeQN.l_magnitude = field(converter=NodeQN.l_magnitude)
+    s_magnitude: NodeQN.s_magnitude = field(converter=NodeQN.s_magnitude)
 
 
 def c_parity_conservation(
@@ -303,24 +303,24 @@ def c_parity_conservation(
     return c_parity_in == c_parity_out
 
 
-@attr.frozen
+@frozen
 class GParityEdgeInput:
-    isospin_magnitude: EdgeQN.isospin_magnitude = attr.ib(
+    isospin_magnitude: EdgeQN.isospin_magnitude = field(
         converter=EdgeQN.isospin_magnitude
     )
-    spin_magnitude: EdgeQN.spin_magnitude = attr.ib(
+    spin_magnitude: EdgeQN.spin_magnitude = field(
         converter=EdgeQN.spin_magnitude
     )
-    pid: EdgeQN.pid = attr.ib(converter=EdgeQN.pid)
-    g_parity: Optional[EdgeQN.g_parity] = attr.ib(
+    pid: EdgeQN.pid = field(converter=EdgeQN.pid)
+    g_parity: Optional[EdgeQN.g_parity] = field(
         converter=EdgeQN.g_parity, default=None
     )
 
 
-@attr.frozen
+@frozen
 class GParityNodeInput:
-    l_magnitude: NodeQN.l_magnitude = attr.ib(converter=NodeQN.l_magnitude)
-    s_magnitude: NodeQN.s_magnitude = attr.ib(converter=NodeQN.s_magnitude)
+    l_magnitude: NodeQN.l_magnitude = field(converter=NodeQN.l_magnitude)
+    s_magnitude: NodeQN.s_magnitude = field(converter=NodeQN.s_magnitude)
 
 
 def g_parity_conservation(
@@ -404,15 +404,15 @@ def g_parity_conservation(
     return True
 
 
-@attr.frozen
+@frozen
 class IdenticalParticleSymmetryOutEdgeInput:
-    spin_magnitude: EdgeQN.spin_magnitude = attr.ib(
+    spin_magnitude: EdgeQN.spin_magnitude = field(
         converter=EdgeQN.spin_magnitude
     )
-    spin_projection: EdgeQN.spin_projection = attr.ib(
+    spin_projection: EdgeQN.spin_projection = field(
         converter=EdgeQN.spin_projection
     )
-    pid: EdgeQN.pid = attr.ib(converter=EdgeQN.pid)
+    pid: EdgeQN.pid = field(converter=EdgeQN.pid)
 
 
 def identical_particle_symmetrization(
@@ -466,10 +466,10 @@ def identical_particle_symmetrization(
     return True
 
 
-@attr.frozen
+@frozen
 class _Spin:
-    magnitude: float = attr.ib()
-    projection: float = attr.ib()
+    magnitude: float = field()
+    projection: float = field()
 
 
 def _is_clebsch_gordan_coefficient_zero(
@@ -493,18 +493,18 @@ def _is_clebsch_gordan_coefficient_zero(
     return False
 
 
-@attr.frozen
+@frozen
 class SpinNodeInput:
-    l_magnitude: NodeQN.l_magnitude = attr.ib(converter=NodeQN.l_magnitude)
-    l_projection: NodeQN.l_projection = attr.ib(converter=NodeQN.l_projection)
-    s_magnitude: NodeQN.s_magnitude = attr.ib(converter=NodeQN.s_magnitude)
-    s_projection: NodeQN.s_projection = attr.ib(converter=NodeQN.s_projection)
+    l_magnitude: NodeQN.l_magnitude = field(converter=NodeQN.l_magnitude)
+    l_projection: NodeQN.l_projection = field(converter=NodeQN.l_projection)
+    s_magnitude: NodeQN.s_magnitude = field(converter=NodeQN.s_magnitude)
+    s_projection: NodeQN.s_projection = field(converter=NodeQN.s_projection)
 
 
-@attr.frozen
+@frozen
 class SpinMagnitudeNodeInput:
-    l_magnitude: NodeQN.l_magnitude = attr.ib(converter=NodeQN.l_magnitude)
-    s_magnitude: NodeQN.s_magnitude = attr.ib(converter=NodeQN.s_magnitude)
+    l_magnitude: NodeQN.l_magnitude = field(converter=NodeQN.l_magnitude)
+    s_magnitude: NodeQN.s_magnitude = field(converter=NodeQN.s_magnitude)
 
 
 def ls_spin_validity(spin_input: SpinNodeInput) -> bool:
@@ -639,12 +639,12 @@ def __spin_couplings(spin1: _Spin, spin2: _Spin) -> Set[_Spin]:
     }
 
 
-@attr.define
+@define
 class IsoSpinEdgeInput:
-    isospin_magnitude: EdgeQN.isospin_magnitude = attr.ib(
+    isospin_magnitude: EdgeQN.isospin_magnitude = field(
         converter=EdgeQN.isospin_magnitude
     )
-    isospin_projection: EdgeQN.isospin_projection = attr.ib(
+    isospin_projection: EdgeQN.isospin_projection = field(
         converter=EdgeQN.isospin_projection
     )
 
@@ -699,12 +699,12 @@ def isospin_conservation(
     )
 
 
-@attr.define
+@define
 class SpinEdgeInput:
-    spin_magnitude: EdgeQN.spin_magnitude = attr.ib(
+    spin_magnitude: EdgeQN.spin_magnitude = field(
         converter=EdgeQN.spin_magnitude
     )
-    spin_projection: EdgeQN.spin_projection = attr.ib(
+    spin_projection: EdgeQN.spin_projection = field(
         converter=EdgeQN.spin_projection
     )
 
@@ -873,35 +873,35 @@ def helicity_conservation(
     return False
 
 
-@attr.frozen
+@frozen
 class GellMannNishijimaInput:
     # pylint: disable=too-many-instance-attributes
-    charge: EdgeQN.charge = attr.ib(converter=EdgeQN.charge)
-    isospin_projection: Optional[EdgeQN.isospin_projection] = attr.ib(
+    charge: EdgeQN.charge = field(converter=EdgeQN.charge)
+    isospin_projection: Optional[EdgeQN.isospin_projection] = field(
         converter=optional(EdgeQN.isospin_projection), default=None
     )
-    strangeness: Optional[EdgeQN.strangeness] = attr.ib(
+    strangeness: Optional[EdgeQN.strangeness] = field(
         converter=optional(EdgeQN.strangeness), default=None
     )
-    charmness: Optional[EdgeQN.charmness] = attr.ib(
+    charmness: Optional[EdgeQN.charmness] = field(
         converter=optional(EdgeQN.charmness), default=None
     )
-    bottomness: Optional[EdgeQN.bottomness] = attr.ib(
+    bottomness: Optional[EdgeQN.bottomness] = field(
         converter=optional(EdgeQN.bottomness), default=None
     )
-    topness: Optional[EdgeQN.topness] = attr.ib(
+    topness: Optional[EdgeQN.topness] = field(
         converter=optional(EdgeQN.topness), default=None
     )
-    baryon_number: Optional[EdgeQN.baryon_number] = attr.ib(
+    baryon_number: Optional[EdgeQN.baryon_number] = field(
         converter=optional(EdgeQN.baryon_number), default=None
     )
-    electron_lepton_number: Optional[EdgeQN.electron_lepton_number] = attr.ib(
+    electron_lepton_number: Optional[EdgeQN.electron_lepton_number] = field(
         converter=optional(EdgeQN.electron_lepton_number), default=None
     )
-    muon_lepton_number: Optional[EdgeQN.muon_lepton_number] = attr.ib(
+    muon_lepton_number: Optional[EdgeQN.muon_lepton_number] = field(
         converter=optional(EdgeQN.muon_lepton_number), default=None
     )
-    tau_lepton_number: Optional[EdgeQN.tau_lepton_number] = attr.ib(
+    tau_lepton_number: Optional[EdgeQN.tau_lepton_number] = field(
         converter=optional(EdgeQN.tau_lepton_number), default=None
     )
 
@@ -956,12 +956,10 @@ def gellmann_nishijima(edge_qns: GellMannNishijimaInput) -> bool:
     return True
 
 
-@attr.frozen
+@frozen
 class MassEdgeInput:
-    mass: EdgeQN.mass = attr.ib(converter=EdgeQN.mass)
-    width: Optional[EdgeQN.width] = attr.ib(
-        converter=EdgeQN.width, default=None
-    )
+    mass: EdgeQN.mass = field(converter=EdgeQN.mass)
+    width: Optional[EdgeQN.width] = field(converter=EdgeQN.width, default=None)
 
 
 class MassConservation:

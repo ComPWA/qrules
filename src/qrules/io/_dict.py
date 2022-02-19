@@ -6,7 +6,7 @@ from collections import abc
 from os.path import dirname, realpath
 from typing import Any, Dict
 
-import attr
+import attrs
 
 from qrules.particle import (
     Parity,
@@ -30,11 +30,11 @@ def from_particle_collection(particles: ParticleCollection) -> dict:
 
 
 def from_particle(particle: Particle) -> dict:
-    return attr.asdict(
+    return attrs.asdict(
         particle,
         recurse=True,
         value_serializer=_value_serializer,
-        filter=lambda attr, value: attr.default != value,
+        filter=lambda attribute, value: attribute.default != value,
     )
 
 
@@ -52,7 +52,7 @@ def from_stg(graph: StateTransitionGraph[ParticleWithSpin]) -> dict:
     node_props_def = {}
     for i in topology.nodes:
         node_prop = graph.get_node_props(i)
-        node_props_def[i] = attr.asdict(
+        node_props_def[i] = attrs.asdict(
             node_prop, filter=lambda a, v: a.init and a.default != v
         )
     return {
@@ -63,7 +63,7 @@ def from_stg(graph: StateTransitionGraph[ParticleWithSpin]) -> dict:
 
 
 def from_topology(topology: Topology) -> dict:
-    return attr.asdict(
+    return attrs.asdict(
         topology,
         recurse=True,
         value_serializer=_value_serializer,
@@ -72,7 +72,7 @@ def from_topology(topology: Topology) -> dict:
 
 
 def _value_serializer(  # pylint: disable=unused-argument
-    inst: type, field: attr.Attribute, value: Any
+    inst: type, field: attrs.Attribute, value: Any
 ) -> Any:
     if isinstance(value, abc.Mapping):
         if all(map(lambda p: isinstance(p, Particle), value.values())):

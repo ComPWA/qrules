@@ -11,7 +11,7 @@ from collections import abc
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-import attr
+import attrs
 import yaml
 
 from qrules.particle import Particle, ParticleCollection
@@ -37,10 +37,10 @@ def asdict(instance: object) -> dict:
         instance,
         (ReactionInfo, State, StateTransition, StateTransitionCollection),
     ):
-        return attr.asdict(
+        return attrs.asdict(
             instance,
             recurse=True,
-            filter=lambda attr, _: attr.init,
+            filter=lambda a, _: a.init,
             value_serializer=_dict._value_serializer,
         )
     if isinstance(instance, StateTransitionGraph):
@@ -74,11 +74,11 @@ def fromdict(definition: dict) -> object:
 
 __REQUIRED_PARTICLE_FIELDS = {
     field.name
-    for field in attr.fields(Particle)
-    if field.default == attr.NOTHING
+    for field in attrs.fields(Particle)
+    if field.default == attrs.NOTHING
 }
 __REQUIRED_TOPOLOGY_FIELDS = {
-    field.name for field in attr.fields(Topology) if field.init
+    field.name for field in attrs.fields(Topology) if field.init
 }
 
 

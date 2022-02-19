@@ -4,7 +4,7 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Callable, Dict, Iterable, List, Optional, Set, Tuple, Type
 
-import attr
+import attrs
 
 from .particle import Particle, ParticleCollection, ParticleWithSpin
 from .quantum_numbers import (
@@ -34,10 +34,10 @@ def create_edge_properties(
         qn_name: qn_type
         for qn_name, qn_type in EdgeQuantumNumbers.__dict__.items()
         if not qn_name.startswith("__")
-    }  # Note using attr.fields does not work here because init=False
+    }  # Note using attrs.fields does not work here because init=False
     property_map: GraphEdgePropertyMap = {}
     isospin = None
-    for qn_name, value in attr.asdict(particle, recurse=False).items():
+    for qn_name, value in attrs.asdict(particle, recurse=False).items():
         if isinstance(value, Parity):
             value = value.value
         if qn_name in edge_qn_mapping:
@@ -65,9 +65,9 @@ def create_node_properties(
         qn_name: qn_type
         for qn_name, qn_type in NodeQuantumNumbers.__dict__.items()
         if not qn_name.startswith("__")
-    }  # Note using attr.fields does not work here because init=False
+    }  # Note using attrs.fields does not work here because init=False
     property_map: GraphNodePropertyMap = {}
-    for qn_name, value in attr.asdict(node_props).items():
+    for qn_name, value in attrs.asdict(node_props).items():
         if value is None:
             continue
         if qn_name in node_qn_mapping:
@@ -117,11 +117,11 @@ def create_interaction_properties(
     converted_solution = {k.__name__: v for k, v in qn_solution.items()}
     kw_args = {
         x.name: converted_solution[x.name]
-        for x in attr.fields(InteractionProperties)
+        for x in attrs.fields(InteractionProperties)
         if x.name in converted_solution
     }
 
-    return attr.evolve(InteractionProperties(), **kw_args)
+    return attrs.evolve(InteractionProperties(), **kw_args)
 
 
 def filter_interaction_types(
@@ -234,7 +234,7 @@ def _remove_qns_from_graph(  # pylint: disable=too-many-branches
     new_node_props = {}
     for node_id in graph.topology.nodes:
         node_props = graph.get_node_props(node_id)
-        new_node_props[node_id] = attr.evolve(
+        new_node_props[node_id] = attrs.evolve(
             node_props, **{x.__name__: None for x in qn_list}
         )
 
@@ -279,10 +279,10 @@ class NodePropertyComparator:
         node_props1: InteractionProperties,
         node_props2: InteractionProperties,
     ) -> bool:
-        return attr.evolve(
+        return attrs.evolve(
             node_props1,
             **{x.__name__: None for x in self.__ignored_qn_list},
-        ) == attr.evolve(
+        ) == attrs.evolve(
             node_props2,
             **{x.__name__: None for x in self.__ignored_qn_list},
         )

@@ -32,9 +32,10 @@ from typing import (
     Union,
 )
 
-import attr
-from attr.converters import optional
-from attr.validators import instance_of
+import attrs
+from attrs import field, frozen
+from attrs.converters import optional
+from attrs.validators import instance_of
 
 from .conservation_rules import GellMannNishijimaInput, gellmann_nishijima
 from .quantum_numbers import Parity, _to_fraction
@@ -57,12 +58,12 @@ def _to_float(value: SupportsFloat) -> float:
 
 
 @total_ordering
-@attr.frozen(eq=False, hash=True, order=False)
+@frozen(eq=False, hash=True, order=False)
 class Spin:
     """Safe, immutable data container for spin **with projection**."""
 
-    magnitude: float = attr.ib(converter=_to_float)
-    projection: float = attr.ib(converter=_to_float)
+    magnitude: float = field(converter=_to_float)
+    projection: float = field(converter=_to_float)
 
     def __attrs_post_init__(self) -> None:
         if self.magnitude % 0.5 != 0.0:
@@ -99,7 +100,7 @@ class Spin:
 
     def __gt__(self, other: Any) -> bool:
         if isinstance(other, Spin):
-            return attr.astuple(self) > attr.astuple(other)
+            return attrs.astuple(self) > attrs.astuple(other)
         return self.magnitude > other
 
     def __neg__(self) -> "Spin":
@@ -126,7 +127,7 @@ def _to_spin(value: Union[Spin, Tuple[float, float]]) -> Spin:
 
 
 @total_ordering
-@attr.frozen(kw_only=True, order=False, repr=True)
+@frozen(kw_only=True, order=False, repr=True)
 class Particle:  # pylint: disable=too-many-instance-attributes
     """Immutable container of data defining a physical particle.
 
@@ -147,34 +148,30 @@ class Particle:  # pylint: disable=too-many-instance-attributes
     """
 
     # Labels
-    name: str = attr.ib(eq=False)
-    pid: int = attr.ib(eq=False)
-    latex: Optional[str] = attr.ib(eq=False, default=None)
+    name: str = field(eq=False)
+    pid: int = field(eq=False)
+    latex: Optional[str] = field(eq=False, default=None)
     # Unique properties
-    spin: float = attr.ib(converter=float)
-    mass: float = attr.ib(converter=float)
-    width: float = attr.ib(converter=float, default=0.0)
-    charge: int = attr.ib(default=0)
-    isospin: Optional[Spin] = attr.ib(
-        converter=optional(_to_spin), default=None
-    )
-    strangeness: int = attr.ib(default=0, validator=instance_of(int))
-    charmness: int = attr.ib(default=0, validator=instance_of(int))
-    bottomness: int = attr.ib(default=0, validator=instance_of(int))
-    topness: int = attr.ib(default=0, validator=instance_of(int))
-    baryon_number: int = attr.ib(default=0, validator=instance_of(int))
-    electron_lepton_number: int = attr.ib(
-        default=0, validator=instance_of(int)
-    )
-    muon_lepton_number: int = attr.ib(default=0, validator=instance_of(int))
-    tau_lepton_number: int = attr.ib(default=0, validator=instance_of(int))
-    parity: Optional[Parity] = attr.ib(
+    spin: float = field(converter=float)
+    mass: float = field(converter=float)
+    width: float = field(converter=float, default=0.0)
+    charge: int = field(default=0)
+    isospin: Optional[Spin] = field(converter=optional(_to_spin), default=None)
+    strangeness: int = field(default=0, validator=instance_of(int))
+    charmness: int = field(default=0, validator=instance_of(int))
+    bottomness: int = field(default=0, validator=instance_of(int))
+    topness: int = field(default=0, validator=instance_of(int))
+    baryon_number: int = field(default=0, validator=instance_of(int))
+    electron_lepton_number: int = field(default=0, validator=instance_of(int))
+    muon_lepton_number: int = field(default=0, validator=instance_of(int))
+    tau_lepton_number: int = field(default=0, validator=instance_of(int))
+    parity: Optional[Parity] = field(
         converter=optional(_to_parity), default=None
     )
-    c_parity: Optional[Parity] = attr.ib(
+    c_parity: Optional[Parity] = field(
         converter=optional(_to_parity), default=None
     )
-    g_parity: Optional[Parity] = attr.ib(
+    g_parity: Optional[Parity] = field(
         converter=optional(_to_parity), default=None
     )
 
@@ -242,11 +239,11 @@ class Particle:  # pylint: disable=too-many-instance-attributes
             p.text(f"{class_name}(...)")
         else:
             with p.group(indent=2, open=f"{class_name}("):
-                for field in attr.fields(type(self)):
-                    value = getattr(self, field.name)
-                    if value != field.default:
+                for attribute in attrs.fields(type(self)):
+                    value = getattr(self, attribute.name)
+                    if value != attribute.default:
                         p.breakable()
-                        p.text(f"{field.name}=")
+                        p.text(f"{attribute.name}=")
                         if isinstance(value, Parity):
                             p.text(_to_fraction(int(value), render_plus=True))
                         else:
