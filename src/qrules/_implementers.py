@@ -2,7 +2,7 @@
 
 from typing import TYPE_CHECKING, Any, Callable, Type, TypeVar
 
-import attr
+import attrs
 
 if TYPE_CHECKING:
     try:
@@ -17,12 +17,12 @@ _DecoratedClass = TypeVar("_DecoratedClass")
 def implement_pretty_repr() -> Callable[
     [Type[_DecoratedClass]], Type[_DecoratedClass]
 ]:
-    """Implement a pretty :code:`repr` in a `attr` decorated class."""
+    """Implement a pretty :code:`repr` in a class decorated by `attrs`."""
 
     def decorator(
         decorated_class: Type[_DecoratedClass],
     ) -> Type[_DecoratedClass]:
-        if not attr.has(decorated_class):
+        if not attrs.has(decorated_class):
             raise TypeError(
                 "Can only implement a pretty repr for a class created with"
                 " attrs"
@@ -34,7 +34,7 @@ def implement_pretty_repr() -> Callable[
                 p.text(f"{class_name}(...)")
             else:
                 with p.group(indent=2, open=f"{class_name}("):
-                    for field in attr.fields(type(self)):
+                    for field in attrs.fields(type(self)):
                         if not field.init:
                             continue
                         value = getattr(self, field.name)

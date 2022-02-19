@@ -29,7 +29,7 @@ from typing import (
     Union,
 )
 
-import attr
+import attrs
 
 from . import io
 from .combinatorics import InitialFacts, StateDefinition, create_initial_facts
@@ -237,7 +237,7 @@ def check_reaction_violations(  # pylint: disable=too-many-arguments
     initial_facts_list = []
     for ls_combi in ls_combinations:
         for facts_combination in initial_facts:
-            new_facts = attr.evolve(
+            new_facts = attrs.evolve(
                 facts_combination,
                 node_props={node_id: ls_combi},
             )

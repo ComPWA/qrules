@@ -24,7 +24,7 @@ from typing import (
     Union,
 )
 
-import attr
+from attrs import field, frozen
 
 from qrules._implementers import implement_pretty_repr
 from qrules.particle import Particle, ParticleCollection
@@ -38,10 +38,10 @@ StateDefinition = Union[str, StateWithSpins]
 
 
 @implement_pretty_repr()
-@attr.frozen
+@frozen
 class InitialFacts:
-    edge_props: Dict[int, ParticleWithSpin] = attr.ib(factory=dict)
-    node_props: Dict[int, InteractionProperties] = attr.ib(factory=dict)
+    edge_props: Dict[int, ParticleWithSpin] = field(factory=dict)
+    node_props: Dict[int, InteractionProperties] = field(factory=dict)
 
 
 class _KinematicRepresentation:

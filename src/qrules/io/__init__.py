@@ -11,7 +11,7 @@ from collections import abc
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-import attr
+import attrs
 import yaml
 
 from qrules.particle import Particle, ParticleCollection
@@ -37,10 +37,10 @@ def asdict(instance: object) -> dict:
         instance,
         (ReactionInfo, State, StateTransition, StateTransitionCollection),
     ):
-        return attr.asdict(
+        return attrs.asdict(
             instance,
             recurse=True,
-            filter=lambda attr, _: attr.init,
+            filter=lambda a, _: a.init,
             value_serializer=_dict._value_serializer,
         )
     if isinstance(instance, StateTransitionGraph):
@@ -74,11 +74,11 @@ def fromdict(definition: dict) -> object:
 
 __REQUIRED_PARTICLE_FIELDS = {
     field.name
-    for field in attr.fields(Particle)
-    if field.default == attr.NOTHING
+    for field in attrs.fields(Particle)
+    if field.default == attrs.NOTHING
 }
 __REQUIRED_TOPOLOGY_FIELDS = {
-    field.name for field in attr.fields(Topology) if field.init
+    field.name for field in attrs.fields(Topology) if field.init
 }
 
 
@@ -205,7 +205,7 @@ def write(instance: object, filename: str) -> None:
     with open(filename, "w") as stream:
         file_extension = _get_file_extension(filename)
         if file_extension == "json":
-            json.dump(asdict(instance), stream, indent=2)
+            json.dump(asdict(instance), stream, indent=2, cls=JSONSetEncoder)
             return
         if file_extension in ["yaml", "yml"]:
             yaml.dump(
@@ -236,3 +236,19 @@ def _get_file_extension(filename: str) -> str:
         raise ValueError(f'No file extension in file name "{filename}"')
     extension = extension[1:]
     return extension
+
+
+class JSONSetEncoder(json.JSONEncoder):
+    """`~json.JSONEncoder` that supports `set` and `frozenset`.
+
+    >>> import json
+    >>> instance = {"val1": {1, 2, 3}, "val2": frozenset({2, 3, 4, 5})}
+    >>> json.dumps(instance, cls=JSONSetEncoder)
+    '{"val1": [1, 2, 3], "val2": [2, 3, 4, 5]}'
+    """
+
+    # https://stackoverflow.com/a/8230505
+    def default(self, o: Any) -> Any:
+        if isinstance(o, (frozenset, set)):
+            return list(o)
+        return super().default(o)

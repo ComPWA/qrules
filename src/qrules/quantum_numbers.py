@@ -12,13 +12,14 @@ from fractions import Fraction
 from functools import total_ordering
 from typing import Any, Generator, NewType, Optional, Union
 
-import attr
-from attr.validators import instance_of
+import attrs
+from attrs import field, frozen
+from attrs.validators import instance_of
 
 from qrules._implementers import implement_pretty_repr
 
 
-def _check_plus_minus(_: Any, __: attr.Attribute, value: Any) -> None:
+def _check_plus_minus(_: Any, __: attrs.Attribute, value: Any) -> None:
     if not isinstance(value, int):
         raise TypeError(
             f"Input for {Parity.__name__} has to be of type {int.__name__},"
@@ -29,9 +30,9 @@ def _check_plus_minus(_: Any, __: attr.Attribute, value: Any) -> None:
 
 
 @total_ordering
-@attr.frozen(eq=False, hash=True, order=False, repr=False)
+@frozen(eq=False, hash=True, order=False, repr=False)
 class Parity:
-    value: int = attr.ib(validator=[instance_of(int), _check_plus_minus])
+    value: int = field(validator=[instance_of(int), _check_plus_minus])
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Parity):
@@ -60,17 +61,17 @@ def _to_fraction(value: Union[float, int], render_plus: bool = False) -> str:
     return label
 
 
-@attr.frozen(init=False)
+@frozen(init=False)
 class EdgeQuantumNumbers:  # pylint: disable=too-many-instance-attributes
     """Definition of quantum numbers for edges.
 
     This class defines the types that are used in the
     :mod:`.conservation_rules`, for instance in
     `.additive_quantum_number_rule`. You can also create data classes (see
-    `attr.s`) with data members that are typed as the data members of
-    `.EdgeQuantumNumbers` (see for example `.HelicityParityEdgeInput`) and use
-    them in conservation rules that satisfy the appropriate rule protocol (see
-    `.ConservationRule`, `.EdgeQNConservationRule`).
+    :func:`attrs.define`) with data members that are typed as the data members
+    of `.EdgeQuantumNumbers` (see for example `.HelicityParityEdgeInput`) and
+    use them in conservation rules that satisfy the appropriate rule protocol
+    (see `.ConservationRule`, `.EdgeQNConservationRule`).
     """
 
     pid = NewType("pid", int)
@@ -124,7 +125,7 @@ EdgeQuantumNumber = Union[
 ]
 
 
-@attr.frozen(init=False)
+@frozen(init=False)
 class NodeQuantumNumbers:
     """Definition of quantum numbers for interaction nodes."""
 
@@ -164,7 +165,7 @@ def _to_optional_int(optional_int: Optional[int]) -> Optional[int]:
 
 
 @implement_pretty_repr()
-@attr.frozen(order=True)
+@frozen(order=True)
 class InteractionProperties:
     """Immutable data structure containing interaction properties.
 
@@ -181,19 +182,19 @@ class InteractionProperties:
         class serves as an interface to the user.
     """
 
-    l_magnitude: Optional[int] = attr.ib(  # L cannot be half integer
+    l_magnitude: Optional[int] = field(  # L cannot be half integer
         default=None, converter=_to_optional_int
     )
-    l_projection: Optional[int] = attr.ib(
+    l_projection: Optional[int] = field(
         default=None, converter=_to_optional_int
     )
-    s_magnitude: Optional[float] = attr.ib(
+    s_magnitude: Optional[float] = field(
         default=None, converter=_to_optional_float
     )
-    s_projection: Optional[float] = attr.ib(
+    s_projection: Optional[float] = field(
         default=None, converter=_to_optional_float
     )
-    parity_prefactor: Optional[float] = attr.ib(
+    parity_prefactor: Optional[float] = field(
         default=None, converter=_to_optional_float
     )
 

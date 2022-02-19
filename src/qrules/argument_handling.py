@@ -21,7 +21,7 @@ from typing import (
     Union,
 )
 
-import attr
+import attrs
 
 from .conservation_rules import (
     ConservationRule,
@@ -154,7 +154,7 @@ class _CompositeArgumentCreator:
             )
             if _is_edge_quantum_number(class_field.type)
             else _ValueExtractor[NodeQuantumNumber](class_field.type)
-            for class_field in attr.fields(class_type)
+            for class_field in attrs.fields(class_type)
         }
 
     def __call__(
@@ -206,10 +206,10 @@ class RuleArgumentHandler:
                 qn_type = input_type.__args__[0]  # type: ignore[attr-defined]
                 is_list = True
 
-            if attr.has(qn_type):
+            if attrs.has(qn_type):
                 class_field_types = [
                     class_field.type
-                    for class_field in attr.fields(qn_type)
+                    for class_field in attrs.fields(qn_type)
                     if not _is_optional(class_field.type)
                 ]
                 qn_check_function: Callable[
@@ -239,7 +239,7 @@ class RuleArgumentHandler:
                 qn_type = input_type.__args__[0]  # type: ignore[attr-defined]
                 is_list = True
 
-            if attr.has(qn_type):
+            if attrs.has(qn_type):
                 arg_builder: Callable[..., Any] = _CompositeArgumentCreator(
                     qn_type
                 )
@@ -322,8 +322,8 @@ def get_required_qns(
         if _is_sequence_type(input_type):
             class_type = input_type.__args__[0]
 
-        if attr.has(class_type):
-            for class_field in attr.fields(class_type):
+        if attrs.has(class_type):
+            for class_field in attrs.fields(class_type):
                 field_type = (
                     class_field.type.__args__[0]  # type: ignore[union-attr]
                     if _is_optional(class_field.type)

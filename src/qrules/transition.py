@@ -26,8 +26,9 @@ from typing import (
     overload,
 )
 
-import attr
-from attr.validators import instance_of
+import attrs
+from attrs import define, field, frozen
+from attrs.validators import instance_of
 from tqdm.auto import tqdm
 
 from qrules._implementers import implement_pretty_repr
@@ -103,18 +104,18 @@ class SolvingMode(Enum):
 
 
 @implement_pretty_repr()
-@attr.define(on_setattr=attr.setters.frozen)
+@define(on_setattr=attrs.setters.frozen)
 class ExecutionInfo:
-    not_executed_node_rules: Dict[int, Set[str]] = attr.ib(
+    not_executed_node_rules: Dict[int, Set[str]] = field(
         factory=lambda: defaultdict(set)
     )
-    violated_node_rules: Dict[int, Set[str]] = attr.ib(
+    violated_node_rules: Dict[int, Set[str]] = field(
         factory=lambda: defaultdict(set)
     )
-    not_executed_edge_rules: Dict[int, Set[str]] = attr.ib(
+    not_executed_edge_rules: Dict[int, Set[str]] = field(
         factory=lambda: defaultdict(set)
     )
-    violated_edge_rules: Dict[int, Set[str]] = attr.ib(
+    violated_edge_rules: Dict[int, Set[str]] = field(
         factory=lambda: defaultdict(set)
     )
 
@@ -146,14 +147,14 @@ class ExecutionInfo:
         self.violated_edge_rules.clear()
 
 
-@attr.frozen
+@frozen
 class _SolutionContainer:
     """Defines a result of a `.ProblemSet`."""
 
-    solutions: List[StateTransitionGraph[ParticleWithSpin]] = attr.ib(
+    solutions: List[StateTransitionGraph[ParticleWithSpin]] = field(
         factory=list
     )
-    execution_info: ExecutionInfo = attr.ib(default=ExecutionInfo())
+    execution_info: ExecutionInfo = field(default=ExecutionInfo())
 
     def __attrs_post_init__(self) -> None:
         if self.solutions and (
@@ -180,7 +181,7 @@ class _SolutionContainer:
 
 
 @implement_pretty_repr()
-@attr.define
+@define
 class ProblemSet:
     """Particle reaction problem set, defined as a graph like data structure.
 
@@ -192,9 +193,9 @@ class ProblemSet:
           rules and the quantum number domains.
     """
 
-    topology: Topology = attr.ib()
-    initial_facts: InitialFacts = attr.ib()
-    solving_settings: GraphSettings = attr.ib()
+    topology: Topology
+    initial_facts: InitialFacts
+    solving_settings: GraphSettings
 
     def to_qn_problem_set(self) -> QNProblemSet:
         node_props = {
@@ -736,20 +737,20 @@ def _strip_spin(state_definition: Sequence[StateDefinition]) -> List[str]:
 
 
 @implement_pretty_repr()
-@attr.frozen(order=True)
+@frozen(order=True)
 class State:
-    particle: Particle = attr.ib(validator=instance_of(Particle))
-    spin_projection: float = attr.ib(converter=_to_float)
+    particle: Particle = field(validator=instance_of(Particle))
+    spin_projection: float = field(converter=_to_float)
 
 
 @implement_pretty_repr()
-@attr.frozen(order=True)
+@frozen(order=True)
 class StateTransition:
     """Frozen instance of a `.StateTransitionGraph` of a particle with spin."""
 
-    topology: Topology = attr.ib(validator=instance_of(Topology))
-    states: FrozenDict[int, State] = attr.ib(converter=FrozenDict)
-    interactions: FrozenDict[int, InteractionProperties] = attr.ib(
+    topology: Topology = field(validator=instance_of(Topology))
+    states: FrozenDict[int, State] = field(converter=FrozenDict)
+    interactions: FrozenDict[int, InteractionProperties] = field(
         converter=FrozenDict
     )
 
@@ -824,16 +825,16 @@ def _to_sorted_tuple(
     return tuple(sorted(iterable))
 
 
-@attr.frozen
+@frozen
 class StateTransitionCollection(abc.Sequence):
     """`.StateTransition` instances with the same `.Topology` and edge IDs."""
 
-    transitions: Tuple[StateTransition, ...] = attr.ib(
+    transitions: Tuple[StateTransition, ...] = field(
         converter=_to_sorted_tuple
     )
-    topology: Topology = attr.ib(init=False, repr=False)
-    initial_state: FrozenDict[int, Particle] = attr.ib(init=False, repr=False)
-    final_state: FrozenDict[int, Particle] = attr.ib(init=False, repr=False)
+    topology: Topology = field(init=False, repr=False)
+    initial_state: FrozenDict[int, Particle] = field(init=False, repr=False)
+    final_state: FrozenDict[int, Particle] = field(init=False, repr=False)
 
     def __attrs_post_init__(self) -> None:
         if not any(self.transitions):
@@ -935,19 +936,19 @@ def _to_tuple(
     return tuple(iterable)
 
 
-@attr.frozen(eq=False, hash=True)
+@frozen(eq=False, hash=True)
 class ReactionInfo:
     """`StateTransitionCollection` instances, grouped by `.Topology`."""
 
-    transition_groups: Tuple[StateTransitionCollection, ...] = attr.ib(
+    transition_groups: Tuple[StateTransitionCollection, ...] = field(
         converter=_to_tuple
     )
-    transitions: Tuple[StateTransition, ...] = attr.ib(
+    transitions: Tuple[StateTransition, ...] = field(
         init=False, repr=False, eq=False
     )
-    initial_state: FrozenDict[int, Particle] = attr.ib(init=False, repr=False)
-    final_state: FrozenDict[int, Particle] = attr.ib(init=False, repr=False)
-    formalism: str = attr.ib(validator=instance_of(str))
+    initial_state: FrozenDict[int, Particle] = field(init=False, repr=False)
+    final_state: FrozenDict[int, Particle] = field(init=False, repr=False)
+    formalism: str = field(validator=instance_of(str))
 
     def __attrs_post_init__(self) -> None:
         if len(self.transition_groups) == 0:

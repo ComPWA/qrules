@@ -2,8 +2,8 @@
 # pyright: reportUnusedImport=false
 import typing
 
-import attr
 import pytest
+from attrs.exceptions import FrozenInstanceError
 from IPython.lib.pretty import pretty
 
 from qrules.topology import (  # noqa: F401
@@ -58,13 +58,13 @@ class TestEdge:
     @typing.no_type_check
     def test_immutability(self):
         edge = Edge(1, 2)
-        with pytest.raises(attr.exceptions.FrozenInstanceError):
+        with pytest.raises(FrozenInstanceError):
             edge.originating_node_id = None
-        with pytest.raises(attr.exceptions.FrozenInstanceError):
+        with pytest.raises(FrozenInstanceError):
             edge.originating_node_id += 1
-        with pytest.raises(attr.exceptions.FrozenInstanceError):
+        with pytest.raises(FrozenInstanceError):
             edge.ending_node_id = None
-        with pytest.raises(attr.exceptions.FrozenInstanceError):
+        with pytest.raises(FrozenInstanceError):
             edge.ending_node_id += 1
 
 
@@ -220,13 +220,13 @@ class TestTopology:
 
     @typing.no_type_check
     def test_immutability(self, two_to_three_decay: Topology):
-        with pytest.raises(attr.exceptions.FrozenInstanceError):
+        with pytest.raises(FrozenInstanceError):
             two_to_three_decay.edges = {0: Edge(None, None)}
         with pytest.raises(TypeError):
             two_to_three_decay.edges[0] = Edge(None, None)
-        with pytest.raises(attr.exceptions.FrozenInstanceError):
+        with pytest.raises(FrozenInstanceError):
             two_to_three_decay.edges[0].ending_node_id = None
-        with pytest.raises(attr.exceptions.FrozenInstanceError):
+        with pytest.raises(FrozenInstanceError):
             two_to_three_decay.nodes = {0, 1}
         with pytest.raises(AttributeError):
             two_to_three_decay.nodes.add(2)

@@ -29,7 +29,8 @@ from typing import (
     Union,
 )
 
-import attr
+import attrs
+from attrs import define, field, frozen
 from constraint import (
     BacktrackingSolver,
     Constraint,
@@ -58,17 +59,17 @@ from .topology import Topology
 
 
 @implement_pretty_repr()
-@attr.define
+@define
 class EdgeSettings:
     """Solver settings for a specific edge of a graph."""
 
-    conservation_rules: Set[GraphElementRule] = attr.ib(factory=set)
-    rule_priorities: Dict[GraphElementRule, int] = attr.ib(factory=dict)
-    qn_domains: Dict[Any, list] = attr.ib(factory=dict)
+    conservation_rules: Set[GraphElementRule] = field(factory=set)
+    rule_priorities: Dict[GraphElementRule, int] = field(factory=dict)
+    qn_domains: Dict[Any, list] = field(factory=dict)
 
 
 @implement_pretty_repr()
-@attr.define
+@define
 class NodeSettings:
     """Container class for the interaction settings.
 
@@ -82,28 +83,28 @@ class NodeSettings:
       - strength scale parameter (higher value means stronger force)
     """
 
-    conservation_rules: Set[Rule] = attr.ib(factory=set)
-    rule_priorities: Dict[Rule, int] = attr.ib(factory=dict)
-    qn_domains: Dict[Any, list] = attr.ib(factory=dict)
+    conservation_rules: Set[Rule] = field(factory=set)
+    rule_priorities: Dict[Rule, int] = field(factory=dict)
+    qn_domains: Dict[Any, list] = field(factory=dict)
     interaction_strength: float = 1.0
 
 
 @implement_pretty_repr()
-@attr.define
+@define
 class GraphSettings:
-    edge_settings: Dict[int, EdgeSettings] = attr.ib(factory=dict)
-    node_settings: Dict[int, NodeSettings] = attr.ib(factory=dict)
+    edge_settings: Dict[int, EdgeSettings] = field(factory=dict)
+    node_settings: Dict[int, NodeSettings] = field(factory=dict)
 
 
 @implement_pretty_repr()
-@attr.define
+@define
 class GraphElementProperties:
-    edge_props: Dict[int, GraphEdgePropertyMap] = attr.ib(factory=dict)
-    node_props: Dict[int, GraphNodePropertyMap] = attr.ib(factory=dict)
+    edge_props: Dict[int, GraphEdgePropertyMap] = field(factory=dict)
+    node_props: Dict[int, GraphNodePropertyMap] = field(factory=dict)
 
 
 @implement_pretty_repr()
-@attr.frozen
+@frozen
 class QNProblemSet:
     """Particle reaction problem set, defined as a graph like data structure.
 
@@ -117,16 +118,16 @@ class QNProblemSet:
         topology
     """
 
-    topology: Topology = attr.ib()
-    initial_facts: GraphElementProperties = attr.ib()
-    solving_settings: GraphSettings = attr.ib()
+    topology: Topology
+    initial_facts: GraphElementProperties
+    solving_settings: GraphSettings
 
 
 @implement_pretty_repr()
-@attr.frozen
+@frozen
 class QuantumNumberSolution:
-    node_quantum_numbers: Dict[int, GraphNodePropertyMap] = attr.ib()
-    edge_quantum_numbers: Dict[int, GraphEdgePropertyMap] = attr.ib()
+    node_quantum_numbers: Dict[int, GraphNodePropertyMap]
+    edge_quantum_numbers: Dict[int, GraphEdgePropertyMap]
 
 
 def _convert_violated_rules_to_names(
@@ -174,21 +175,21 @@ def _convert_non_executed_rules_to_names(
 
 
 @implement_pretty_repr()
-@attr.define(on_setattr=attr.setters.frozen)
+@define(on_setattr=attrs.setters.frozen)
 class QNResult:
     """Defines a result to a problem set processed by the solving code."""
 
-    solutions: List[QuantumNumberSolution] = attr.ib(factory=list)
-    not_executed_node_rules: Dict[int, Set[str]] = attr.ib(
+    solutions: List[QuantumNumberSolution] = field(factory=list)
+    not_executed_node_rules: Dict[int, Set[str]] = field(
         factory=lambda: defaultdict(set)
     )
-    violated_node_rules: Dict[int, Set[str]] = attr.ib(
+    violated_node_rules: Dict[int, Set[str]] = field(
         factory=lambda: defaultdict(set)
     )
-    not_executed_edge_rules: Dict[int, Set[str]] = attr.ib(
+    not_executed_edge_rules: Dict[int, Set[str]] = field(
         factory=lambda: defaultdict(set)
     )
-    violated_edge_rules: Dict[int, Set[str]] = attr.ib(
+    violated_edge_rules: Dict[int, Set[str]] = field(
         factory=lambda: defaultdict(set)
     )
 
@@ -275,7 +276,7 @@ def _merge_particle_candidates_with_solutions(
                         for k, v in current_new_solution.edge_quantum_numbers.items()
                     }
                     new_edge_qns[int_edge_id].update(particle_edge)
-                    temp_solution = attr.evolve(
+                    temp_solution = attrs.evolve(
                         current_new_solution,
                         edge_quantum_numbers=new_edge_qns,
                     )
@@ -461,18 +462,18 @@ def _create_variable_string(
     return str(element_id) + "-" + qn_type.__name__
 
 
-@attr.define
+@define
 class _VariableContainer:
-    ingoing_edge_variables: Set[_EdgeVariableInfo] = attr.ib(factory=set)
-    fixed_ingoing_edge_variables: Dict[int, GraphEdgePropertyMap] = attr.ib(
+    ingoing_edge_variables: Set[_EdgeVariableInfo] = field(factory=set)
+    fixed_ingoing_edge_variables: Dict[int, GraphEdgePropertyMap] = field(
         factory=dict
     )
-    outgoing_edge_variables: Set[_EdgeVariableInfo] = attr.ib(factory=set)
-    fixed_outgoing_edge_variables: Dict[int, GraphEdgePropertyMap] = attr.ib(
+    outgoing_edge_variables: Set[_EdgeVariableInfo] = field(factory=set)
+    fixed_outgoing_edge_variables: Dict[int, GraphEdgePropertyMap] = field(
         factory=dict
     )
-    node_variables: Set[_NodeVariableInfo] = attr.ib(factory=set)
-    fixed_node_variables: GraphNodePropertyMap = attr.ib(factory=dict)
+    node_variables: Set[_NodeVariableInfo] = field(factory=set)
+    fixed_node_variables: GraphNodePropertyMap = field(factory=dict)
 
 
 class CSPSolver(Solver):

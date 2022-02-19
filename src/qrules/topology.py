@@ -37,7 +37,9 @@ from typing import (
     ValuesView,
 )
 
-import attr
+import attrs
+from attrs import define, field, frozen
+from attrs.validators import instance_of
 
 from qrules._implementers import implement_pretty_repr
 
@@ -143,14 +145,14 @@ def _to_optional_int(optional_int: Optional[int]) -> Optional[int]:
     return int(optional_int)
 
 
-@attr.frozen(order=True)
+@frozen(order=True)
 class Edge:
     """Struct-like definition of an edge, used in `Topology`."""
 
-    originating_node_id: Optional[int] = attr.ib(
+    originating_node_id: Optional[int] = field(
         default=None, converter=_to_optional_int
     )
-    ending_node_id: Optional[int] = attr.ib(
+    ending_node_id: Optional[int] = field(
         default=None, converter=_to_optional_int
     )
 
@@ -167,7 +169,7 @@ def _to_frozenset(iterable: Iterable[int]) -> FrozenSet[int]:
 
 
 @implement_pretty_repr()
-@attr.frozen(order=True)
+@frozen(order=True)
 class Topology:
     """Directed Feynman-like graph without edge or node properties.
 
@@ -178,12 +180,12 @@ class Topology:
     like a Feynman-diagram.
     """
 
-    nodes: FrozenSet[int] = attr.ib(converter=_to_frozenset)
-    edges: FrozenDict[int, Edge] = attr.ib(converter=FrozenDict)
+    nodes: FrozenSet[int] = field(converter=_to_frozenset)
+    edges: FrozenDict[int, Edge] = field(converter=FrozenDict)
 
-    incoming_edge_ids: FrozenSet[int] = attr.ib(init=False, repr=False)
-    outgoing_edge_ids: FrozenSet[int] = attr.ib(init=False, repr=False)
-    intermediate_edge_ids: FrozenSet[int] = attr.ib(init=False, repr=False)
+    incoming_edge_ids: FrozenSet[int] = field(init=False, repr=False)
+    outgoing_edge_ids: FrozenSet[int] = field(init=False, repr=False)
+    intermediate_edge_ids: FrozenSet[int] = field(init=False, repr=False)
 
     def __attrs_post_init__(self) -> None:
         self.__verify()
@@ -349,7 +351,7 @@ class Topology:
         new_edges = {
             old_to_new_id.get(i, i): edge for i, edge in self.edges.items()
         }
-        return attr.evolve(self, edges=new_edges)
+        return attrs.evolve(self, edges=new_edges)
 
     def swap_edges(self, edge_id1: int, edge_id2: int) -> "Topology":
         return self.relabel_edges({edge_id1: edge_id2, edge_id2: edge_id1})
@@ -374,10 +376,10 @@ def get_originating_node_list(
     ]
 
 
-@attr.define(kw_only=True)
+@define(kw_only=True)
 class _MutableTopology:
-    edges: Dict[int, Edge] = attr.ib(factory=dict, converter=dict)
-    nodes: Set[int] = attr.ib(factory=set, converter=set)
+    edges: Dict[int, Edge] = field(factory=dict, converter=dict)
+    nodes: Set[int] = field(factory=set, converter=set)
 
     def freeze(self) -> Topology:
         return Topology(
@@ -457,16 +459,12 @@ class _MutableTopology:
             )
 
 
-@attr.define
+@define
 class InteractionNode:
     """Helper class for the `.SimpleStateTransitionTopologyBuilder`."""
 
-    number_of_ingoing_edges: int = attr.ib(
-        validator=attr.validators.instance_of(int)
-    )
-    number_of_outgoing_edges: int = attr.ib(
-        validator=attr.validators.instance_of(int)
-    )
+    number_of_ingoing_edges: int = field(validator=instance_of(int))
+    number_of_outgoing_edges: int = field(validator=instance_of(int))
 
     def __attrs_post_init__(self) -> None:
         if self.number_of_ingoing_edges < 1:

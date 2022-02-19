@@ -18,7 +18,7 @@ from typing import (
     Union,
 )
 
-import attr
+import attrs
 
 from qrules.combinatorics import InitialFacts
 from qrules.particle import Particle, ParticleCollection, ParticleWithSpin
@@ -511,7 +511,7 @@ def _strip_projections(
     for node_id in graph.topology.nodes:
         node_props = graph.get_node_props(node_id)
         if node_props:
-            new_node_props[node_id] = attr.evolve(
+            new_node_props[node_id] = attrs.evolve(
                 node_props, l_projection=None, s_projection=None
             )
     return StateTransitionGraph[Particle](

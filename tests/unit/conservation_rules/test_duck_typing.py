@@ -8,7 +8,7 @@ therefore checked through functions defined in this test.
 import inspect
 from typing import Set, Type
 
-import attr
+import attrs
 
 from qrules import conservation_rules
 from qrules.particle import Particle
@@ -101,8 +101,8 @@ def test_get_members():
 
 def __get_members(class_type: Type) -> Set[str]:
     use_attrs = class_type not in {EdgeQuantumNumbers, NodeQuantumNumbers}
-    if use_attrs and attr.has(class_type):
-        return {f.name for f in attr.fields(class_type)}
+    if use_attrs and attrs.has(class_type):
+        return {f.name for f in attrs.fields(class_type)}
     return {
         a.name
         for a in inspect.classify_class_attrs(class_type)

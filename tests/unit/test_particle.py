@@ -4,7 +4,7 @@ import logging
 from copy import deepcopy
 
 import pytest
-from attr.exceptions import FrozenInstanceError
+from attrs.exceptions import FrozenInstanceError
 from IPython.lib.pretty import pretty
 
 from qrules.particle import (
