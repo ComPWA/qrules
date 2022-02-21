@@ -212,14 +212,14 @@ def make_ls_test_graph(
         nodes={0},
         edges={0: Edge(None, 0)},
     )
-    node_props = {
+    interactions = {
         0: InteractionProperties(
             s_magnitude=coupled_spin_magnitude,
             l_magnitude=angular_momentum_magnitude,
         )
     }
-    edge_props: Dict[int, ParticleWithSpin] = {0: (particle, 0)}
-    graph = MutableTransition(topology, node_props, edge_props)
+    states: Dict[int, ParticleWithSpin] = {0: (particle, 0)}
+    graph = MutableTransition(topology, states, interactions)
     return graph
 
 
@@ -230,14 +230,14 @@ def make_ls_test_graph_scrambled(
         nodes={0},
         edges={0: Edge(None, 0)},
     )
-    node_props = {
+    interactions = {
         0: InteractionProperties(
             l_magnitude=angular_momentum_magnitude,
             s_magnitude=coupled_spin_magnitude,
         )
     }
-    edge_props: Dict[int, ParticleWithSpin] = {0: (particle, 0)}
-    graph = MutableTransition(topology, node_props, edge_props)
+    states: Dict[int, ParticleWithSpin] = {0: (particle, 0)}
+    graph = MutableTransition(topology, states, interactions)
     return graph
 
 
@@ -325,7 +325,7 @@ class TestSolutionFilter:  # pylint: disable=no-self-use
             tempgraph = make_ls_test_graph(value[1][0], value[1][1], pi0)
             tempgraph = attrs.evolve(
                 tempgraph,
-                edge_props={
+                states={
                     0: (
                         Particle(name=value[0], pid=0, mass=1.0, spin=1.0),
                         0.0,
@@ -344,8 +344,8 @@ def _create_graph(
 ) -> MutableTransition[ParticleWithSpin, InteractionProperties]:
     return MutableTransition(
         topology=problem_set.topology,
-        node_props=problem_set.initial_facts.node_props,
-        edge_props=problem_set.initial_facts.edge_props,
+        interactions=problem_set.initial_facts.interactions,
+        states=problem_set.initial_facts.states,
     )
 
 
@@ -382,15 +382,15 @@ def test_edge_swap(particle_database, initial_state, final_state):
         edge_keys = list(ref_mapping.keys())
         edge1 = edge_keys[0]
         edge1_val = graph.topology.edges[edge1]
-        edge1_props = deepcopy(graph.edge_props[edge1])
+        edge1_props = deepcopy(graph.states[edge1])
         edge2 = edge_keys[1]
         edge2_val = graph.topology.edges[edge2]
-        edge2_props = deepcopy(graph.edge_props[edge2])
+        edge2_props = deepcopy(graph.states[edge2])
         graph.swap_edges(edge1, edge2)
         assert graph.topology.edges[edge1] == edge2_val
         assert graph.topology.edges[edge2] == edge1_val
-        assert graph.edge_props[edge1] == edge2_props
-        assert graph.edge_props[edge2] == edge1_props
+        assert graph.states[edge1] == edge2_props
+        assert graph.states[edge2] == edge1_props
 
 
 @pytest.mark.parametrize(

@@ -215,7 +215,7 @@ def test_collapse_graphs(
     graph = next(iter(collapsed_graphs))
     edge_id = next(iter(graph.topology.intermediate_edge_ids))
     f_resonances = pdg.filter(lambda p: p.name in ["f(0)(980)", "f(0)(1500)"])
-    intermediate_states = graph.edge_props[edge_id]
+    intermediate_states = graph.states[edge_id]
     assert isinstance(intermediate_states, ParticleCollection)
     assert intermediate_states == f_resonances
 
@@ -226,11 +226,11 @@ def test_get_particle_graphs(
     pdg = particle_database
     graphs = _get_particle_graphs(reaction.to_graphs())
     assert len(graphs) == 2
-    assert graphs[0].edge_props[3] == pdg["f(0)(980)"]
-    assert graphs[1].edge_props[3] == pdg["f(0)(1500)"]
+    assert graphs[0].states[3] == pdg["f(0)(980)"]
+    assert graphs[1].states[3] == pdg["f(0)(1500)"]
     assert len(graphs[0].topology.edges) == 5
     for i in range(-1, 3):
-        assert graphs[0].edge_props[i] is graphs[1].edge_props[i]
+        assert graphs[0].states[i] is graphs[1].states[i]
 
 
 def test_strip_projections():
@@ -254,8 +254,8 @@ def test_strip_projections():
     assert transition.interactions[1].l_projection == 0
 
     stripped_transition = _strip_projections(transition)  # type: ignore[arg-type]
-    assert stripped_transition.edge_props[3].name == resonance
-    assert stripped_transition.node_props[0].s_projection is None
-    assert stripped_transition.node_props[0].l_projection is None
-    assert stripped_transition.node_props[1].s_projection is None
-    assert stripped_transition.node_props[1].l_projection is None
+    assert stripped_transition.states[3].name == resonance
+    assert stripped_transition.interactions[0].s_projection is None
+    assert stripped_transition.interactions[0].l_projection is None
+    assert stripped_transition.interactions[1].s_projection is None
+    assert stripped_transition.interactions[1].l_projection is None

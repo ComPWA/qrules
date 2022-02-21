@@ -279,8 +279,8 @@ def __graph_to_dot_content(  # pylint: disable=too-many-branches,too-many-locals
                 from_node, to_node, label=label, graphviz_attrs=edge_style
             )
     if isinstance(graph, ProblemSet):
-        node_props = graph.solving_settings.node_settings
-        for node_id, settings in node_props.items():
+        node_settings = graph.solving_settings.node_settings
+        for node_id, settings in node_settings.items():
             node_label = ""
             if render_node:
                 node_label = __node_label(settings)
@@ -295,7 +295,7 @@ def __graph_to_dot_content(  # pylint: disable=too-many-branches,too-many-locals
                 int, InteractionProperties
             ] = graph.interactions
         else:
-            interactions = {i: graph.node_props[i] for i in topology.nodes}
+            interactions = {i: graph.interactions[i] for i in topology.nodes}
         for node_id, node_prop in interactions.items():
             node_label = ""
             if render_node:
@@ -347,11 +347,11 @@ def __get_edge_label(
         edge_setting = graph.edge_settings.get(edge_id)
         return ___render_edge_with_id(edge_id, edge_setting, render_edge_id)
     if isinstance(graph, InitialFacts):
-        initial_fact = graph.edge_props.get(edge_id)
+        initial_fact = graph.states.get(edge_id)
         return ___render_edge_with_id(edge_id, initial_fact, render_edge_id)
     if isinstance(graph, ProblemSet):
         edge_setting = graph.solving_settings.edge_settings.get(edge_id)
-        initial_fact = graph.initial_facts.edge_props.get(edge_id)
+        initial_fact = graph.initial_facts.states.get(edge_id)
         edge_property: Optional[Union[EdgeSettings, ParticleWithSpin]] = None
         if edge_setting:
             edge_property = edge_setting
@@ -361,7 +361,7 @@ def __get_edge_label(
     if isinstance(graph, StateTransition):
         graph = graph.to_graph()
     if isinstance(graph, MutableTransition):
-        edge_prop = graph.edge_props[edge_id]
+        edge_prop = graph.states[edge_id]
         return ___render_edge_with_id(edge_id, edge_prop, render_edge_id)
     if isinstance(graph, Topology):
         if render_edge_id:
@@ -483,7 +483,7 @@ def _get_particle_graphs(
             transition = transition.to_graph()
         if any(
             transition.compare(
-                other, edge_comparator=lambda e1, e2: e1[0] == e2
+                other, state_comparator=lambda e1, e2: e1[0] == e2
             )
             for other in inventory
         ):
@@ -493,7 +493,7 @@ def _get_particle_graphs(
     inventory = sorted(
         inventory,
         key=lambda g: [
-            g.edge_props[i].mass for i in g.topology.intermediate_edge_ids
+            g.states[i].mass for i in g.topology.intermediate_edge_ids
         ],
     )
     return inventory
@@ -504,22 +504,22 @@ def _strip_projections(
 ) -> MutableTransition[Particle, InteractionProperties]:
     if isinstance(graph, StateTransition):
         graph = graph.to_graph()
-    new_edge_props = {}
+    new_states = {}
     for edge_id in graph.topology.edges:
-        edge_props = graph.edge_props[edge_id]
-        if edge_props:
-            new_edge_props[edge_id] = edge_props[0]
-    new_node_props = {}
+        states = graph.states[edge_id]
+        if states:
+            new_states[edge_id] = states[0]
+    new_interactions = {}
     for node_id in graph.topology.nodes:
-        node_props = graph.node_props[node_id]
-        if node_props:
-            new_node_props[node_id] = attrs.evolve(
-                node_props, l_projection=None, s_projection=None
+        interactions = graph.interactions[node_id]
+        if interactions:
+            new_interactions[node_id] = attrs.evolve(
+                interactions, l_projection=None, s_projection=None
             )
     return MutableTransition[Particle, InteractionProperties](
         topology=graph.topology,
-        node_props=new_node_props,
-        edge_props=new_edge_props,
+        interactions=new_interactions,
+        states=new_states,
     )
 
 
@@ -542,8 +542,8 @@ def _collapse_graphs(
                 "Cannot merge graphs that don't have the same edge IDs"
             )
         for i in graph.topology.edges:
-            particle = graph.edge_props[i]
-            other_particles = merged_graph.edge_props[i]
+            particle = graph.states[i]
+            other_particles = merged_graph.states[i]
             if particle not in other_particles:
                 other_particles += particle
 
@@ -558,11 +558,11 @@ def _collapse_graphs(
         for edge_id in (
             graph.topology.incoming_edge_ids | graph.topology.outgoing_edge_ids
         ):
-            edge_prop = merged_graph.edge_props[edge_id]
+            edge_prop = merged_graph.states[edge_id]
             if len(edge_prop) != 1:
                 return False
             other_particle = next(iter(edge_prop))
-            if other_particle != graph.edge_props[edge_id]:
+            if other_particle != graph.states[edge_id]:
                 return False
         return True
 
@@ -578,17 +578,17 @@ def _collapse_graphs(
                 append_to_inventory = False
                 break
         if append_to_inventory:
-            new_edge_props = {
-                edge_id: ParticleCollection({graph.edge_props[edge_id]})
+            new_states = {
+                edge_id: ParticleCollection({graph.states[edge_id]})
                 for edge_id in graph.topology.edges
             }
             inventory.append(
                 MutableTransition[ParticleCollection, InteractionProperties](
                     topology=graph.topology,
-                    node_props={
-                        i: graph.node_props[i] for i in graph.topology.nodes
+                    interactions={
+                        i: graph.interactions[i] for i in graph.topology.nodes
                     },
-                    edge_props=new_edge_props,
+                    states=new_states,
                 )
             )
     return inventory

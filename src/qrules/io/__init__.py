@@ -54,8 +54,6 @@ def fromdict(definition: dict) -> object:
         return _dict.build_reaction_info(definition)
     if keys == {"topology", "states", "interactions"}:
         return _dict.build_state_transition(definition)
-    if keys == {"topology", "edge_props", "node_props"}:
-        return _dict.build_stg(definition)
     if keys == __REQUIRED_TOPOLOGY_FIELDS:
         return _dict.build_topology(definition)
     raise NotImplementedError(f"Could not determine type from keys {keys}")

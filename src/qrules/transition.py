@@ -184,18 +184,18 @@ class ProblemSet:
     solving_settings: GraphSettings
 
     def to_qn_problem_set(self) -> QNProblemSet:
-        node_props = {
+        interactions = {
             k: create_node_properties(v)
-            for k, v in self.initial_facts.node_props.items()
+            for k, v in self.initial_facts.interactions.items()
         }
-        edge_props = {
+        states = {
             k: create_edge_properties(v[0], v[1])
-            for k, v in self.initial_facts.edge_props.items()
+            for k, v in self.initial_facts.states.items()
         }
         return QNProblemSet(
             topology=self.topology,
             initial_facts=GraphElementProperties(
-                node_props=node_props, edge_props=edge_props
+                interactions=interactions, states=states
             ),
             solving_settings=self.solving_settings,
         )
@@ -476,24 +476,24 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             interaction_types: List[InteractionType] = []
             out_edge_ids = topology.get_edge_ids_outgoing_from_node(node_id)
             in_edge_ids = topology.get_edge_ids_outgoing_from_node(node_id)
-            in_edge_props = [
-                initial_facts.edge_props[edge_id]
+            in_states = [
+                initial_facts.states[edge_id]
                 for edge_id in [
                     x for x in in_edge_ids if x in initial_state_edges
                 ]
             ]
-            out_edge_props = [
-                initial_facts.edge_props[edge_id]
+            out_states = [
+                initial_facts.states[edge_id]
                 for edge_id in [
                     x for x in out_edge_ids if x in final_state_edges
                 ]
             ]
-            node_props = InteractionProperties()
-            if node_id in initial_facts.node_props:
-                node_props = initial_facts.node_props[node_id]
+            interactions = InteractionProperties()
+            if node_id in initial_facts.interactions:
+                interactions = initial_facts.interactions[node_id]
             for int_det in self.interaction_determinators:
                 determined_interactions = int_det.check(
-                    in_edge_props, out_edge_props, node_props
+                    in_states, out_states, interactions
                 )
                 if interaction_types:
                     interaction_types = list(
@@ -655,11 +655,11 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         for solution in qn_result.solutions:
             graph = MutableTransition[ParticleWithSpin, InteractionProperties](
                 topology=topology,
-                node_props={
+                interactions={
                     i: create_interaction_properties(x)
                     for i, x in solution.node_quantum_numbers.items()
                 },
-                edge_props={
+                states={
                     i: create_particle(x, self.__particles)
                     for i, x in solution.edge_quantum_numbers.items()
                 },
@@ -698,17 +698,17 @@ def _match_final_state_ids(
     particle_names = _strip_spin(state_definition)
     name_to_id = {name: i for i, name in enumerate(particle_names)}
     id_remapping = {
-        name_to_id[graph.edge_props[i][0].name]: i
+        name_to_id[graph.states[i][0].name]: i
         for i in graph.topology.outgoing_edge_ids
     }
     new_topology = graph.topology.relabel_edges(id_remapping)
     return MutableTransition(
         new_topology,
-        edge_props={
-            i: graph.edge_props[id_remapping.get(i, i)]
+        states={
+            i: graph.states[id_remapping.get(i, i)]
             for i in graph.topology.edges
         },
-        node_props={i: graph.node_props[i] for i in graph.topology.nodes},
+        interactions={i: graph.interactions[i] for i in graph.topology.nodes},
     )
 
 
@@ -751,10 +751,10 @@ class StateTransition:
         return StateTransition(
             topology=graph.topology,
             states=FrozenDict(
-                {i: State(*graph.edge_props[i]) for i in graph.topology.edges}
+                {i: State(*graph.states[i]) for i in graph.topology.edges}
             ),
             interactions=FrozenDict(
-                {i: graph.node_props[i] for i in graph.topology.nodes}
+                {i: graph.interactions[i] for i in graph.topology.nodes}
             ),
         )
 
@@ -763,11 +763,11 @@ class StateTransition:
     ) -> MutableTransition[ParticleWithSpin, InteractionProperties]:
         return MutableTransition[ParticleWithSpin, InteractionProperties](
             topology=self.topology,
-            edge_props={
+            states={
                 i: (state.particle, state.spin_projection)
                 for i, state in self.states.items()
             },
-            node_props=self.interactions,
+            interactions=self.interactions,
         )
 
     @property

@@ -99,8 +99,8 @@ class GraphSettings:
 @implement_pretty_repr
 @define
 class GraphElementProperties:
-    edge_props: Dict[int, GraphEdgePropertyMap] = field(factory=dict)
-    node_props: Dict[int, GraphNodePropertyMap] = field(factory=dict)
+    states: Dict[int, GraphEdgePropertyMap] = field(factory=dict)
+    interactions: Dict[int, GraphNodePropertyMap] = field(factory=dict)
 
 
 @implement_pretty_repr
@@ -326,12 +326,12 @@ def validate_full_solution(problem_set: QNProblemSet) -> QNResult:
     ) -> Dict[Type[NodeQuantumNumber], Scalar]:
         """Create variables for the quantum numbers of the specified node."""
         variables = {}
-        if node_id in problem_set.initial_facts.node_props:
-            node_props = problem_set.initial_facts.node_props[node_id]
-            variables = node_props
+        if node_id in problem_set.initial_facts.interactions:
+            interactions = problem_set.initial_facts.interactions[node_id]
+            variables = interactions
             for qn_type in qn_list:
-                if qn_type in node_props:
-                    variables[qn_type] = node_props[qn_type]
+                if qn_type in interactions:
+                    variables[qn_type] = interactions[qn_type]
         return variables
 
     def _create_edge_variables(
@@ -346,12 +346,12 @@ def validate_full_solution(problem_set: QNProblemSet) -> QNResult:
         """
         variables = []
         for edge_id in edge_ids:
-            if edge_id in problem_set.initial_facts.edge_props:
-                edge_props = problem_set.initial_facts.edge_props[edge_id]
+            if edge_id in problem_set.initial_facts.states:
+                states = problem_set.initial_facts.states[edge_id]
                 edge_vars = {}
                 for qn_type in qn_list:
-                    if qn_type in edge_props:
-                        edge_vars[qn_type] = edge_props[qn_type]
+                    if qn_type in states:
+                        edge_vars[qn_type] = states[qn_type]
                 variables.append(edge_vars)
         return variables
 
@@ -444,8 +444,8 @@ def validate_full_solution(problem_set: QNProblemSet) -> QNResult:
     return QNResult(
         [
             QuantumNumberSolution(
-                edge_quantum_numbers=problem_set.initial_facts.edge_props,
-                node_quantum_numbers=problem_set.initial_facts.node_props,
+                edge_quantum_numbers=problem_set.initial_facts.states,
+                node_quantum_numbers=problem_set.initial_facts.interactions,
             )
         ],
     )
@@ -548,8 +548,8 @@ class CSPSolver(Solver):
         else:
             full_particle_solutions = [
                 QuantumNumberSolution(
-                    node_quantum_numbers=problem_set.initial_facts.node_props,
-                    edge_quantum_numbers=problem_set.initial_facts.edge_props,
+                    node_quantum_numbers=problem_set.initial_facts.interactions,
+                    edge_quantum_numbers=problem_set.initial_facts.states,
                 )
             ]
 
@@ -560,17 +560,17 @@ class CSPSolver(Solver):
             # and combine results
             result = QNResult()
             for full_particle_solution in full_particle_solutions:
-                node_props = full_particle_solution.node_quantum_numbers
-                edge_props = full_particle_solution.edge_quantum_numbers
-                node_props.update(problem_set.initial_facts.node_props)
-                edge_props.update(problem_set.initial_facts.edge_props)
+                interactions = full_particle_solution.node_quantum_numbers
+                states = full_particle_solution.edge_quantum_numbers
+                interactions.update(problem_set.initial_facts.interactions)
+                states.update(problem_set.initial_facts.states)
                 result.extend(
                     validate_full_solution(
                         QNProblemSet(
                             topology=problem_set.topology,
                             initial_facts=GraphElementProperties(
-                                node_props=node_props,
-                                edge_props=edge_props,
+                                interactions=interactions,
+                                states=states,
                             ),
                             solving_settings=GraphSettings(
                                 node_settings={
@@ -755,11 +755,11 @@ class CSPSolver(Solver):
             {},
         )
 
-        if node_id in problem_set.initial_facts.node_props:
-            node_props = problem_set.initial_facts.node_props[node_id]
+        if node_id in problem_set.initial_facts.interactions:
+            interactions = problem_set.initial_facts.interactions[node_id]
             for qn_type in qn_list:
-                if qn_type in node_props:
-                    variables[1].update({qn_type: node_props[qn_type]})
+                if qn_type in interactions:
+                    variables[1].update({qn_type: interactions[qn_type]})
         else:
             node_settings = problem_set.solving_settings.node_settings[node_id]
             for qn_type in qn_list:
@@ -793,12 +793,12 @@ class CSPSolver(Solver):
 
         for edge_id in edge_ids:
             variables[1][edge_id] = {}
-            if edge_id in problem_set.initial_facts.edge_props:
-                edge_props = problem_set.initial_facts.edge_props[edge_id]
+            if edge_id in problem_set.initial_facts.states:
+                states = problem_set.initial_facts.states[edge_id]
                 for qn_type in qn_list:
-                    if qn_type in edge_props:
+                    if qn_type in states:
                         variables[1][edge_id].update(
-                            {qn_type: edge_props[qn_type]}
+                            {qn_type: states[qn_type]}
                         )
             else:
                 edge_settings = problem_set.solving_settings.edge_settings[

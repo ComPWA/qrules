@@ -655,25 +655,25 @@ NodeType = TypeVar("NodeType")
 """A `~typing.TypeVar` representing the type of node properties."""
 
 
-@implement_pretty_repr()
+@implement_pretty_repr
 @frozen(order=True)
 class FrozenTransition(Generic[EdgeType, NodeType]):
     """Defines a frozen mapping of edge and node properties on a `Topology`."""
 
     topology: Topology = field(validator=instance_of(Topology))
-    edge_props: FrozenDict[int, NodeType] = field(converter=FrozenDict)
-    node_props: FrozenDict[int, EdgeType] = field(converter=FrozenDict)
+    states: FrozenDict[int, EdgeType] = field(converter=FrozenDict)
+    interactions: FrozenDict[int, NodeType] = field(converter=FrozenDict)
 
     def __attrs_post_init__(self) -> None:
-        _assert_all_defined(self.topology.nodes, self.node_props)
-        _assert_all_defined(self.topology.edges, self.edge_props)
+        _assert_all_defined(self.topology.nodes, self.interactions)
+        _assert_all_defined(self.topology.edges, self.states)
 
 
-def _cast_edges(obj: Mapping[int, EdgeType]) -> Dict[int, EdgeType]:
+def _cast_states(obj: Mapping[int, EdgeType]) -> Dict[int, EdgeType]:
     return dict(obj)
 
 
-def _cast_nodes(obj: Mapping[int, NodeType]) -> Dict[int, NodeType]:
+def _cast_interactions(obj: Mapping[int, NodeType]) -> Dict[int, NodeType]:
     return dict(obj)
 
 
@@ -689,27 +689,29 @@ class MutableTransition(Generic[EdgeType, NodeType]):
     """
 
     topology: Topology = field(validator=instance_of(Topology))
-    node_props: Dict[int, NodeType] = field(converter=_cast_nodes)
-    edge_props: Dict[int, EdgeType] = field(converter=_cast_edges)
+    states: Dict[int, EdgeType] = field(converter=_cast_states)
+    interactions: Dict[int, NodeType] = field(converter=_cast_interactions)
 
     def compare(
         self,
         other: "MutableTransition",
-        edge_comparator: Optional[Callable[[EdgeType, EdgeType], bool]] = None,
-        node_comparator: Optional[Callable[[NodeType, NodeType], bool]] = None,
+        state_comparator: Optional[
+            Callable[[EdgeType, EdgeType], bool]
+        ] = None,
+        interaction_comparator: Optional[
+            Callable[[NodeType, NodeType], bool]
+        ] = None,
     ) -> bool:
         if self.topology != other.topology:
             return False
-        if edge_comparator is not None:
+        if state_comparator is not None:
             for i in self.topology.edges:
-                if not edge_comparator(
-                    self.edge_props[i], other.edge_props[i]
-                ):
+                if not state_comparator(self.states[i], other.states[i]):
                     return False
-        if node_comparator is not None:
+        if interaction_comparator is not None:
             for i in self.topology.nodes:
-                if not node_comparator(
-                    self.node_props[i], other.node_props[i]
+                if not interaction_comparator(
+                    self.interactions[i], other.interactions[i]
                 ):
                     return False
         return True
@@ -718,14 +720,14 @@ class MutableTransition(Generic[EdgeType, NodeType]):
         self.topology = self.topology.swap_edges(edge_id1, edge_id2)
         value1: Optional[EdgeType] = None
         value2: Optional[EdgeType] = None
-        if edge_id1 in self.edge_props:
-            value1 = self.edge_props.pop(edge_id1)
-        if edge_id2 in self.edge_props:
-            value2 = self.edge_props.pop(edge_id2)
+        if edge_id1 in self.states:
+            value1 = self.states.pop(edge_id1)
+        if edge_id2 in self.states:
+            value2 = self.states.pop(edge_id2)
         if value1 is not None:
-            self.edge_props[edge_id2] = value1
+            self.states[edge_id2] = value1
         if value2 is not None:
-            self.edge_props[edge_id1] = value2
+            self.states[edge_id1] = value2
 
 
 def _assert_all_defined(items: Iterable, properties: Iterable) -> None:

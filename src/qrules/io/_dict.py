@@ -37,25 +37,25 @@ def from_stg(
     graph: MutableTransition[ParticleWithSpin, InteractionProperties]
 ) -> dict:
     topology = graph.topology
-    edge_props_def = {}
+    states_def = {}
     for i in topology.edges:
-        particle, spin_projection = graph.edge_props[i]
+        particle, spin_projection = graph.states[i]
         if isinstance(spin_projection, float) and spin_projection.is_integer():
             spin_projection = int(spin_projection)
-        edge_props_def[i] = {
+        states_def[i] = {
             "particle": from_particle(particle),
             "spin_projection": spin_projection,
         }
-    node_props_def = {}
+    interactions_def = {}
     for i in topology.nodes:
-        node_prop = graph.node_props[i]
-        node_props_def[i] = attrs.asdict(
+        node_prop = graph.interactions[i]
+        interactions_def[i] = attrs.asdict(
             node_prop, filter=lambda a, v: a.init and a.default != v
         )
     return {
         "topology": from_topology(topology),
-        "edge_props": edge_props_def,
-        "node_props": node_props_def,
+        "states": states_def,
+        "interactions": interactions_def,
     }
 
 
@@ -116,30 +116,6 @@ def build_reaction_info(definition: dict) -> ReactionInfo:
         for transition_def in definition["transitions"]
     ]
     return ReactionInfo(transitions, formalism=definition["formalism"])
-
-
-def build_stg(
-    definition: dict,
-) -> MutableTransition[ParticleWithSpin, InteractionProperties]:
-    topology = build_topology(definition["topology"])
-    edge_props_def: Dict[int, dict] = definition["edge_props"]
-    edge_props: Dict[int, ParticleWithSpin] = {}
-    for i, edge_def in edge_props_def.items():
-        particle = build_particle(edge_def["particle"])
-        spin_projection = float(edge_def["spin_projection"])
-        if spin_projection.is_integer():
-            spin_projection = int(spin_projection)
-        edge_props[int(i)] = (particle, spin_projection)
-    node_props_def: Dict[int, dict] = definition["node_props"]
-    node_props = {
-        int(i): InteractionProperties(**node_def)
-        for i, node_def in node_props_def.items()
-    }
-    return MutableTransition(
-        topology=topology,
-        edge_props=edge_props,
-        node_props=node_props,
-    )
 
 
 def build_state_transition(definition: dict) -> StateTransition:

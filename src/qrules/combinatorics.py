@@ -40,8 +40,8 @@ StateDefinition = Union[str, StateWithSpins]
 @implement_pretty_repr
 @frozen
 class InitialFacts:
-    edge_props: Dict[int, ParticleWithSpin] = field(factory=dict)
-    node_props: Dict[int, InteractionProperties] = field(factory=dict)
+    states: Dict[int, ParticleWithSpin] = field(factory=dict)
+    interactions: Dict[int, InteractionProperties] = field(factory=dict)
 
 
 class _KinematicRepresentation:
@@ -268,7 +268,7 @@ def create_initial_facts(  # pylint: disable=too-many-locals
             kinematic_permutation, particle_db
         )
         edge_initial_facts.extend(
-            [InitialFacts(edge_props=x) for x in spin_permutations]
+            [InitialFacts(states=x) for x in spin_permutations]
         )
     return edge_initial_facts
 
@@ -560,4 +560,4 @@ def _create_edge_id_particle_mapping(
     graph: MutableTransition[ParticleWithSpin, InteractionProperties],
     edge_ids: Iterable[int],
 ) -> Dict[int, str]:
-    return {i: graph.edge_props[i][0].name for i in edge_ids}
+    return {i: graph.states[i][0].name for i in edge_ids}

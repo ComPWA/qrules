@@ -239,7 +239,7 @@ def check_reaction_violations(  # pylint: disable=too-many-arguments
         for facts_combination in initial_facts:
             new_facts = attrs.evolve(
                 facts_combination,
-                node_props={node_id: ls_combi},
+                interactions={node_id: ls_combi},
             )
             initial_facts_list.append(new_facts)
 

@@ -93,11 +93,11 @@ def _direct_qn_check(
 
 
 def _sequence_input_check(func: Callable) -> Callable[[Sequence], bool]:
-    def wrapper(edge_props_list: Sequence[Any]) -> bool:
-        if not isinstance(edge_props_list, (list, tuple)):
+    def wrapper(states_list: Sequence[Any]) -> bool:
+        if not isinstance(states_list, (list, tuple)):
             raise TypeError("Rule evaluated with invalid argument type...")
 
-        return all(func(x) for x in edge_props_list)
+        return all(func(x) for x in states_list)
 
     return wrapper
 
@@ -170,11 +170,11 @@ class _CompositeArgumentCreator:
 
 
 def _sequence_arg_builder(func: Callable) -> Callable[[Sequence], List[Any]]:
-    def wrapper(edge_props_list: Sequence[Any]) -> List[Any]:
-        if not isinstance(edge_props_list, (list, tuple)):
+    def wrapper(states_list: Sequence[Any]) -> List[Any]:
+        if not isinstance(states_list, (list, tuple)):
             raise TypeError("Rule evaluated with invalid argument type...")
 
-        return [func(x) for x in edge_props_list if x]
+        return [func(x) for x in states_list if x]
 
     return wrapper
 
