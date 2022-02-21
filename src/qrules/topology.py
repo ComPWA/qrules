@@ -168,7 +168,7 @@ def _to_frozenset(iterable: Iterable[int]) -> FrozenSet[int]:
     return frozenset(iterable)
 
 
-@implement_pretty_repr()
+@implement_pretty_repr
 @frozen(order=True)
 class Topology:
     """Directed Feynman-like graph without edge or node properties.

@@ -103,7 +103,7 @@ class SolvingMode(Enum):
     """Find all possible solutions."""
 
 
-@implement_pretty_repr()
+@implement_pretty_repr
 @define(on_setattr=attrs.setters.frozen)
 class ExecutionInfo:
     not_executed_node_rules: Dict[int, Set[str]] = field(
@@ -180,7 +180,7 @@ class _SolutionContainer:
             )
 
 
-@implement_pretty_repr()
+@implement_pretty_repr
 @define
 class ProblemSet:
     """Particle reaction problem set, defined as a graph like data structure.
@@ -736,14 +736,14 @@ def _strip_spin(state_definition: Sequence[StateDefinition]) -> List[str]:
     return particle_names
 
 
-@implement_pretty_repr()
+@implement_pretty_repr
 @frozen(order=True)
 class State:
     particle: Particle = field(validator=instance_of(Particle))
     spin_projection: float = field(converter=_to_float)
 
 
-@implement_pretty_repr()
+@implement_pretty_repr
 @frozen(order=True)
 class StateTransition:
     """Frozen instance of a `.StateTransitionGraph` of a particle with spin."""
