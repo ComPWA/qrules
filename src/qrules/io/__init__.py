@@ -15,8 +15,8 @@ import attrs
 import yaml
 
 from qrules.particle import Particle, ParticleCollection
-from qrules.topology import MutableTransition, Topology
-from qrules.transition import ProblemSet, ReactionInfo, State, StateTransition
+from qrules.topology import Topology, Transition
+from qrules.transition import ProblemSet, ReactionInfo, State
 
 from . import _dict, _dot
 
@@ -27,15 +27,15 @@ def asdict(instance: object) -> dict:
         return _dict.from_particle(instance)
     if isinstance(instance, ParticleCollection):
         return _dict.from_particle_collection(instance)
-    if isinstance(instance, (ReactionInfo, State, StateTransition)):
+    if isinstance(instance, (ReactionInfo, State)):
         return attrs.asdict(
             instance,
             recurse=True,
             filter=lambda a, _: a.init,
             value_serializer=_dict._value_serializer,
         )
-    if isinstance(instance, MutableTransition):
-        return _dict.from_stg(instance)
+    if isinstance(instance, Transition):
+        return _dict.from_transition(instance)
     if isinstance(instance, Topology):
         return _dict.from_topology(instance)
     raise NotImplementedError(
@@ -53,7 +53,7 @@ def fromdict(definition: dict) -> object:
     if keys == {"transitions", "formalism"}:
         return _dict.build_reaction_info(definition)
     if keys == {"topology", "states", "interactions"}:
-        return _dict.build_state_transition(definition)
+        return _dict.build_transition(definition)
     if keys == __REQUIRED_TOPOLOGY_FIELDS:
         return _dict.build_topology(definition)
     raise NotImplementedError(f"Could not determine type from keys {keys}")
@@ -127,9 +127,7 @@ def asdot(
         edge_style = {}
     if node_style is None:
         node_style = {}
-    if isinstance(instance, StateTransition):
-        instance = instance.to_graph()
-    if isinstance(instance, (ProblemSet, MutableTransition, Topology)):
+    if isinstance(instance, (ProblemSet, Topology, Transition)):
         dot = _dot.graph_to_dot(
             instance,
             render_node=render_node,

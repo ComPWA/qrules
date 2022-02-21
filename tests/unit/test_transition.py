@@ -1,8 +1,5 @@
 # pyright: reportUnusedImport=false
 # pylint: disable=eval-used, no-self-use
-from operator import itemgetter
-from typing import List
-
 import pytest
 from IPython.lib.pretty import pretty
 
@@ -10,22 +7,17 @@ from qrules.particle import (  # noqa: F401
     Parity,
     Particle,
     ParticleCollection,
-    ParticleWithSpin,
     Spin,
 )
 from qrules.quantum_numbers import InteractionProperties  # noqa: F401
 from qrules.topology import (  # noqa: F401
     Edge,
     FrozenDict,
+    FrozenTransition,
     MutableTransition,
     Topology,
 )
-from qrules.transition import State  # noqa: F401
-from qrules.transition import (
-    ReactionInfo,
-    StateTransition,
-    StateTransitionManager,
-)
+from qrules.transition import ReactionInfo, State, StateTransitionManager
 
 
 class TestReactionInfo:
@@ -40,7 +32,7 @@ class TestReactionInfo:
         else:
             assert len(reaction.transitions) == 8
         for transition in reaction.transitions:
-            assert isinstance(transition, StateTransition)
+            assert isinstance(transition, FrozenTransition)
 
     @pytest.mark.parametrize("repr_method", [repr, pretty])
     def test_repr(self, repr_method, reaction: ReactionInfo):
@@ -79,101 +71,6 @@ class TestState:
         state1 = create_state(state_def_1)
         state2 = create_state(state_def_2)
         assert state2 >= state1
-
-
-class TestStateTransition:
-    def test_ordering(self, reaction: ReactionInfo):
-        sorted_transitions: List[StateTransition] = sorted(
-            reaction.transitions
-        )
-        if reaction.formalism.startswith("cano"):
-            first = sorted_transitions[0]
-            second = sorted_transitions[1]
-            assert first.interactions[0].l_magnitude == 0.0
-            assert second.interactions[0].l_magnitude == 2.0
-            assert first.interactions[1] == second.interactions[1]
-            transition_selection = sorted_transitions[::2]
-        else:
-            transition_selection = sorted_transitions
-
-        simplified_rendering = [
-            tuple(
-                (
-                    transition.states[state_id].particle.name,
-                    int(transition.states[state_id].spin_projection),
-                )
-                for state_id in sorted(transition.states)
-            )
-            for transition in transition_selection
-        ]
-
-        assert simplified_rendering[:3] == [
-            (
-                ("J/psi(1S)", -1),
-                ("gamma", -1),
-                ("pi0", 0),
-                ("pi0", 0),
-                ("f(0)(980)", 0),
-            ),
-            (
-                ("J/psi(1S)", -1),
-                ("gamma", -1),
-                ("pi0", 0),
-                ("pi0", 0),
-                ("f(0)(1500)", 0),
-            ),
-            (
-                ("J/psi(1S)", -1),
-                ("gamma", +1),
-                ("pi0", 0),
-                ("pi0", 0),
-                ("f(0)(980)", 0),
-            ),
-        ]
-        assert simplified_rendering[-1] == (
-            ("J/psi(1S)", +1),
-            ("gamma", +1),
-            ("pi0", 0),
-            ("pi0", 0),
-            ("f(0)(1500)", 0),
-        )
-
-        # J/psi
-        first_half = slice(0, int(len(simplified_rendering) / 2))
-        for item in simplified_rendering[first_half]:
-            assert item[0] == ("J/psi(1S)", -1)
-        second_half = slice(int(len(simplified_rendering) / 2), None)
-        for item in simplified_rendering[second_half]:
-            assert item[0] == ("J/psi(1S)", +1)
-        second_half = slice(int(len(simplified_rendering) / 2), None)
-        # gamma
-        for item in itemgetter(0, 1, 4, 5)(simplified_rendering):
-            assert item[1] == ("gamma", -1)
-        for item in itemgetter(2, 3, 6, 7)(simplified_rendering):
-            assert item[1] == ("gamma", +1)
-        # pi0
-        for item in simplified_rendering:
-            assert item[2] == ("pi0", 0)
-            assert item[3] == ("pi0", 0)
-        # f0
-        for item in simplified_rendering[::2]:
-            assert item[4] == ("f(0)(980)", 0)
-        for item in simplified_rendering[1::2]:
-            assert item[4] == ("f(0)(1500)", 0)
-
-    @pytest.mark.parametrize("repr_method", [repr, pretty])
-    def test_repr(self, repr_method, reaction: ReactionInfo):
-        for instance in reaction.transitions:
-            from_repr = eval(repr_method(instance))
-            assert from_repr == instance
-
-    def test_from_to_graph(self, reaction: ReactionInfo):
-        assert len(reaction.group_by_topology()) == 1
-        assert len(reaction.transitions) in {8, 16}
-        for transition in reaction.transitions:
-            graph = transition.to_graph()
-            from_graph = StateTransition.from_graph(graph)
-            assert transition == from_graph
 
 
 class TestStateTransitionManager:

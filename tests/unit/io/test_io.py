@@ -5,11 +5,12 @@ import pytest
 from qrules import io
 from qrules.particle import Particle, ParticleCollection
 from qrules.topology import (
+    FrozenTransition,
     Topology,
     create_isobar_topologies,
     create_n_body_topology,
 )
-from qrules.transition import ReactionInfo, StateTransition
+from qrules.transition import ReactionInfo, State
 
 
 def through_dict(instance):
@@ -46,8 +47,8 @@ def test_asdict_fromdict_reaction(reaction: ReactionInfo):
     # MutableTransition
     for graph in reaction.to_graphs():
         fromdict = through_dict(graph)
-        assert isinstance(fromdict, StateTransition)
-        assert graph == fromdict.to_graph()
+        assert isinstance(fromdict, FrozenTransition)
+        assert graph.freeze().convert(lambda s: State(*s)) == fromdict
     # ReactionInfo
     fromdict = through_dict(reaction)
     assert isinstance(fromdict, ReactionInfo)

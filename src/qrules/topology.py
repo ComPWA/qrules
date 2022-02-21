@@ -34,6 +34,7 @@ from typing import (
     Tuple,
     TypeVar,
     ValuesView,
+    cast,
 )
 
 import attrs
@@ -658,8 +659,12 @@ NodeType = TypeVar("NodeType")
 @runtime_checkable
 class Transition(Protocol[EdgeType, NodeType]):
     topology: Topology
-    states: Dict[int, EdgeType]
-    interactions: Dict[int, NodeType]
+    states: Mapping[int, EdgeType]
+    interactions: Mapping[int, NodeType]
+
+
+NewEdgeType = TypeVar("NewEdgeType")
+NewNodeType = TypeVar("NewNodeType")
 
 
 @implement_pretty_repr
@@ -689,6 +694,32 @@ class FrozenTransition(Generic[EdgeType, NodeType]):
 
     def filter_states(self, edge_ids: Iterable[int]) -> Dict[int, EdgeType]:
         return {i: self.states[i] for i in edge_ids}
+
+    def convert(
+        self,
+        state_converter: Optional[Callable[[EdgeType], NewEdgeType]] = None,
+        interaction_converter: Optional[
+            Callable[[NodeType], NewNodeType]
+        ] = None,
+    ) -> "FrozenTransition[NewEdgeType, NodeType]":
+        # pylint: disable=unnecessary-lambda
+        if state_converter is None:
+            state_converter = lambda _: cast(NewEdgeType, _)
+        if interaction_converter is None:
+            interaction_converter = lambda _: cast(NewNodeType, _)
+        return FrozenTransition[NewEdgeType, NodeType](
+            self.topology,
+            states={
+                i: state_converter(state) for i, state in self.states.items()
+            },
+            interactions={
+                i: interaction_converter(interaction)
+                for i, interaction in self.interactions.items()
+            },
+        )
+
+    def unfreeze(self) -> "MutableTransition[EdgeType, NodeType]":
+        return MutableTransition(self.topology, self.states, self.interactions)
 
 
 def _cast_states(obj: Mapping[int, EdgeType]) -> Dict[int, EdgeType]:
@@ -752,6 +783,9 @@ class MutableTransition(Generic[EdgeType, NodeType]):
             self.states[edge_id2] = value1
         if value2 is not None:
             self.states[edge_id1] = value2
+
+    def freeze(self) -> FrozenTransition[EdgeType, NodeType]:
+        return FrozenTransition(self.topology, self.states, self.interactions)
 
 
 def _assert_all_defined(items: Iterable, properties: Iterable) -> None:

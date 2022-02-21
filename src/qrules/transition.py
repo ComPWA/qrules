@@ -72,9 +72,9 @@ from .solving import (
 )
 from .topology import (
     FrozenDict,
+    FrozenTransition,
     MutableTransition,
     Topology,
-    _assert_all_defined,
     create_isobar_topologies,
     create_n_body_topology,
 )
@@ -728,74 +728,13 @@ class State:
     spin_projection: float = field(converter=_to_float)
 
 
-@implement_pretty_repr
-@frozen(order=True)
-class StateTransition:
-    """Frozen instance of a `.MutableTransition` of a particle with spin."""
-
-    topology: Topology = field(validator=instance_of(Topology))
-    states: FrozenDict[int, State] = field(converter=FrozenDict)
-    interactions: FrozenDict[int, InteractionProperties] = field(
-        converter=FrozenDict
-    )
-
-    def __attrs_post_init__(self) -> None:
-        _assert_all_defined(self.topology.edges, self.states)
-        _assert_all_defined(self.topology.nodes, self.interactions)
-
-    @staticmethod
-    def from_graph(
-        graph: MutableTransition[ParticleWithSpin, InteractionProperties],
-    ) -> "StateTransition":
-        return StateTransition(
-            topology=graph.topology,
-            states=FrozenDict(
-                {i: State(*graph.states[i]) for i in graph.topology.edges}
-            ),
-            interactions=FrozenDict(
-                {i: graph.interactions[i] for i in graph.topology.nodes}
-            ),
-        )
-
-    def to_graph(
-        self,
-    ) -> MutableTransition[ParticleWithSpin, InteractionProperties]:
-        return MutableTransition[ParticleWithSpin, InteractionProperties](
-            topology=self.topology,
-            states={
-                i: (state.particle, state.spin_projection)
-                for i, state in self.states.items()
-            },
-            interactions=self.interactions,
-        )
-
-    @property
-    def initial_states(self) -> Dict[int, State]:
-        return self.filter_states(self.topology.incoming_edge_ids)
-
-    @property
-    def final_states(self) -> Dict[int, State]:
-        return self.filter_states(self.topology.outgoing_edge_ids)
-
-    @property
-    def intermediate_states(self) -> Dict[int, State]:
-        return self.filter_states(self.topology.intermediate_edge_ids)
-
-    def filter_states(self, edge_ids: Iterable[int]) -> Dict[int, State]:
-        return {i: self.states[i] for i in edge_ids}
-
-    @property
-    def particles(self) -> Dict[int, Particle]:
-        return {i: edge_prop.particle for i, edge_prop in self.states.items()}
+StateTransition = FrozenTransition[State, InteractionProperties]
+"""Transition of some initial `.State` to a final `.State`."""
 
 
 def _sort_tuple(
     iterable: Iterable[StateTransition],
 ) -> Tuple[StateTransition, ...]:
-    if not all(map(lambda t: isinstance(t, StateTransition), iterable)):
-        raise TypeError(
-            f"Not all instances are of type {StateTransition.__name__}"
-        )
     return tuple(sorted(iterable))
 
 
@@ -837,13 +776,24 @@ class ReactionInfo:
         ],
         formalism: str,
     ) -> "ReactionInfo":
-        transitions = [StateTransition.from_graph(g) for g in graphs]
+        transitions = [
+            g.freeze().convert(state_converter=lambda state: State(*state))
+            for g in graphs
+        ]
         return ReactionInfo(transitions, formalism)
 
     def to_graphs(
         self,
     ) -> List[MutableTransition[ParticleWithSpin, InteractionProperties]]:
-        return [transition.to_graph() for transition in self.transitions]
+        return [
+            transition.convert(
+                state_converter=lambda state: (
+                    state.particle,
+                    state.spin_projection,
+                )
+            ).unfreeze()
+            for transition in self.transitions
+        ]
 
     def group_by_topology(self) -> Dict[Topology, List[StateTransition]]:
         groupings = defaultdict(list)

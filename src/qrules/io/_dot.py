@@ -12,7 +12,6 @@ from typing import (
     Dict,
     Iterable,
     List,
-    Mapping,
     Optional,
     Set,
     Tuple,
@@ -30,7 +29,7 @@ from qrules.topology import (
     Topology,
     Transition,
 )
-from qrules.transition import ProblemSet, StateTransition
+from qrules.transition import ProblemSet, State, StateTransition
 
 _DOT_HEAD = """digraph {
     rankdir=LR;
@@ -166,8 +165,10 @@ def graph_list_to_dot(
         if render_node:
             stripped_graphs = []
             for graph in graphs:
-                if isinstance(graph, StateTransition):
-                    graph = graph.to_graph()
+                if isinstance(graph, FrozenTransition):
+                    graph = graph.convert(
+                        lambda s: (s.particle, s.spin_projection)
+                    )
                 stripped_graph = _strip_projections(graph)
                 if stripped_graph not in stripped_graphs:
                     stripped_graphs.append(stripped_graph)
@@ -277,14 +278,8 @@ def __graph_to_dot_content(  # pylint: disable=too-many-branches,too-many-locals
                 label=node_label,
                 graphviz_attrs=node_style,
             )
-    if isinstance(graph, (StateTransition, Transition)):
-        if isinstance(graph, StateTransition):
-            interactions: Mapping[
-                int, InteractionProperties
-            ] = graph.interactions
-        else:
-            interactions = {i: graph.interactions[i] for i in topology.nodes}
-        for node_id, node_prop in interactions.items():
+    if isinstance(graph, Transition):
+        for node_id, node_prop in graph.interactions.items():
             node_label = ""
             if render_node:
                 node_label = __node_label(node_prop)
@@ -371,6 +366,8 @@ def __render_edge_property(
         map(lambda i: isinstance(i, Particle), edge_prop)
     ):
         return "\n".join(map(lambda p: p.name, edge_prop))
+    if isinstance(edge_prop, State):
+        edge_prop = edge_prop.particle, edge_prop.spin_projection
     if isinstance(edge_prop, tuple) and len(edge_prop) == 2:
         particle, spin_projection = edge_prop
         projection_label = _to_fraction(spin_projection, render_plus=True)
@@ -448,8 +445,10 @@ def _get_particle_graphs(
     """
     inventory = set()
     for transition in graphs:
-        if isinstance(transition, StateTransition):
-            transition = transition.to_graph()
+        if isinstance(transition, FrozenTransition):
+            transition = transition.convert(
+                lambda s: (s.particle, s.spin_projection)
+            )
         stripped_transition = _strip_projections(transition)
         topology = stripped_transition.topology
         particle_transition: FrozenTransition[
@@ -471,8 +470,8 @@ def _get_particle_graphs(
 def _strip_projections(
     graph: Transition[ParticleWithSpin, InteractionProperties],
 ) -> FrozenTransition[Particle, InteractionProperties]:
-    if isinstance(graph, StateTransition):
-        graph = graph.to_graph()
+    if isinstance(graph, FrozenTransition):
+        graph = graph.convert(lambda s: (s.particle, s.spin_projection))
     return FrozenTransition(
         graph.topology,
         states={i: particle for i, (particle, _) in graph.states.items()},

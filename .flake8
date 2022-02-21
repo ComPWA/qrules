@@ -32,6 +32,9 @@ ignore =
     W503
 extend-select =
     TI100
+per-file-ignores =
+    # casts with generics
+    src/qrules/topology.py:E731
 rst-roles =
     attr
     cite

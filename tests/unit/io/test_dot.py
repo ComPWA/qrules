@@ -208,10 +208,10 @@ def test_collapse_graphs(
     particle_database: ParticleCollection,
 ):
     pdg = particle_database
-    particle_graphs = _get_particle_graphs(reaction.to_graphs())
+    particle_graphs = _get_particle_graphs(reaction.to_graphs())  # type: ignore[arg-type]
     assert len(particle_graphs) == 2
 
-    collapsed_graphs = _collapse_graphs(reaction.to_graphs())
+    collapsed_graphs = _collapse_graphs(reaction.to_graphs())  # type: ignore[arg-type]
     assert len(collapsed_graphs) == 1
     graph = next(iter(collapsed_graphs))
     edge_id = next(iter(graph.topology.intermediate_edge_ids))
@@ -226,7 +226,7 @@ def test_get_particle_graphs(
     reaction: ReactionInfo, particle_database: ParticleCollection
 ):
     pdg = particle_database
-    graphs = _get_particle_graphs(reaction.to_graphs())
+    graphs = _get_particle_graphs(reaction.to_graphs())  # type: ignore[arg-type]
     assert len(graphs) == 2
     assert graphs[0].states[3] == pdg["f(0)(980)"]
     assert graphs[1].states[3] == pdg["f(0)(1500)"]
