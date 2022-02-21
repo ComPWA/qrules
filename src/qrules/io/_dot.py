@@ -97,7 +97,7 @@ class GraphPrinter:
     def _render_multiple_transitions(self, obj: Iterable) -> List[str]:
         if self.collapse_graphs:
             transitions: list = _collapse_graphs(obj)
-        if self.strip_spin:
+        elif self.strip_spin:
             if self.render_node:
                 transitions = sorted({_strip_projections(t) for t in obj})
             else:
@@ -400,9 +400,11 @@ def _(obj: tuple) -> str:
         if isinstance(obj[0], Particle) and isinstance(obj[1], (float, int)):
             state = State(*obj)
             return _state_to_str(state)
-        if all(map(lambda i: isinstance(i, (float, int)), obj)):
+        if all(map(lambda o: isinstance(o, (float, int)), obj)):
             spin = Spin(*obj)
             return _spin_to_str(spin)
+    if all(map(lambda o: isinstance(o, Particle), obj)):
+        return "\n".join(map(as_string, obj))
     logging.warning(f"No DOT render implemented for tuple of size {len(obj)}")
     return str(obj)
 
