@@ -656,6 +656,10 @@ NodeType = TypeVar("NodeType")
 """A `~typing.TypeVar` representing the type of node properties."""
 
 
+NewEdgeType = TypeVar("NewEdgeType")
+NewNodeType = TypeVar("NewNodeType")
+
+
 class Transition(ABC, Generic[EdgeType, NodeType]):
     @property
     @abstractmethod
@@ -672,24 +676,6 @@ class Transition(ABC, Generic[EdgeType, NodeType]):
     def interactions(self) -> Mapping[int, NodeType]:
         ...
 
-
-NewEdgeType = TypeVar("NewEdgeType")
-NewNodeType = TypeVar("NewNodeType")
-
-
-@implement_pretty_repr
-@frozen(order=True)
-class FrozenTransition(Transition, Generic[EdgeType, NodeType]):
-    """Defines a frozen mapping of edge and node properties on a `Topology`."""
-
-    topology: Topology = field(validator=instance_of(Topology))
-    states: FrozenDict[int, EdgeType] = field(converter=FrozenDict)
-    interactions: FrozenDict[int, NodeType] = field(converter=FrozenDict)
-
-    def __attrs_post_init__(self) -> None:
-        _assert_all_defined(self.topology.nodes, self.interactions)
-        _assert_all_defined(self.topology.edges, self.states)
-
     @property
     def initial_states(self) -> Dict[int, EdgeType]:
         return self.filter_states(self.topology.incoming_edge_ids)
@@ -705,6 +691,23 @@ class FrozenTransition(Transition, Generic[EdgeType, NodeType]):
     def filter_states(self, edge_ids: Iterable[int]) -> Dict[int, EdgeType]:
         return {i: self.states[i] for i in edge_ids}
 
+
+@implement_pretty_repr
+@frozen(order=True)
+class FrozenTransition(Transition, Generic[EdgeType, NodeType]):
+    """Defines a frozen mapping of edge and node properties on a `Topology`."""
+
+    topology: Topology = field(validator=instance_of(Topology))
+    states: FrozenDict[int, EdgeType] = field(converter=FrozenDict)
+    interactions: FrozenDict[int, NodeType] = field(converter=FrozenDict)
+
+    def __attrs_post_init__(self) -> None:
+        _assert_all_defined(self.topology.nodes, self.interactions)
+        _assert_all_defined(self.topology.edges, self.states)
+
+    def unfreeze(self) -> "MutableTransition[EdgeType, NodeType]":
+        return MutableTransition(self.topology, self.states, self.interactions)
+
     def convert(
         self,
         state_converter: Optional[Callable[[EdgeType], NewEdgeType]] = None,
@@ -717,7 +720,7 @@ class FrozenTransition(Transition, Generic[EdgeType, NodeType]):
             state_converter = lambda _: cast(NewEdgeType, _)
         if interaction_converter is None:
             interaction_converter = lambda _: cast(NewNodeType, _)
-        return FrozenTransition[NewEdgeType, NodeType](
+        return FrozenTransition(
             self.topology,
             states={
                 i: state_converter(state) for i, state in self.states.items()
@@ -727,9 +730,6 @@ class FrozenTransition(Transition, Generic[EdgeType, NodeType]):
                 for i, interaction in self.interactions.items()
             },
         )
-
-    def unfreeze(self) -> "MutableTransition[EdgeType, NodeType]":
-        return MutableTransition(self.topology, self.states, self.interactions)
 
 
 def _cast_states(obj: Mapping[int, EdgeType]) -> Dict[int, EdgeType]:
