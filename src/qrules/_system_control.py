@@ -233,7 +233,7 @@ def _remove_qns_from_graph(  # pylint: disable=too-many-branches
 ) -> StateTransitionGraph[ParticleWithSpin]:
     new_node_props = {}
     for node_id in graph.topology.nodes:
-        node_props = graph.get_node_props(node_id)
+        node_props = graph.node_props[node_id]
         new_node_props[node_id] = attrs.evolve(
             node_props, **{x.__name__: None for x in qn_list}
         )
@@ -359,7 +359,7 @@ def require_interaction_property(
             return False
         for i in node_ids:
             if (
-                getattr(graph.get_node_props(i), interaction_qn.__name__)
+                getattr(graph.node_props[i], interaction_qn.__name__)
                 not in allowed_values
             ):
                 return False
@@ -375,7 +375,7 @@ def _find_node_ids_with_ingoing_particle_name(
     found_node_ids = []
     for node_id in topology.nodes:
         for edge_id in topology.get_edge_ids_ingoing_to_node(node_id):
-            edge_props = graph.get_edge_props(edge_id)
+            edge_props = graph.edge_props[edge_id]
             edge_particle_name = edge_props[0].name
             if str(ingoing_particle_name) in str(edge_particle_name):
                 found_node_ids.append(node_id)

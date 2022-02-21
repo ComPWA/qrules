@@ -698,17 +698,17 @@ def _match_final_state_ids(
     particle_names = _strip_spin(state_definition)
     name_to_id = {name: i for i, name in enumerate(particle_names)}
     id_remapping = {
-        name_to_id[graph.get_edge_props(i)[0].name]: i
+        name_to_id[graph.edge_props[i][0].name]: i
         for i in graph.topology.outgoing_edge_ids
     }
     new_topology = graph.topology.relabel_edges(id_remapping)
     return StateTransitionGraph(
         new_topology,
         edge_props={
-            i: graph.get_edge_props(id_remapping.get(i, i))
+            i: graph.edge_props[id_remapping.get(i, i)]
             for i in graph.topology.edges
         },
-        node_props={i: graph.get_node_props(i) for i in graph.topology.nodes},
+        node_props={i: graph.node_props[i] for i in graph.topology.nodes},
     )
 
 
@@ -751,13 +751,10 @@ class StateTransition:
         return StateTransition(
             topology=graph.topology,
             states=FrozenDict(
-                {
-                    i: State(*graph.get_edge_props(i))
-                    for i in graph.topology.edges
-                }
+                {i: State(*graph.edge_props[i]) for i in graph.topology.edges}
             ),
             interactions=FrozenDict(
-                {i: graph.get_node_props(i) for i in graph.topology.nodes}
+                {i: graph.node_props[i] for i in graph.topology.nodes}
             ),
         )
 

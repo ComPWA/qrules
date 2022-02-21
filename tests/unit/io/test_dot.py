@@ -215,7 +215,7 @@ def test_collapse_graphs(
     graph = next(iter(collapsed_graphs))
     edge_id = next(iter(graph.topology.intermediate_edge_ids))
     f_resonances = pdg.filter(lambda p: p.name in ["f(0)(980)", "f(0)(1500)"])
-    intermediate_states = graph.get_edge_props(edge_id)
+    intermediate_states = graph.edge_props[edge_id]
     assert isinstance(intermediate_states, ParticleCollection)
     assert intermediate_states == f_resonances
 
@@ -224,15 +224,13 @@ def test_get_particle_graphs(
     reaction: ReactionInfo, particle_database: ParticleCollection
 ):
     pdg = particle_database
-    particle_graphs = _get_particle_graphs(reaction.to_graphs())
-    assert len(particle_graphs) == 2
-    assert particle_graphs[0].get_edge_props(3) == pdg["f(0)(980)"]
-    assert particle_graphs[1].get_edge_props(3) == pdg["f(0)(1500)"]
-    assert len(particle_graphs[0].topology.edges) == 5
-    for edge_id in range(-1, 3):
-        assert particle_graphs[0].get_edge_props(edge_id) is particle_graphs[
-            1
-        ].get_edge_props(edge_id)
+    graphs = _get_particle_graphs(reaction.to_graphs())
+    assert len(graphs) == 2
+    assert graphs[0].edge_props[3] == pdg["f(0)(980)"]
+    assert graphs[1].edge_props[3] == pdg["f(0)(1500)"]
+    assert len(graphs[0].topology.edges) == 5
+    for i in range(-1, 3):
+        assert graphs[0].edge_props[i] is graphs[1].edge_props[i]
 
 
 def test_strip_projections():
@@ -256,8 +254,8 @@ def test_strip_projections():
     assert transition.interactions[1].l_projection == 0
 
     stripped_transition = _strip_projections(transition)  # type: ignore[arg-type]
-    assert stripped_transition.get_edge_props(3).name == resonance
-    assert stripped_transition.get_node_props(0).s_projection is None
-    assert stripped_transition.get_node_props(0).l_projection is None
-    assert stripped_transition.get_node_props(1).s_projection is None
-    assert stripped_transition.get_node_props(1).l_projection is None
+    assert stripped_transition.edge_props[3].name == resonance
+    assert stripped_transition.node_props[0].s_projection is None
+    assert stripped_transition.node_props[0].l_projection is None
+    assert stripped_transition.node_props[1].s_projection is None
+    assert stripped_transition.node_props[1].l_projection is None

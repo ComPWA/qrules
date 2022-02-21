@@ -655,6 +655,16 @@ EdgeType = TypeVar("EdgeType")
 """A `~typing.TypeVar` representing the type of edge properties."""
 
 
+def _cast_edges(obj: Mapping[int, EdgeType]) -> Dict[int, EdgeType]:
+    return dict(obj)
+
+
+def _cast_nodes(
+    obj: Mapping[int, InteractionProperties]
+) -> Dict[int, InteractionProperties]:
+    return dict(obj)
+
+
 @implement_pretty_repr()
 @define
 class StateTransitionGraph(Generic[EdgeType]):
@@ -667,14 +677,8 @@ class StateTransitionGraph(Generic[EdgeType]):
     """
 
     topology: Topology = field(validator=instance_of(Topology))
-    node_props: Dict[int, InteractionProperties]
-    edge_props: Dict[int, EdgeType]
-
-    def get_node_props(self, node_id: int) -> InteractionProperties:
-        return self.node_props[node_id]
-
-    def get_edge_props(self, edge_id: int) -> EdgeType:
-        return self.edge_props[edge_id]
+    node_props: Dict[int, InteractionProperties] = field(converter=_cast_nodes)
+    edge_props: Dict[int, EdgeType] = field(converter=_cast_edges)
 
     def evolve(
         self,

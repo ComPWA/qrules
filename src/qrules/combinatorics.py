@@ -559,8 +559,4 @@ def _calculate_swappings(id_mapping: Dict[int, int]) -> OrderedDict:
 def _create_edge_id_particle_mapping(
     graph: StateTransitionGraph[ParticleWithSpin], edge_ids: Iterable[int]
 ) -> Dict[int, str]:
-    return {
-        i: graph.get_edge_props(i)[0].name
-        for i in edge_ids
-        if graph.get_edge_props(i)
-    }
+    return {i: graph.edge_props[i][0].name for i in edge_ids}

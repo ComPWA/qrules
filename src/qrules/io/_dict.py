@@ -37,7 +37,7 @@ def from_stg(graph: StateTransitionGraph[ParticleWithSpin]) -> dict:
     topology = graph.topology
     edge_props_def = {}
     for i in topology.edges:
-        particle, spin_projection = graph.get_edge_props(i)
+        particle, spin_projection = graph.edge_props[i]
         if isinstance(spin_projection, float) and spin_projection.is_integer():
             spin_projection = int(spin_projection)
         edge_props_def[i] = {
@@ -46,7 +46,7 @@ def from_stg(graph: StateTransitionGraph[ParticleWithSpin]) -> dict:
         }
     node_props_def = {}
     for i in topology.nodes:
-        node_prop = graph.get_node_props(i)
+        node_prop = graph.node_props[i]
         node_props_def[i] = attrs.asdict(
             node_prop, filter=lambda a, v: a.init and a.default != v
         )

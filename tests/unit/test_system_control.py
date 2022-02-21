@@ -380,15 +380,15 @@ def test_edge_swap(particle_database, initial_state, final_state):
         edge_keys = list(ref_mapping.keys())
         edge1 = edge_keys[0]
         edge1_val = graph.topology.edges[edge1]
-        edge1_props = deepcopy(graph.get_edge_props(edge1))
+        edge1_props = deepcopy(graph.edge_props[edge1])
         edge2 = edge_keys[1]
         edge2_val = graph.topology.edges[edge2]
-        edge2_props = deepcopy(graph.get_edge_props(edge2))
+        edge2_props = deepcopy(graph.edge_props[edge2])
         graph.swap_edges(edge1, edge2)
         assert graph.topology.edges[edge1] == edge2_val
         assert graph.topology.edges[edge2] == edge1_val
-        assert graph.get_edge_props(edge1) == edge2_props
-        assert graph.get_edge_props(edge2) == edge1_props
+        assert graph.edge_props[edge1] == edge2_props
+        assert graph.edge_props[edge2] == edge1_props
 
 
 @pytest.mark.parametrize(
