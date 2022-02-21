@@ -15,7 +15,7 @@ import attrs
 import yaml
 
 from qrules.particle import Particle, ParticleCollection
-from qrules.topology import StateTransitionGraph, Topology
+from qrules.topology import MutableTransition, Topology
 from qrules.transition import ProblemSet, ReactionInfo, State, StateTransition
 
 from . import _dict, _dot
@@ -34,7 +34,7 @@ def asdict(instance: object) -> dict:
             filter=lambda a, _: a.init,
             value_serializer=_dict._value_serializer,
         )
-    if isinstance(instance, StateTransitionGraph):
+    if isinstance(instance, MutableTransition):
         return _dict.from_stg(instance)
     if isinstance(instance, Topology):
         return _dict.from_topology(instance)
@@ -87,13 +87,13 @@ def asdot(
     """Convert a `object` to a DOT language `str`.
 
     Only works for objects that can be represented as a graph, particularly a
-    `.StateTransitionGraph` or a `list` of `.StateTransitionGraph` instances.
+    `.MutableTransition` or a `list` of `.MutableTransition` instances.
 
     Args:
         instance: the input `object` that is to be rendered as DOT (graphviz)
             language.
 
-        strip_spin: Normally, each `.StateTransitionGraph` has a `.Particle`
+        strip_spin: Normally, each `.MutableTransition` has a `.Particle`
             with a spin projection on its edges. This option hides the
             projections, leaving only `.Particle` names on edges.
 
@@ -102,7 +102,7 @@ def asdot(
 
         render_node: Whether or not to render node ID (in the case of a
             `.Topology`) and/or node properties (in the case of a
-            `.StateTransitionGraph`). Meaning of the labels:
+            `.MutableTransition`). Meaning of the labels:
 
             - :math:`P`: parity prefactor
             - :math:`s`: tuple of **coupled spin** magnitude and its
@@ -131,7 +131,7 @@ def asdot(
         node_style = {}
     if isinstance(instance, StateTransition):
         instance = instance.to_graph()
-    if isinstance(instance, (ProblemSet, StateTransitionGraph, Topology)):
+    if isinstance(instance, (ProblemSet, MutableTransition, Topology)):
         dot = _dot.graph_to_dot(
             instance,
             render_node=render_node,

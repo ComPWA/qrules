@@ -223,7 +223,7 @@ nitpicky = True  # warn if cross-references are missing
 nitpick_ignore = [
     ("py:class", "EdgeType"),
     ("py:class", "NoneType"),
-    ("py:class", "StateTransitionGraph"),
+    ("py:class", "MutableTransition"),
     ("py:class", "ValueType"),
     ("py:class", "json.encoder.JSONEncoder"),
     ("py:class", "typing_extensions.Protocol"),

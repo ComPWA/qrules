@@ -7,9 +7,9 @@ for a particle reaction problem are for example the initial state, final state,
 and allowed interactions.
 
 The core of `qrules` computes which transitions (represented by a
-`.StateTransitionGraph`) are allowed between a certain initial and final state.
+`.MutableTransition`) are allowed between a certain initial and final state.
 Internally, the system propagates the quantum numbers defined by the
-`particle` module through the `.StateTransitionGraph`, while
+`particle` module through the `.MutableTransition`, while
 satisfying the rules define by the :mod:`.conservation_rules` module. See
 :doc:`/usage/reaction` and :doc:`/usage/particle`.
 

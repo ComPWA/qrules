@@ -24,7 +24,7 @@ from qrules.combinatorics import InitialFacts
 from qrules.particle import Particle, ParticleCollection, ParticleWithSpin
 from qrules.quantum_numbers import InteractionProperties, _to_fraction
 from qrules.solving import EdgeSettings, GraphSettings, NodeSettings
-from qrules.topology import StateTransitionGraph, Topology
+from qrules.topology import MutableTransition, Topology
 from qrules.transition import ProblemSet, StateTransition
 
 _DOT_HEAD = """digraph {
@@ -138,7 +138,7 @@ def __create_graphviz_assignments(graphviz_attrs: Dict[str, Any]) -> List[str]:
 
 @embed_dot
 def graph_list_to_dot(
-    graphs: Iterable[StateTransitionGraph],
+    graphs: Iterable[MutableTransition],
     *,
     render_node: bool,
     render_final_state_id: bool,
@@ -188,7 +188,7 @@ def graph_list_to_dot(
 
 @embed_dot
 def graph_to_dot(
-    graph: StateTransitionGraph,
+    graph: MutableTransition,
     *,
     render_node: bool,
     render_final_state_id: bool,
@@ -212,7 +212,7 @@ def __graph_to_dot_content(  # pylint: disable=too-many-branches,too-many-locals
     graph: Union[
         ProblemSet,
         StateTransition,
-        StateTransitionGraph,
+        MutableTransition,
         Topology,
         Tuple[Topology, InitialFacts],
         Tuple[Topology, GraphSettings],
@@ -234,13 +234,13 @@ def __graph_to_dot_content(  # pylint: disable=too-many-branches,too-many-locals
             InitialFacts,
             ProblemSet,
             StateTransition,
-            StateTransitionGraph,
+            MutableTransition,
             Topology,
         ] = graph[1]
     elif isinstance(graph, ProblemSet):
         rendered_graph = graph
         topology = graph.topology
-    elif isinstance(graph, (StateTransition, StateTransitionGraph)):
+    elif isinstance(graph, (StateTransition, MutableTransition)):
         rendered_graph = graph
         topology = graph.topology
     elif isinstance(graph, Topology):
@@ -289,7 +289,7 @@ def __graph_to_dot_content(  # pylint: disable=too-many-branches,too-many-locals
                 label=node_label,
                 graphviz_attrs=node_style,
             )
-    if isinstance(graph, (StateTransition, StateTransitionGraph)):
+    if isinstance(graph, (StateTransition, MutableTransition)):
         if isinstance(graph, StateTransition):
             interactions: Mapping[
                 int, InteractionProperties
@@ -337,7 +337,7 @@ def __get_edge_label(
         InitialFacts,
         ProblemSet,
         StateTransition,
-        StateTransitionGraph,
+        MutableTransition,
         Topology,
     ],
     edge_id: int,
@@ -360,7 +360,7 @@ def __get_edge_label(
         return ___render_edge_with_id(edge_id, edge_property, render_edge_id)
     if isinstance(graph, StateTransition):
         graph = graph.to_graph()
-    if isinstance(graph, StateTransitionGraph):
+    if isinstance(graph, MutableTransition):
         edge_prop = graph.edge_props[edge_id]
         return ___render_edge_with_id(edge_id, edge_prop, render_edge_id)
     if isinstance(graph, Topology):
@@ -467,17 +467,17 @@ def __extract_priority(description: str) -> int:
 
 def _get_particle_graphs(
     graphs: Iterable[
-        StateTransitionGraph[ParticleWithSpin, InteractionProperties]
+        MutableTransition[ParticleWithSpin, InteractionProperties]
     ],
-) -> List[StateTransitionGraph[Particle, InteractionProperties]]:
-    """Strip `list` of `.StateTransitionGraph` s of the spin projections.
+) -> List[MutableTransition[Particle, InteractionProperties]]:
+    """Strip `list` of `.MutableTransition` s of the spin projections.
 
-    Extract a `list` of `.StateTransitionGraph` instances with only
+    Extract a `list` of `.MutableTransition` instances with only
     `.Particle` instances on the edges.
 
     .. seealso:: :doc:`/usage/visualize`
     """
-    inventory: List[StateTransitionGraph[Particle, InteractionProperties]] = []
+    inventory: List[MutableTransition[Particle, InteractionProperties]] = []
     for transition in graphs:
         if isinstance(transition, StateTransition):
             transition = transition.to_graph()
@@ -500,8 +500,8 @@ def _get_particle_graphs(
 
 
 def _strip_projections(
-    graph: StateTransitionGraph[ParticleWithSpin, InteractionProperties],
-) -> StateTransitionGraph[Particle, InteractionProperties]:
+    graph: MutableTransition[ParticleWithSpin, InteractionProperties],
+) -> MutableTransition[Particle, InteractionProperties]:
     if isinstance(graph, StateTransition):
         graph = graph.to_graph()
     new_edge_props = {}
@@ -516,7 +516,7 @@ def _strip_projections(
             new_node_props[node_id] = attrs.evolve(
                 node_props, l_projection=None, s_projection=None
             )
-    return StateTransitionGraph[Particle, InteractionProperties](
+    return MutableTransition[Particle, InteractionProperties](
         topology=graph.topology,
         node_props=new_node_props,
         edge_props=new_edge_props,
@@ -525,12 +525,12 @@ def _strip_projections(
 
 def _collapse_graphs(
     graphs: Iterable[
-        StateTransitionGraph[ParticleWithSpin, InteractionProperties]
+        MutableTransition[ParticleWithSpin, InteractionProperties]
     ],
-) -> List[StateTransitionGraph[ParticleCollection, InteractionProperties]]:
+) -> List[MutableTransition[ParticleCollection, InteractionProperties]]:
     def merge_into(
-        graph: StateTransitionGraph[Particle, InteractionProperties],
-        merged_graph: StateTransitionGraph[
+        graph: MutableTransition[Particle, InteractionProperties],
+        merged_graph: MutableTransition[
             ParticleCollection, InteractionProperties
         ],
     ) -> None:
@@ -548,8 +548,8 @@ def _collapse_graphs(
                 other_particles += particle
 
     def is_same_shape(
-        graph: StateTransitionGraph[Particle, InteractionProperties],
-        merged_graph: StateTransitionGraph[
+        graph: MutableTransition[Particle, InteractionProperties],
+        merged_graph: MutableTransition[
             ParticleCollection, InteractionProperties
         ],
     ) -> bool:
@@ -568,7 +568,7 @@ def _collapse_graphs(
 
     particle_graphs = _get_particle_graphs(graphs)
     inventory: List[
-        StateTransitionGraph[ParticleCollection, InteractionProperties]
+        MutableTransition[ParticleCollection, InteractionProperties]
     ] = []
     for graph in particle_graphs:
         append_to_inventory = True
@@ -583,9 +583,7 @@ def _collapse_graphs(
                 for edge_id in graph.topology.edges
             }
             inventory.append(
-                StateTransitionGraph[
-                    ParticleCollection, InteractionProperties
-                ](
+                MutableTransition[ParticleCollection, InteractionProperties](
                     topology=graph.topology,
                     node_props={
                         i: graph.node_props[i] for i in graph.topology.nodes

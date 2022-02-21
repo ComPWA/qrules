@@ -1,8 +1,8 @@
-"""Perform permutations on the edges of a `.StateTransitionGraph`.
+"""Perform permutations on the edges of a `.MutableTransition`.
 
-In a `.StateTransitionGraph`, the edges represent quantum states, while the
-nodes represent interactions. This module provides tools to permutate, modify
-or extract these edge and node properties.
+In a `.MutableTransition`, the edges represent quantum states, while the nodes
+represent interactions. This module provides tools to permutate, modify or
+extract these edge and node properties.
 """
 
 from collections import OrderedDict
@@ -31,7 +31,7 @@ from qrules.particle import Particle, ParticleCollection
 
 from .particle import ParticleWithSpin
 from .quantum_numbers import InteractionProperties, arange
-from .topology import StateTransitionGraph, Topology, get_originating_node_list
+from .topology import MutableTransition, Topology, get_originating_node_list
 
 StateWithSpins = Tuple[str, Sequence[float]]
 StateDefinition = Union[str, StateWithSpins]
@@ -168,7 +168,7 @@ def _get_kinematic_representation(
     r"""Group final or initial states by node, sorted by length of the group.
 
     The resulting sorted groups can be used to check whether two
-    `.StateTransitionGraph` instances are kinematically identical. For
+    `.MutableTransition` instances are kinematically identical. For
     instance, the following two graphs:
 
     .. code-block::
@@ -406,21 +406,19 @@ def _generate_spin_permutations(
 
 
 def __get_initial_state_edge_ids(
-    graph: StateTransitionGraph[ParticleWithSpin, InteractionProperties],
+    graph: MutableTransition[ParticleWithSpin, InteractionProperties],
 ) -> Iterable[int]:
     return graph.topology.incoming_edge_ids
 
 
 def __get_final_state_edge_ids(
-    graph: StateTransitionGraph[ParticleWithSpin, InteractionProperties],
+    graph: MutableTransition[ParticleWithSpin, InteractionProperties],
 ) -> Iterable[int]:
     return graph.topology.outgoing_edge_ids
 
 
 def match_external_edges(
-    graphs: List[
-        StateTransitionGraph[ParticleWithSpin, InteractionProperties]
-    ],
+    graphs: List[MutableTransition[ParticleWithSpin, InteractionProperties]],
 ) -> None:
     if not isinstance(graphs, list):
         raise TypeError("graphs argument is not of type list")
@@ -434,12 +432,10 @@ def match_external_edges(
 
 
 def _match_external_edge_ids(  # pylint: disable=too-many-locals
-    graphs: List[
-        StateTransitionGraph[ParticleWithSpin, InteractionProperties]
-    ],
+    graphs: List[MutableTransition[ParticleWithSpin, InteractionProperties]],
     ref_graph_id: int,
     external_edge_getter_function: Callable[
-        [StateTransitionGraph], Iterable[int]
+        [MutableTransition], Iterable[int]
     ],
 ) -> None:
     ref_graph = graphs[ref_graph_id]
@@ -475,17 +471,17 @@ def _match_external_edge_ids(  # pylint: disable=too-many-locals
 
 
 def perform_external_edge_identical_particle_combinatorics(
-    graph: StateTransitionGraph,
-) -> List[StateTransitionGraph]:
-    """Create combinatorics clones of the `.StateTransitionGraph`.
+    graph: MutableTransition,
+) -> List[MutableTransition]:
+    """Create combinatorics clones of the `.MutableTransition`.
 
     In case of identical particles in the initial or final state. Only
     identical particles, which do not enter or exit the same node allow for
     combinatorics!
     """
-    if not isinstance(graph, StateTransitionGraph):
+    if not isinstance(graph, MutableTransition):
         raise TypeError(
-            f"graph argument is not of type {StateTransitionGraph.__class__}"
+            f"graph argument is not of type {MutableTransition.__class__}"
         )
     temp_new_graphs = _external_edge_identical_particle_combinatorics(
         graph, __get_final_state_edge_ids
@@ -501,11 +497,11 @@ def perform_external_edge_identical_particle_combinatorics(
 
 
 def _external_edge_identical_particle_combinatorics(
-    graph: StateTransitionGraph[ParticleWithSpin, InteractionProperties],
+    graph: MutableTransition[ParticleWithSpin, InteractionProperties],
     external_edge_getter_function: Callable[
-        [StateTransitionGraph], Iterable[int]
+        [MutableTransition], Iterable[int]
     ],
-) -> List[StateTransitionGraph]:
+) -> List[MutableTransition]:
     # pylint: disable=too-many-locals
     new_graphs = [graph]
     edge_particle_mapping = _create_edge_id_particle_mapping(
@@ -561,7 +557,7 @@ def _calculate_swappings(id_mapping: Dict[int, int]) -> OrderedDict:
 
 
 def _create_edge_id_particle_mapping(
-    graph: StateTransitionGraph[ParticleWithSpin, InteractionProperties],
+    graph: MutableTransition[ParticleWithSpin, InteractionProperties],
     edge_ids: Iterable[int],
 ) -> Dict[int, str]:
     return {i: graph.edge_props[i][0].name for i in edge_ids}

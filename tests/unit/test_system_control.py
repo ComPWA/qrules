@@ -24,7 +24,7 @@ from qrules.quantum_numbers import (
     InteractionProperties,
     NodeQuantumNumbers,
 )
-from qrules.topology import Edge, StateTransitionGraph, Topology
+from qrules.topology import Edge, MutableTransition, Topology
 
 
 @pytest.mark.parametrize(
@@ -219,7 +219,7 @@ def make_ls_test_graph(
         )
     }
     edge_props: Dict[int, ParticleWithSpin] = {0: (particle, 0)}
-    graph = StateTransitionGraph(topology, node_props, edge_props)
+    graph = MutableTransition(topology, node_props, edge_props)
     return graph
 
 
@@ -237,7 +237,7 @@ def make_ls_test_graph_scrambled(
         )
     }
     edge_props: Dict[int, ParticleWithSpin] = {0: (particle, 0)}
-    graph = StateTransitionGraph(topology, node_props, edge_props)
+    graph = MutableTransition(topology, node_props, edge_props)
     return graph
 
 
@@ -341,8 +341,8 @@ class TestSolutionFilter:  # pylint: disable=no-self-use
 
 def _create_graph(
     problem_set: ProblemSet,
-) -> StateTransitionGraph[ParticleWithSpin, InteractionProperties]:
-    return StateTransitionGraph(
+) -> MutableTransition[ParticleWithSpin, InteractionProperties]:
+    return MutableTransition(
         topology=problem_set.topology,
         node_props=problem_set.initial_facts.node_props,
         edge_props=problem_set.initial_facts.edge_props,
@@ -370,7 +370,7 @@ def test_edge_swap(particle_database, initial_state, final_state):
 
     problem_sets = stm.create_problem_sets()
     init_graphs: List[
-        StateTransitionGraph[ParticleWithSpin, InteractionProperties]
+        MutableTransition[ParticleWithSpin, InteractionProperties]
     ] = []
     for _, problem_set_list in problem_sets.items():
         init_graphs.extend([_create_graph(x) for x in problem_set_list])
@@ -418,7 +418,7 @@ def test_match_external_edges(particle_database, initial_state, final_state):
 
     problem_sets = stm.create_problem_sets()
     init_graphs: List[
-        StateTransitionGraph[ParticleWithSpin, InteractionProperties]
+        MutableTransition[ParticleWithSpin, InteractionProperties]
     ] = []
     for _, problem_set_list in problem_sets.items():
         init_graphs.extend([_create_graph(x) for x in problem_set_list])
@@ -509,7 +509,7 @@ def test_external_edge_identical_particle_combinatorics(
     match_external_edges(init_graphs)
 
     comb_graphs: List[
-        StateTransitionGraph[ParticleWithSpin, InteractionProperties]
+        MutableTransition[ParticleWithSpin, InteractionProperties]
     ] = []
     for group in init_graphs:
         comb_graphs.extend(

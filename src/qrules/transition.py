@@ -72,7 +72,7 @@ from .solving import (
 )
 from .topology import (
     FrozenDict,
-    StateTransitionGraph,
+    MutableTransition,
     Topology,
     _assert_all_defined,
     create_isobar_topologies,
@@ -138,7 +138,7 @@ class _SolutionContainer:
     """Defines a result of a `.ProblemSet`."""
 
     solutions: List[
-        StateTransitionGraph[ParticleWithSpin, InteractionProperties]
+        MutableTransition[ParticleWithSpin, InteractionProperties]
     ] = field(factory=list)
     execution_info: ExecutionInfo = field(default=ExecutionInfo())
 
@@ -550,7 +550,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             qn_problems = [x.to_qn_problem_set() for x in problems]
 
             # Because of pickling problems of Generic classes (in this case
-            # StateTransitionGraph), multithreaded code has to work with
+            # MutableTransition), multithreaded code has to work with
             # QNProblemSet's and QNResult's. So the appropriate conversions
             # have to be done before and after
             temp_qn_results: List[Tuple[QNProblemSet, QNResult]] = []
@@ -653,9 +653,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         """
         solutions = []
         for solution in qn_result.solutions:
-            graph = StateTransitionGraph[
-                ParticleWithSpin, InteractionProperties
-            ](
+            graph = MutableTransition[ParticleWithSpin, InteractionProperties](
                 topology=topology,
                 node_props={
                     i: create_interaction_properties(x)
@@ -693,9 +691,9 @@ def _safe_wrap_list(
 
 
 def _match_final_state_ids(
-    graph: StateTransitionGraph[ParticleWithSpin, InteractionProperties],
+    graph: MutableTransition[ParticleWithSpin, InteractionProperties],
     state_definition: Sequence[StateDefinition],
-) -> StateTransitionGraph[ParticleWithSpin, InteractionProperties]:
+) -> MutableTransition[ParticleWithSpin, InteractionProperties]:
     """Temporary fix to https://github.com/ComPWA/qrules/issues/143."""
     particle_names = _strip_spin(state_definition)
     name_to_id = {name: i for i, name in enumerate(particle_names)}
@@ -704,7 +702,7 @@ def _match_final_state_ids(
         for i in graph.topology.outgoing_edge_ids
     }
     new_topology = graph.topology.relabel_edges(id_remapping)
-    return StateTransitionGraph(
+    return MutableTransition(
         new_topology,
         edge_props={
             i: graph.edge_props[id_remapping.get(i, i)]
@@ -734,7 +732,7 @@ class State:
 @implement_pretty_repr
 @frozen(order=True)
 class StateTransition:
-    """Frozen instance of a `.StateTransitionGraph` of a particle with spin."""
+    """Frozen instance of a `.MutableTransition` of a particle with spin."""
 
     topology: Topology = field(validator=instance_of(Topology))
     states: FrozenDict[int, State] = field(converter=FrozenDict)
@@ -748,7 +746,7 @@ class StateTransition:
 
     @staticmethod
     def from_graph(
-        graph: StateTransitionGraph[ParticleWithSpin, InteractionProperties],
+        graph: MutableTransition[ParticleWithSpin, InteractionProperties],
     ) -> "StateTransition":
         return StateTransition(
             topology=graph.topology,
@@ -762,8 +760,8 @@ class StateTransition:
 
     def to_graph(
         self,
-    ) -> StateTransitionGraph[ParticleWithSpin, InteractionProperties]:
-        return StateTransitionGraph[ParticleWithSpin, InteractionProperties](
+    ) -> MutableTransition[ParticleWithSpin, InteractionProperties]:
+        return MutableTransition[ParticleWithSpin, InteractionProperties](
             topology=self.topology,
             edge_props={
                 i: (state.particle, state.spin_projection)
@@ -836,7 +834,7 @@ class ReactionInfo:
     @staticmethod
     def from_graphs(
         graphs: Iterable[
-            StateTransitionGraph[ParticleWithSpin, InteractionProperties]
+            MutableTransition[ParticleWithSpin, InteractionProperties]
         ],
         formalism: str,
     ) -> "ReactionInfo":
@@ -845,7 +843,7 @@ class ReactionInfo:
 
     def to_graphs(
         self,
-    ) -> List[StateTransitionGraph[ParticleWithSpin, InteractionProperties]]:
+    ) -> List[MutableTransition[ParticleWithSpin, InteractionProperties]]:
         return [transition.to_graph() for transition in self.transitions]
 
     def group_by_topology(self) -> Dict[Topology, List[StateTransition]]:

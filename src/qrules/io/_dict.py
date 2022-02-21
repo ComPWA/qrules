@@ -16,7 +16,7 @@ from qrules.particle import (
     Spin,
 )
 from qrules.quantum_numbers import InteractionProperties
-from qrules.topology import Edge, StateTransitionGraph, Topology
+from qrules.topology import Edge, MutableTransition, Topology
 from qrules.transition import ReactionInfo, State, StateTransition
 
 
@@ -34,7 +34,7 @@ def from_particle(particle: Particle) -> dict:
 
 
 def from_stg(
-    graph: StateTransitionGraph[ParticleWithSpin, InteractionProperties]
+    graph: MutableTransition[ParticleWithSpin, InteractionProperties]
 ) -> dict:
     topology = graph.topology
     edge_props_def = {}
@@ -120,7 +120,7 @@ def build_reaction_info(definition: dict) -> ReactionInfo:
 
 def build_stg(
     definition: dict,
-) -> StateTransitionGraph[ParticleWithSpin, InteractionProperties]:
+) -> MutableTransition[ParticleWithSpin, InteractionProperties]:
     topology = build_topology(definition["topology"])
     edge_props_def: Dict[int, dict] = definition["edge_props"]
     edge_props: Dict[int, ParticleWithSpin] = {}
@@ -135,7 +135,7 @@ def build_stg(
         int(i): InteractionProperties(**node_def)
         for i, node_def in node_props_def.items()
     }
-    return StateTransitionGraph(
+    return MutableTransition(
         topology=topology,
         edge_props=edge_props,
         node_props=node_props,

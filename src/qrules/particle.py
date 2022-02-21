@@ -8,7 +8,7 @@ can be used stand-alone as a database of quantum numbers (see
 :doc:`/usage/particle`).
 
 The `.transition` module uses the properties of `Particle` instances when it
-computes which `.StateTransitionGraph` s are allowed between an initial state
+computes which `.MutableTransition` s are allowed between an initial state
 and final state.
 """
 

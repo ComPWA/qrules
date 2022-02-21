@@ -17,7 +17,7 @@ from qrules.quantum_numbers import InteractionProperties  # noqa: F401
 from qrules.topology import (  # noqa: F401
     Edge,
     FrozenDict,
-    StateTransitionGraph,
+    MutableTransition,
     Topology,
 )
 from qrules.transition import State  # noqa: F401

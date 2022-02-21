@@ -5,7 +5,7 @@ Responsible for building all possible topologies bases on basic user input:
 - number of initial state particles
 - number of final state particles
 
-The main interface is the `.StateTransitionGraph`.
+The main interface is the `.MutableTransition`.
 """
 
 import copy
@@ -170,7 +170,7 @@ def _to_frozenset(iterable: Iterable[int]) -> FrozenSet[int]:
 class Topology:
     """Directed Feynman-like graph without edge or node properties.
 
-    Forms the underlying topology of `StateTransitionGraph`. The graphs are
+    Forms the underlying topology of `MutableTransition`. The graphs are
     directed, meaning the edges are ingoing and outgoing to specific nodes
     (since feynman graphs also have a time axis). Note that a `Topology` is not
     strictly speaking a graph from graph theory, because it allows open edges,
@@ -665,7 +665,7 @@ def _cast_nodes(obj: Mapping[int, NodeType]) -> Dict[int, NodeType]:
 
 @implement_pretty_repr
 @define
-class StateTransitionGraph(Generic[EdgeType, NodeType]):
+class MutableTransition(Generic[EdgeType, NodeType]):
     """Graph class that resembles a frozen `.Topology` with properties.
 
     This class should contain the full information of a state transition from a
@@ -680,7 +680,7 @@ class StateTransitionGraph(Generic[EdgeType, NodeType]):
 
     def compare(
         self,
-        other: "StateTransitionGraph",
+        other: "MutableTransition",
         edge_comparator: Optional[Callable[[EdgeType, EdgeType], bool]] = None,
         node_comparator: Optional[Callable[[NodeType, NodeType], bool]] = None,
     ) -> bool:

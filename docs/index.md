@@ -47,7 +47,7 @@ QRules consists of three major components:
 
 1. **State transition graphs**
 
-   A {class}`.StateTransitionGraph` is a
+   A {class}`.MutableTransition` is a
    [directed graph](https://en.wikipedia.org/wiki/Directed_graph) that consists
    of **nodes** and **edges**. In a directed graph, each edge must be connected
    to at least one node (in correspondence to
@@ -93,7 +93,7 @@ The main solver used by {mod}`qrules` is the
 1. **Preparation**
 
    1.1. Build all possible topologies. A **topology** is represented by a
-   {class}`.StateTransitionGraph`, in which the edges and nodes are empty (no
+   {class}`.MutableTransition`, in which the edges and nodes are empty (no
    particle information).
 
    1.2. Fill the topology graphs with the user provided information. Typically

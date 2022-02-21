@@ -17,12 +17,12 @@ from .quantum_numbers import (
 )
 from .settings import InteractionType
 from .solving import GraphEdgePropertyMap, GraphNodePropertyMap, GraphSettings
-from .topology import StateTransitionGraph
+from .topology import MutableTransition
 
 Strength = float
 
 GraphSettingsGroups = Dict[
-    Strength, List[Tuple[StateTransitionGraph, GraphSettings]]
+    Strength, List[Tuple[MutableTransition, GraphSettings]]
 ]
 
 
@@ -198,11 +198,11 @@ class LeptonCheck(InteractionDeterminator):
 
 def remove_duplicate_solutions(
     solutions: List[
-        StateTransitionGraph[ParticleWithSpin, InteractionProperties]
+        MutableTransition[ParticleWithSpin, InteractionProperties]
     ],
     remove_qns_list: Optional[Set[Type[NodeQuantumNumber]]] = None,
     ignore_qns_list: Optional[Set[Type[NodeQuantumNumber]]] = None,
-) -> List[StateTransitionGraph[ParticleWithSpin, InteractionProperties]]:
+) -> List[MutableTransition[ParticleWithSpin, InteractionProperties]]:
     if remove_qns_list is None:
         remove_qns_list = set()
     if ignore_qns_list is None:
@@ -212,7 +212,7 @@ def remove_duplicate_solutions(
     logging.info(f"ignoring qns in graph comparison: {ignore_qns_list}")
 
     filtered_solutions: List[
-        StateTransitionGraph[ParticleWithSpin, InteractionProperties]
+        MutableTransition[ParticleWithSpin, InteractionProperties]
     ] = []
     remove_counter = 0
     for sol_graph in solutions:
@@ -232,9 +232,9 @@ def remove_duplicate_solutions(
 
 
 def _remove_qns_from_graph(  # pylint: disable=too-many-branches
-    graph: StateTransitionGraph[ParticleWithSpin, InteractionProperties],
+    graph: MutableTransition[ParticleWithSpin, InteractionProperties],
     qn_list: Set[Type[NodeQuantumNumber]],
-) -> StateTransitionGraph[ParticleWithSpin, InteractionProperties]:
+) -> MutableTransition[ParticleWithSpin, InteractionProperties]:
     new_node_props = {}
     for node_id in graph.topology.nodes:
         node_props = graph.node_props[node_id]
@@ -246,19 +246,17 @@ def _remove_qns_from_graph(  # pylint: disable=too-many-branches
 
 
 def _check_equal_ignoring_qns(
-    ref_graph: StateTransitionGraph,
-    solutions: List[StateTransitionGraph],
+    ref_graph: MutableTransition,
+    solutions: List[MutableTransition],
     ignored_qn_list: Set[Type[NodeQuantumNumber]],
-) -> Optional[StateTransitionGraph]:
+) -> Optional[MutableTransition]:
     """Define equal operator for graphs, ignoring certain quantum numbers."""
-    if not isinstance(ref_graph, StateTransitionGraph):
-        raise TypeError(
-            "Reference graph has to be of type StateTransitionGraph"
-        )
+    if not isinstance(ref_graph, MutableTransition):
+        raise TypeError("Reference graph has to be of type MutableTransition")
     found_graph = None
     node_comparator = NodePropertyComparator(ignored_qn_list)
     for graph in solutions:
-        if isinstance(graph, StateTransitionGraph):
+        if isinstance(graph, MutableTransition):
             if graph.compare(
                 ref_graph,
                 edge_comparator=lambda e1, e2: e1 == e2,
@@ -293,13 +291,13 @@ class NodePropertyComparator:
 
 
 def filter_graphs(
-    graphs: List[StateTransitionGraph],
-    filters: Iterable[Callable[[StateTransitionGraph], bool]],
-) -> List[StateTransitionGraph]:
-    r"""Implement filtering of a list of `.StateTransitionGraph` 's.
+    graphs: List[MutableTransition],
+    filters: Iterable[Callable[[MutableTransition], bool]],
+) -> List[MutableTransition]:
+    r"""Implement filtering of a list of `.MutableTransition` 's.
 
     This function can be used to select a subset of
-    `.StateTransitionGraph` 's from a list. Only the graphs passing
+    `.MutableTransition` 's from a list. Only the graphs passing
     all supplied filters will be returned.
 
     Note:
@@ -331,7 +329,7 @@ def require_interaction_property(
     interaction_qn: Type[NodeQuantumNumber],
     allowed_values: List,
 ) -> Callable[
-    [StateTransitionGraph[ParticleWithSpin, InteractionProperties]], bool
+    [MutableTransition[ParticleWithSpin, InteractionProperties]], bool
 ]:
     """Filter function.
 
@@ -358,7 +356,7 @@ def require_interaction_property(
     """
 
     def check(
-        graph: StateTransitionGraph[ParticleWithSpin, InteractionProperties]
+        graph: MutableTransition[ParticleWithSpin, InteractionProperties]
     ) -> bool:
         node_ids = _find_node_ids_with_ingoing_particle_name(
             graph, ingoing_particle_name
@@ -377,7 +375,7 @@ def require_interaction_property(
 
 
 def _find_node_ids_with_ingoing_particle_name(
-    graph: StateTransitionGraph[ParticleWithSpin, InteractionProperties],
+    graph: MutableTransition[ParticleWithSpin, InteractionProperties],
     ingoing_particle_name: str,
 ) -> List[int]:
     topology = graph.topology

@@ -169,7 +169,7 @@ def _to_optional_int(optional_int: Optional[int]) -> Optional[int]:
 class InteractionProperties:
     """Immutable data structure containing interaction properties.
 
-    Interactions are represented by a node on a `.StateTransitionGraph`. This
+    Interactions are represented by a node on a `.MutableTransition`. This
     class represents the properties that are carried collectively by the edges
     that this node connects.
 
