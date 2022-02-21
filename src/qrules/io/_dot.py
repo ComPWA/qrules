@@ -161,7 +161,7 @@ def graph_list_to_dot(
             raise ValueError(
                 "Collapsed graphs cannot be rendered with node properties"
             )
-        graphs = _collapse_graphs(graphs)  # type: ignore[assignment]
+        graphs = _collapse_graphs(graphs)
     elif strip_spin:
         if render_node:
             stripped_graphs = []
@@ -173,9 +173,9 @@ def graph_list_to_dot(
                 stripped_graph = _strip_projections(graph)
                 if stripped_graph not in stripped_graphs:
                     stripped_graphs.append(stripped_graph)
-            graphs = stripped_graphs  # type: ignore[assignment]
+            graphs = stripped_graphs
         else:
-            graphs = _get_particle_graphs(graphs)  # type: ignore[assignment]
+            graphs = _get_particle_graphs(graphs)
     dot = ""
     if not isinstance(graphs, abc.Sequence):
         graphs = list(graphs)

@@ -12,7 +12,7 @@ import copy
 import itertools
 import logging
 import sys
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from collections import abc
 from functools import total_ordering
 from typing import (
@@ -44,9 +44,9 @@ from attrs.validators import instance_of
 from qrules._implementers import implement_pretty_repr
 
 if sys.version_info >= (3, 8):
-    from typing import Protocol, runtime_checkable
+    from typing import Protocol
 else:
-    from typing_extensions import Protocol, runtime_checkable
+    from typing_extensions import Protocol
 
 if TYPE_CHECKING:
     try:
@@ -656,11 +656,21 @@ NodeType = TypeVar("NodeType")
 """A `~typing.TypeVar` representing the type of node properties."""
 
 
-@runtime_checkable
-class Transition(Protocol[EdgeType, NodeType]):
-    topology: Topology
-    states: Mapping[int, EdgeType]
-    interactions: Mapping[int, NodeType]
+class Transition(ABC, Generic[EdgeType, NodeType]):
+    @property
+    @abstractmethod
+    def topology(self) -> Topology:
+        ...
+
+    @property
+    @abstractmethod
+    def states(self) -> Mapping[int, EdgeType]:
+        ...
+
+    @property
+    @abstractmethod
+    def interactions(self) -> Mapping[int, NodeType]:
+        ...
 
 
 NewEdgeType = TypeVar("NewEdgeType")
@@ -669,7 +679,7 @@ NewNodeType = TypeVar("NewNodeType")
 
 @implement_pretty_repr
 @frozen(order=True)
-class FrozenTransition(Generic[EdgeType, NodeType]):
+class FrozenTransition(Transition, Generic[EdgeType, NodeType]):
     """Defines a frozen mapping of edge and node properties on a `Topology`."""
 
     topology: Topology = field(validator=instance_of(Topology))
@@ -732,7 +742,7 @@ def _cast_interactions(obj: Mapping[int, NodeType]) -> Dict[int, NodeType]:
 
 @implement_pretty_repr
 @define
-class MutableTransition(Generic[EdgeType, NodeType]):
+class MutableTransition(Transition, Generic[EdgeType, NodeType]):
     """Graph class that resembles a frozen `.Topology` with properties.
 
     This class should contain the full information of a state transition from a
