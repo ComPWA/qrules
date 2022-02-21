@@ -35,7 +35,7 @@ from qrules.transition import ProblemSet, State, StateTransition
 
 _DOT_HEAD = """digraph {
     rankdir=LR
-    node [shape=point, width=0]
+    node [shape=none, width=0]
     edge [arrowhead=none]
 """
 _DOT_TAIL = "}\n"
@@ -81,7 +81,7 @@ def _create_graphviz_edge(
 def _create_graphviz_node(
     name: str, label: str, graphviz_attrs: Dict[str, Any]
 ) -> str:
-    updated_graphviz_attrs = {"shape": None, **graphviz_attrs, "label": label}
+    updated_graphviz_attrs = {**graphviz_attrs, "label": label}
     styling = __create_graphviz_edge_node_styling(updated_graphviz_attrs)
     return f"    {name}{styling}\n"
 
