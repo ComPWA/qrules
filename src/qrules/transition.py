@@ -155,7 +155,7 @@ class _SolutionContainer:
             or self.execution_info.violated_edge_rules
         ):
             raise ValueError(
-                f"Invalid {self.__class__.__name__}! Found"
+                f"Invalid {type(self).__name__}! Found"
                 f" {len(self.solutions)} solutions, but also violated rules.",
                 self.execution_info.violated_node_rules,
                 self.execution_info.violated_edge_rules,

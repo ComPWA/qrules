@@ -83,7 +83,7 @@ class Spin:
             )
         if not (self.projection - self.magnitude).is_integer():
             raise ValueError(
-                f"{self.__class__.__name__}{(self.magnitude, self.projection)}:"
+                f"{type(self).__name__}{(self.magnitude, self.projection)}:"
                 " (projection - magnitude) should be integer"
             )
 
@@ -107,7 +107,7 @@ class Spin:
         return Spin(self.magnitude, -self.projection)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}{(self.magnitude, self.projection)}"
+        return f"{type(self).__name__}{(self.magnitude, self.projection)}"
 
     def _repr_pretty_(self, p: "PrettyPrinter", _: bool) -> None:
         class_name = type(self).__name__
@@ -219,8 +219,7 @@ class Particle:  # pylint: disable=too-many-instance-attributes
 
             return sorting_key(self) > sorting_key(other)
         raise NotImplementedError(
-            f"Cannot compare {self.__class__.__name__} with"
-            f" {other.__class__.__name__}"
+            f"Cannot compare {type(self).__name__} with {type(other).__name__}"
         )
 
     def __neg__(self) -> "Particle":
@@ -281,15 +280,14 @@ class ParticleCollection(abc.MutableSet):
         if isinstance(instance, int):
             return instance in self.__pid_to_name
         raise NotImplementedError(
-            f"Cannot search for type {instance.__class__.__name__}"
+            f"Cannot search for type {type(instance).__name__}"
         )
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, abc.Iterable):
             return set(self) == set(other)
         raise NotImplementedError(
-            f"Cannot compare {self.__class__.__name__} with "
-            f" {self.__class__.__name__}"
+            f"Cannot compare {type(self).__name__} with  {type(self).__name__}"
         )
 
     def __getitem__(self, particle_name: str) -> Particle:
@@ -325,11 +323,11 @@ class ParticleCollection(abc.MutableSet):
         elif isinstance(other, ParticleCollection):
             self.update(other)
         else:
-            raise NotImplementedError(f"Cannot add {other.__class__.__name__}")
+            raise NotImplementedError(f"Cannot add {type(other).__name__}")
         return self
 
     def __repr__(self) -> str:
-        output = f"{self.__class__.__name__}({{"
+        output = f"{type(self).__name__}({{"
         for particle in self:
             output += f"\n    {particle},"
         output += "})"
@@ -374,7 +372,7 @@ class ParticleCollection(abc.MutableSet):
             particle_name = value
         else:
             raise NotImplementedError(
-                f"Cannot discard something of type {value.__class__.__name__}"
+                f"Cannot discard something of type {type(value).__name__}"
             )
         del self.__pid_to_name[self[particle_name].pid]
         del self.__particles[particle_name]
@@ -418,8 +416,8 @@ class ParticleCollection(abc.MutableSet):
     def update(self, other: Iterable[Particle]) -> None:
         if not isinstance(other, abc.Iterable):
             raise TypeError(
-                f"Cannot update {self.__class__.__name__} from "
-                f"non-iterable class {self.__class__.__name__}"
+                f"Cannot update {type(self).__name__} from "
+                f"non-iterable class {type(self).__name__}"
             )
         for particle in other:
             self.add(particle)

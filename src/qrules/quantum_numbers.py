@@ -51,7 +51,7 @@ class Parity:
         return Parity(-self.value)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({_to_fraction(self.value)})"
+        return f"{type(self).__name__}({_to_fraction(self.value)})"
 
 
 def _to_fraction(value: Union[float, int], render_plus: bool = False) -> str:

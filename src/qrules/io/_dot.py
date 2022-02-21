@@ -127,7 +127,7 @@ class GraphPrinter:
             topology = obj
         else:
             raise NotImplementedError(
-                f"Cannot render {obj.__class__.__name__} as dot"
+                f"Cannot render {type(obj).__name__} as dot"
             )
         for edge_id in topology.incoming_edge_ids | topology.outgoing_edge_ids:
             if edge_id in topology.incoming_edge_ids:
