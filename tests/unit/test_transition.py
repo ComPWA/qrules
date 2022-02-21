@@ -1,5 +1,7 @@
 # pyright: reportUnusedImport=false
 # pylint: disable=eval-used, no-self-use
+from copy import deepcopy
+
 import pytest
 from IPython.lib.pretty import pretty
 
@@ -40,15 +42,8 @@ class TestReactionInfo:
         from_repr = eval(repr_method(instance))
         assert from_repr == instance
 
-    def test_from_to_graphs(self, reaction: ReactionInfo):
-        graphs = reaction.to_graphs()
-        from_graphs = ReactionInfo.from_graphs(graphs, reaction.formalism)
-        assert from_graphs == reaction
-
     def test_hash(self, reaction: ReactionInfo):
-        graphs = reaction.to_graphs()
-        from_graphs = ReactionInfo.from_graphs(graphs, reaction.formalism)
-        assert hash(from_graphs) == hash(reaction)
+        assert hash(deepcopy(reaction)) == hash(reaction)
 
 
 class TestState:

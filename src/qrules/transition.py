@@ -633,7 +633,11 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             _match_final_state_ids(graph, self.final_state)
             for graph in final_solutions
         ]
-        return ReactionInfo.from_graphs(final_solutions, self.formalism)
+        transitions = [
+            graph.freeze().convert(lambda s: State(*s))
+            for graph in final_solutions
+        ]
+        return ReactionInfo(transitions, self.formalism)
 
     def _solve(
         self, qn_problem_set: QNProblemSet
@@ -768,32 +772,6 @@ class ReactionInfo:
             for state in transition.intermediate_states.values()
         }
         return ParticleCollection(particles)
-
-    @staticmethod
-    def from_graphs(
-        graphs: Iterable[
-            MutableTransition[ParticleWithSpin, InteractionProperties]
-        ],
-        formalism: str,
-    ) -> "ReactionInfo":
-        transitions = [
-            g.freeze().convert(state_converter=lambda state: State(*state))
-            for g in graphs
-        ]
-        return ReactionInfo(transitions, formalism)
-
-    def to_graphs(
-        self,
-    ) -> List[MutableTransition[ParticleWithSpin, InteractionProperties]]:
-        return [
-            transition.convert(
-                state_converter=lambda state: (
-                    state.particle,
-                    state.spin_projection,
-                )
-            ).unfreeze()
-            for transition in self.transitions
-        ]
 
     def group_by_topology(self) -> Dict[Topology, List[StateTransition]]:
         groupings = defaultdict(list)

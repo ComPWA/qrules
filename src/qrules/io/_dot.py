@@ -16,6 +16,7 @@ from typing import (
     Set,
     Tuple,
     Union,
+    cast,
 )
 
 import attrs
@@ -468,17 +469,26 @@ def _get_particle_graphs(
 
 
 def _strip_projections(
-    graph: Transition[ParticleWithSpin, InteractionProperties],
+    graph: Transition[Any, InteractionProperties],
 ) -> FrozenTransition[Particle, InteractionProperties]:
-    if isinstance(graph, FrozenTransition):
-        graph = graph.convert(lambda s: (s.particle, s.spin_projection))
-    return FrozenTransition(
-        graph.topology,
-        states={i: particle for i, (particle, _) in graph.states.items()},
-        interactions={
-            i: attrs.evolve(interaction, l_projection=None, s_projection=None)
-            for i, interaction in graph.interactions.items()
-        },
+    if isinstance(graph, MutableTransition):
+        transition = graph.freeze()
+    transition = cast(FrozenTransition[Any, InteractionProperties], graph)
+    return transition.convert(
+        state_converter=__to_particle,
+        interaction_converter=lambda i: attrs.evolve(
+            i, l_projection=None, s_projection=None
+        ),
+    )
+
+
+def __to_particle(state: Any) -> Particle:
+    if isinstance(state, State):
+        return state.particle
+    if isinstance(state, tuple) and len(state) == 2:
+        return state[0]
+    raise NotImplementedError(
+        f"Cannot extract a particle from type {type(state).__name__}"
     )
 
 
@@ -497,7 +507,10 @@ def _collapse_graphs(
         topology = transition.topology
         group = transition_groups[topology]
         for state_id, state in transition.states.items():
-            particle, _ = state
+            if isinstance(state, State):
+                particle = state.particle
+            else:
+                particle, _ = state
             group.states[state_id].add(particle)
     particle_collection_graphs = []
     for topology in sorted(transition_groups):

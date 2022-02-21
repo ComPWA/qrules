@@ -139,7 +139,7 @@ def asdot(
         )
         return _dot.insert_graphviz_styling(dot, graphviz_attrs=figure_style)
     if isinstance(instance, ReactionInfo):
-        instance = instance.to_graphs()
+        instance = instance.transitions
     if isinstance(instance, abc.Iterable):
         dot = _dot.graph_list_to_dot(
             instance,
