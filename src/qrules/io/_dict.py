@@ -33,7 +33,9 @@ def from_particle(particle: Particle) -> dict:
     )
 
 
-def from_stg(graph: StateTransitionGraph[ParticleWithSpin]) -> dict:
+def from_stg(
+    graph: StateTransitionGraph[ParticleWithSpin, InteractionProperties]
+) -> dict:
     topology = graph.topology
     edge_props_def = {}
     for i in topology.edges:
@@ -116,7 +118,9 @@ def build_reaction_info(definition: dict) -> ReactionInfo:
     return ReactionInfo(transitions, formalism=definition["formalism"])
 
 
-def build_stg(definition: dict) -> StateTransitionGraph[ParticleWithSpin]:
+def build_stg(
+    definition: dict,
+) -> StateTransitionGraph[ParticleWithSpin, InteractionProperties]:
     topology = build_topology(definition["topology"])
     edge_props_def: Dict[int, dict] = definition["edge_props"]
     edge_props: Dict[int, ParticleWithSpin] = {}

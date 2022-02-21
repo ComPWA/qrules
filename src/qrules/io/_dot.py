@@ -466,8 +466,10 @@ def __extract_priority(description: str) -> int:
 
 
 def _get_particle_graphs(
-    graphs: Iterable[StateTransitionGraph[ParticleWithSpin]],
-) -> List[StateTransitionGraph[Particle]]:
+    graphs: Iterable[
+        StateTransitionGraph[ParticleWithSpin, InteractionProperties]
+    ],
+) -> List[StateTransitionGraph[Particle, InteractionProperties]]:
     """Strip `list` of `.StateTransitionGraph` s of the spin projections.
 
     Extract a `list` of `.StateTransitionGraph` instances with only
@@ -475,7 +477,7 @@ def _get_particle_graphs(
 
     .. seealso:: :doc:`/usage/visualize`
     """
-    inventory: List[StateTransitionGraph[Particle]] = []
+    inventory: List[StateTransitionGraph[Particle, InteractionProperties]] = []
     for transition in graphs:
         if isinstance(transition, StateTransition):
             transition = transition.to_graph()
@@ -498,8 +500,8 @@ def _get_particle_graphs(
 
 
 def _strip_projections(
-    graph: StateTransitionGraph[ParticleWithSpin],
-) -> StateTransitionGraph[Particle]:
+    graph: StateTransitionGraph[ParticleWithSpin, InteractionProperties],
+) -> StateTransitionGraph[Particle, InteractionProperties]:
     if isinstance(graph, StateTransition):
         graph = graph.to_graph()
     new_edge_props = {}
@@ -514,7 +516,7 @@ def _strip_projections(
             new_node_props[node_id] = attrs.evolve(
                 node_props, l_projection=None, s_projection=None
             )
-    return StateTransitionGraph[Particle](
+    return StateTransitionGraph[Particle, InteractionProperties](
         topology=graph.topology,
         node_props=new_node_props,
         edge_props=new_edge_props,
@@ -522,11 +524,15 @@ def _strip_projections(
 
 
 def _collapse_graphs(
-    graphs: Iterable[StateTransitionGraph[ParticleWithSpin]],
-) -> List[StateTransitionGraph[ParticleCollection]]:
+    graphs: Iterable[
+        StateTransitionGraph[ParticleWithSpin, InteractionProperties]
+    ],
+) -> List[StateTransitionGraph[ParticleCollection, InteractionProperties]]:
     def merge_into(
-        graph: StateTransitionGraph[Particle],
-        merged_graph: StateTransitionGraph[ParticleCollection],
+        graph: StateTransitionGraph[Particle, InteractionProperties],
+        merged_graph: StateTransitionGraph[
+            ParticleCollection, InteractionProperties
+        ],
     ) -> None:
         if (
             graph.topology.intermediate_edge_ids
@@ -542,8 +548,10 @@ def _collapse_graphs(
                 other_particles += particle
 
     def is_same_shape(
-        graph: StateTransitionGraph[Particle],
-        merged_graph: StateTransitionGraph[ParticleCollection],
+        graph: StateTransitionGraph[Particle, InteractionProperties],
+        merged_graph: StateTransitionGraph[
+            ParticleCollection, InteractionProperties
+        ],
     ) -> bool:
         if graph.topology.edges != merged_graph.topology.edges:
             return False
@@ -559,7 +567,9 @@ def _collapse_graphs(
         return True
 
     particle_graphs = _get_particle_graphs(graphs)
-    inventory: List[StateTransitionGraph[ParticleCollection]] = []
+    inventory: List[
+        StateTransitionGraph[ParticleCollection, InteractionProperties]
+    ] = []
     for graph in particle_graphs:
         append_to_inventory = True
         for merged_graph in inventory:
@@ -573,7 +583,9 @@ def _collapse_graphs(
                 for edge_id in graph.topology.edges
             }
             inventory.append(
-                StateTransitionGraph[ParticleCollection](
+                StateTransitionGraph[
+                    ParticleCollection, InteractionProperties
+                ](
                     topology=graph.topology,
                     node_props={
                         i: graph.node_props[i] for i in graph.topology.nodes

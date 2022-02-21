@@ -137,9 +137,9 @@ class ExecutionInfo:
 class _SolutionContainer:
     """Defines a result of a `.ProblemSet`."""
 
-    solutions: List[StateTransitionGraph[ParticleWithSpin]] = field(
-        factory=list
-    )
+    solutions: List[
+        StateTransitionGraph[ParticleWithSpin, InteractionProperties]
+    ] = field(factory=list)
     execution_info: ExecutionInfo = field(default=ExecutionInfo())
 
     def __attrs_post_init__(self) -> None:
@@ -653,7 +653,9 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         """
         solutions = []
         for solution in qn_result.solutions:
-            graph = StateTransitionGraph[ParticleWithSpin](
+            graph = StateTransitionGraph[
+                ParticleWithSpin, InteractionProperties
+            ](
                 topology=topology,
                 node_props={
                     i: create_interaction_properties(x)
@@ -691,9 +693,9 @@ def _safe_wrap_list(
 
 
 def _match_final_state_ids(
-    graph: StateTransitionGraph[ParticleWithSpin],
+    graph: StateTransitionGraph[ParticleWithSpin, InteractionProperties],
     state_definition: Sequence[StateDefinition],
-) -> StateTransitionGraph[ParticleWithSpin]:
+) -> StateTransitionGraph[ParticleWithSpin, InteractionProperties]:
     """Temporary fix to https://github.com/ComPWA/qrules/issues/143."""
     particle_names = _strip_spin(state_definition)
     name_to_id = {name: i for i, name in enumerate(particle_names)}
@@ -746,7 +748,7 @@ class StateTransition:
 
     @staticmethod
     def from_graph(
-        graph: StateTransitionGraph[ParticleWithSpin],
+        graph: StateTransitionGraph[ParticleWithSpin, InteractionProperties],
     ) -> "StateTransition":
         return StateTransition(
             topology=graph.topology,
@@ -758,8 +760,10 @@ class StateTransition:
             ),
         )
 
-    def to_graph(self) -> StateTransitionGraph[ParticleWithSpin]:
-        return StateTransitionGraph[ParticleWithSpin](
+    def to_graph(
+        self,
+    ) -> StateTransitionGraph[ParticleWithSpin, InteractionProperties]:
+        return StateTransitionGraph[ParticleWithSpin, InteractionProperties](
             topology=self.topology,
             edge_props={
                 i: (state.particle, state.spin_projection)
@@ -831,13 +835,17 @@ class ReactionInfo:
 
     @staticmethod
     def from_graphs(
-        graphs: Iterable[StateTransitionGraph[ParticleWithSpin]],
+        graphs: Iterable[
+            StateTransitionGraph[ParticleWithSpin, InteractionProperties]
+        ],
         formalism: str,
     ) -> "ReactionInfo":
         transitions = [StateTransition.from_graph(g) for g in graphs]
         return ReactionInfo(transitions, formalism)
 
-    def to_graphs(self) -> List[StateTransitionGraph[ParticleWithSpin]]:
+    def to_graphs(
+        self,
+    ) -> List[StateTransitionGraph[ParticleWithSpin, InteractionProperties]]:
         return [transition.to_graph() for transition in self.transitions]
 
     def group_by_topology(self) -> Dict[Topology, List[StateTransition]]:

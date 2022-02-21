@@ -406,19 +406,21 @@ def _generate_spin_permutations(
 
 
 def __get_initial_state_edge_ids(
-    graph: StateTransitionGraph[ParticleWithSpin],
+    graph: StateTransitionGraph[ParticleWithSpin, InteractionProperties],
 ) -> Iterable[int]:
     return graph.topology.incoming_edge_ids
 
 
 def __get_final_state_edge_ids(
-    graph: StateTransitionGraph[ParticleWithSpin],
+    graph: StateTransitionGraph[ParticleWithSpin, InteractionProperties],
 ) -> Iterable[int]:
     return graph.topology.outgoing_edge_ids
 
 
 def match_external_edges(
-    graphs: List[StateTransitionGraph[ParticleWithSpin]],
+    graphs: List[
+        StateTransitionGraph[ParticleWithSpin, InteractionProperties]
+    ],
 ) -> None:
     if not isinstance(graphs, list):
         raise TypeError("graphs argument is not of type list")
@@ -432,7 +434,9 @@ def match_external_edges(
 
 
 def _match_external_edge_ids(  # pylint: disable=too-many-locals
-    graphs: List[StateTransitionGraph[ParticleWithSpin]],
+    graphs: List[
+        StateTransitionGraph[ParticleWithSpin, InteractionProperties]
+    ],
     ref_graph_id: int,
     external_edge_getter_function: Callable[
         [StateTransitionGraph], Iterable[int]
@@ -497,7 +501,7 @@ def perform_external_edge_identical_particle_combinatorics(
 
 
 def _external_edge_identical_particle_combinatorics(
-    graph: StateTransitionGraph[ParticleWithSpin],
+    graph: StateTransitionGraph[ParticleWithSpin, InteractionProperties],
     external_edge_getter_function: Callable[
         [StateTransitionGraph], Iterable[int]
     ],
@@ -557,6 +561,7 @@ def _calculate_swappings(id_mapping: Dict[int, int]) -> OrderedDict:
 
 
 def _create_edge_id_particle_mapping(
-    graph: StateTransitionGraph[ParticleWithSpin], edge_ids: Iterable[int]
+    graph: StateTransitionGraph[ParticleWithSpin, InteractionProperties],
+    edge_ids: Iterable[int],
 ) -> Dict[int, str]:
     return {i: graph.edge_props[i][0].name for i in edge_ids}

@@ -42,8 +42,6 @@ from attrs.validators import instance_of
 
 from qrules._implementers import implement_pretty_repr
 
-from .quantum_numbers import InteractionProperties
-
 if sys.version_info >= (3, 8):
     from typing import Protocol
 else:
@@ -653,21 +651,21 @@ def _attach_node_to_edges(
 
 EdgeType = TypeVar("EdgeType")
 """A `~typing.TypeVar` representing the type of edge properties."""
+NodeType = TypeVar("NodeType")
+"""A `~typing.TypeVar` representing the type of node properties."""
 
 
 def _cast_edges(obj: Mapping[int, EdgeType]) -> Dict[int, EdgeType]:
     return dict(obj)
 
 
-def _cast_nodes(
-    obj: Mapping[int, InteractionProperties]
-) -> Dict[int, InteractionProperties]:
+def _cast_nodes(obj: Mapping[int, NodeType]) -> Dict[int, NodeType]:
     return dict(obj)
 
 
-@implement_pretty_repr()
+@implement_pretty_repr
 @define
-class StateTransitionGraph(Generic[EdgeType]):
+class StateTransitionGraph(Generic[EdgeType, NodeType]):
     """Graph class that resembles a frozen `.Topology` with properties.
 
     This class should contain the full information of a state transition from a
@@ -677,16 +675,14 @@ class StateTransitionGraph(Generic[EdgeType]):
     """
 
     topology: Topology = field(validator=instance_of(Topology))
-    node_props: Dict[int, InteractionProperties] = field(converter=_cast_nodes)
+    node_props: Dict[int, NodeType] = field(converter=_cast_nodes)
     edge_props: Dict[int, EdgeType] = field(converter=_cast_edges)
 
     def compare(
         self,
         other: "StateTransitionGraph",
         edge_comparator: Optional[Callable[[EdgeType, EdgeType], bool]] = None,
-        node_comparator: Optional[
-            Callable[[InteractionProperties, InteractionProperties], bool]
-        ] = None,
+        node_comparator: Optional[Callable[[NodeType, NodeType], bool]] = None,
     ) -> bool:
         if self.topology != other.topology:
             return False

@@ -197,10 +197,12 @@ class LeptonCheck(InteractionDeterminator):
 
 
 def remove_duplicate_solutions(
-    solutions: List[StateTransitionGraph[ParticleWithSpin]],
+    solutions: List[
+        StateTransitionGraph[ParticleWithSpin, InteractionProperties]
+    ],
     remove_qns_list: Optional[Set[Type[NodeQuantumNumber]]] = None,
     ignore_qns_list: Optional[Set[Type[NodeQuantumNumber]]] = None,
-) -> List[StateTransitionGraph[ParticleWithSpin]]:
+) -> List[StateTransitionGraph[ParticleWithSpin, InteractionProperties]]:
     if remove_qns_list is None:
         remove_qns_list = set()
     if ignore_qns_list is None:
@@ -209,7 +211,9 @@ def remove_duplicate_solutions(
     logging.info(f"removing these qns from graphs: {remove_qns_list}")
     logging.info(f"ignoring qns in graph comparison: {ignore_qns_list}")
 
-    filtered_solutions: List[StateTransitionGraph[ParticleWithSpin]] = []
+    filtered_solutions: List[
+        StateTransitionGraph[ParticleWithSpin, InteractionProperties]
+    ] = []
     remove_counter = 0
     for sol_graph in solutions:
         sol_graph = _remove_qns_from_graph(sol_graph, remove_qns_list)
@@ -228,9 +232,9 @@ def remove_duplicate_solutions(
 
 
 def _remove_qns_from_graph(  # pylint: disable=too-many-branches
-    graph: StateTransitionGraph[ParticleWithSpin],
+    graph: StateTransitionGraph[ParticleWithSpin, InteractionProperties],
     qn_list: Set[Type[NodeQuantumNumber]],
-) -> StateTransitionGraph[ParticleWithSpin]:
+) -> StateTransitionGraph[ParticleWithSpin, InteractionProperties]:
     new_node_props = {}
     for node_id in graph.topology.nodes:
         node_props = graph.node_props[node_id]
@@ -326,7 +330,9 @@ def require_interaction_property(
     ingoing_particle_name: str,
     interaction_qn: Type[NodeQuantumNumber],
     allowed_values: List,
-) -> Callable[[StateTransitionGraph[ParticleWithSpin]], bool]:
+) -> Callable[
+    [StateTransitionGraph[ParticleWithSpin, InteractionProperties]], bool
+]:
     """Filter function.
 
     Closure, which can be used as a filter function in :func:`.filter_graphs`.
@@ -351,7 +357,9 @@ def require_interaction_property(
             - *False* otherwise
     """
 
-    def check(graph: StateTransitionGraph[ParticleWithSpin]) -> bool:
+    def check(
+        graph: StateTransitionGraph[ParticleWithSpin, InteractionProperties]
+    ) -> bool:
         node_ids = _find_node_ids_with_ingoing_particle_name(
             graph, ingoing_particle_name
         )
@@ -369,7 +377,8 @@ def require_interaction_property(
 
 
 def _find_node_ids_with_ingoing_particle_name(
-    graph: StateTransitionGraph[ParticleWithSpin], ingoing_particle_name: str
+    graph: StateTransitionGraph[ParticleWithSpin, InteractionProperties],
+    ingoing_particle_name: str,
 ) -> List[int]:
     topology = graph.topology
     found_node_ids = []
