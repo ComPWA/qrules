@@ -377,7 +377,7 @@ def get_originating_node_list(
 
 
 @define(kw_only=True)
-class _MutableTopology:
+class MutableTopology:
     edges: Dict[int, Edge] = field(factory=dict, converter=dict)
     nodes: Set[int] = field(factory=set, converter=set)
 
@@ -506,12 +506,12 @@ class SimpleStateTransitionTopologyBuilder:
 
         logging.info("building topology graphs...")
         # result list
-        graph_tuple_list: List[Tuple[_MutableTopology, List[int]]] = []
+        graph_tuple_list: List[Tuple[MutableTopology, List[int]]] = []
         # create seed graph
-        seed_graph = _MutableTopology()
+        seed_graph = MutableTopology()
         current_open_end_edges = list(range(number_of_initial_edges))
         seed_graph.add_edges(current_open_end_edges)
-        extendable_graph_list: List[Tuple[_MutableTopology, List[int]]] = [
+        extendable_graph_list: List[Tuple[MutableTopology, List[int]]] = [
             (seed_graph, current_open_end_edges)
         ]
 
@@ -540,9 +540,9 @@ class SimpleStateTransitionTopologyBuilder:
         return tuple(topologies)
 
     def _extend_graph(
-        self, pair: Tuple[_MutableTopology, Sequence[int]]
-    ) -> List[Tuple[_MutableTopology, List[int]]]:
-        extended_graph_list: List[Tuple[_MutableTopology, List[int]]] = []
+        self, pair: Tuple[MutableTopology, Sequence[int]]
+    ) -> List[Tuple[MutableTopology, List[int]]]:
+        extended_graph_list: List[Tuple[MutableTopology, List[int]]] = []
 
         topology, current_open_end_edges = pair
 
@@ -619,10 +619,10 @@ def create_n_body_topology(
 
 
 def _attach_node_to_edges(
-    graph: Tuple[_MutableTopology, Sequence[int]],
+    graph: Tuple[MutableTopology, Sequence[int]],
     interaction_node: InteractionNode,
     ingoing_edge_ids: Iterable[int],
-) -> Tuple[_MutableTopology, List[int]]:
+) -> Tuple[MutableTopology, List[int]]:
     temp_graph = copy.deepcopy(graph[0])
     new_open_end_lines = list(copy.deepcopy(graph[1]))
 

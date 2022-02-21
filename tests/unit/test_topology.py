@@ -10,9 +10,9 @@ from qrules.topology import (  # noqa: F401
     Edge,
     FrozenDict,
     InteractionNode,
+    MutableTopology,
     SimpleStateTransitionTopologyBuilder,
     Topology,
-    _MutableTopology,
     create_isobar_topologies,
     create_n_body_topology,
     get_originating_node_list,
@@ -100,7 +100,7 @@ class TestInteractionNode:
 
 class TestMutableTopology:
     def test_add_and_attach(self, two_to_three_decay: Topology):
-        topology = _MutableTopology(
+        topology = MutableTopology(
             edges=two_to_three_decay.edges,
             nodes=two_to_three_decay.nodes,  # type: ignore[arg-type]
         )
@@ -116,7 +116,7 @@ class TestMutableTopology:
         assert isinstance(topology.freeze(), Topology)
 
     def test_add_exceptions(self, two_to_three_decay: Topology):
-        topology = _MutableTopology(
+        topology = MutableTopology(
             edges=two_to_three_decay.edges,
             nodes=two_to_three_decay.nodes,  # type: ignore[arg-type]
         )
