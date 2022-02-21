@@ -346,7 +346,7 @@ def ___render_edge_with_id(
 ) -> str:
     if edge_prop is None or not edge_prop:
         return str(edge_id)
-    edge_label = __render_edge_property(edge_prop)
+    edge_label = __edge_to_string(edge_prop)
     if not render_edge_id:
         return edge_label
     if "\n" in edge_label:
@@ -354,25 +354,27 @@ def ___render_edge_with_id(
     return f"{edge_id}: {edge_label}"
 
 
-def __render_edge_property(
-    edge_prop: Optional[
-        Union[EdgeSettings, Iterable[Particle], Particle, ParticleWithSpin]
-    ]
-) -> str:
+def __edge_to_string(edge_prop: Any) -> str:
+    if edge_prop is None:
+        return ""
     if isinstance(edge_prop, EdgeSettings):
         return __render_settings(edge_prop)
     if isinstance(edge_prop, Particle):
         return edge_prop.name
-    if isinstance(edge_prop, abc.Iterable) and all(
-        map(lambda i: isinstance(i, Particle), edge_prop)
-    ):
-        return "\n".join(map(lambda p: p.name, edge_prop))
     if isinstance(edge_prop, State):
         edge_prop = edge_prop.particle, edge_prop.spin_projection
-    if isinstance(edge_prop, tuple) and len(edge_prop) == 2:
-        particle, spin_projection = edge_prop
-        projection_label = _to_fraction(spin_projection, render_plus=True)
-        return f"{particle.name}[{projection_label}]"
+    if isinstance(edge_prop, tuple):
+        if len(edge_prop) == 2:
+            particle, spin_projection = edge_prop
+            if isinstance(particle, Particle) and isinstance(
+                spin_projection, (int, float)
+            ):
+                projection_label = _to_fraction(
+                    spin_projection, render_plus=True
+                )
+                return f"{particle.name}[{projection_label}]"
+    if isinstance(edge_prop, abc.Iterable):
+        return "\n".join(map(__edge_to_string, edge_prop))
     raise NotImplementedError
 
 
