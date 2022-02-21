@@ -1,11 +1,19 @@
-"""All modules related to topology building.
+# pylint: disable=too-many-lines
+"""Functionality for `Topology` and `Transition` instances.
 
-Responsible for building all possible topologies bases on basic user input:
+.. rubric:: Main interfaces
 
-- number of initial state particles
-- number of final state particles
+- `Topology` and its builder functions :func:`create_isobar_topologies` and
+  :func:`create_n_body_topology`.
+- `Transition` and its two implementations `MutableTransition` and
+  `FrozenTransition`.
 
-The main interface is the `.MutableTransition`.
+.. autolink-preface::
+
+    from qrules.topology import (
+        create_isobar_topologies,
+        create_n_body_topology,
+    )
 """
 
 import copy
@@ -69,6 +77,19 @@ VT = TypeVar("VT")
 class FrozenDict(  # pylint: disable=too-many-ancestors
     abc.Hashable, abc.Mapping, Generic[KT, VT]
 ):
+    """An **immutable** and **hashable** version of a `dict`.
+
+    `FrozenDict` makes it possible to make classes hashable if they are
+    decorated with :func:`attr.frozen` and contain `~typing.Mapping`-like
+    attributes. If these attributes were to be implemented with a normal
+    `dict`, the instance is strictly speaking still mutable (even if those
+    attributes are a `property`) and the class is therefore not safely
+    hashable.
+
+    .. warning:: The keys have to be comparable, that is, they need to have a
+        :meth:`~object.__lt__` method.
+    """
+
     def __init__(self, mapping: Optional[Mapping] = None):
         self.__mapping: Dict[KT, VT] = {}
         if mapping is not None:
@@ -143,16 +164,27 @@ def _to_optional_int(optional_int: Optional[int]) -> Optional[int]:
 
 @frozen(order=True)
 class Edge:
-    """Struct-like definition of an edge, used in `Topology`."""
+    """Struct-like definition of an edge, used in `Topology.edges`."""
 
     originating_node_id: Optional[int] = field(
         default=None, converter=_to_optional_int
     )
+    """Node ID where the `Edge` **starts**.
+
+    An `Edge` is **incoming to** a `Topology` if its `originating_node_id` is
+    `None` (see `~Topology.incoming_edge_ids`).
+    """
     ending_node_id: Optional[int] = field(
         default=None, converter=_to_optional_int
     )
+    """Node ID where the `Edge` **ends**.
+
+    An `Edge` is **outgoing from** a `Topology` if its `ending_node_id` is
+    `None` (see `~Topology.outgoing_edge_ids`).
+    """
 
     def get_connected_nodes(self) -> Set[int]:
+        """Get all node IDs to which the `Edge` is connected."""
         connected_nodes = {self.ending_node_id, self.originating_node_id}
         connected_nodes.discard(None)
         return connected_nodes  # type: ignore[return-value]
@@ -169,29 +201,65 @@ def _to_topology_edges(inst: Mapping[int, Edge]) -> FrozenDict[int, Edge]:
 @implement_pretty_repr
 @frozen(order=True)
 class Topology:
+    # noqa: D416
     """Directed Feynman-like graph without edge or node properties.
 
-    Forms the underlying topology of `MutableTransition`. The graphs are
-    directed, meaning the edges are ingoing and outgoing to specific nodes
-    (since feynman graphs also have a time axis). Note that a `Topology` is not
-    strictly speaking a graph from graph theory, because it allows open edges,
-    like a Feynman-diagram.
+    A `Topology` is **directed** in the sense that its edges are ingoing and
+    outgoing to specific nodes. This is to mimic Feynman graphs, which have a
+    time axis. Note that a `Topology` is not strictly speaking a graph from
+    graph theory, because it allows open edges, like a Feynman-diagram.
+
+    The edges and nodes can be provided with properties with a `Transition`,
+    which contains a `~Transition.topology`.
+
+    As opposed to a `MutableTopology`, a `Topology` is frozen, hashable, and
+    ordered, so that it can be used as a kind of fingerprint for a
+    `Transition`. In addition, the IDs of `edges` are guaranteed to be
+    sequential integers and follow a specific pattern:
+
+    - `incoming_edge_ids` (`~Transition.initial_states`) are always negative.
+    - `outgoing_edge_ids` (`~Transition.final_states`) lie in the range
+      :code:`0...n-1` with :code:`n` the number of final states.
+    - `intermediate_edge_ids` continue counting from :code:`n`.
+
+    See also :meth:`MutableTopology.organize_edge_ids`.
+
+    Example
+    -------
+    **Isobar decay** topologies can best be created as follows:
+
+    >>> topologies = create_isobar_topologies(number_of_final_states=3)
+    >>> len(topologies)
+    1
+    >>> topologies[0]
+    Topology(nodes=..., edges=...)
     """
 
     nodes: FrozenSet[int] = field(
         converter=_to_topology_nodes,
         validator=deep_iterable(member_validator=instance_of(int)),
     )
+    """A node is a point where different `edges` connect."""
     edges: FrozenDict[int, Edge] = field(
         converter=_to_topology_edges,
         validator=deep_mapping(
             key_validator=instance_of(int), value_validator=instance_of(Edge)
         ),
     )
+    """Mapping of edge IDs to their corresponding `Edge` definition."""
 
     incoming_edge_ids: FrozenSet[int] = field(init=False, repr=False)
+    """Edge IDs of edges that have no `~Edge.originating_node_id`.
+
+    `Transition.initial_states` provide properties for these edges.
+    """
     outgoing_edge_ids: FrozenSet[int] = field(init=False, repr=False)
+    """Edge IDs of edges that have no `~Edge.ending_node_id`.
+
+    `Transition.final_states` provide properties for these edges.
+    """
     intermediate_edge_ids: FrozenSet[int] = field(init=False, repr=False)
+    """Edge IDs of edges that connect two `nodes`."""
 
     def __attrs_post_init__(self) -> None:
         self.__verify()
@@ -264,6 +332,8 @@ class Topology:
 
         Returns `True` if the two graphs have a one-to-one mapping of the node
         IDs and edge IDs.
+
+        .. warning:: Not yet implemented.
         """
         raise NotImplementedError
 
@@ -375,11 +445,19 @@ def _to_mutable_topology_edges(inst: Mapping[int, Edge]) -> Dict[int, Edge]:
 
 @define
 class MutableTopology:
+    """Mutable version of a `Topology`.
+
+    A `MutableTopology` can be used to conveniently build up a `Topology` (see
+    e.g. `SimpleStateTransitionTopologyBuilder`). It does not have restrictions
+    on the numbering of edge and node IDs.
+    """
+
     nodes: Set[int] = field(
         converter=_to_mutable_topology_nodes,
         factory=set,
         on_setattr=deep_iterable(member_validator=instance_of(int)),
     )
+    """See `Topology.nodes`."""
     edges: Dict[int, Edge] = field(
         converter=_to_mutable_topology_edges,
         factory=dict,
@@ -387,19 +465,24 @@ class MutableTopology:
             key_validator=instance_of(int), value_validator=instance_of(Edge)
         ),
     )
+    """See `Topology.edges`."""
 
     def add_node(self, node_id: int) -> None:
-        """Adds a node nr. node_id.
+        """Adds a node with number :code:`node_id`.
 
         Raises:
-            ValueError: if node_id already exists
+            ValueError: if :code:`node_id` already exists in `nodes`.
         """
         if node_id in self.nodes:
             raise ValueError(f"Node nr. {node_id} already exists")
         self.nodes.add(node_id)
 
-    def add_edges(self, edge_ids: List[int]) -> None:
-        """Add edges with the ids in the edge_ids list."""
+    def add_edges(self, edge_ids: Iterable[int]) -> None:
+        """Add edges with the ids in the :code:`edge_ids` list.
+
+        Raises:
+            ValueError: if :code:`edge_ids` already exist in `edges`.
+        """
         for edge_id in edge_ids:
             if edge_id in self.edges:
                 raise ValueError(f"Edge nr. {edge_id} already exists")
@@ -494,6 +577,10 @@ class MutableTopology:
         return attrs.evolve(self, edges=new_edges)
 
     def freeze(self) -> Topology:
+        """Create an immutable `Topology` from this `MutableTopology`.
+
+        You may need to call :meth:`organize_edge_ids` first.
+        """
         return Topology(self.nodes, self.edges)
 
 
@@ -615,6 +702,27 @@ class SimpleStateTransitionTopologyBuilder:
 def create_isobar_topologies(
     number_of_final_states: int,
 ) -> Tuple[Topology, ...]:
+    """Builder function to create a set of unique isobar decay topologies.
+
+    Args:
+        number_of_final_states: The number of `~Topology.outgoing_edge_ids`
+            (`~.Transition.final_states`).
+
+    Returns:
+        A sorted `tuple` of non-isomorphic `Topology` instances, all with the
+        same number of final states.
+
+    Example:
+        >>> topologies = create_isobar_topologies(number_of_final_states=4)
+        >>> len(topologies)
+        2
+        >>> len(topologies[0].outgoing_edge_ids)
+        4
+        >>> len(set(topologies))  # hashable
+        2
+        >>> list(topologies) == sorted(topologies)  # ordered
+        True
+    """
     if number_of_final_states < 2:
         raise ValueError(
             "At least two final states required for an isobar decay"
@@ -630,6 +738,31 @@ def create_isobar_topologies(
 def create_n_body_topology(
     number_of_initial_states: int, number_of_final_states: int
 ) -> Topology:
+    """Create a `Topology` that connects all edges through a single node.
+
+    These types of ":math:`n`-body topologies" are particularly important for
+    :func:`.check_reaction_violations` and :mod:`.conservation_rules`.
+
+    Args:
+        number_of_initial_states: The number of `~Topology.incoming_edge_ids`
+            (`~.Transition.initial_states`).
+        number_of_final_states: The number of `~Topology.outgoing_edge_ids`
+            (`~.Transition.final_states`).
+
+    Example:
+        >>> topology = create_n_body_topology(
+        ...    number_of_initial_states=2,
+        ...    number_of_final_states=5,
+        ... )
+        >>> topology
+        Topology(nodes=..., edges...)
+        >>> len(topology.nodes)
+        1
+        >>> len(topology.incoming_edge_ids)
+        2
+        >>> len(topology.outgoing_edge_ids)
+        5
+    """
     n_in = number_of_initial_states
     n_out = number_of_final_states
     builder = SimpleStateTransitionTopologyBuilder(
@@ -694,34 +827,62 @@ NewNodeType = TypeVar("NewNodeType")
 
 
 class Transition(ABC, Generic[EdgeType, NodeType]):
+    """Mapping of edge and node properties over a `.Topology`.
+
+    This **interface** class describes a transition from an initial state to a
+    final state by providing a mapping of properties over the `~Topology.edges`
+    and `~Topology.nodes` of its `topology`. Since a `Topology` behaves like a
+    Feynman graph, **edges** are considered as "`states`" and **nodes** are
+    considered as `interactions` between those states.
+
+    There are two implementation classes:
+
+    - `FrozenTransition`: a complete, hashable and ordered mapping of
+      properties over the `~Topology.edges` and `~Topology.nodes` in its
+      `~FrozenTransition.topology`.
+    - `MutableTransition`: comparable to `MutableTopology` in that it is used
+      internally when finding solutions through the `.StateTransitionManager`
+      etc.
+
+    These classes are also provided with **mixin** attributes `initial_states`,
+    `final_states`, `intermediate_states`, and :meth:`filter_states`.
+    """
+
     @property
     @abstractmethod
     def topology(self) -> Topology:
+        """`Topology` over which `states` and `interactions` are defined."""
         ...
 
     @property
     @abstractmethod
     def states(self) -> Mapping[int, EdgeType]:
+        """Mapping of properties over its `topology` `~Topology.edges`."""
         ...
 
     @property
     @abstractmethod
     def interactions(self) -> Mapping[int, NodeType]:
+        """Mapping of properties over its `topology` `~Topology.nodes`."""
         ...
 
     @property
     def initial_states(self) -> Dict[int, EdgeType]:
+        """Properties for the `~Topology.incoming_edge_ids`."""
         return self.filter_states(self.topology.incoming_edge_ids)
 
     @property
     def final_states(self) -> Dict[int, EdgeType]:
+        """Properties for the `~Topology.outgoing_edge_ids`."""
         return self.filter_states(self.topology.outgoing_edge_ids)
 
     @property
     def intermediate_states(self) -> Dict[int, EdgeType]:
+        """Properties for the intermediate edges (connecting two nodes)."""
         return self.filter_states(self.topology.intermediate_edge_ids)
 
     def filter_states(self, edge_ids: Iterable[int]) -> Dict[int, EdgeType]:
+        """Filter `states` by a selection of :code:`edge_ids`."""
         return {i: self.states[i] for i in edge_ids}
 
 
@@ -739,6 +900,7 @@ class FrozenTransition(Transition, Generic[EdgeType, NodeType]):
         _assert_all_defined(self.topology.edges, self.states)
 
     def unfreeze(self) -> "MutableTransition[EdgeType, NodeType]":
+        """Convert into a `MutableTransition`."""
         return MutableTransition(self.topology, self.states, self.interactions)
 
     @overload
@@ -766,6 +928,7 @@ class FrozenTransition(Transition, Generic[EdgeType, NodeType]):
         ...
 
     def convert(self, state_converter=None, interaction_converter=None):  # type: ignore[no-untyped-def]
+        """Cast the edge and/or node properties to another type."""
         # pylint: disable=unnecessary-lambda
         if state_converter is None:
             state_converter = lambda _: _
@@ -794,12 +957,9 @@ def _cast_interactions(obj: Mapping[int, NodeType]) -> Dict[int, NodeType]:
 @implement_pretty_repr
 @define
 class MutableTransition(Transition, Generic[EdgeType, NodeType]):
-    """Graph class that resembles a frozen `.Topology` with properties.
+    """Mutable implementation of a `Transition`.
 
-    This class should contain the full information of a state transition from a
-    initial state to a final state. This information can be attached to the
-    nodes and edges via properties. In case not all information is provided,
-    error can be raised on property retrieval.
+    Mainly used internally by the `.StateTransitionManager` to build solutions.
     """
 
     topology: Topology = field(validator=instance_of(Topology))
@@ -846,6 +1006,7 @@ class MutableTransition(Transition, Generic[EdgeType, NodeType]):
             self.states[edge_id1] = value2
 
     def freeze(self) -> "FrozenTransition[EdgeType, NodeType]":
+        """Convert into a `FrozenTransition`."""
         return FrozenTransition(self.topology, self.states, self.interactions)
 
 

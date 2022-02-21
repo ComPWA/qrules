@@ -47,6 +47,8 @@ rst-roles =
     mod
     ref
 rst-directives =
+    autolink-preface
+    automethod
     deprecated
     envvar
     exception
