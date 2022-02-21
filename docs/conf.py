@@ -227,10 +227,12 @@ default_role = "py:obj"
 primary_domain = "py"
 nitpicky = True  # warn if cross-references are missing
 nitpick_ignore = [
-    ("py:class", "qrules.topology.NewEdgeType"),
-    ("py:class", "qrules.topology.NewNodeType"),
+    ("py:class", "NewEdgeType"),
+    ("py:class", "NewNodeType"),
     ("py:class", "NoneType"),
     ("py:class", "json.encoder.JSONEncoder"),
+    ("py:class", "qrules.topology.NewEdgeType"),
+    ("py:class", "qrules.topology.NewNodeType"),
     ("py:class", "typing_extensions.Protocol"),
     ("py:obj", "qrules.topology._K"),
     ("py:obj", "qrules.topology._V"),

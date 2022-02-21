@@ -34,7 +34,7 @@ from typing import (
     Tuple,
     TypeVar,
     ValuesView,
-    cast,
+    overload,
 )
 
 import attrs
@@ -708,18 +708,36 @@ class FrozenTransition(Transition, Generic[EdgeType, NodeType]):
     def unfreeze(self) -> "MutableTransition[EdgeType, NodeType]":
         return MutableTransition(self.topology, self.states, self.interactions)
 
+    @overload
+    def convert(self) -> "FrozenTransition[EdgeType, NodeType]":
+        ...
+
+    @overload
+    def convert(
+        self, state_converter: Callable[[EdgeType], NewEdgeType]
+    ) -> "FrozenTransition[NewEdgeType, NodeType]":
+        ...
+
+    @overload
+    def convert(
+        self, *, interaction_converter: Callable[[NodeType], NewNodeType]
+    ) -> "FrozenTransition[EdgeType, NewNodeType]":
+        ...
+
+    @overload
     def convert(
         self,
-        state_converter: Optional[Callable[[EdgeType], NewEdgeType]] = None,
-        interaction_converter: Optional[
-            Callable[[NodeType], NewNodeType]
-        ] = None,
-    ) -> "FrozenTransition[NewEdgeType, NodeType]":
+        state_converter: Callable[[EdgeType], NewEdgeType],
+        interaction_converter: Callable[[NodeType], NewNodeType],
+    ) -> "FrozenTransition[NewEdgeType, NewNodeType]":
+        ...
+
+    def convert(self, state_converter=None, interaction_converter=None):  # type: ignore[no-untyped-def]
         # pylint: disable=unnecessary-lambda
         if state_converter is None:
-            state_converter = lambda _: cast(NewEdgeType, _)
+            state_converter = lambda _: _
         if interaction_converter is None:
-            interaction_converter = lambda _: cast(NewNodeType, _)
+            interaction_converter = lambda _: _
         return FrozenTransition(
             self.topology,
             states={

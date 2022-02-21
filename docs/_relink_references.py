@@ -16,6 +16,8 @@ if TYPE_CHECKING:
     from sphinx.environment import BuildEnvironment
 
 __TARGET_SUBSTITUTIONS = {
+    "EdgeType": "qrules.topology.EdgeType",
+    "NodeType": "qrules.topology.NodeType",
     "a set-like object providing a view on D's items": "typing.ItemsView",
     "a set-like object providing a view on D's keys": "typing.KeysView",
     "an object providing a view on D's values": "typing.ValuesView",
