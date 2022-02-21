@@ -2,6 +2,7 @@
 from copy import deepcopy
 from typing import List
 
+import attrs
 import pytest
 
 from qrules import InteractionType, ProblemSet, StateTransitionManager
@@ -324,13 +325,14 @@ class TestSolutionFilter:  # pylint: disable=no-self-use
 
         for value in input_values:
             tempgraph = make_ls_test_graph(value[1][0], value[1][1], pi0)
-            tempgraph = tempgraph.evolve(
+            tempgraph = attrs.evolve(
+                tempgraph,
                 edge_props={
                     0: (
                         Particle(name=value[0], pid=0, mass=1.0, spin=1.0),
                         0.0,
                     )
-                }
+                },
             )
             graphs.append(tempgraph)
 

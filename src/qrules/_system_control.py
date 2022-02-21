@@ -238,7 +238,7 @@ def _remove_qns_from_graph(  # pylint: disable=too-many-branches
             node_props, **{x.__name__: None for x in qn_list}
         )
 
-    return graph.evolve(node_props=new_node_props)
+    return attrs.evolve(graph, node_props=new_node_props)
 
 
 def _check_equal_ignoring_qns(

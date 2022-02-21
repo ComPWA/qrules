@@ -680,34 +680,6 @@ class StateTransitionGraph(Generic[EdgeType]):
     node_props: Dict[int, InteractionProperties] = field(converter=_cast_nodes)
     edge_props: Dict[int, EdgeType] = field(converter=_cast_edges)
 
-    def evolve(
-        self,
-        node_props: Optional[Dict[int, InteractionProperties]] = None,
-        edge_props: Optional[Dict[int, EdgeType]] = None,
-    ) -> "StateTransitionGraph[EdgeType]":
-        """Changes the node and edge properties of a graph instance.
-
-        Since a `.StateTransitionGraph` is frozen (cannot be modified), the
-        evolve function will also create a shallow copy the properties.
-        """
-        new_node_props = copy.copy(self.node_props)
-        if node_props:
-            _assert_not_overdefined(self.topology.nodes, node_props)
-            for node_id, node_prop in node_props.items():
-                new_node_props[node_id] = node_prop
-
-        new_edge_props = copy.copy(self.edge_props)
-        if edge_props:
-            _assert_not_overdefined(self.topology.edges, edge_props)
-            for edge_id, edge_prop in edge_props.items():
-                new_edge_props[edge_id] = edge_prop
-
-        return StateTransitionGraph[EdgeType](
-            topology=self.topology,
-            node_props=new_node_props,
-            edge_props=new_edge_props,
-        )
-
     def compare(
         self,
         other: "StateTransitionGraph",
@@ -757,6 +729,7 @@ def _assert_all_defined(items: Iterable, properties: Iterable) -> None:
         )
 
 
+# pyright: reportUnusedFunction=false
 def _assert_not_overdefined(items: Iterable, properties: Iterable) -> None:
     existing = set(items)
     defined = set(properties)
