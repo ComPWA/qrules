@@ -7,18 +7,8 @@ import logging
 import re
 import string
 from collections import abc
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    Set,
-    Tuple,
-    Union,
-    cast,
-)
+from functools import singledispatch
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Union, cast
 
 import attrs
 from attrs import Attribute, define, field
@@ -171,7 +161,7 @@ class GraphPrinter:
             for node_id, settings in node_settings.items():
                 label = ""
                 if self.render_node:
-                    label = _render_property(settings)
+                    label = as_string(settings)
                 node = f"{prefix}N{node_id}"
                 lines += [
                     self._create_graphviz_node(node, label, self.node_style)
@@ -180,7 +170,7 @@ class GraphPrinter:
             for node_id, node_prop in obj.interactions.items():
                 label = ""
                 if self.render_node:
-                    label = _render_property(node_prop)
+                    label = as_string(node_prop)
                 node = f"{prefix}N{node_id}"
                 lines += [
                     self._create_graphviz_node(node, label, self.node_style)
@@ -303,7 +293,7 @@ def __render_edge_with_id(
 ) -> str:
     if edge_prop is None or not edge_prop:
         return str(edge_id)
-    edge_label = _render_property(edge_prop)
+    edge_label = as_string(edge_prop)
     if not render_edge_id:
         return edge_label
     if "\n" in edge_label:
@@ -311,31 +301,51 @@ def __render_edge_with_id(
     return f"{edge_id}: {edge_label}"
 
 
-def _interaction_properties_to_str(node_prop: InteractionProperties) -> str:
+@singledispatch
+def as_string(obj: Any) -> str:
+    """Render an edge or node property on a `.Transition` as a `str`.
+
+    This function is decorated with :func:`functools.singledispatch`, which
+    means that you can easily register other converter functions. An example:
+
+    >>> from qrules.io._dot import as_string
+    >>> as_string(10)
+    '10'
+    >>> _ = as_string.register(int, lambda _: "new int rendering")
+    >>> as_string(10)
+    'new int rendering'
+    """
+    logging.warning(f"No DOT renderer implemented type {type(obj).__name__}")
+    return str(obj)
+
+
+as_string.register(str, lambda _: _)  # avoid warning for str type
+
+
+@as_string.register(InteractionProperties)
+def _(obj: InteractionProperties) -> str:
     lines = []
-    if node_prop.l_magnitude is not None:
-        if node_prop.l_projection is None:
-            l_label = _to_fraction(node_prop.l_magnitude)
+    if obj.l_magnitude is not None:
+        if obj.l_projection is None:
+            l_label = _to_fraction(obj.l_magnitude)
         else:
-            l_label = _spin_to_str(
-                Spin(node_prop.l_magnitude, node_prop.l_projection)
-            )
+            l_label = _spin_to_str(Spin(obj.l_magnitude, obj.l_projection))
         lines.append(f"L={l_label}")
-    if node_prop.s_magnitude is not None:
-        if node_prop.s_projection is None:
-            s_label = _to_fraction(node_prop.s_magnitude)
+    if obj.s_magnitude is not None:
+        if obj.s_projection is None:
+            s_label = _to_fraction(obj.s_magnitude)
         else:
-            s_label = _spin_to_str(
-                Spin(node_prop.s_magnitude, node_prop.s_projection)
-            )
+            s_label = _spin_to_str(Spin(obj.s_magnitude, obj.s_projection))
         lines.append(f"S={s_label}")
-    if node_prop.parity_prefactor is not None:
-        label = _to_fraction(node_prop.parity_prefactor, render_plus=True)
+    if obj.parity_prefactor is not None:
+        label = _to_fraction(obj.parity_prefactor, render_plus=True)
         lines.append(f"P={label}")
     return "\n".join(lines)
 
 
-def _settings_to_str(settings: Union[EdgeSettings, NodeSettings]) -> str:
+@as_string.register(EdgeSettings)
+@as_string.register(NodeSettings)
+def _(settings: Union[EdgeSettings, NodeSettings]) -> str:
     output = ""
     if settings.rule_priorities:
         output += "RULE PRIORITIES\n"
@@ -365,23 +375,27 @@ def __extract_priority(description: str) -> int:
     return int(priority)
 
 
-def _particle_to_str(particle: Particle) -> str:
+@as_string.register(Particle)
+def _(particle: Particle) -> str:
     return particle.name
 
 
+@as_string.register(Spin)
 def _spin_to_str(spin: Spin) -> str:
     spin_magnitude = _to_fraction(spin.magnitude)
     spin_projection = _to_fraction(spin.projection, render_plus=True)
     return f"|{spin_magnitude},{spin_projection}⟩"
 
 
+@as_string.register(State)
 def _state_to_str(state: State) -> str:
     particle = state.particle.name
     spin_projection = _to_fraction(state.spin_projection, render_plus=True)
     return f"{particle}[{spin_projection}]"
 
 
-def _tuple_to_str(obj: tuple) -> str:
+@as_string.register(tuple)
+def _(obj: tuple) -> str:
     if len(obj) == 2:
         if isinstance(obj[0], Particle) and isinstance(obj[1], (float, int)):
             state = State(*obj)
@@ -390,29 +404,6 @@ def _tuple_to_str(obj: tuple) -> str:
             spin = Spin(*obj)
             return _spin_to_str(spin)
     logging.warning(f"No DOT render implemented for tuple of size {len(obj)}")
-    return str(obj)
-
-
-PROPERTY_TO_STR_CONVERTERS: Dict[Any, Callable[[Any], str]] = {
-    str: lambda _: _,
-    tuple: _tuple_to_str,
-    Particle: _particle_to_str,
-    Spin: _spin_to_str,
-    State: _state_to_str,
-    InteractionProperties: _interaction_properties_to_str,
-    (EdgeSettings, NodeSettings): _settings_to_str,
-}
-
-
-def _render_property(obj: Any) -> str:
-    if obj is None:
-        return ""
-    for typ, converter in PROPERTY_TO_STR_CONVERTERS.items():
-        if isinstance(obj, typ):
-            return converter(obj)
-        if isinstance(obj, abc.Iterable):
-            return "\n".join(map(_render_property, obj))
-    logging.warning(f"No DOT render implemented type {type(obj).__name__}")
     return str(obj)
 
 
