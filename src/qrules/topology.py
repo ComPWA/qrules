@@ -655,6 +655,20 @@ NodeType = TypeVar("NodeType")
 """A `~typing.TypeVar` representing the type of node properties."""
 
 
+@implement_pretty_repr()
+@frozen(order=True)
+class FrozenTransition(Generic[EdgeType, NodeType]):
+    """Defines a frozen mapping of edge and node properties on a `Topology`."""
+
+    topology: Topology = field(validator=instance_of(Topology))
+    edge_props: FrozenDict[int, NodeType] = field(converter=FrozenDict)
+    node_props: FrozenDict[int, EdgeType] = field(converter=FrozenDict)
+
+    def __attrs_post_init__(self) -> None:
+        _assert_all_defined(self.topology.nodes, self.node_props)
+        _assert_all_defined(self.topology.edges, self.edge_props)
+
+
 def _cast_edges(obj: Mapping[int, EdgeType]) -> Dict[int, EdgeType]:
     return dict(obj)
 
@@ -714,7 +728,6 @@ class MutableTransition(Generic[EdgeType, NodeType]):
             self.edge_props[edge_id1] = value2
 
 
-# pyright: reportUnusedFunction=false
 def _assert_all_defined(items: Iterable, properties: Iterable) -> None:
     existing = set(items)
     defined = set(properties)
