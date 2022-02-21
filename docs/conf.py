@@ -174,6 +174,7 @@ autodoc_default_options = {
         ]
     ),
 }
+autodoc_member_order = "bysource"
 codeautolink_concat_default = True
 AUTODOC_INSERT_SIGNATURE_LINEBREAKS = True
 graphviz_output_format = "svg"
