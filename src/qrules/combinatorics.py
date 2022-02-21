@@ -24,9 +24,6 @@ from typing import (
     Union,
 )
 
-from attrs import field, frozen
-
-from qrules._implementers import implement_pretty_repr
 from qrules.particle import Particle, ParticleCollection
 
 from .particle import ParticleWithSpin
@@ -35,13 +32,8 @@ from .topology import MutableTransition, Topology, get_originating_node_list
 
 StateWithSpins = Tuple[str, Sequence[float]]
 StateDefinition = Union[str, StateWithSpins]
-
-
-@implement_pretty_repr
-@frozen
-class InitialFacts:
-    states: Dict[int, ParticleWithSpin] = field(factory=dict)
-    interactions: Dict[int, InteractionProperties] = field(factory=dict)
+InitialFacts = MutableTransition[ParticleWithSpin, InteractionProperties]
+"""A `.Transition` with only initial and final state information."""
 
 
 class _KinematicRepresentation:
@@ -268,7 +260,7 @@ def create_initial_facts(  # pylint: disable=too-many-locals
             kinematic_permutation, particle_db
         )
         edge_initial_facts.extend(
-            [InitialFacts(states=x) for x in spin_permutations]
+            [InitialFacts(topology, states=x) for x in spin_permutations]
         )
     return edge_initial_facts
 

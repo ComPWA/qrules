@@ -2,10 +2,10 @@
 """Functions to solve a particle reaction problem.
 
 This module is responsible for solving a particle reaction problem stated by a
-`.MutableTransition` and corresponding `.GraphSettings`. The `.Solver` classes
-(e.g. :class:`.CSPSolver`) generate new quantum numbers (for example belonging
-to an intermediate state) and validate the decay processes with the rules
-formulated by the :mod:`.conservation_rules` module.
+`.QNProblemSet`. The `.Solver` classes (e.g. :class:`.CSPSolver`) generate new
+quantum numbers (for example belonging to an intermediate state) and validate
+the decay processes with the rules formulated by the :mod:`.conservation_rules`
+module.
 """
 
 
@@ -55,7 +55,7 @@ from .quantum_numbers import (
     EdgeQuantumNumbers,
     NodeQuantumNumber,
 )
-from .topology import Topology
+from .topology import MutableTransition, Topology
 
 
 @implement_pretty_repr
@@ -89,18 +89,10 @@ class NodeSettings:
     interaction_strength: float = 1.0
 
 
-@implement_pretty_repr
-@define
-class GraphSettings:
-    states: Dict[int, EdgeSettings] = field(factory=dict)
-    interactions: Dict[int, NodeSettings] = field(factory=dict)
-
-
-@implement_pretty_repr
-@define
-class GraphElementProperties:
-    states: Dict[int, GraphEdgePropertyMap] = field(factory=dict)
-    interactions: Dict[int, GraphNodePropertyMap] = field(factory=dict)
+GraphSettings = MutableTransition[EdgeSettings, NodeSettings]
+GraphElementProperties = MutableTransition[
+    GraphEdgePropertyMap, GraphNodePropertyMap
+]
 
 
 @implement_pretty_repr
@@ -109,25 +101,22 @@ class QNProblemSet:
     """Particle reaction problem set, defined as a graph like data structure.
 
     Args:
-      topology (`.Topology`): a topology that represent the structure of the
-        reaction
-      initial_facts (`.GraphElementProperties`): all of the known facts quantum
-        numbers of the problem
-      solving_settings (`.GraphSettings`): solving specific settings such as
-        the specific rules and variable domains for nodes and edges of the
-        topology
+      initial_facts: all of the known facts quantum numbers of the problem.
+      solving_settings: solving specific settings, such as the specific rules
+        and variable domains for nodes and edges of the :attr:`topology`.
     """
 
-    topology: Topology
     initial_facts: GraphElementProperties
     solving_settings: GraphSettings
 
+    @property
+    def topology(self) -> Topology:
+        return self.initial_facts.topology
 
-@implement_pretty_repr
-@frozen
-class QuantumNumberSolution:
-    states: Dict[int, GraphEdgePropertyMap]
-    interactions: Dict[int, GraphNodePropertyMap]
+
+QuantumNumberSolution = MutableTransition[
+    GraphEdgePropertyMap, GraphNodePropertyMap
+]
 
 
 def _convert_violated_rules_to_names(
@@ -358,10 +347,9 @@ def validate_full_solution(problem_set: QNProblemSet) -> QNResult:
     def _create_variable_containers(
         node_id: int, cons_law: Rule
     ) -> Tuple[List[dict], List[dict], dict]:
-        in_edges = problem_set.topology.get_edge_ids_ingoing_to_node(node_id)
-        out_edges = problem_set.topology.get_edge_ids_outgoing_from_node(
-            node_id
-        )
+        topology = problem_set.topology
+        in_edges = topology.get_edge_ids_ingoing_to_node(node_id)
+        out_edges = topology.get_edge_ids_outgoing_from_node(node_id)
 
         edge_qns, node_qns = get_required_qns(cons_law)
         in_edges_vars = _create_edge_variables(in_edges, edge_qns)
@@ -444,6 +432,7 @@ def validate_full_solution(problem_set: QNProblemSet) -> QNResult:
     return QNResult(
         [
             QuantumNumberSolution(
+                topology=problem_set.topology,
                 states=problem_set.initial_facts.states,
                 interactions=problem_set.initial_facts.interactions,
             )
@@ -534,7 +523,9 @@ class CSPSolver(Solver):
                 elif self.__scoresheet.rule_passes[(edge_id, rule)] == 0:
                     edge_not_satisfied_rules[edge_id].add(rule)
 
-        solutions = self.__convert_solution_keys(solutions)
+        solutions = self.__convert_solution_keys(
+            problem_set.topology, solutions
+        )
 
         # insert particle instances
         if self.__node_rules or self.__edge_rules:
@@ -548,6 +539,7 @@ class CSPSolver(Solver):
         else:
             full_particle_solutions = [
                 QuantumNumberSolution(
+                    topology=problem_set.topology,
                     interactions=problem_set.initial_facts.interactions,
                     states=problem_set.initial_facts.states,
                 )
@@ -558,6 +550,7 @@ class CSPSolver(Solver):
         ):
             # rerun solver on these graphs using not executed rules
             # and combine results
+            topology = problem_set.topology
             result = QNResult()
             for full_particle_solution in full_particle_solutions:
                 interactions = full_particle_solution.interactions
@@ -567,12 +560,11 @@ class CSPSolver(Solver):
                 result.extend(
                     validate_full_solution(
                         QNProblemSet(
-                            topology=problem_set.topology,
                             initial_facts=GraphElementProperties(
-                                interactions=interactions,
-                                states=states,
+                                topology, states, interactions
                             ),
                             solving_settings=GraphSettings(
+                                topology,
                                 interactions={
                                     i: NodeSettings(conservation_rules=rules)
                                     for i, rules in node_not_executed_rules.items()
@@ -822,8 +814,7 @@ class CSPSolver(Solver):
             self.__problem.addVariable(var_string, domain)
 
     def __convert_solution_keys(
-        self,
-        solutions: List[Dict[str, Scalar]],
+        self, topology: Topology, solutions: List[Dict[str, Scalar]]
     ) -> List[QuantumNumberSolution]:
         """Convert keys of CSP solutions from `str` to quantum number types."""
         converted_solutions = []
@@ -840,9 +831,8 @@ class CSPSolver(Solver):
                 else:
                     interactions[ele_id].update({qn_type: value})  # type: ignore[dict-item]
             converted_solutions.append(
-                QuantumNumberSolution(states, interactions)
+                QuantumNumberSolution(topology, states, interactions)
             )
-
         return converted_solutions
 
 

@@ -140,6 +140,7 @@ def check_reaction_violations(  # pylint: disable=too-many-arguments
             topology=topology,
             initial_facts=facts,
             solving_settings=GraphSettings(
+                facts.topology,
                 interactions={
                     i: NodeSettings(conservation_rules=rules)
                     for i, rules in node_rules.items()

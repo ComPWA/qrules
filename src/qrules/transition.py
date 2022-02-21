@@ -173,7 +173,7 @@ class ProblemSet:
 
     Args:
         topology: `.Topology` that contains the structure of the reaction.
-        initial_facts: `~.InitialFacts` that contain the info of initial and
+        initial_facts: `.InitialFacts` that contain the info of initial and
           final state in connection with the topology.
         solving_settings: Solving related settings such as the conservation
           rules and the quantum number domains.
@@ -193,9 +193,8 @@ class ProblemSet:
             for k, v in self.initial_facts.states.items()
         }
         return QNProblemSet(
-            topology=self.topology,
             initial_facts=GraphElementProperties(
-                interactions=interactions, states=states
+                self.topology, states, interactions
             ),
             solving_settings=self.solving_settings,
         )
@@ -464,11 +463,11 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
 
         graph_settings: List[GraphSettings] = [
             GraphSettings(
+                topology,
                 states={
                     edge_id: create_edge_settings(edge_id)
                     for edge_id in topology.edges
                 },
-                interactions={},
             )
         ]
 

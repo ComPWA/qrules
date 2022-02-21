@@ -21,10 +21,9 @@ from typing import (
 
 import attrs
 
-from qrules.combinatorics import InitialFacts
 from qrules.particle import Particle, ParticleWithSpin
 from qrules.quantum_numbers import InteractionProperties, _to_fraction
-from qrules.solving import EdgeSettings, GraphSettings, NodeSettings
+from qrules.solving import EdgeSettings, NodeSettings
 from qrules.topology import (
     FrozenTransition,
     MutableTransition,
@@ -215,14 +214,7 @@ def graph_to_dot(
 
 
 def __graph_to_dot_content(  # pylint: disable=too-many-branches,too-many-locals,too-many-statements
-    graph: Union[
-        ProblemSet,
-        StateTransition,
-        Topology,
-        Transition,
-        Tuple[Topology, GraphSettings],
-        Tuple[Topology, InitialFacts],
-    ],
+    graph: Union[ProblemSet, StateTransition, Topology, Transition],
     prefix: str = "",
     *,
     render_node: bool,
@@ -235,18 +227,8 @@ def __graph_to_dot_content(  # pylint: disable=too-many-branches,too-many-locals
     dot = ""
     if isinstance(graph, tuple) and len(graph) == 2:
         topology: Topology = graph[0]
-        rendered_graph: Union[
-            GraphSettings,
-            InitialFacts,
-            ProblemSet,
-            StateTransition,
-            Topology,
-            Transition,
-        ] = graph[1]
-    elif isinstance(graph, ProblemSet):
-        rendered_graph = graph
-        topology = graph.topology
-    elif isinstance(graph, (StateTransition, Transition)):
+        rendered_graph: Union[ProblemSet, Topology, Transition] = graph[1]
+    elif isinstance(graph, (ProblemSet, Transition)):
         rendered_graph = graph
         topology = graph.topology
     elif isinstance(graph, Topology):
@@ -338,23 +320,14 @@ def __rank_string(node_edge_ids: Iterable[int], prefix: str = "") -> str:
 
 
 def __get_edge_label(
-    graph: Union[
-        GraphSettings,
-        InitialFacts,
-        ProblemSet,
-        StateTransition,
-        Topology,
-        Transition,
-    ],
+    graph: Union[ProblemSet, Topology, Transition],
     edge_id: int,
     render_edge_id: bool,
 ) -> str:
-    if isinstance(graph, GraphSettings):
-        edge_setting = graph.states.get(edge_id)
-        return ___render_edge_with_id(edge_id, edge_setting, render_edge_id)
-    if isinstance(graph, InitialFacts):
-        initial_fact = graph.states.get(edge_id)
-        return ___render_edge_with_id(edge_id, initial_fact, render_edge_id)
+    if isinstance(graph, Topology):
+        if render_edge_id:
+            return str(edge_id)
+        return ""
     if isinstance(graph, ProblemSet):
         edge_setting = graph.solving_settings.states.get(edge_id)
         initial_fact = graph.initial_facts.states.get(edge_id)
@@ -364,18 +337,8 @@ def __get_edge_label(
         if initial_fact:
             edge_property = initial_fact
         return ___render_edge_with_id(edge_id, edge_property, render_edge_id)
-    if isinstance(graph, StateTransition):
-        graph = graph.to_graph()
-    if isinstance(graph, Transition):
-        edge_prop = graph.states[edge_id]
-        return ___render_edge_with_id(edge_id, edge_prop, render_edge_id)
-    if isinstance(graph, Topology):
-        if render_edge_id:
-            return str(edge_id)
-        return ""
-    raise NotImplementedError(
-        f"Cannot render {graph.__class__.__name__} as dot"
-    )
+    edge_prop = graph.states.get(edge_id)
+    return ___render_edge_with_id(edge_id, edge_prop, render_edge_id)
 
 
 def ___render_edge_with_id(
