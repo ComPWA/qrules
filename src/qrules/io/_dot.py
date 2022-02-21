@@ -279,7 +279,7 @@ def __graph_to_dot_content(  # pylint: disable=too-many-branches,too-many-locals
                 from_node, to_node, label=label, graphviz_attrs=edge_style
             )
     if isinstance(graph, ProblemSet):
-        node_settings = graph.solving_settings.node_settings
+        node_settings = graph.solving_settings.interactions
         for node_id, settings in node_settings.items():
             node_label = ""
             if render_node:
@@ -344,13 +344,13 @@ def __get_edge_label(
     render_edge_id: bool,
 ) -> str:
     if isinstance(graph, GraphSettings):
-        edge_setting = graph.edge_settings.get(edge_id)
+        edge_setting = graph.states.get(edge_id)
         return ___render_edge_with_id(edge_id, edge_setting, render_edge_id)
     if isinstance(graph, InitialFacts):
         initial_fact = graph.states.get(edge_id)
         return ___render_edge_with_id(edge_id, initial_fact, render_edge_id)
     if isinstance(graph, ProblemSet):
-        edge_setting = graph.solving_settings.edge_settings.get(edge_id)
+        edge_setting = graph.solving_settings.states.get(edge_id)
         initial_fact = graph.initial_facts.states.get(edge_id)
         edge_property: Optional[Union[EdgeSettings, ParticleWithSpin]] = None
         if edge_setting:

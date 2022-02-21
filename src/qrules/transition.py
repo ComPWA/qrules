@@ -217,7 +217,7 @@ def _group_by_strength(
     )
     for problem_set in problem_sets:
         strength = calculate_strength(
-            problem_set.solving_settings.node_settings
+            problem_set.solving_settings.interactions
         )
         strength_sorted_problem_sets[strength].append(problem_set)
     return strength_sorted_problem_sets
@@ -464,11 +464,11 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
 
         graph_settings: List[GraphSettings] = [
             GraphSettings(
-                edge_settings={
+                states={
                     edge_id: create_edge_settings(edge_id)
                     for edge_id in topology.edges
                 },
-                node_settings={},
+                interactions={},
             )
         ]
 
@@ -515,7 +515,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             for temp_setting in temp_graph_settings:
                 for int_type in interaction_types:
                     updated_setting = deepcopy(temp_setting)
-                    updated_setting.node_settings[node_id] = deepcopy(
+                    updated_setting.interactions[node_id] = deepcopy(
                         self.interaction_type_settings[int_type][1]
                     )
                     graph_settings.append(updated_setting)

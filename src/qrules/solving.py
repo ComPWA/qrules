@@ -92,8 +92,8 @@ class NodeSettings:
 @implement_pretty_repr
 @define
 class GraphSettings:
-    edge_settings: Dict[int, EdgeSettings] = field(factory=dict)
-    node_settings: Dict[int, NodeSettings] = field(factory=dict)
+    states: Dict[int, EdgeSettings] = field(factory=dict)
+    interactions: Dict[int, NodeSettings] = field(factory=dict)
 
 
 @implement_pretty_repr
@@ -380,7 +380,7 @@ def validate_full_solution(problem_set: QNProblemSet) -> QNResult:
     for (
         edge_id,
         edge_settings,
-    ) in problem_set.solving_settings.edge_settings.items():
+    ) in problem_set.solving_settings.states.items():
         edge_rules = edge_settings.conservation_rules
         for edge_rule in edge_rules:
             # get the needed qns for this conservation law
@@ -407,7 +407,7 @@ def validate_full_solution(problem_set: QNProblemSet) -> QNResult:
     for (
         node_id,
         node_settings,
-    ) in problem_set.solving_settings.node_settings.items():
+    ) in problem_set.solving_settings.interactions.items():
         node_rules = node_settings.conservation_rules
         for rule in node_rules:
             # get the needed qns for this conservation law
@@ -573,11 +573,11 @@ class CSPSolver(Solver):
                                 states=states,
                             ),
                             solving_settings=GraphSettings(
-                                node_settings={
+                                interactions={
                                     i: NodeSettings(conservation_rules=rules)
                                     for i, rules in node_not_executed_rules.items()
                                 },
-                                edge_settings={
+                                states={
                                     i: EdgeSettings(conservation_rules=rules)
                                     for i, rules in edge_not_executed_rules.items()
                                 },
@@ -639,7 +639,7 @@ class CSPSolver(Solver):
         arg_handler = RuleArgumentHandler()
 
         for edge_id in problem_set.topology.edges:
-            edge_settings = problem_set.solving_settings.edge_settings[edge_id]
+            edge_settings = problem_set.solving_settings.states[edge_id]
             for rule in get_rules_by_priority(edge_settings):
                 variable_mapping = _VariableContainer()
                 # from cons law and graph determine needed var lists
@@ -673,7 +673,7 @@ class CSPSolver(Solver):
 
         for node_id in problem_set.topology.nodes:
             for rule in get_rules_by_priority(
-                problem_set.solving_settings.node_settings[node_id]
+                problem_set.solving_settings.interactions[node_id]
             ):
                 variable_mapping = _VariableContainer()
                 # from cons law and graph determine needed var lists
@@ -761,7 +761,7 @@ class CSPSolver(Solver):
                 if qn_type in interactions:
                     variables[1].update({qn_type: interactions[qn_type]})
         else:
-            node_settings = problem_set.solving_settings.node_settings[node_id]
+            node_settings = problem_set.solving_settings.interactions[node_id]
             for qn_type in qn_list:
                 var_info = (node_id, qn_type)
                 if qn_type in node_settings.qn_domains:
@@ -801,9 +801,7 @@ class CSPSolver(Solver):
                             {qn_type: states[qn_type]}
                         )
             else:
-                edge_settings = problem_set.solving_settings.edge_settings[
-                    edge_id
-                ]
+                edge_settings = problem_set.solving_settings.states[edge_id]
                 for qn_type in qn_list:
                     var_info = (edge_id, qn_type)
                     if qn_type in edge_settings.qn_domains:
