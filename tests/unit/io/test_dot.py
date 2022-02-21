@@ -163,7 +163,11 @@ class TestWrite:
         output_file = output_dir + "two_body_decay_topology.gv"
         topology = Topology(
             nodes={0},
-            edges={0: Edge(0, None), 1: Edge(None, 0), 2: Edge(None, 0)},
+            edges={
+                -1: Edge(None, 0),
+                0: Edge(0, None),
+                1: Edge(0, None),
+            },
         )
         io.write(
             instance=topology,

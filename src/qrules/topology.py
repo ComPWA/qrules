@@ -195,31 +195,34 @@ class Topology:
 
     def __attrs_post_init__(self) -> None:
         self.__verify()
-        object.__setattr__(
-            self,
-            "incoming_edge_ids",
-            frozenset(
-                edge_id
-                for edge_id, edge in self.edges.items()
-                if edge.originating_node_id is None
-            ),
+        incoming = sorted(
+            edge_id
+            for edge_id, edge in self.edges.items()
+            if edge.originating_node_id is None
         )
-        object.__setattr__(
-            self,
-            "outgoing_edge_ids",
-            frozenset(
-                edge_id
-                for edge_id, edge in self.edges.items()
-                if edge.ending_node_id is None
-            ),
+        outgoing = sorted(
+            edge_id
+            for edge_id, edge in self.edges.items()
+            if edge.ending_node_id is None
         )
-        object.__setattr__(
-            self,
-            "intermediate_edge_ids",
-            frozenset(self.edges)
-            ^ self.incoming_edge_ids
-            ^ self.outgoing_edge_ids,
-        )
+        inter = sorted(set(self.edges) - set(incoming) - set(outgoing))
+        expected = list(range(-len(incoming), 0))
+        if sorted(incoming) != expected:
+            raise ValueError(
+                f"Incoming edge IDs should be {expected}, not {incoming}."
+            )
+        n_out = len(outgoing)
+        expected = list(range(0, n_out))
+        if sorted(outgoing) != expected:
+            raise ValueError(
+                f"Outgoing edge IDs should be {expected}, not {outgoing}."
+            )
+        expected = list(range(n_out, n_out + len(inter)))
+        if sorted(inter) != expected:
+            raise ValueError(f"Intermediate edge IDs should be {expected}.")
+        object.__setattr__(self, "incoming_edge_ids", frozenset(incoming))
+        object.__setattr__(self, "outgoing_edge_ids", frozenset(outgoing))
+        object.__setattr__(self, "intermediate_edge_ids", frozenset(inter))
 
     def __verify(self) -> None:
         """Verify if there are no dangling edges or nodes."""
@@ -314,29 +317,7 @@ class Topology:
             temp_edge_list = new_temp_edge_list
         return edge_ids
 
-    def organize_edge_ids(self) -> "Topology":
-        """Create a new topology with edge IDs in range :code:`[-m, n+i]`.
-
-        where :code:`m` is the number of `.incoming_edge_ids`, :code:`n` is the
-        number of `.outgoing_edge_ids`, and :code:`i` is the number of
-        `.intermediate_edge_ids`.
-
-        In other words, relabel the edges so that:
-
-        - `.incoming_edge_ids` lies in the range :code:`[-1, -2, ...]`
-        - `.outgoing_edge_ids` lies in the range :code:`[0, 1, ..., n]`
-        - `.intermediate_edge_ids` lies in the range :code:`[n+1, n+2, ...]`
-        """
-        new_to_old_id = enumerate(
-            tuple(self.incoming_edge_ids)
-            + tuple(self.outgoing_edge_ids)
-            + tuple(self.intermediate_edge_ids),
-            start=-len(self.incoming_edge_ids),
-        )
-        old_to_new_id = {j: i for i, j in new_to_old_id}
-        return self.relabel_edges(old_to_new_id)
-
-    def relabel_edges(self, old_to_new_id: Mapping[int, int]) -> "Topology":
+    def relabel_edges(self, old_to_new: Mapping[int, int]) -> "Topology":
         """Create a new `Topology` with new edge IDs.
 
         This method is particularly useful when creating permutations of a
@@ -354,8 +335,10 @@ class Topology:
         >>> len(permuted_topologies)
         3
         """
+        new_to_old = {j: i for i, j in old_to_new.items()}
         new_edges = {
-            old_to_new_id.get(i, i): edge for i, edge in self.edges.items()
+            old_to_new.get(i, new_to_old.get(i, i)): edge
+            for i, edge in self.edges.items()
         }
         return attrs.evolve(self, edges=new_edges)
 
@@ -404,12 +387,6 @@ class MutableTopology:
             key_validator=instance_of(int), value_validator=instance_of(Edge)
         ),
     )
-
-    def freeze(self) -> Topology:
-        return Topology(
-            edges=self.edges,
-            nodes=self.nodes,
-        )
 
     def add_node(self, node_id: int) -> None:
         """Adds a node nr. node_id.
@@ -482,6 +459,43 @@ class MutableTopology:
                 originating_node_id=node_id,
             )
 
+    def organize_edge_ids(self) -> "MutableTopology":
+        """Organize edge IDS so that they lie in range :code:`[-m, n+i]`.
+
+        Here, :code:`m` is the number of `.incoming_edge_ids`, :code:`n` is the
+        number of `.outgoing_edge_ids`, and :code:`i` is the number of
+        `.intermediate_edge_ids`.
+
+        In other words, relabel the edges so that:
+
+        - incoming edge IDs lie in the range :code:`[-1, -2, ...]`,
+        - outgoing edge IDs lie in the range :code:`[0, 1, ..., n]`,
+        - intermediate edge IDs lie in the range :code:`[n+1, n+2, ...]`.
+        """
+        incoming = {
+            i
+            for i, edge in self.edges.items()
+            if edge.originating_node_id is None
+        }
+        outgoing = {
+            edge_id
+            for edge_id, edge in self.edges.items()
+            if edge.ending_node_id is None
+        }
+        intermediate = set(self.edges) - incoming - outgoing
+        new_to_old_id = enumerate(
+            list(incoming) + list(outgoing) + list(intermediate),
+            start=-len(incoming),
+        )
+        old_to_new_id = {j: i for i, j in new_to_old_id}
+        new_edges = {
+            old_to_new_id.get(i, i): edge for i, edge in self.edges.items()
+        }
+        return attrs.evolve(self, edges=new_edges)
+
+    def freeze(self) -> Topology:
+        return Topology(self.nodes, self.edges)
+
 
 @define
 class InteractionNode:
@@ -546,7 +560,6 @@ class SimpleStateTransitionTopologyBuilder:
                     len(active_graph[1]) == number_of_final_edges
                     and len(active_graph[0].nodes) > 0
                 ):
-                    active_graph[0].freeze()  # verify
                     graph_tuple_list.append(active_graph)
                     continue
 
@@ -556,9 +569,9 @@ class SimpleStateTransitionTopologyBuilder:
         # strip the current open end edges list from the result graph tuples
         topologies = []
         for graph_tuple in graph_tuple_list:
-            topology = graph_tuple[0].freeze()
+            topology = graph_tuple[0]
             topology = topology.organize_edge_ids()
-            topologies.append(topology)
+            topologies.append(topology.freeze())
         return tuple(topologies)
 
     def _extend_graph(

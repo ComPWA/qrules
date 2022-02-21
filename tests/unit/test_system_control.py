@@ -210,7 +210,7 @@ def make_ls_test_graph(
 ):
     topology = Topology(
         nodes={0},
-        edges={0: Edge(None, 0)},
+        edges={-1: Edge(None, 0)},
     )
     interactions = {
         0: InteractionProperties(
@@ -218,7 +218,7 @@ def make_ls_test_graph(
             l_magnitude=angular_momentum_magnitude,
         )
     }
-    states: Dict[int, ParticleWithSpin] = {0: (particle, 0)}
+    states: Dict[int, ParticleWithSpin] = {-1: (particle, 0)}
     graph = MutableTransition(topology, states, interactions)
     return graph
 
@@ -228,7 +228,7 @@ def make_ls_test_graph_scrambled(
 ):
     topology = Topology(
         nodes={0},
-        edges={0: Edge(None, 0)},
+        edges={-1: Edge(None, 0)},
     )
     interactions = {
         0: InteractionProperties(
@@ -236,7 +236,7 @@ def make_ls_test_graph_scrambled(
             s_magnitude=coupled_spin_magnitude,
         )
     }
-    states: Dict[int, ParticleWithSpin] = {0: (particle, 0)}
+    states: Dict[int, ParticleWithSpin] = {-1: (particle, 0)}
     graph = MutableTransition(topology, states, interactions)
     return graph
 
@@ -326,7 +326,7 @@ class TestSolutionFilter:  # pylint: disable=no-self-use
             tempgraph = attrs.evolve(
                 tempgraph,
                 states={
-                    0: (
+                    -1: (
                         Particle(name=value[0], pid=0, mass=1.0, spin=1.0),
                         0.0,
                     )
