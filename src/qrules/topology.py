@@ -39,7 +39,7 @@ from typing import (
 
 import attrs
 from attrs import define, field, frozen
-from attrs.validators import instance_of
+from attrs.validators import deep_iterable, deep_mapping, instance_of
 
 from qrules._implementers import implement_pretty_repr
 
@@ -158,10 +158,12 @@ class Edge:
         return connected_nodes  # type: ignore[return-value]
 
 
-def _to_frozenset(iterable: Iterable[int]) -> FrozenSet[int]:
-    if not all(map(lambda i: isinstance(i, int), iterable)):
-        raise TypeError(f"Not all items in {iterable} are of type int")
-    return frozenset(iterable)
+def _to_topology_nodes(inst: Iterable[int]) -> FrozenSet[int]:
+    return frozenset(inst)
+
+
+def _to_topology_edges(inst: Mapping[int, Edge]) -> FrozenDict[int, Edge]:
+    return FrozenDict(inst)
 
 
 @implement_pretty_repr
@@ -176,8 +178,16 @@ class Topology:
     like a Feynman-diagram.
     """
 
-    nodes: FrozenSet[int] = field(converter=_to_frozenset)
-    edges: FrozenDict[int, Edge] = field(converter=FrozenDict)
+    nodes: FrozenSet[int] = field(
+        converter=_to_topology_nodes,
+        validator=deep_iterable(member_validator=instance_of(int)),
+    )
+    edges: FrozenDict[int, Edge] = field(
+        converter=_to_topology_edges,
+        validator=deep_mapping(
+            key_validator=instance_of(int), value_validator=instance_of(Edge)
+        ),
+    )
 
     incoming_edge_ids: FrozenSet[int] = field(init=False, repr=False)
     outgoing_edge_ids: FrozenSet[int] = field(init=False, repr=False)

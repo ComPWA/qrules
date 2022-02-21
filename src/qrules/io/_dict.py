@@ -126,10 +126,7 @@ def build_topology(definition: dict) -> Topology:
     nodes = definition["nodes"]
     edges_def: Dict[int, dict] = definition["edges"]
     edges = {int(i): Edge(**edge_def) for i, edge_def in edges_def.items()}
-    return Topology(
-        edges=edges,
-        nodes=nodes,
-    )
+    return Topology(nodes, edges)
 
 
 def validate_particle_collection(instance: dict) -> None:

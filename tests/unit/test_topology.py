@@ -177,7 +177,7 @@ class TestTopology:
         ],
     )
     def test_constructor(self, nodes, edges):
-        topology = Topology(nodes=nodes, edges=edges)
+        topology = Topology(nodes, edges)
         if nodes is None:
             nodes = set()
         if edges is None:
@@ -202,7 +202,7 @@ class TestTopology:
                 r"(not connected to any other node|has non-existing node IDs)"
             ),
         ):
-            assert Topology(nodes=nodes, edges=edges)
+            assert Topology(nodes, edges)
 
     @pytest.mark.parametrize("repr_method", [repr, pretty])
     def test_repr_and_eq(self, repr_method, two_to_three_decay: Topology):
