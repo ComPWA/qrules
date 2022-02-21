@@ -17,12 +17,12 @@ from .quantum_numbers import (
 )
 from .settings import InteractionType
 from .solving import GraphEdgePropertyMap, GraphNodePropertyMap, GraphSettings
-from .topology import StateTransitionGraph
+from .topology import MutableTransition
 
 Strength = float
 
 GraphSettingsGroups = Dict[
-    Strength, List[Tuple[StateTransitionGraph, GraphSettings]]
+    Strength, List[Tuple[MutableTransition, GraphSettings]]
 ]
 
 
@@ -59,7 +59,7 @@ def create_edge_properties(
 
 
 def create_node_properties(
-    node_props: InteractionProperties,
+    interactions: InteractionProperties,
 ) -> GraphNodePropertyMap:
     node_qn_mapping: Dict[str, Type[NodeQuantumNumber]] = {
         qn_name: qn_type
@@ -67,7 +67,7 @@ def create_node_properties(
         if not qn_name.startswith("__")
     }  # Note using attrs.fields does not work here because init=False
     property_map: GraphNodePropertyMap = {}
-    for qn_name, value in attrs.asdict(node_props).items():
+    for qn_name, value in attrs.asdict(interactions).items():
         if value is None:
             continue
         if qn_name in node_qn_mapping:
@@ -82,7 +82,7 @@ def create_node_properties(
 
 
 def create_particle(
-    edge_props: GraphEdgePropertyMap, particle_db: ParticleCollection
+    states: GraphEdgePropertyMap, particle_db: ParticleCollection
 ) -> ParticleWithSpin:
     """Create a Particle with spin projection from a qn dictionary.
 
@@ -90,7 +90,7 @@ def create_particle(
     particle inside the `.ParticleCollection`.
 
     Args:
-        edge_props: The quantum number dictionary.
+        states: The quantum number dictionary.
         particle_db: A `.ParticleCollection` which is used to retrieve a
           reference `.particle` to lower the memory footprint.
 
@@ -100,13 +100,13 @@ def create_particle(
 
         ValueError: If the edge properties do not contain spin projection info.
     """
-    particle = particle_db.find(int(edge_props[EdgeQuantumNumbers.pid]))
-    if EdgeQuantumNumbers.spin_projection not in edge_props:
+    particle = particle_db.find(int(states[EdgeQuantumNumbers.pid]))
+    if EdgeQuantumNumbers.spin_projection not in states:
         raise ValueError(
             f"{GraphEdgePropertyMap.__name__} does not contain a spin"
             " projection"
         )
-    spin_projection = edge_props[EdgeQuantumNumbers.spin_projection]
+    spin_projection = states[EdgeQuantumNumbers.spin_projection]
 
     return (particle, spin_projection)
 
@@ -150,9 +150,9 @@ class InteractionDeterminator(ABC):
     @abstractmethod
     def check(
         self,
-        in_edge_props: List[ParticleWithSpin],
-        out_edge_props: List[ParticleWithSpin],
-        node_props: InteractionProperties,
+        in_states: List[ParticleWithSpin],
+        out_states: List[ParticleWithSpin],
+        interactions: InteractionProperties,
     ) -> List[InteractionType]:
         pass
 
@@ -162,12 +162,12 @@ class GammaCheck(InteractionDeterminator):
 
     def check(
         self,
-        in_edge_props: List[ParticleWithSpin],
-        out_edge_props: List[ParticleWithSpin],
-        node_props: InteractionProperties,
+        in_states: List[ParticleWithSpin],
+        out_states: List[ParticleWithSpin],
+        interactions: InteractionProperties,
     ) -> List[InteractionType]:
         int_types = list(InteractionType)
-        for particle, _ in in_edge_props + out_edge_props:
+        for particle, _ in in_states + out_states:
             if "gamma" in particle.name:
                 int_types = [InteractionType.EM]
                 break
@@ -179,12 +179,12 @@ class LeptonCheck(InteractionDeterminator):
 
     def check(
         self,
-        in_edge_props: List[ParticleWithSpin],
-        out_edge_props: List[ParticleWithSpin],
-        node_props: InteractionProperties,
+        in_states: List[ParticleWithSpin],
+        out_states: List[ParticleWithSpin],
+        interactions: InteractionProperties,
     ) -> List[InteractionType]:
         node_interaction_types = list(InteractionType)
-        for particle, _ in in_edge_props + out_edge_props:
+        for particle, _ in in_states + out_states:
             if particle.is_lepton():
                 if particle.name.startswith("nu("):
                     node_interaction_types = [InteractionType.WEAK]
@@ -197,10 +197,12 @@ class LeptonCheck(InteractionDeterminator):
 
 
 def remove_duplicate_solutions(
-    solutions: List[StateTransitionGraph[ParticleWithSpin]],
+    solutions: List[
+        "MutableTransition[ParticleWithSpin, InteractionProperties]"
+    ],
     remove_qns_list: Optional[Set[Type[NodeQuantumNumber]]] = None,
     ignore_qns_list: Optional[Set[Type[NodeQuantumNumber]]] = None,
-) -> List[StateTransitionGraph[ParticleWithSpin]]:
+) -> "List[MutableTransition[ParticleWithSpin, InteractionProperties]]":
     if remove_qns_list is None:
         remove_qns_list = set()
     if ignore_qns_list is None:
@@ -209,7 +211,9 @@ def remove_duplicate_solutions(
     logging.info(f"removing these qns from graphs: {remove_qns_list}")
     logging.info(f"ignoring qns in graph comparison: {ignore_qns_list}")
 
-    filtered_solutions: List[StateTransitionGraph[ParticleWithSpin]] = []
+    filtered_solutions: List[
+        MutableTransition[ParticleWithSpin, InteractionProperties]
+    ] = []
     remove_counter = 0
     for sol_graph in solutions:
         sol_graph = _remove_qns_from_graph(sol_graph, remove_qns_list)
@@ -228,37 +232,35 @@ def remove_duplicate_solutions(
 
 
 def _remove_qns_from_graph(  # pylint: disable=too-many-branches
-    graph: StateTransitionGraph[ParticleWithSpin],
+    graph: "MutableTransition[ParticleWithSpin, InteractionProperties]",
     qn_list: Set[Type[NodeQuantumNumber]],
-) -> StateTransitionGraph[ParticleWithSpin]:
-    new_node_props = {}
+) -> "MutableTransition[ParticleWithSpin, InteractionProperties]":
+    new_interactions = {}
     for node_id in graph.topology.nodes:
-        node_props = graph.get_node_props(node_id)
-        new_node_props[node_id] = attrs.evolve(
-            node_props, **{x.__name__: None for x in qn_list}
+        interactions = graph.interactions[node_id]
+        new_interactions[node_id] = attrs.evolve(
+            interactions, **{x.__name__: None for x in qn_list}
         )
 
-    return graph.evolve(node_props=new_node_props)
+    return attrs.evolve(graph, interactions=new_interactions)
 
 
 def _check_equal_ignoring_qns(
-    ref_graph: StateTransitionGraph,
-    solutions: List[StateTransitionGraph],
+    ref_graph: MutableTransition,
+    solutions: List[MutableTransition],
     ignored_qn_list: Set[Type[NodeQuantumNumber]],
-) -> Optional[StateTransitionGraph]:
+) -> Optional[MutableTransition]:
     """Define equal operator for graphs, ignoring certain quantum numbers."""
-    if not isinstance(ref_graph, StateTransitionGraph):
-        raise TypeError(
-            "Reference graph has to be of type StateTransitionGraph"
-        )
+    if not isinstance(ref_graph, MutableTransition):
+        raise TypeError("Reference graph has to be of type MutableTransition")
     found_graph = None
-    node_comparator = NodePropertyComparator(ignored_qn_list)
+    interaction_comparator = NodePropertyComparator(ignored_qn_list)
     for graph in solutions:
-        if isinstance(graph, StateTransitionGraph):
+        if isinstance(graph, MutableTransition):
             if graph.compare(
                 ref_graph,
-                edge_comparator=lambda e1, e2: e1 == e2,
-                node_comparator=node_comparator,
+                state_comparator=lambda e1, e2: e1 == e2,
+                interaction_comparator=interaction_comparator,
             ):
                 found_graph = graph
                 break
@@ -276,26 +278,26 @@ class NodePropertyComparator:
 
     def __call__(
         self,
-        node_props1: InteractionProperties,
-        node_props2: InteractionProperties,
+        interactions1: InteractionProperties,
+        interactions2: InteractionProperties,
     ) -> bool:
         return attrs.evolve(
-            node_props1,
+            interactions1,
             **{x.__name__: None for x in self.__ignored_qn_list},
         ) == attrs.evolve(
-            node_props2,
+            interactions2,
             **{x.__name__: None for x in self.__ignored_qn_list},
         )
 
 
 def filter_graphs(
-    graphs: List[StateTransitionGraph],
-    filters: Iterable[Callable[[StateTransitionGraph], bool]],
-) -> List[StateTransitionGraph]:
-    r"""Implement filtering of a list of `.StateTransitionGraph` 's.
+    graphs: List[MutableTransition],
+    filters: Iterable[Callable[[MutableTransition], bool]],
+) -> List[MutableTransition]:
+    r"""Implement filtering of a list of `.MutableTransition` 's.
 
     This function can be used to select a subset of
-    `.StateTransitionGraph` 's from a list. Only the graphs passing
+    `.MutableTransition` 's from a list. Only the graphs passing
     all supplied filters will be returned.
 
     Note:
@@ -326,7 +328,7 @@ def require_interaction_property(
     ingoing_particle_name: str,
     interaction_qn: Type[NodeQuantumNumber],
     allowed_values: List,
-) -> Callable[[StateTransitionGraph[ParticleWithSpin]], bool]:
+) -> "Callable[[MutableTransition[ParticleWithSpin, InteractionProperties]], bool]":
     """Filter function.
 
     Closure, which can be used as a filter function in :func:`.filter_graphs`.
@@ -351,7 +353,9 @@ def require_interaction_property(
             - *False* otherwise
     """
 
-    def check(graph: StateTransitionGraph[ParticleWithSpin]) -> bool:
+    def check(
+        graph: "MutableTransition[ParticleWithSpin, InteractionProperties]",
+    ) -> bool:
         node_ids = _find_node_ids_with_ingoing_particle_name(
             graph, ingoing_particle_name
         )
@@ -359,7 +363,7 @@ def require_interaction_property(
             return False
         for i in node_ids:
             if (
-                getattr(graph.get_node_props(i), interaction_qn.__name__)
+                getattr(graph.interactions[i], interaction_qn.__name__)
                 not in allowed_values
             ):
                 return False
@@ -369,14 +373,15 @@ def require_interaction_property(
 
 
 def _find_node_ids_with_ingoing_particle_name(
-    graph: StateTransitionGraph[ParticleWithSpin], ingoing_particle_name: str
+    graph: "MutableTransition[ParticleWithSpin, InteractionProperties]",
+    ingoing_particle_name: str,
 ) -> List[int]:
     topology = graph.topology
     found_node_ids = []
     for node_id in topology.nodes:
         for edge_id in topology.get_edge_ids_ingoing_to_node(node_id):
-            edge_props = graph.get_edge_props(edge_id)
-            edge_particle_name = edge_props[0].name
+            states = graph.states[edge_id]
+            edge_particle_name = states[0].name
             if str(ingoing_particle_name) in str(edge_particle_name):
                 found_node_ids.append(node_id)
                 break

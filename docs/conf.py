@@ -73,9 +73,12 @@ if os.path.exists(LOGO_PATH):
 
 # -- Generate API ------------------------------------------------------------
 sys.path.insert(0, os.path.abspath("."))
+from _extend_docstrings import extend_docstrings  # noqa: E402
 from _relink_references import relink_references  # noqa: E402
 
+extend_docstrings()
 relink_references()
+
 shutil.rmtree("api", ignore_errors=True)
 subprocess.call(
     " ".join(
@@ -164,17 +167,29 @@ exclude_patterns = [
 # General sphinx settings
 add_module_names = False
 autodoc_default_options = {
+    "exclude-members": ", ".join(
+        [
+            "items",
+            "keys",
+            "values",
+        ]
+    ),
     "members": True,
     "undoc-members": True,
     "show-inheritance": True,
     "special-members": ", ".join(
         [
             "__call__",
-            "__getitem__",
         ]
     ),
 }
 autodoc_member_order = "bysource"
+autodoc_type_aliases = {
+    "GraphElementProperties": "qrules.solving.GraphElementProperties",
+    "GraphSettings": "qrules.solving.GraphSettings",
+    "InitialFacts": "qrules.combinatorics.InitialFacts",
+    "StateTransition": "qrules.transition.StateTransition",
+}
 autodoc_typehints_format = "short"
 codeautolink_concat_default = True
 AUTODOC_INSERT_SIGNATURE_LINEBREAKS = True
@@ -220,15 +235,14 @@ viewcode_follow_imported_members = True
 default_role = "py:obj"
 primary_domain = "py"
 nitpicky = True  # warn if cross-references are missing
-nitpick_ignore = [
-    ("py:class", "EdgeType"),
-    ("py:class", "NoneType"),
-    ("py:class", "StateTransitionGraph"),
-    ("py:class", "ValueType"),
-    ("py:class", "json.encoder.JSONEncoder"),
-    ("py:class", "typing_extensions.Protocol"),
-    ("py:obj", "qrules.topology._K"),
-    ("py:obj", "qrules.topology._V"),
+nitpick_ignore_regex = [
+    (r"py:(class|obj)", "json.encoder.JSONEncoder"),
+    (r"py:(class|obj)", r"(qrules\.topology\.)?EdgeType"),
+    (r"py:(class|obj)", r"(qrules\.topology\.)?KT"),
+    (r"py:(class|obj)", r"(qrules\.topology\.)?NewEdgeType"),
+    (r"py:(class|obj)", r"(qrules\.topology\.)?NewNodeType"),
+    (r"py:(class|obj)", r"(qrules\.topology\.)?NodeType"),
+    (r"py:(class|obj)", r"(qrules\.topology\.)?VT"),
 ]
 
 

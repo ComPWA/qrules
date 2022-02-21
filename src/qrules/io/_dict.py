@@ -8,16 +8,10 @@ from typing import Any, Dict
 
 import attrs
 
-from qrules.particle import (
-    Parity,
-    Particle,
-    ParticleCollection,
-    ParticleWithSpin,
-    Spin,
-)
+from qrules.particle import Parity, Particle, ParticleCollection, Spin
 from qrules.quantum_numbers import InteractionProperties
-from qrules.topology import Edge, StateTransitionGraph, Topology
-from qrules.transition import ReactionInfo, State, StateTransition
+from qrules.topology import Edge, FrozenTransition, Topology, Transition
+from qrules.transition import ReactionInfo, State
 
 
 def from_particle_collection(particles: ParticleCollection) -> dict:
@@ -33,28 +27,13 @@ def from_particle(particle: Particle) -> dict:
     )
 
 
-def from_stg(graph: StateTransitionGraph[ParticleWithSpin]) -> dict:
-    topology = graph.topology
-    edge_props_def = {}
-    for i in topology.edges:
-        particle, spin_projection = graph.get_edge_props(i)
-        if isinstance(spin_projection, float) and spin_projection.is_integer():
-            spin_projection = int(spin_projection)
-        edge_props_def[i] = {
-            "particle": from_particle(particle),
-            "spin_projection": spin_projection,
-        }
-    node_props_def = {}
-    for i in topology.nodes:
-        node_prop = graph.get_node_props(i)
-        node_props_def[i] = attrs.asdict(
-            node_prop, filter=lambda a, v: a.init and a.default != v
-        )
-    return {
-        "topology": from_topology(topology),
-        "edge_props": edge_props_def,
-        "node_props": node_props_def,
-    }
+def from_transition(graph: Transition) -> dict:
+    return attrs.asdict(
+        graph,
+        recurse=True,
+        value_serializer=_value_serializer,
+        filter=lambda attribute, value: attribute.default != value,
+    )
 
 
 def from_topology(topology: Topology) -> dict:
@@ -73,10 +52,9 @@ def _value_serializer(  # pylint: disable=unused-argument
         if all(map(lambda p: isinstance(p, Particle), value.values())):
             return {k: v.name for k, v in value.items()}
         return dict(value)
-    if not isinstance(
-        inst, (ReactionInfo, State, StateTransition)
-    ) and isinstance(value, Particle):
-        return value.name
+    if not isinstance(inst, (ReactionInfo, State, FrozenTransition)):
+        if isinstance(value, Particle):
+            return value.name
     if isinstance(value, Parity):
         return {"value": value.value}
     if isinstance(value, Spin):
@@ -110,62 +88,45 @@ def build_particle(definition: dict) -> Particle:
 
 def build_reaction_info(definition: dict) -> ReactionInfo:
     transitions = [
-        build_state_transition(transition_def)
+        build_transition(transition_def)
         for transition_def in definition["transitions"]
     ]
     return ReactionInfo(transitions, formalism=definition["formalism"])
 
 
-def build_stg(definition: dict) -> StateTransitionGraph[ParticleWithSpin]:
+def build_transition(
+    definition: dict,
+) -> "FrozenTransition[State, InteractionProperties]":
     topology = build_topology(definition["topology"])
-    edge_props_def: Dict[int, dict] = definition["edge_props"]
-    edge_props: Dict[int, ParticleWithSpin] = {}
-    for i, edge_def in edge_props_def.items():
-        particle = build_particle(edge_def["particle"])
-        spin_projection = float(edge_def["spin_projection"])
-        if spin_projection.is_integer():
-            spin_projection = int(spin_projection)
-        edge_props[int(i)] = (particle, spin_projection)
-    node_props_def: Dict[int, dict] = definition["node_props"]
-    node_props = {
-        int(i): InteractionProperties(**node_def)
-        for i, node_def in node_props_def.items()
-    }
-    return StateTransitionGraph(
-        topology=topology,
-        edge_props=edge_props,
-        node_props=node_props,
-    )
-
-
-def build_state_transition(definition: dict) -> StateTransition:
-    topology = build_topology(definition["topology"])
-    states = {
-        int(i): State(
-            particle=build_particle(state_def["particle"]),
-            spin_projection=float(state_def["spin_projection"]),
-        )
-        for i, state_def in definition["states"].items()
-    }
+    states_def: Dict[int, dict] = definition["states"]
+    states: Dict[int, State] = {}
+    for i, edge_def in states_def.items():
+        states[int(i)] = build_state(edge_def)
+    interactions_def: Dict[int, dict] = definition["interactions"]
     interactions = {
-        int(i): InteractionProperties(**interaction_def)
-        for i, interaction_def in definition["interactions"].items()
+        int(i): InteractionProperties(**node_def)
+        for i, node_def in interactions_def.items()
     }
-    return StateTransition(
-        topology=topology,
-        states=states,
-        interactions=interactions,
-    )
+    return FrozenTransition(topology, states, interactions)
+
+
+def build_state(definition: Any) -> State:
+    if isinstance(definition, (list, tuple)) and len(definition) == 2:
+        particle = build_particle(definition[0])
+        spin_projection = float(definition[1])
+        return State(particle, spin_projection)
+    if isinstance(definition, dict):
+        particle = build_particle(definition["particle"])
+        spin_projection = float(definition["spin_projection"])
+        return State(particle, spin_projection)
+    raise NotImplementedError()
 
 
 def build_topology(definition: dict) -> Topology:
     nodes = definition["nodes"]
     edges_def: Dict[int, dict] = definition["edges"]
     edges = {int(i): Edge(**edge_def) for i, edge_def in edges_def.items()}
-    return Topology(
-        edges=edges,
-        nodes=nodes,
-    )
+    return Topology(nodes, edges)
 
 
 def validate_particle_collection(instance: dict) -> None:

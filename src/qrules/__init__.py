@@ -7,9 +7,9 @@ for a particle reaction problem are for example the initial state, final state,
 and allowed interactions.
 
 The core of `qrules` computes which transitions (represented by a
-`.StateTransitionGraph`) are allowed between a certain initial and final state.
+`.MutableTransition`) are allowed between a certain initial and final state.
 Internally, the system propagates the quantum numbers defined by the
-`particle` module through the `.StateTransitionGraph`, while
+`particle` module through the `.MutableTransition`, while
 satisfying the rules define by the :mod:`.conservation_rules` module. See
 :doc:`/usage/reaction` and :doc:`/usage/particle`.
 
@@ -62,14 +62,8 @@ from .settings import (
     _halves_domain,
     _int_domain,
 )
-from .solving import (
-    GraphSettings,
-    NodeSettings,
-    QNResult,
-    Rule,
-    validate_full_solution,
-)
-from .topology import create_n_body_topology
+from .solving import NodeSettings, QNResult, Rule, validate_full_solution
+from .topology import MutableTransition, create_n_body_topology
 from .transition import (
     EdgeSettings,
     ProblemSet,
@@ -132,19 +126,20 @@ def check_reaction_violations(  # pylint: disable=too-many-arguments
         particle_db = load_pdg()
 
     def _check_violations(
-        facts: InitialFacts,
+        facts: "InitialFacts",
         node_rules: Dict[int, Set[Rule]],
         edge_rules: Dict[int, Set[GraphElementRule]],
     ) -> QNResult:
         problem_set = ProblemSet(
             topology=topology,
             initial_facts=facts,
-            solving_settings=GraphSettings(
-                node_settings={
+            solving_settings=MutableTransition(
+                facts.topology,
+                interactions={
                     i: NodeSettings(conservation_rules=rules)
                     for i, rules in node_rules.items()
                 },
-                edge_settings={
+                states={
                     i: EdgeSettings(conservation_rules=rules)
                     for i, rules in edge_rules.items()
                 },
@@ -239,7 +234,7 @@ def check_reaction_violations(  # pylint: disable=too-many-arguments
         for facts_combination in initial_facts:
             new_facts = attrs.evolve(
                 facts_combination,
-                node_props={node_id: ls_combi},
+                interactions={node_id: ls_combi},
             )
             initial_facts_list.append(new_facts)
 

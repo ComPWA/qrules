@@ -1,7 +1,8 @@
 # pylint: disable=protected-access
 from copy import deepcopy
-from typing import List
+from typing import Dict, List
 
+import attrs
 import pytest
 
 from qrules import InteractionType, ProblemSet, StateTransitionManager
@@ -23,7 +24,7 @@ from qrules.quantum_numbers import (
     InteractionProperties,
     NodeQuantumNumbers,
 )
-from qrules.topology import Edge, StateTransitionGraph, Topology
+from qrules.topology import Edge, MutableTransition, Topology
 
 
 @pytest.mark.parametrize(
@@ -207,38 +208,36 @@ def test_create_edge_properties(
 def make_ls_test_graph(
     angular_momentum_magnitude, coupled_spin_magnitude, particle
 ):
-    graph = StateTransitionGraph[ParticleWithSpin](
-        topology=Topology(
-            nodes={0},
-            edges={0: Edge(None, 0)},
-        ),
-        node_props={
-            0: InteractionProperties(
-                s_magnitude=coupled_spin_magnitude,
-                l_magnitude=angular_momentum_magnitude,
-            )
-        },
-        edge_props={0: (particle, 0)},
+    topology = Topology(
+        nodes={0},
+        edges={-1: Edge(None, 0)},
     )
+    interactions = {
+        0: InteractionProperties(
+            s_magnitude=coupled_spin_magnitude,
+            l_magnitude=angular_momentum_magnitude,
+        )
+    }
+    states: Dict[int, ParticleWithSpin] = {-1: (particle, 0)}
+    graph = MutableTransition(topology, states, interactions)
     return graph
 
 
 def make_ls_test_graph_scrambled(
     angular_momentum_magnitude, coupled_spin_magnitude, particle
 ):
-    graph = StateTransitionGraph[ParticleWithSpin](
-        topology=Topology(
-            nodes={0},
-            edges={0: Edge(None, 0)},
-        ),
-        node_props={
-            0: InteractionProperties(
-                l_magnitude=angular_momentum_magnitude,
-                s_magnitude=coupled_spin_magnitude,
-            )
-        },
-        edge_props={0: (particle, 0)},
+    topology = Topology(
+        nodes={0},
+        edges={-1: Edge(None, 0)},
     )
+    interactions = {
+        0: InteractionProperties(
+            l_magnitude=angular_momentum_magnitude,
+            s_magnitude=coupled_spin_magnitude,
+        )
+    }
+    states: Dict[int, ParticleWithSpin] = {-1: (particle, 0)}
+    graph = MutableTransition(topology, states, interactions)
     return graph
 
 
@@ -324,13 +323,14 @@ class TestSolutionFilter:  # pylint: disable=no-self-use
 
         for value in input_values:
             tempgraph = make_ls_test_graph(value[1][0], value[1][1], pi0)
-            tempgraph = tempgraph.evolve(
-                edge_props={
-                    0: (
+            tempgraph = attrs.evolve(
+                tempgraph,
+                states={
+                    -1: (
                         Particle(name=value[0], pid=0, mass=1.0, spin=1.0),
                         0.0,
                     )
-                }
+                },
             )
             graphs.append(tempgraph)
 
@@ -341,11 +341,11 @@ class TestSolutionFilter:  # pylint: disable=no-self-use
 
 def _create_graph(
     problem_set: ProblemSet,
-) -> StateTransitionGraph[ParticleWithSpin]:
-    return StateTransitionGraph[ParticleWithSpin](
+) -> "MutableTransition[ParticleWithSpin, InteractionProperties]":
+    return MutableTransition(
         topology=problem_set.topology,
-        node_props=problem_set.initial_facts.node_props,
-        edge_props=problem_set.initial_facts.edge_props,
+        interactions=problem_set.initial_facts.interactions,
+        states=problem_set.initial_facts.states,
     )
 
 
@@ -369,7 +369,9 @@ def test_edge_swap(particle_database, initial_state, final_state):
     stm.set_allowed_interaction_types([InteractionType.STRONG])
 
     problem_sets = stm.create_problem_sets()
-    init_graphs: List[StateTransitionGraph[ParticleWithSpin]] = []
+    init_graphs: List[
+        MutableTransition[ParticleWithSpin, InteractionProperties]
+    ] = []
     for _, problem_set_list in problem_sets.items():
         init_graphs.extend([_create_graph(x) for x in problem_set_list])
 
@@ -380,15 +382,15 @@ def test_edge_swap(particle_database, initial_state, final_state):
         edge_keys = list(ref_mapping.keys())
         edge1 = edge_keys[0]
         edge1_val = graph.topology.edges[edge1]
-        edge1_props = deepcopy(graph.get_edge_props(edge1))
+        edge1_props = deepcopy(graph.states[edge1])
         edge2 = edge_keys[1]
         edge2_val = graph.topology.edges[edge2]
-        edge2_props = deepcopy(graph.get_edge_props(edge2))
+        edge2_props = deepcopy(graph.states[edge2])
         graph.swap_edges(edge1, edge2)
         assert graph.topology.edges[edge1] == edge2_val
         assert graph.topology.edges[edge2] == edge1_val
-        assert graph.get_edge_props(edge1) == edge2_props
-        assert graph.get_edge_props(edge2) == edge1_props
+        assert graph.states[edge1] == edge2_props
+        assert graph.states[edge2] == edge1_props
 
 
 @pytest.mark.parametrize(
@@ -415,7 +417,9 @@ def test_match_external_edges(particle_database, initial_state, final_state):
     stm.set_allowed_interaction_types([InteractionType.STRONG])
 
     problem_sets = stm.create_problem_sets()
-    init_graphs: List[StateTransitionGraph[ParticleWithSpin]] = []
+    init_graphs: List[
+        MutableTransition[ParticleWithSpin, InteractionProperties]
+    ] = []
     for _, problem_set_list in problem_sets.items():
         init_graphs.extend([_create_graph(x) for x in problem_set_list])
 
@@ -504,7 +508,9 @@ def test_external_edge_identical_particle_combinatorics(
 
     match_external_edges(init_graphs)
 
-    comb_graphs: List[StateTransitionGraph[ParticleWithSpin]] = []
+    comb_graphs: List[
+        MutableTransition[ParticleWithSpin, InteractionProperties]
+    ] = []
     for group in init_graphs:
         comb_graphs.extend(
             perform_external_edge_identical_particle_combinatorics(group)

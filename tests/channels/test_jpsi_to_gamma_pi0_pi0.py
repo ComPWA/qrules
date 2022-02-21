@@ -2,8 +2,6 @@ import pytest
 
 import qrules
 from qrules.combinatorics import _create_edge_id_particle_mapping
-from qrules.particle import ParticleWithSpin
-from qrules.topology import StateTransitionGraph
 
 
 @pytest.mark.parametrize(
@@ -62,7 +60,9 @@ def test_id_to_particle_mappings(particle_database):
     assert len(reaction.transitions) == 4
     iter_transitions = iter(reaction.transitions)
     first_transition = next(iter_transitions)
-    graph: StateTransitionGraph[ParticleWithSpin] = first_transition.to_graph()
+    graph = first_transition.convert(
+        lambda s: (s.particle, s.spin_projection)
+    ).unfreeze()
     ref_mapping_fs = _create_edge_id_particle_mapping(
         graph, graph.topology.outgoing_edge_ids
     )
@@ -70,7 +70,9 @@ def test_id_to_particle_mappings(particle_database):
         graph, graph.topology.incoming_edge_ids
     )
     for transition in iter_transitions:
-        graph = transition.to_graph()
+        graph = transition.convert(
+            lambda s: (s.particle, s.spin_projection)
+        ).unfreeze()
         assert ref_mapping_fs == _create_edge_id_particle_mapping(
             graph, graph.topology.outgoing_edge_ids
         )

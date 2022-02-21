@@ -1,16 +1,16 @@
 """Find allowed transitions between an initial and final state."""
 
 import logging
+import sys
 from collections import defaultdict
 from copy import copy, deepcopy
 from enum import Enum, auto
 from multiprocessing import Pool
 from typing import (
-    Collection,
+    TYPE_CHECKING,
     Dict,
     Iterable,
     List,
-    Mapping,
     Optional,
     Sequence,
     Set,
@@ -66,7 +66,6 @@ from .solving import (
     CSPSolver,
     EdgeSettings,
     GraphEdgePropertyMap,
-    GraphElementProperties,
     GraphSettings,
     NodeSettings,
     QNProblemSet,
@@ -74,11 +73,18 @@ from .solving import (
 )
 from .topology import (
     FrozenDict,
-    StateTransitionGraph,
+    MutableTransition,
     Topology,
     create_isobar_topologies,
     create_n_body_topology,
 )
+
+if sys.version_info >= (3, 10):
+    from typing import TypeAlias
+else:
+    from typing_extensions import TypeAlias
+if TYPE_CHECKING:
+    from .topology import FrozenTransition  # noqa: F401
 
 
 class SolvingMode(Enum):
@@ -138,7 +144,7 @@ class ExecutionInfo:
 class _SolutionContainer:
     """Defines a result of a `.ProblemSet`."""
 
-    solutions: List[StateTransitionGraph[ParticleWithSpin]] = field(
+    solutions: "List[MutableTransition[ParticleWithSpin, InteractionProperties]]" = field(
         factory=list
     )
     execution_info: ExecutionInfo = field(default=ExecutionInfo())
@@ -167,39 +173,40 @@ class _SolutionContainer:
             )
 
 
+if sys.version_info >= (3, 7):
+    attrs.resolve_types(_SolutionContainer, globals(), locals())
+
+
 @implement_pretty_repr
 @define
 class ProblemSet:
-    """Particle reaction problem set, defined as a graph like data structure.
-
-    Args:
-        topology: `.Topology` that contains the structure of the reaction.
-        initial_facts: `~.InitialFacts` that contain the info of initial and
-          final state in connection with the topology.
-        solving_settings: Solving related settings such as the conservation
-          rules and the quantum number domains.
-    """
+    """Particle reaction problem set as a graph-like data structure."""
 
     topology: Topology
-    initial_facts: InitialFacts
-    solving_settings: GraphSettings
+    """`.Topology` over which the problem set is defined."""
+    initial_facts: "InitialFacts"
+    """Information about the initial and final state."""
+    solving_settings: "GraphSettings"
+    """Solving settings, such as conservation rules and QN-domains."""
 
     def to_qn_problem_set(self) -> QNProblemSet:
-        node_props = {
+        interactions = {
             k: create_node_properties(v)
-            for k, v in self.initial_facts.node_props.items()
+            for k, v in self.initial_facts.interactions.items()
         }
-        edge_props = {
+        states = {
             k: create_edge_properties(v[0], v[1])
-            for k, v in self.initial_facts.edge_props.items()
+            for k, v in self.initial_facts.states.items()
         }
         return QNProblemSet(
-            topology=self.topology,
-            initial_facts=GraphElementProperties(
-                node_props=node_props, edge_props=edge_props
+            initial_facts=MutableTransition(
+                self.topology, states, interactions
             ),
             solving_settings=self.solving_settings,
         )
+
+
+attrs.resolve_types(ProblemSet, globals(), locals())
 
 
 def _group_by_strength(
@@ -218,7 +225,7 @@ def _group_by_strength(
     )
     for problem_set in problem_sets:
         strength = calculate_strength(
-            problem_set.solving_settings.node_settings
+            problem_set.solving_settings.interactions
         )
         strength_sorted_problem_sets[strength].append(problem_set)
     return strength_sorted_problem_sets
@@ -414,7 +421,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         return _group_by_strength(problem_sets)
 
     def __determine_graph_settings(
-        self, topology: Topology, initial_facts: InitialFacts
+        self, topology: Topology, initial_facts: "InitialFacts"
     ) -> List[GraphSettings]:
         # pylint: disable=too-many-locals
         def create_intermediate_edge_qn_domains() -> Dict:
@@ -464,12 +471,12 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         initial_state_edges = topology.incoming_edge_ids
 
         graph_settings: List[GraphSettings] = [
-            GraphSettings(
-                edge_settings={
+            MutableTransition(
+                topology,
+                states={
                     edge_id: create_edge_settings(edge_id)
                     for edge_id in topology.edges
                 },
-                node_settings={},
             )
         ]
 
@@ -477,24 +484,24 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             interaction_types: List[InteractionType] = []
             out_edge_ids = topology.get_edge_ids_outgoing_from_node(node_id)
             in_edge_ids = topology.get_edge_ids_outgoing_from_node(node_id)
-            in_edge_props = [
-                initial_facts.edge_props[edge_id]
+            in_states = [
+                initial_facts.states[edge_id]
                 for edge_id in [
                     x for x in in_edge_ids if x in initial_state_edges
                 ]
             ]
-            out_edge_props = [
-                initial_facts.edge_props[edge_id]
+            out_states = [
+                initial_facts.states[edge_id]
                 for edge_id in [
                     x for x in out_edge_ids if x in final_state_edges
                 ]
             ]
-            node_props = InteractionProperties()
-            if node_id in initial_facts.node_props:
-                node_props = initial_facts.node_props[node_id]
+            interactions = InteractionProperties()
+            if node_id in initial_facts.interactions:
+                interactions = initial_facts.interactions[node_id]
             for int_det in self.interaction_determinators:
                 determined_interactions = int_det.check(
-                    in_edge_props, out_edge_props, node_props
+                    in_states, out_states, interactions
                 )
                 if interaction_types:
                     interaction_types = list(
@@ -516,7 +523,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             for temp_setting in temp_graph_settings:
                 for int_type in interaction_types:
                     updated_setting = deepcopy(temp_setting)
-                    updated_setting.node_settings[node_id] = deepcopy(
+                    updated_setting.interactions[node_id] = deepcopy(
                         self.interaction_type_settings[int_type][1]
                     )
                     graph_settings.append(updated_setting)
@@ -551,7 +558,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             qn_problems = [x.to_qn_problem_set() for x in problems]
 
             # Because of pickling problems of Generic classes (in this case
-            # StateTransitionGraph), multithreaded code has to work with
+            # MutableTransition), multithreaded code has to work with
             # QNProblemSet's and QNResult's. So the appropriate conversions
             # have to be done before and after
             temp_qn_results: List[Tuple[QNProblemSet, QNResult]] = []
@@ -635,7 +642,11 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             _match_final_state_ids(graph, self.final_state)
             for graph in final_solutions
         ]
-        return ReactionInfo.from_graphs(final_solutions, self.formalism)
+        transitions = [
+            graph.freeze().convert(lambda s: State(*s))
+            for graph in final_solutions
+        ]
+        return ReactionInfo(transitions, self.formalism)
 
     def _solve(
         self, qn_problem_set: QNProblemSet
@@ -654,15 +665,15 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         """
         solutions = []
         for solution in qn_result.solutions:
-            graph = StateTransitionGraph[ParticleWithSpin](
+            graph = MutableTransition(
                 topology=topology,
-                node_props={
+                interactions={
                     i: create_interaction_properties(x)
-                    for i, x in solution.node_quantum_numbers.items()
+                    for i, x in solution.interactions.items()
                 },
-                edge_props={
+                states={
                     i: create_particle(x, self.__particles)
-                    for i, x in solution.edge_quantum_numbers.items()
+                    for i, x in solution.states.items()
                 },
             )
             solutions.append(graph)
@@ -692,24 +703,24 @@ def _safe_wrap_list(
 
 
 def _match_final_state_ids(
-    graph: StateTransitionGraph[ParticleWithSpin],
+    graph: "MutableTransition[ParticleWithSpin, InteractionProperties]",
     state_definition: Sequence[StateDefinition],
-) -> StateTransitionGraph[ParticleWithSpin]:
+) -> "MutableTransition[ParticleWithSpin, InteractionProperties]":
     """Temporary fix to https://github.com/ComPWA/qrules/issues/143."""
     particle_names = _strip_spin(state_definition)
     name_to_id = {name: i for i, name in enumerate(particle_names)}
     id_remapping = {
-        name_to_id[graph.get_edge_props(i)[0].name]: i
+        name_to_id[graph.states[i][0].name]: i
         for i in graph.topology.outgoing_edge_ids
     }
     new_topology = graph.topology.relabel_edges(id_remapping)
-    return StateTransitionGraph(
+    return MutableTransition(
         new_topology,
-        edge_props={
-            i: graph.get_edge_props(id_remapping.get(i, i))
+        states={
+            i: graph.states[id_remapping.get(i, i)]
             for i in graph.topology.edges
         },
-        node_props={i: graph.get_node_props(i) for i in graph.topology.nodes},
+        interactions={i: graph.interactions[i] for i in graph.topology.nodes},
     )
 
 
@@ -730,85 +741,13 @@ class State:
     spin_projection: float = field(converter=_to_float)
 
 
-@implement_pretty_repr
-@frozen(order=True)
-class StateTransition:
-    """Frozen instance of a `.StateTransitionGraph` of a particle with spin."""
-
-    topology: Topology = field(validator=instance_of(Topology))
-    states: FrozenDict[int, State] = field(converter=FrozenDict)
-    interactions: FrozenDict[int, InteractionProperties] = field(
-        converter=FrozenDict
-    )
-
-    def __attrs_post_init__(self) -> None:
-        _assert_defined(self.topology.edges, self.states)
-        _assert_defined(self.topology.nodes, self.interactions)
-
-    @staticmethod
-    def from_graph(
-        graph: StateTransitionGraph[ParticleWithSpin],
-    ) -> "StateTransition":
-        return StateTransition(
-            topology=graph.topology,
-            states=FrozenDict(
-                {
-                    i: State(*graph.get_edge_props(i))
-                    for i in graph.topology.edges
-                }
-            ),
-            interactions=FrozenDict(
-                {i: graph.get_node_props(i) for i in graph.topology.nodes}
-            ),
-        )
-
-    def to_graph(self) -> StateTransitionGraph[ParticleWithSpin]:
-        return StateTransitionGraph[ParticleWithSpin](
-            topology=self.topology,
-            edge_props={
-                i: (state.particle, state.spin_projection)
-                for i, state in self.states.items()
-            },
-            node_props=self.interactions,
-        )
-
-    @property
-    def initial_states(self) -> Dict[int, State]:
-        return self.filter_states(self.topology.incoming_edge_ids)
-
-    @property
-    def final_states(self) -> Dict[int, State]:
-        return self.filter_states(self.topology.outgoing_edge_ids)
-
-    @property
-    def intermediate_states(self) -> Dict[int, State]:
-        return self.filter_states(self.topology.intermediate_edge_ids)
-
-    def filter_states(self, edge_ids: Iterable[int]) -> Dict[int, State]:
-        return {i: self.states[i] for i in edge_ids}
-
-    @property
-    def particles(self) -> Dict[int, Particle]:
-        return {i: edge_prop.particle for i, edge_prop in self.states.items()}
-
-
-def _assert_defined(items: Collection, properties: Mapping) -> None:
-    existing = set(items)
-    defined = set(properties)
-    if existing & defined != existing:
-        raise ValueError(
-            "Some items have no property assigned to them."
-            f" Available items: {existing}, items with property: {defined}"
-        )
+StateTransition: TypeAlias = "FrozenTransition[State, InteractionProperties]"
+"""Transition of some initial `.State` to a final `.State`."""
 
 
 def _sort_tuple(
     iterable: Iterable[StateTransition],
 ) -> Tuple[StateTransition, ...]:
-    if not all(map(lambda t: isinstance(t, StateTransition), iterable)):
-        raise TypeError(
-            f"Not all instances are of type {StateTransition.__name__}"
-        )
     return tuple(sorted(iterable))
 
 
@@ -842,17 +781,6 @@ class ReactionInfo:
             for state in transition.intermediate_states.values()
         }
         return ParticleCollection(particles)
-
-    @staticmethod
-    def from_graphs(
-        graphs: Iterable[StateTransitionGraph[ParticleWithSpin]],
-        formalism: str,
-    ) -> "ReactionInfo":
-        transitions = [StateTransition.from_graph(g) for g in graphs]
-        return ReactionInfo(transitions, formalism)
-
-    def to_graphs(self) -> List[StateTransitionGraph[ParticleWithSpin]]:
-        return [transition.to_graph() for transition in self.transitions]
 
     def group_by_topology(self) -> Dict[Topology, List[StateTransition]]:
         groupings = defaultdict(list)

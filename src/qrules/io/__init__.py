@@ -15,8 +15,8 @@ import attrs
 import yaml
 
 from qrules.particle import Particle, ParticleCollection
-from qrules.topology import StateTransitionGraph, Topology
-from qrules.transition import ProblemSet, ReactionInfo, State, StateTransition
+from qrules.topology import Topology, Transition
+from qrules.transition import ProblemSet, ReactionInfo, State
 
 from . import _dict, _dot
 
@@ -27,15 +27,15 @@ def asdict(instance: object) -> dict:
         return _dict.from_particle(instance)
     if isinstance(instance, ParticleCollection):
         return _dict.from_particle_collection(instance)
-    if isinstance(instance, (ReactionInfo, State, StateTransition)):
+    if isinstance(instance, (ReactionInfo, State)):
         return attrs.asdict(
             instance,
             recurse=True,
             filter=lambda a, _: a.init,
             value_serializer=_dict._value_serializer,
         )
-    if isinstance(instance, StateTransitionGraph):
-        return _dict.from_stg(instance)
+    if isinstance(instance, Transition):
+        return _dict.from_transition(instance)
     if isinstance(instance, Topology):
         return _dict.from_topology(instance)
     raise NotImplementedError(
@@ -53,9 +53,7 @@ def fromdict(definition: dict) -> object:
     if keys == {"transitions", "formalism"}:
         return _dict.build_reaction_info(definition)
     if keys == {"topology", "states", "interactions"}:
-        return _dict.build_state_transition(definition)
-    if keys == {"topology", "edge_props", "node_props"}:
-        return _dict.build_stg(definition)
+        return _dict.build_transition(definition)
     if keys == __REQUIRED_TOPOLOGY_FIELDS:
         return _dict.build_topology(definition)
     raise NotImplementedError(f"Could not determine type from keys {keys}")
@@ -87,13 +85,13 @@ def asdot(
     """Convert a `object` to a DOT language `str`.
 
     Only works for objects that can be represented as a graph, particularly a
-    `.StateTransitionGraph` or a `list` of `.StateTransitionGraph` instances.
+    `.MutableTransition` or a `list` of `.MutableTransition` instances.
 
     Args:
         instance: the input `object` that is to be rendered as DOT (graphviz)
             language.
 
-        strip_spin: Normally, each `.StateTransitionGraph` has a `.Particle`
+        strip_spin: Normally, each `.MutableTransition` has a `.Particle`
             with a spin projection on its edges. This option hides the
             projections, leaving only `.Particle` names on edges.
 
@@ -102,7 +100,7 @@ def asdot(
 
         render_node: Whether or not to render node ID (in the case of a
             `.Topology`) and/or node properties (in the case of a
-            `.StateTransitionGraph`). Meaning of the labels:
+            `.MutableTransition`). Meaning of the labels:
 
             - :math:`P`: parity prefactor
             - :math:`s`: tuple of **coupled spin** magnitude and its
@@ -129,9 +127,7 @@ def asdot(
         edge_style = {}
     if node_style is None:
         node_style = {}
-    if isinstance(instance, StateTransition):
-        instance = instance.to_graph()
-    if isinstance(instance, (ProblemSet, StateTransitionGraph, Topology)):
+    if isinstance(instance, (ProblemSet, Topology, Transition)):
         dot = _dot.graph_to_dot(
             instance,
             render_node=render_node,
@@ -143,7 +139,7 @@ def asdot(
         )
         return _dot.insert_graphviz_styling(dot, graphviz_attrs=figure_style)
     if isinstance(instance, ReactionInfo):
-        instance = instance.to_graphs()
+        instance = instance.transitions
     if isinstance(instance, abc.Iterable):
         dot = _dot.graph_list_to_dot(
             instance,

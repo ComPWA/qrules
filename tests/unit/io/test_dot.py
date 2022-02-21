@@ -9,7 +9,7 @@ from qrules.io._dot import (
     _get_particle_graphs,
     _strip_projections,
 )
-from qrules.particle import ParticleCollection
+from qrules.particle import Particle, ParticleCollection
 from qrules.topology import (
     Edge,
     Topology,
@@ -163,7 +163,11 @@ class TestWrite:
         output_file = output_dir + "two_body_decay_topology.gv"
         topology = Topology(
             nodes={0},
-            edges={0: Edge(0, None), 1: Edge(None, 0), 2: Edge(None, 0)},
+            edges={
+                -1: Edge(None, 0),
+                0: Edge(0, None),
+                1: Edge(0, None),
+            },
         )
         io.write(
             instance=topology,
@@ -208,15 +212,17 @@ def test_collapse_graphs(
     particle_database: ParticleCollection,
 ):
     pdg = particle_database
-    particle_graphs = _get_particle_graphs(reaction.to_graphs())
+    particle_graphs = _get_particle_graphs(reaction.transitions)  # type: ignore[arg-type]
     assert len(particle_graphs) == 2
-    collapsed_graphs = _collapse_graphs(reaction.to_graphs())
+
+    collapsed_graphs = _collapse_graphs(reaction.transitions)  # type: ignore[arg-type]
     assert len(collapsed_graphs) == 1
     graph = next(iter(collapsed_graphs))
     edge_id = next(iter(graph.topology.intermediate_edge_ids))
     f_resonances = pdg.filter(lambda p: p.name in ["f(0)(980)", "f(0)(1500)"])
-    intermediate_states = graph.get_edge_props(edge_id)
-    assert isinstance(intermediate_states, ParticleCollection)
+    intermediate_states = graph.states[edge_id]
+    assert isinstance(intermediate_states, tuple)
+    assert all(map(lambda i: isinstance(i, Particle), intermediate_states))
     assert intermediate_states == f_resonances
 
 
@@ -224,15 +230,13 @@ def test_get_particle_graphs(
     reaction: ReactionInfo, particle_database: ParticleCollection
 ):
     pdg = particle_database
-    particle_graphs = _get_particle_graphs(reaction.to_graphs())
-    assert len(particle_graphs) == 2
-    assert particle_graphs[0].get_edge_props(3) == pdg["f(0)(980)"]
-    assert particle_graphs[1].get_edge_props(3) == pdg["f(0)(1500)"]
-    assert len(particle_graphs[0].topology.edges) == 5
-    for edge_id in range(-1, 3):
-        assert particle_graphs[0].get_edge_props(edge_id) is particle_graphs[
-            1
-        ].get_edge_props(edge_id)
+    graphs = _get_particle_graphs(reaction.transitions)  # type: ignore[arg-type]
+    assert len(graphs) == 2
+    assert graphs[0].states[3] == pdg["f(0)(980)"]
+    assert graphs[1].states[3] == pdg["f(0)(1500)"]
+    assert len(graphs[0].topology.edges) == 5
+    for i in range(-1, 3):
+        assert graphs[0].states[i] is graphs[1].states[i]
 
 
 def test_strip_projections():
@@ -256,8 +260,8 @@ def test_strip_projections():
     assert transition.interactions[1].l_projection == 0
 
     stripped_transition = _strip_projections(transition)  # type: ignore[arg-type]
-    assert stripped_transition.get_edge_props(3).name == resonance
-    assert stripped_transition.get_node_props(0).s_projection is None
-    assert stripped_transition.get_node_props(0).l_projection is None
-    assert stripped_transition.get_node_props(1).s_projection is None
-    assert stripped_transition.get_node_props(1).l_projection is None
+    assert stripped_transition.states[3].name == resonance
+    assert stripped_transition.interactions[0].s_projection is None
+    assert stripped_transition.interactions[0].l_projection is None
+    assert stripped_transition.interactions[1].s_projection is None
+    assert stripped_transition.interactions[1].l_projection is None

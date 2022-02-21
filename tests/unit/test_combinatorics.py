@@ -98,14 +98,14 @@ class TestKinematicRepresentation:
     def test_from_topology(self, three_body_decay: Topology):
         pi0 = ("pi0", [0])
         gamma = ("gamma", [-1, 1])
-        edge_props = {
+        states = {
             -1: ("J/psi", [-1, +1]),
             0: pi0,
             1: pi0,
             2: gamma,
         }
         kinematic_representation1 = _get_kinematic_representation(
-            three_body_decay, edge_props
+            three_body_decay, states
         )
         assert kinematic_representation1.initial_state == [
             ["J/psi"],
