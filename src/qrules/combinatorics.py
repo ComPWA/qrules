@@ -37,7 +37,7 @@ StateWithSpins = Tuple[str, Sequence[float]]
 StateDefinition = Union[str, StateWithSpins]
 
 
-@implement_pretty_repr()
+@implement_pretty_repr
 @frozen
 class InitialFacts:
     edge_props: Dict[int, ParticleWithSpin] = field(factory=dict)

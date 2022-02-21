@@ -164,7 +164,7 @@ def _to_optional_int(optional_int: Optional[int]) -> Optional[int]:
     return int(optional_int)
 
 
-@implement_pretty_repr()
+@implement_pretty_repr
 @frozen(order=True)
 class InteractionProperties:
     """Immutable data structure containing interaction properties.
