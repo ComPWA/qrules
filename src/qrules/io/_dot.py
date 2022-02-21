@@ -21,7 +21,7 @@ from typing import (
 
 import attrs
 
-from qrules.particle import Particle, ParticleWithSpin
+from qrules.particle import Particle, ParticleWithSpin, Spin
 from qrules.quantum_numbers import InteractionProperties, _to_fraction
 from qrules.solving import EdgeSettings, NodeSettings
 from qrules.topology import (
@@ -363,6 +363,8 @@ def __edge_to_string(edge_prop: Any) -> str:
         return edge_prop.name
     if isinstance(edge_prop, State):
         edge_prop = edge_prop.particle, edge_prop.spin_projection
+    if isinstance(edge_prop, Spin):
+        return __render_spin(edge_prop)
     if isinstance(edge_prop, tuple):
         if len(edge_prop) == 2:
             particle, spin_projection = edge_prop
@@ -384,26 +386,36 @@ def __node_label(node_prop: Union[InteractionProperties, NodeSettings]) -> str:
     if isinstance(node_prop, InteractionProperties):
         output = ""
         if node_prop.l_magnitude is not None:
-            l_magnitude = _to_fraction(node_prop.l_magnitude)
             if node_prop.l_projection is None:
-                l_label = l_magnitude
+                l_label = _to_fraction(node_prop.l_magnitude)
             else:
-                l_projection = _to_fraction(node_prop.l_projection)
-                l_label = f"({l_magnitude}, {l_projection})"
-            output += f"l={l_label}\n"
+                l_label = __render_spin(
+                    (node_prop.l_magnitude, node_prop.l_projection)
+                )
+            output += f"L={l_label}\n"
         if node_prop.s_magnitude is not None:
-            s_magnitude = _to_fraction(node_prop.s_magnitude)
             if node_prop.s_projection is None:
-                s_label = s_magnitude
+                s_label = _to_fraction(node_prop.s_magnitude)
             else:
-                s_projection = _to_fraction(node_prop.s_projection)
-                s_label = f"({s_magnitude}, {s_projection})"
-            output += f"s={s_label}\n"
+                s_label = __render_spin(
+                    (node_prop.s_magnitude, node_prop.s_projection)
+                )
+            output += f"S={s_label}\n"
         if node_prop.parity_prefactor is not None:
             label = _to_fraction(node_prop.parity_prefactor, render_plus=True)
             output += f"P={label}"
         return output
     raise NotImplementedError
+
+
+def __render_spin(spin: Union[Spin, Tuple[float, float]]) -> str:
+    if isinstance(spin, Spin):
+        spin_magnitude = _to_fraction(spin.magnitude)
+        spin_projection = _to_fraction(spin.projection, render_plus=True)
+    else:
+        spin_magnitude = _to_fraction(spin[0])
+        spin_projection = _to_fraction(spin[1], render_plus=True)
+    return f"|{spin_magnitude},{spin_projection}⟩"
 
 
 def __render_settings(settings: Union[EdgeSettings, NodeSettings]) -> str:

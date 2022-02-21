@@ -73,8 +73,8 @@ digraph {
     "node0" -> "edge0";
     "node1" -> "edge1";
     "node1" -> "edge2";
-    "node0" [shape=none, label="l=(0, 0)\ns=(1, -1)\nP=+1"];
-    "node1" [shape=none, label="l=(0, 0)\ns=(0, 0)\nP=+1"];
+    "node0" [shape=none, label="L=|0,0⟩\nS=|1,-1⟩\nP=+1"];
+    "node1" [shape=none, label="L=|0,0⟩\nS=|0,0⟩\nP=+1"];
 }
         """
     assert dot.strip() == expected_dot.strip()
