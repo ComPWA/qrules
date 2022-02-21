@@ -696,8 +696,10 @@ class MutableTransition(Generic[EdgeType, NodeType]):
     """
 
     topology: Topology = field(validator=instance_of(Topology))
-    states: Dict[int, EdgeType] = field(converter=_cast_states)
-    interactions: Dict[int, NodeType] = field(converter=_cast_interactions)
+    states: Dict[int, EdgeType] = field(converter=_cast_states, factory=dict)
+    interactions: Dict[int, NodeType] = field(
+        converter=_cast_interactions, factory=dict
+    )
 
     def compare(
         self,
