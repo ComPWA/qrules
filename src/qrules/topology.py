@@ -655,6 +655,8 @@ EdgeType = TypeVar("EdgeType")
 """A `~typing.TypeVar` representing the type of edge properties."""
 
 
+@implement_pretty_repr()
+@define
 class StateTransitionGraph(Generic[EdgeType]):
     """Graph class that resembles a frozen `.Topology` with properties.
 
@@ -664,44 +666,15 @@ class StateTransitionGraph(Generic[EdgeType]):
     error can be raised on property retrieval.
     """
 
-    def __init__(
-        self,
-        topology: Topology,
-        node_props: Mapping[int, InteractionProperties],
-        edge_props: Mapping[int, EdgeType],
-    ):
-        self.__node_props = dict(node_props)
-        self.__edge_props = dict(edge_props)
-        if not isinstance(topology, Topology):
-            raise TypeError
-        self.topology = topology
-
-    def __post_init__(self) -> None:
-        _assert_not_overdefined(self.topology.nodes, self.__node_props)
-        _assert_not_overdefined(self.topology.edges, self.__edge_props)
-
-    def __eq__(self, other: object) -> bool:
-        """Check if two `.StateTransitionGraph` instances are **identical**."""
-        if isinstance(other, StateTransitionGraph):
-            if self.topology != other.topology:
-                return False
-            for i in self.topology.edges:
-                if self.get_edge_props(i) != other.get_edge_props(i):
-                    return False
-            for i in self.topology.nodes:
-                if self.get_node_props(i) != other.get_node_props(i):
-                    return False
-            return True
-        raise NotImplementedError(
-            f"Cannot compare {self.__class__.__name__}"
-            f" with {other.__class__.__name__}"
-        )
+    topology: Topology = field(validator=instance_of(Topology))
+    node_props: Dict[int, InteractionProperties]
+    edge_props: Dict[int, EdgeType]
 
     def get_node_props(self, node_id: int) -> InteractionProperties:
-        return self.__node_props[node_id]
+        return self.node_props[node_id]
 
     def get_edge_props(self, edge_id: int) -> EdgeType:
-        return self.__edge_props[edge_id]
+        return self.edge_props[edge_id]
 
     def evolve(
         self,
@@ -713,13 +686,13 @@ class StateTransitionGraph(Generic[EdgeType]):
         Since a `.StateTransitionGraph` is frozen (cannot be modified), the
         evolve function will also create a shallow copy the properties.
         """
-        new_node_props = copy.copy(self.__node_props)
+        new_node_props = copy.copy(self.node_props)
         if node_props:
             _assert_not_overdefined(self.topology.nodes, node_props)
             for node_id, node_prop in node_props.items():
                 new_node_props[node_id] = node_prop
 
-        new_edge_props = copy.copy(self.__edge_props)
+        new_edge_props = copy.copy(self.edge_props)
         if edge_props:
             _assert_not_overdefined(self.topology.edges, edge_props)
             for edge_id, edge_prop in edge_props.items():
@@ -744,13 +717,13 @@ class StateTransitionGraph(Generic[EdgeType]):
         if edge_comparator is not None:
             for i in self.topology.edges:
                 if not edge_comparator(
-                    self.get_edge_props(i), other.get_edge_props(i)
+                    self.edge_props[i], other.edge_props[i]
                 ):
                     return False
         if node_comparator is not None:
             for i in self.topology.nodes:
                 if not node_comparator(
-                    self.get_node_props(i), other.get_node_props(i)
+                    self.node_props[i], other.node_props[i]
                 ):
                     return False
         return True
@@ -759,14 +732,14 @@ class StateTransitionGraph(Generic[EdgeType]):
         self.topology = self.topology.swap_edges(edge_id1, edge_id2)
         value1: Optional[EdgeType] = None
         value2: Optional[EdgeType] = None
-        if edge_id1 in self.__edge_props:
-            value1 = self.__edge_props.pop(edge_id1)
-        if edge_id2 in self.__edge_props:
-            value2 = self.__edge_props.pop(edge_id2)
+        if edge_id1 in self.edge_props:
+            value1 = self.edge_props.pop(edge_id1)
+        if edge_id2 in self.edge_props:
+            value2 = self.edge_props.pop(edge_id2)
         if value1 is not None:
-            self.__edge_props[edge_id2] = value1
+            self.edge_props[edge_id2] = value1
         if value2 is not None:
-            self.__edge_props[edge_id1] = value2
+            self.edge_props[edge_id1] = value2
 
 
 # pyright: reportUnusedFunction=false
