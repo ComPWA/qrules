@@ -624,7 +624,7 @@ def create_isobar_topologies(
         number_of_initial_edges=1,
         number_of_final_edges=number_of_final_states,
     )
-    return tuple(topologies)
+    return tuple(sorted(topologies))
 
 
 def create_n_body_topology(
