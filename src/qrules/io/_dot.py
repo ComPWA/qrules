@@ -34,12 +34,12 @@ from qrules.topology import (
 from qrules.transition import ProblemSet, State, StateTransition
 
 _DOT_HEAD = """digraph {
-    rankdir=LR;
-    node [shape=point, width=0];
-    edge [arrowhead=none];
+    rankdir=LR
+    node [shape=point, width=0]
+    edge [arrowhead=none]
 """
 _DOT_TAIL = "}\n"
-_DOT_RANK_SAME = "    {{ rank=same {} }};\n"
+_DOT_RANK_SAME = "    {{ rank=same {} }}\n"
 
 
 def embed_dot(func: Callable) -> Callable:
@@ -75,7 +75,7 @@ def _create_graphviz_edge(
     if label:
         updated_graphviz_attrs["label"] = label
     styling = __create_graphviz_edge_node_styling(updated_graphviz_attrs)
-    return f"    {from_node} -> {to_node}{styling};\n"
+    return f"    {from_node} -> {to_node}{styling}\n"
 
 
 def _create_graphviz_node(
@@ -83,22 +83,22 @@ def _create_graphviz_node(
 ) -> str:
     updated_graphviz_attrs = {"shape": None, **graphviz_attrs, "label": label}
     styling = __create_graphviz_edge_node_styling(updated_graphviz_attrs)
-    return f"    {name}{styling};\n"
+    return f"    {name}{styling}\n"
 
 
 def __dot_kwargs_to_header(graphviz_attrs: Dict[str, Any]) -> str:
     r"""Create DOT-compatible header lines from Graphviz attributes.
 
     >>> __dot_kwargs_to_header({"size": 12})
-    '    size=12;\n'
+    '    size=12\n'
     >>> __dot_kwargs_to_header({"bgcolor": "red", "size": 8})
-    '    bgcolor="red";\n    size=8;\n'
+    '    bgcolor="red"\n    size=8\n'
     """
     if not graphviz_attrs:
         return ""
     assignments = __create_graphviz_assignments(graphviz_attrs)
     indent = "    "
-    line_ending = ";\n"
+    line_ending = "\n"
     return indent + f"{line_ending}{indent}".join(assignments) + line_ending
 
 
