@@ -19,7 +19,6 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    Collection,
     Dict,
     FrozenSet,
     Generic,
@@ -678,8 +677,8 @@ class StateTransitionGraph(Generic[EdgeType]):
         self.topology = topology
 
     def __post_init__(self) -> None:
-        _assert_over_defined(self.topology.nodes, self.__node_props)
-        _assert_over_defined(self.topology.edges, self.__edge_props)
+        _assert_not_overdefined(self.topology.nodes, self.__node_props)
+        _assert_not_overdefined(self.topology.edges, self.__edge_props)
 
     def __eq__(self, other: object) -> bool:
         """Check if two `.StateTransitionGraph` instances are **identical**."""
@@ -716,13 +715,13 @@ class StateTransitionGraph(Generic[EdgeType]):
         """
         new_node_props = copy.copy(self.__node_props)
         if node_props:
-            _assert_over_defined(self.topology.nodes, node_props)
+            _assert_not_overdefined(self.topology.nodes, node_props)
             for node_id, node_prop in node_props.items():
                 new_node_props[node_id] = node_prop
 
         new_edge_props = copy.copy(self.__edge_props)
         if edge_props:
-            _assert_over_defined(self.topology.edges, edge_props)
+            _assert_not_overdefined(self.topology.edges, edge_props)
             for edge_id, edge_prop in edge_props.items():
                 new_edge_props[edge_id] = edge_prop
 
@@ -770,10 +769,21 @@ class StateTransitionGraph(Generic[EdgeType]):
             self.__edge_props[edge_id1] = value2
 
 
-def _assert_over_defined(items: Collection, properties: Mapping) -> None:
-    defined = set(properties)
+# pyright: reportUnusedFunction=false
+def _assert_all_defined(items: Iterable, properties: Iterable) -> None:
     existing = set(items)
-    over_defined = existing & defined ^ defined
+    defined = set(properties)
+    if existing & defined != existing:
+        raise ValueError(
+            "Some items have no property assigned to them."
+            f" Available items: {existing}, items with property: {defined}"
+        )
+
+
+def _assert_not_overdefined(items: Iterable, properties: Iterable) -> None:
+    existing = set(items)
+    defined = set(properties)
+    over_defined = defined - existing
     if over_defined:
         raise ValueError(
             "Properties have been defined for items that don't exist."

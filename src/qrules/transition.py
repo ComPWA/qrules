@@ -6,11 +6,9 @@ from copy import copy, deepcopy
 from enum import Enum, auto
 from multiprocessing import Pool
 from typing import (
-    Collection,
     Dict,
     Iterable,
     List,
-    Mapping,
     Optional,
     Sequence,
     Set,
@@ -76,6 +74,7 @@ from .topology import (
     FrozenDict,
     StateTransitionGraph,
     Topology,
+    _assert_all_defined,
     create_isobar_topologies,
     create_n_body_topology,
 )
@@ -742,8 +741,8 @@ class StateTransition:
     )
 
     def __attrs_post_init__(self) -> None:
-        _assert_defined(self.topology.edges, self.states)
-        _assert_defined(self.topology.nodes, self.interactions)
+        _assert_all_defined(self.topology.edges, self.states)
+        _assert_all_defined(self.topology.nodes, self.interactions)
 
     @staticmethod
     def from_graph(
@@ -790,16 +789,6 @@ class StateTransition:
     @property
     def particles(self) -> Dict[int, Particle]:
         return {i: edge_prop.particle for i, edge_prop in self.states.items()}
-
-
-def _assert_defined(items: Collection, properties: Mapping) -> None:
-    existing = set(items)
-    defined = set(properties)
-    if existing & defined != existing:
-        raise ValueError(
-            "Some items have no property assigned to them."
-            f" Available items: {existing}, items with property: {defined}"
-        )
 
 
 def _sort_tuple(
