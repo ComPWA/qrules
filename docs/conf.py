@@ -226,16 +226,14 @@ viewcode_follow_imported_members = True
 default_role = "py:obj"
 primary_domain = "py"
 nitpicky = True  # warn if cross-references are missing
-nitpick_ignore = [
-    ("py:class", "NewEdgeType"),
-    ("py:class", "NewNodeType"),
-    ("py:class", "NoneType"),
-    ("py:class", "json.encoder.JSONEncoder"),
-    ("py:class", "qrules.topology.NewEdgeType"),
-    ("py:class", "qrules.topology.NewNodeType"),
-    ("py:class", "typing_extensions.Protocol"),
-    ("py:obj", "qrules.topology._K"),
-    ("py:obj", "qrules.topology._V"),
+nitpick_ignore_regex = [
+    (r"py:(class|obj)", "json.encoder.JSONEncoder"),
+    (r"py:(class|obj)", r"(qrules\.topology\.)?EdgeType"),
+    (r"py:(class|obj)", r"(qrules\.topology\.)?KT"),
+    (r"py:(class|obj)", r"(qrules\.topology\.)?NewEdgeType"),
+    (r"py:(class|obj)", r"(qrules\.topology\.)?NewNodeType"),
+    (r"py:(class|obj)", r"(qrules\.topology\.)?NodeType"),
+    (r"py:(class|obj)", r"(qrules\.topology\.)?VT"),
 ]
 
 

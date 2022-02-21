@@ -55,24 +55,22 @@ if TYPE_CHECKING:
         PrettyPrinter = Any
 
 
-class Comparable(Protocol):
+class _Comparable(Protocol):
     @abstractmethod
     def __lt__(self, other: Any) -> bool:
         ...
 
 
-KeyType = TypeVar("KeyType", bound=Comparable)
-"""Type the keys of the `~typing.Mapping`, see `~typing.KeysView`."""
-ValueType = TypeVar("ValueType")
-"""Type the value of the `~typing.Mapping`, see `~typing.ValuesView`."""
+KT = TypeVar("KT", bound=_Comparable)
+VT = TypeVar("VT")
 
 
 @total_ordering
 class FrozenDict(  # pylint: disable=too-many-ancestors
-    abc.Hashable, abc.Mapping, Generic[KeyType, ValueType]
+    abc.Hashable, abc.Mapping, Generic[KT, VT]
 ):
     def __init__(self, mapping: Optional[Mapping] = None):
-        self.__mapping: Dict[KeyType, ValueType] = {}
+        self.__mapping: Dict[KT, VT] = {}
         if mapping is not None:
             self.__mapping = dict(mapping)
         self.__hash = hash(None)
@@ -98,13 +96,13 @@ class FrozenDict(  # pylint: disable=too-many-ancestors
             p.breakable()
             p.text("})")
 
-    def __iter__(self) -> Iterator[KeyType]:
+    def __iter__(self) -> Iterator[KT]:
         return iter(self.__mapping)
 
     def __len__(self) -> int:
         return len(self.__mapping)
 
-    def __getitem__(self, key: KeyType) -> ValueType:
+    def __getitem__(self, key: KT) -> VT:
         return self.__mapping[key]
 
     def __gt__(self, other: Any) -> bool:
@@ -121,19 +119,19 @@ class FrozenDict(  # pylint: disable=too-many-ancestors
     def __hash__(self) -> int:
         return self.__hash
 
-    def keys(self) -> KeysView[KeyType]:
+    def keys(self) -> KeysView[KT]:
         return self.__mapping.keys()
 
-    def items(self) -> ItemsView[KeyType, ValueType]:
+    def items(self) -> ItemsView[KT, VT]:
         return self.__mapping.items()
 
-    def values(self) -> ValuesView[ValueType]:
+    def values(self) -> ValuesView[VT]:
         return self.__mapping.values()
 
 
 def _convert_mapping_to_sorted_tuple(
-    mapping: Mapping[KeyType, ValueType],
-) -> Tuple[Tuple[KeyType, ValueType], ...]:
+    mapping: Mapping[KT, VT],
+) -> Tuple[Tuple[KT, VT], ...]:
     return tuple((key, mapping[key]) for key in sorted(mapping.keys()))
 
 
@@ -651,11 +649,7 @@ def _attach_node_to_edges(
 
 
 EdgeType = TypeVar("EdgeType")
-"""A `~typing.TypeVar` representing the type of edge properties."""
 NodeType = TypeVar("NodeType")
-"""A `~typing.TypeVar` representing the type of node properties."""
-
-
 NewEdgeType = TypeVar("NewEdgeType")
 NewNodeType = TypeVar("NewNodeType")
 
