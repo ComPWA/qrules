@@ -41,7 +41,7 @@ def test_number_of_solutions(
         allowed_intermediate_particles=allowed_intermediate_particles,
         formalism="helicity",
     )
-    assert len(reaction.transition_groups) == n_topologies
+    assert len(reaction.group_by_topology()) == n_topologies
     assert len(reaction.transitions) == number_of_solutions
     assert (
         reaction.get_intermediate_particles().names
@@ -58,7 +58,7 @@ def test_id_to_particle_mappings(particle_database):
         allowed_intermediate_particles=["f(0)(980)"],
         formalism="helicity",
     )
-    assert len(reaction.transition_groups) == 1
+    assert len(reaction.group_by_topology()) == 1
     assert len(reaction.transitions) == 4
     iter_transitions = iter(reaction.transitions)
     first_transition = next(iter_transitions)

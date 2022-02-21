@@ -16,13 +16,7 @@ import yaml
 
 from qrules.particle import Particle, ParticleCollection
 from qrules.topology import StateTransitionGraph, Topology
-from qrules.transition import (
-    ProblemSet,
-    ReactionInfo,
-    State,
-    StateTransition,
-    StateTransitionCollection,
-)
+from qrules.transition import ProblemSet, ReactionInfo, State, StateTransition
 
 from . import _dict, _dot
 
@@ -33,10 +27,7 @@ def asdict(instance: object) -> dict:
         return _dict.from_particle(instance)
     if isinstance(instance, ParticleCollection):
         return _dict.from_particle_collection(instance)
-    if isinstance(
-        instance,
-        (ReactionInfo, State, StateTransition, StateTransitionCollection),
-    ):
+    if isinstance(instance, (ReactionInfo, State, StateTransition)):
         return attrs.asdict(
             instance,
             recurse=True,
@@ -59,12 +50,10 @@ def fromdict(definition: dict) -> object:
         return _dict.build_particle(definition)
     if keys == {"particles"}:
         return _dict.build_particle_collection(definition)
-    if keys == {"transition_groups", "formalism"}:
+    if keys == {"transitions", "formalism"}:
         return _dict.build_reaction_info(definition)
     if keys == {"topology", "states", "interactions"}:
         return _dict.build_state_transition(definition)
-    if keys == {"transitions"}:
-        return _dict.build_stc(definition)
     if keys == {"topology", "edge_props", "node_props"}:
         return _dict.build_stg(definition)
     if keys == __REQUIRED_TOPOLOGY_FIELDS:
@@ -153,7 +142,7 @@ def asdot(
             node_style=node_style,
         )
         return _dot.insert_graphviz_styling(dot, graphviz_attrs=figure_style)
-    if isinstance(instance, (ReactionInfo, StateTransitionCollection)):
+    if isinstance(instance, ReactionInfo):
         instance = instance.to_graphs()
     if isinstance(instance, abc.Iterable):
         dot = _dot.graph_list_to_dot(
