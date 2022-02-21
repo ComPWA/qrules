@@ -675,6 +675,21 @@ class FrozenTransition(Generic[EdgeType, NodeType]):
         _assert_all_defined(self.topology.nodes, self.interactions)
         _assert_all_defined(self.topology.edges, self.states)
 
+    @property
+    def initial_states(self) -> Dict[int, EdgeType]:
+        return self.filter_states(self.topology.incoming_edge_ids)
+
+    @property
+    def final_states(self) -> Dict[int, EdgeType]:
+        return self.filter_states(self.topology.outgoing_edge_ids)
+
+    @property
+    def intermediate_states(self) -> Dict[int, EdgeType]:
+        return self.filter_states(self.topology.intermediate_edge_ids)
+
+    def filter_states(self, edge_ids: Iterable[int]) -> Dict[int, EdgeType]:
+        return {i: self.states[i] for i in edge_ids}
+
 
 def _cast_states(obj: Mapping[int, EdgeType]) -> Dict[int, EdgeType]:
     return dict(obj)
