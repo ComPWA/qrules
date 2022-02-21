@@ -657,11 +657,11 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
                 topology=topology,
                 interactions={
                     i: create_interaction_properties(x)
-                    for i, x in solution.node_quantum_numbers.items()
+                    for i, x in solution.interactions.items()
                 },
                 states={
                     i: create_particle(x, self.__particles)
-                    for i, x in solution.edge_quantum_numbers.items()
+                    for i, x in solution.states.items()
                 },
             )
             solutions.append(graph)

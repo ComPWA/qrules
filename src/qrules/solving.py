@@ -126,8 +126,8 @@ class QNProblemSet:
 @implement_pretty_repr
 @frozen
 class QuantumNumberSolution:
-    node_quantum_numbers: Dict[int, GraphNodePropertyMap]
-    edge_quantum_numbers: Dict[int, GraphEdgePropertyMap]
+    states: Dict[int, GraphEdgePropertyMap]
+    interactions: Dict[int, GraphNodePropertyMap]
 
 
 def _convert_violated_rules_to_names(
@@ -259,26 +259,26 @@ def _merge_particle_candidates_with_solutions(
         current_new_solutions = [solution]
         for int_edge_id in intermediate_edges:
             particle_edges = __get_particle_candidates_for_state(
-                solution.edge_quantum_numbers[int_edge_id],
+                solution.states[int_edge_id],
                 allowed_particles,
             )
             if len(particle_edges) == 0:
                 logging.debug("Did not find any particle candidates for")
                 logging.debug("edge id: %d", int_edge_id)
                 logging.debug("edge properties:")
-                logging.debug(solution.edge_quantum_numbers[int_edge_id])
+                logging.debug(solution.states[int_edge_id])
             new_solutions_temp = []
             for current_new_solution in current_new_solutions:
                 for particle_edge in particle_edges:
                     # a "shallow" copy of the nested dicts is needed
                     new_edge_qns = {
                         k: copy(v)
-                        for k, v in current_new_solution.edge_quantum_numbers.items()
+                        for k, v in current_new_solution.states.items()
                     }
                     new_edge_qns[int_edge_id].update(particle_edge)
                     temp_solution = attrs.evolve(
                         current_new_solution,
-                        edge_quantum_numbers=new_edge_qns,
+                        states=new_edge_qns,
                     )
                     new_solutions_temp.append(temp_solution)
             current_new_solutions = new_solutions_temp
@@ -444,8 +444,8 @@ def validate_full_solution(problem_set: QNProblemSet) -> QNResult:
     return QNResult(
         [
             QuantumNumberSolution(
-                edge_quantum_numbers=problem_set.initial_facts.states,
-                node_quantum_numbers=problem_set.initial_facts.interactions,
+                states=problem_set.initial_facts.states,
+                interactions=problem_set.initial_facts.interactions,
             )
         ],
     )
@@ -548,8 +548,8 @@ class CSPSolver(Solver):
         else:
             full_particle_solutions = [
                 QuantumNumberSolution(
-                    node_quantum_numbers=problem_set.initial_facts.interactions,
-                    edge_quantum_numbers=problem_set.initial_facts.states,
+                    interactions=problem_set.initial_facts.interactions,
+                    states=problem_set.initial_facts.states,
                 )
             ]
 
@@ -560,8 +560,8 @@ class CSPSolver(Solver):
             # and combine results
             result = QNResult()
             for full_particle_solution in full_particle_solutions:
-                interactions = full_particle_solution.node_quantum_numbers
-                states = full_particle_solution.edge_quantum_numbers
+                interactions = full_particle_solution.interactions
+                states = full_particle_solution.states
                 interactions.update(problem_set.initial_facts.interactions)
                 states.update(problem_set.initial_facts.states)
                 result.extend(
@@ -828,25 +828,19 @@ class CSPSolver(Solver):
         """Convert keys of CSP solutions from `str` to quantum number types."""
         converted_solutions = []
         for solution in solutions:
-            edge_quantum_numbers: Dict[
-                int, GraphEdgePropertyMap
-            ] = defaultdict(dict)
-            node_quantum_numbers: Dict[
-                int, GraphNodePropertyMap
-            ] = defaultdict(dict)
+            states: Dict[int, GraphEdgePropertyMap] = defaultdict(dict)
+            interactions: Dict[int, GraphNodePropertyMap] = defaultdict(dict)
             for var_string, value in solution.items():
                 ele_id, qn_type = self.__var_string_to_data[var_string]
 
                 if qn_type in getattr(  # noqa: B009
                     EdgeQuantumNumber, "__args__"
                 ):
-                    edge_quantum_numbers[ele_id].update({qn_type: value})  # type: ignore[dict-item]
+                    states[ele_id].update({qn_type: value})  # type: ignore[dict-item]
                 else:
-                    node_quantum_numbers[ele_id].update({qn_type: value})  # type: ignore[dict-item]
+                    interactions[ele_id].update({qn_type: value})  # type: ignore[dict-item]
             converted_solutions.append(
-                QuantumNumberSolution(
-                    node_quantum_numbers, edge_quantum_numbers
-                )
+                QuantumNumberSolution(states, interactions)
             )
 
         return converted_solutions
