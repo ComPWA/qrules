@@ -37,8 +37,6 @@
     "**/.tox/**": true
   },
   "git.rebaseWhenSync": true,
-  "githubPullRequests.telemetry.enabled": false,
-  "gitlens.advanced.telemetry.enabled": false,
   "json.schemas": [
     {
       "fileMatch": ["*particle*.json"],
@@ -72,8 +70,7 @@
     "*/.pydocstyle": true,
     ".constraints/*.txt": true
   },
-  "telemetry.enableCrashReporter": false,
-  "telemetry.enableTelemetry": false,
+  "telemetry.telemetryLevel": "off",
   "yaml.schemas": {
     "./src/qrules/particle-validation.json": ["*particle*.y*ml"],
     "https://raw.githubusercontent.com/readthedocs/readthedocs.org/master/readthedocs/rtd_tests/fixtures/spec/v2/schema.yml": ".readthedocs.yml"
