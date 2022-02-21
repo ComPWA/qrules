@@ -436,7 +436,7 @@ def __extract_priority(description: str) -> int:
 
 def _get_particle_graphs(
     graphs: Iterable[Transition[ParticleWithSpin, InteractionProperties]],
-) -> List[FrozenTransition[Particle, None]]:
+) -> "List[FrozenTransition[Particle, None]]":
     """Strip `list` of `.Transition` s of the spin projections.
 
     Extract a `list` of `.Transition` instances with only `.Particle` instances
@@ -470,10 +470,10 @@ def _get_particle_graphs(
 
 def _strip_projections(
     graph: Transition[Any, InteractionProperties],
-) -> FrozenTransition[Particle, InteractionProperties]:
+) -> "FrozenTransition[Particle, InteractionProperties]":
     if isinstance(graph, MutableTransition):
         transition = graph.freeze()
-    transition = cast(FrozenTransition[Any, InteractionProperties], graph)
+    transition = cast("FrozenTransition[Any, InteractionProperties]", graph)
     return transition.convert(
         state_converter=__to_particle,
         interaction_converter=lambda i: attrs.evolve(
@@ -494,9 +494,9 @@ def __to_particle(state: Any) -> Particle:
 
 def _collapse_graphs(
     graphs: Iterable[Transition[ParticleWithSpin, InteractionProperties]],
-) -> Tuple[FrozenTransition[Tuple[Particle, ...], None], ...]:
-    transition_groups = {
-        g.topology: MutableTransition[Set[Particle], None](
+) -> "Tuple[FrozenTransition[Tuple[Particle, ...], None], ...]":
+    transition_groups: "Dict[Topology, MutableTransition[Set[Particle], None]]" = {
+        g.topology: MutableTransition(
             g.topology,
             states={i: set() for i in g.topology.edges},
             interactions={i: None for i in g.topology.nodes},
@@ -512,11 +512,11 @@ def _collapse_graphs(
             else:
                 particle, _ = state
             group.states[state_id].add(particle)
-    particle_collection_graphs = []
+    collected_graphs: "List[FrozenTransition[Tuple[Particle, ...], None]]" = []
     for topology in sorted(transition_groups):
         group = transition_groups[topology]
-        particle_collection_graphs.append(
-            FrozenTransition[Tuple[Particle, ...], None](
+        collected_graphs.append(
+            FrozenTransition(
                 topology,
                 states={
                     i: tuple(sorted(particles, key=lambda p: p.name))
@@ -525,4 +525,4 @@ def _collapse_graphs(
                 interactions=group.interactions,
             )
         )
-    return tuple(particle_collection_graphs)
+    return tuple(collected_graphs)

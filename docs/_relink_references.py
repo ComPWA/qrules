@@ -22,6 +22,7 @@ __TARGET_SUBSTITUTIONS = {
     "a set-like object providing a view on D's keys": "typing.KeysView",
     "an object providing a view on D's values": "typing.ValuesView",
     "typing_extensions.Protocol": "typing.Protocol",
+    "typing_extensions.TypeAlias": "typing.TypeAlias",
 }
 __REF_TYPE_SUBSTITUTIONS = {
     "None": "obj",
@@ -57,6 +58,7 @@ __REF_TYPE_SUBSTITUTIONS = {
     "qrules.topology.NodeType": "obj",
     "qrules.topology.ValueType": "obj",
     "qrules.transition.StateTransition": "obj",
+    "typing.TypeAlias": "obj",
 }
 
 

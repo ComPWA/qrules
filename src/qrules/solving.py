@@ -11,6 +11,7 @@ module.
 
 import inspect
 import logging
+import sys
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from copy import copy
@@ -57,6 +58,11 @@ from .quantum_numbers import (
 )
 from .topology import MutableTransition, Topology
 
+if sys.version_info >= (3, 10):
+    from typing import TypeAlias
+else:
+    from typing_extensions import TypeAlias
+
 
 @implement_pretty_repr
 @define
@@ -89,11 +95,11 @@ class NodeSettings:
     interaction_strength: float = 1.0
 
 
-GraphSettings = MutableTransition[EdgeSettings, NodeSettings]
+GraphSettings: TypeAlias = "MutableTransition[EdgeSettings, NodeSettings]"
 """(Mutable) mapping of settings on a `.Topology`."""
-GraphElementProperties = MutableTransition[
-    GraphEdgePropertyMap, GraphNodePropertyMap
-]
+GraphElementProperties: TypeAlias = (
+    "MutableTransition[GraphEdgePropertyMap, GraphNodePropertyMap]"
+)
 """(Mutable) mapping of edge and node properties on a `.Topology`."""
 
 
@@ -116,9 +122,9 @@ class QNProblemSet:
         return self.initial_facts.topology
 
 
-QuantumNumberSolution = MutableTransition[
-    GraphEdgePropertyMap, GraphNodePropertyMap
-]
+QuantumNumberSolution: TypeAlias = (
+    "MutableTransition[GraphEdgePropertyMap, GraphNodePropertyMap]"
+)
 
 
 def _convert_violated_rules_to_names(
@@ -433,7 +439,7 @@ def validate_full_solution(problem_set: QNProblemSet) -> QNResult:
         )
     return QNResult(
         [
-            QuantumNumberSolution(
+            MutableTransition(
                 topology=problem_set.topology,
                 states=problem_set.initial_facts.states,
                 interactions=problem_set.initial_facts.interactions,
@@ -562,10 +568,10 @@ class CSPSolver(Solver):
                 result.extend(
                     validate_full_solution(
                         QNProblemSet(
-                            initial_facts=GraphElementProperties(
+                            initial_facts=MutableTransition(
                                 topology, states, interactions
                             ),
-                            solving_settings=GraphSettings(
+                            solving_settings=MutableTransition(
                                 topology,
                                 interactions={
                                     i: NodeSettings(conservation_rules=rules)
@@ -833,7 +839,7 @@ class CSPSolver(Solver):
                 else:
                     interactions[ele_id].update({qn_type: value})  # type: ignore[dict-item]
             converted_solutions.append(
-                QuantumNumberSolution(topology, states, interactions)
+                MutableTransition(topology, states, interactions)
             )
         return converted_solutions
 

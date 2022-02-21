@@ -341,7 +341,7 @@ class TestSolutionFilter:  # pylint: disable=no-self-use
 
 def _create_graph(
     problem_set: ProblemSet,
-) -> MutableTransition[ParticleWithSpin, InteractionProperties]:
+) -> "MutableTransition[ParticleWithSpin, InteractionProperties]":
     return MutableTransition(
         topology=problem_set.topology,
         interactions=problem_set.initial_facts.interactions,

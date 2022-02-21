@@ -5,6 +5,7 @@ represent interactions. This module provides tools to permutate, modify or
 extract these edge and node properties.
 """
 
+import sys
 from collections import OrderedDict
 from copy import deepcopy
 from itertools import permutations
@@ -30,9 +31,16 @@ from .particle import ParticleWithSpin
 from .quantum_numbers import InteractionProperties, arange
 from .topology import MutableTransition, Topology, get_originating_node_list
 
+if sys.version_info >= (3, 10):
+    from typing import TypeAlias
+else:
+    from typing_extensions import TypeAlias
+
 StateWithSpins = Tuple[str, Sequence[float]]
 StateDefinition = Union[str, StateWithSpins]
-InitialFacts = MutableTransition[ParticleWithSpin, InteractionProperties]
+InitialFacts: TypeAlias = (
+    "MutableTransition[ParticleWithSpin, InteractionProperties]"
+)
 """A `.Transition` with only initial and final state information."""
 
 
@@ -254,13 +262,13 @@ def create_initial_facts(  # pylint: disable=too-many-locals
         final_state=final_state,
         allowed_kinematic_groupings=allowed_kinematic_groupings,
     )
-    edge_initial_facts = []
+    edge_initial_facts: List[InitialFacts] = []
     for kinematic_permutation in kinematic_permutation_graphs:
         spin_permutations = _generate_spin_permutations(
             kinematic_permutation, particle_db
         )
         edge_initial_facts.extend(
-            [InitialFacts(topology, states=x) for x in spin_permutations]
+            [MutableTransition(topology, states=x) for x in spin_permutations]
         )
     return edge_initial_facts
 
@@ -398,19 +406,19 @@ def _generate_spin_permutations(
 
 
 def __get_initial_state_edge_ids(
-    graph: MutableTransition[ParticleWithSpin, InteractionProperties],
+    graph: "MutableTransition[ParticleWithSpin, InteractionProperties]",
 ) -> Iterable[int]:
     return graph.topology.incoming_edge_ids
 
 
 def __get_final_state_edge_ids(
-    graph: MutableTransition[ParticleWithSpin, InteractionProperties],
+    graph: "MutableTransition[ParticleWithSpin, InteractionProperties]",
 ) -> Iterable[int]:
     return graph.topology.outgoing_edge_ids
 
 
 def match_external_edges(
-    graphs: List[MutableTransition[ParticleWithSpin, InteractionProperties]],
+    graphs: "List[MutableTransition[ParticleWithSpin, InteractionProperties]]",
 ) -> None:
     if not isinstance(graphs, list):
         raise TypeError("graphs argument is not of type list")
@@ -424,11 +432,9 @@ def match_external_edges(
 
 
 def _match_external_edge_ids(  # pylint: disable=too-many-locals
-    graphs: List[MutableTransition[ParticleWithSpin, InteractionProperties]],
+    graphs: "List[MutableTransition[ParticleWithSpin, InteractionProperties]]",
     ref_graph_id: int,
-    external_edge_getter_function: Callable[
-        [MutableTransition], Iterable[int]
-    ],
+    external_edge_getter_function: "Callable[[MutableTransition], Iterable[int]]",
 ) -> None:
     ref_graph = graphs[ref_graph_id]
     # create external edge to particle mapping
@@ -489,7 +495,7 @@ def perform_external_edge_identical_particle_combinatorics(
 
 
 def _external_edge_identical_particle_combinatorics(
-    graph: MutableTransition[ParticleWithSpin, InteractionProperties],
+    graph: "MutableTransition[ParticleWithSpin, InteractionProperties]",
     external_edge_getter_function: Callable[
         [MutableTransition], Iterable[int]
     ],
@@ -549,7 +555,7 @@ def _calculate_swappings(id_mapping: Dict[int, int]) -> OrderedDict:
 
 
 def _create_edge_id_particle_mapping(
-    graph: MutableTransition[ParticleWithSpin, InteractionProperties],
+    graph: "MutableTransition[ParticleWithSpin, InteractionProperties]",
     edge_ids: Iterable[int],
 ) -> Dict[int, str]:
     return {i: graph.states[i][0].name for i in edge_ids}

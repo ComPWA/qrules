@@ -96,7 +96,7 @@ def build_reaction_info(definition: dict) -> ReactionInfo:
 
 def build_transition(
     definition: dict,
-) -> FrozenTransition[State, InteractionProperties]:
+) -> "FrozenTransition[State, InteractionProperties]":
     topology = build_topology(definition["topology"])
     states_def: Dict[int, dict] = definition["states"]
     states: Dict[int, State] = {}

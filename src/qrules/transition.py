@@ -1,11 +1,13 @@
 """Find allowed transitions between an initial and final state."""
 
 import logging
+import sys
 from collections import defaultdict
 from copy import copy, deepcopy
 from enum import Enum, auto
 from multiprocessing import Pool
 from typing import (
+    TYPE_CHECKING,
     Dict,
     Iterable,
     List,
@@ -64,7 +66,6 @@ from .solving import (
     CSPSolver,
     EdgeSettings,
     GraphEdgePropertyMap,
-    GraphElementProperties,
     GraphSettings,
     NodeSettings,
     QNProblemSet,
@@ -72,12 +73,18 @@ from .solving import (
 )
 from .topology import (
     FrozenDict,
-    FrozenTransition,
     MutableTransition,
     Topology,
     create_isobar_topologies,
     create_n_body_topology,
 )
+
+if sys.version_info >= (3, 10):
+    from typing import TypeAlias
+else:
+    from typing_extensions import TypeAlias
+if TYPE_CHECKING:
+    from .topology import FrozenTransition  # noqa: F401
 
 
 class SolvingMode(Enum):
@@ -137,9 +144,9 @@ class ExecutionInfo:
 class _SolutionContainer:
     """Defines a result of a `.ProblemSet`."""
 
-    solutions: List[
-        MutableTransition[ParticleWithSpin, InteractionProperties]
-    ] = field(factory=list)
+    solutions: "List[MutableTransition[ParticleWithSpin, InteractionProperties]]" = field(
+        factory=list
+    )
     execution_info: ExecutionInfo = field(default=ExecutionInfo())
 
     def __attrs_post_init__(self) -> None:
@@ -166,6 +173,10 @@ class _SolutionContainer:
             )
 
 
+if sys.version_info >= (3, 7):
+    attrs.resolve_types(_SolutionContainer, globals(), locals())
+
+
 @implement_pretty_repr
 @define
 class ProblemSet:
@@ -188,11 +199,14 @@ class ProblemSet:
             for k, v in self.initial_facts.states.items()
         }
         return QNProblemSet(
-            initial_facts=GraphElementProperties(
+            initial_facts=MutableTransition(
                 self.topology, states, interactions
             ),
             solving_settings=self.solving_settings,
         )
+
+
+attrs.resolve_types(ProblemSet, globals(), locals())
 
 
 def _group_by_strength(
@@ -457,7 +471,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         initial_state_edges = topology.incoming_edge_ids
 
         graph_settings: List[GraphSettings] = [
-            GraphSettings(
+            MutableTransition(
                 topology,
                 states={
                     edge_id: create_edge_settings(edge_id)
@@ -651,7 +665,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         """
         solutions = []
         for solution in qn_result.solutions:
-            graph = MutableTransition[ParticleWithSpin, InteractionProperties](
+            graph = MutableTransition(
                 topology=topology,
                 interactions={
                     i: create_interaction_properties(x)
@@ -689,9 +703,9 @@ def _safe_wrap_list(
 
 
 def _match_final_state_ids(
-    graph: MutableTransition[ParticleWithSpin, InteractionProperties],
+    graph: "MutableTransition[ParticleWithSpin, InteractionProperties]",
     state_definition: Sequence[StateDefinition],
-) -> MutableTransition[ParticleWithSpin, InteractionProperties]:
+) -> "MutableTransition[ParticleWithSpin, InteractionProperties]":
     """Temporary fix to https://github.com/ComPWA/qrules/issues/143."""
     particle_names = _strip_spin(state_definition)
     name_to_id = {name: i for i, name in enumerate(particle_names)}
@@ -727,7 +741,7 @@ class State:
     spin_projection: float = field(converter=_to_float)
 
 
-StateTransition = FrozenTransition[State, InteractionProperties]
+StateTransition: TypeAlias = "FrozenTransition[State, InteractionProperties]"
 """Transition of some initial `.State` to a final `.State`."""
 
 

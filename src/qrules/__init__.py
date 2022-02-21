@@ -62,14 +62,8 @@ from .settings import (
     _halves_domain,
     _int_domain,
 )
-from .solving import (
-    GraphSettings,
-    NodeSettings,
-    QNResult,
-    Rule,
-    validate_full_solution,
-)
-from .topology import create_n_body_topology
+from .solving import NodeSettings, QNResult, Rule, validate_full_solution
+from .topology import MutableTransition, create_n_body_topology
 from .transition import (
     EdgeSettings,
     ProblemSet,
@@ -139,7 +133,7 @@ def check_reaction_violations(  # pylint: disable=too-many-arguments
         problem_set = ProblemSet(
             topology=topology,
             initial_facts=facts,
-            solving_settings=GraphSettings(
+            solving_settings=MutableTransition(
                 facts.topology,
                 interactions={
                     i: NodeSettings(conservation_rules=rules)

@@ -198,11 +198,11 @@ class LeptonCheck(InteractionDeterminator):
 
 def remove_duplicate_solutions(
     solutions: List[
-        MutableTransition[ParticleWithSpin, InteractionProperties]
+        "MutableTransition[ParticleWithSpin, InteractionProperties]"
     ],
     remove_qns_list: Optional[Set[Type[NodeQuantumNumber]]] = None,
     ignore_qns_list: Optional[Set[Type[NodeQuantumNumber]]] = None,
-) -> List[MutableTransition[ParticleWithSpin, InteractionProperties]]:
+) -> "List[MutableTransition[ParticleWithSpin, InteractionProperties]]":
     if remove_qns_list is None:
         remove_qns_list = set()
     if ignore_qns_list is None:
@@ -232,9 +232,9 @@ def remove_duplicate_solutions(
 
 
 def _remove_qns_from_graph(  # pylint: disable=too-many-branches
-    graph: MutableTransition[ParticleWithSpin, InteractionProperties],
+    graph: "MutableTransition[ParticleWithSpin, InteractionProperties]",
     qn_list: Set[Type[NodeQuantumNumber]],
-) -> MutableTransition[ParticleWithSpin, InteractionProperties]:
+) -> "MutableTransition[ParticleWithSpin, InteractionProperties]":
     new_interactions = {}
     for node_id in graph.topology.nodes:
         interactions = graph.interactions[node_id]
@@ -328,9 +328,7 @@ def require_interaction_property(
     ingoing_particle_name: str,
     interaction_qn: Type[NodeQuantumNumber],
     allowed_values: List,
-) -> Callable[
-    [MutableTransition[ParticleWithSpin, InteractionProperties]], bool
-]:
+) -> "Callable[[MutableTransition[ParticleWithSpin, InteractionProperties]], bool]":
     """Filter function.
 
     Closure, which can be used as a filter function in :func:`.filter_graphs`.
@@ -356,7 +354,7 @@ def require_interaction_property(
     """
 
     def check(
-        graph: MutableTransition[ParticleWithSpin, InteractionProperties]
+        graph: "MutableTransition[ParticleWithSpin, InteractionProperties]",
     ) -> bool:
         node_ids = _find_node_ids_with_ingoing_particle_name(
             graph, ingoing_particle_name
@@ -375,7 +373,7 @@ def require_interaction_property(
 
 
 def _find_node_ids_with_ingoing_particle_name(
-    graph: MutableTransition[ParticleWithSpin, InteractionProperties],
+    graph: "MutableTransition[ParticleWithSpin, InteractionProperties]",
     ingoing_particle_name: str,
 ) -> List[int]:
     topology = graph.topology

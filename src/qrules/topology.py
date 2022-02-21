@@ -812,7 +812,7 @@ class MutableTransition(Transition, Generic[EdgeType, NodeType]):
         if value2 is not None:
             self.states[edge_id1] = value2
 
-    def freeze(self) -> FrozenTransition[EdgeType, NodeType]:
+    def freeze(self) -> "FrozenTransition[EdgeType, NodeType]":
         return FrozenTransition(self.topology, self.states, self.interactions)
 
 
