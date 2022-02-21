@@ -24,7 +24,6 @@ from qrules.transition import State  # noqa: F401
 from qrules.transition import (
     ReactionInfo,
     StateTransition,
-    StateTransitionCollection,
     StateTransitionManager,
 )
 
@@ -35,9 +34,7 @@ class TestReactionInfo:
         assert reaction.final_state[0].name == "gamma"
         assert reaction.final_state[1].name == "pi0"
         assert reaction.final_state[2].name == "pi0"
-        assert len(reaction.transition_groups) == 1
-        for grouping in reaction.transition_groups:
-            assert isinstance(grouping, StateTransitionCollection)
+        assert len(reaction.group_by_topology()) == 1
         if reaction.formalism.startswith("cano"):
             assert len(reaction.transitions) == 16
         else:
@@ -171,27 +168,12 @@ class TestStateTransition:
             assert from_repr == instance
 
     def test_from_to_graph(self, reaction: ReactionInfo):
-        assert len(reaction.transition_groups) == 1
+        assert len(reaction.group_by_topology()) == 1
         assert len(reaction.transitions) in {8, 16}
         for transition in reaction.transitions:
             graph = transition.to_graph()
             from_graph = StateTransition.from_graph(graph)
             assert transition == from_graph
-
-
-class TestStateTransitionCollection:
-    @pytest.mark.parametrize("repr_method", [repr, pretty])
-    def test_repr(self, reaction: ReactionInfo, repr_method):
-        for instance in reaction.transition_groups:
-            from_repr = eval(repr_method(instance))
-            assert from_repr == instance
-
-    def test_from_to_graphs(self, reaction: ReactionInfo):
-        assert len(reaction.transition_groups) == 1
-        transition_grouping = reaction.transition_groups[0]
-        graphs = transition_grouping.to_graphs()
-        from_graphs = StateTransitionCollection.from_graphs(graphs)
-        assert transition_grouping == from_graphs
 
 
 class TestStateTransitionManager:

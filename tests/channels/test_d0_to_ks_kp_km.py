@@ -11,10 +11,11 @@ def test_script():
             "phi(1020)",
         ],
     )
-    assert len(reaction.transition_groups) == 3
-    assert len(reaction.transition_groups[0]) == 2
-    assert len(reaction.transition_groups[1]) == 1
-    assert len(reaction.transition_groups[2]) == 2
+    groupings = sorted(reaction.group_by_topology().values())
+    assert len(groupings) == 3
+    assert len(groupings[0]) == 2
+    assert len(groupings[1]) == 2
+    assert len(groupings[2]) == 1
     assert reaction.get_intermediate_particles().names == [
         "a(0)(980)-",
         "a(0)(980)0",

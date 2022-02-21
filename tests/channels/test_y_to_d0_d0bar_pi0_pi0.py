@@ -19,7 +19,7 @@ def test_simple(formalism, n_solutions, particle_database):
         formalism=formalism,
         allowed_interaction_types="strong",
     )
-    assert len(reaction.transition_groups) == 1
+    assert len(reaction.group_by_topology()) == 1
     assert len(reaction.transitions) == n_solutions
 
 
@@ -43,5 +43,5 @@ def test_full(formalism, n_solutions, particle_database):
     stm.add_final_state_grouping([["D0", "pi0"], ["D~0", "pi0"]])
     problem_sets = stm.create_problem_sets()
     reaction = stm.find_solutions(problem_sets)
-    assert len(reaction.transition_groups) == 1
+    assert len(reaction.group_by_topology()) == 1
     assert len(reaction.transitions) == n_solutions

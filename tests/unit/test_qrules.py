@@ -23,7 +23,7 @@ def test_generate_transitions(resonance_names):
         allowed_intermediate_particles=resonance_names,
         allowed_interaction_types="strong",
     )
-    assert len(reaction.transition_groups) == len(resonance_names)
+    assert len(reaction.group_by_topology()) == len(resonance_names)
     final_state = dict(enumerate(final_state_names))
     for transition in reaction.transitions:
         this_final_state = {

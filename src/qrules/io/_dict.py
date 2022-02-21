@@ -17,12 +17,7 @@ from qrules.particle import (
 )
 from qrules.quantum_numbers import InteractionProperties
 from qrules.topology import Edge, StateTransitionGraph, Topology
-from qrules.transition import (
-    ReactionInfo,
-    State,
-    StateTransition,
-    StateTransitionCollection,
-)
+from qrules.transition import ReactionInfo, State, StateTransition
 
 
 def from_particle_collection(particles: ParticleCollection) -> dict:
@@ -79,7 +74,7 @@ def _value_serializer(  # pylint: disable=unused-argument
             return {k: v.name for k, v in value.items()}
         return dict(value)
     if not isinstance(
-        inst, (ReactionInfo, State, StateTransition, StateTransitionCollection)
+        inst, (ReactionInfo, State, StateTransition)
     ) and isinstance(value, Particle):
         return value.name
     if isinstance(value, Parity):
@@ -114,13 +109,11 @@ def build_particle(definition: dict) -> Particle:
 
 
 def build_reaction_info(definition: dict) -> ReactionInfo:
-    transition_groups = [
-        build_stc(graph_def) for graph_def in definition["transition_groups"]
+    transitions = [
+        build_state_transition(transition_def)
+        for transition_def in definition["transitions"]
     ]
-    return ReactionInfo(
-        transition_groups=transition_groups,
-        formalism=definition["formalism"],
-    )
+    return ReactionInfo(transitions, formalism=definition["formalism"])
 
 
 def build_stg(definition: dict) -> StateTransitionGraph[ParticleWithSpin]:
@@ -143,14 +136,6 @@ def build_stg(definition: dict) -> StateTransitionGraph[ParticleWithSpin]:
         edge_props=edge_props,
         node_props=node_props,
     )
-
-
-def build_stc(definition: dict) -> StateTransitionCollection:
-    transitions = [
-        build_state_transition(graph_def)
-        for graph_def in definition["transitions"]
-    ]
-    return StateTransitionCollection(transitions=transitions)
 
 
 def build_state_transition(definition: dict) -> StateTransition:

@@ -366,10 +366,10 @@ def generate_transitions(  # pylint: disable=too-many-arguments
     ...     particle_db=qrules.load_pdg(),
     ...     topology_building="isobar",
     ... )
-    >>> len(reaction.transition_groups)
-    3
     >>> len(reaction.transitions)
     4
+    >>> len(reaction.group_by_topology())
+    3
     """
     if isinstance(initial_state, str) or (
         isinstance(initial_state, tuple)

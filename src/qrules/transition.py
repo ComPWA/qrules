@@ -1,20 +1,14 @@
-# pylint: disable=too-many-lines
 """Find allowed transitions between an initial and final state."""
 
 import logging
-from collections import abc, defaultdict
+from collections import defaultdict
 from copy import copy, deepcopy
 from enum import Enum, auto
-from itertools import zip_longest
 from multiprocessing import Pool
 from typing import (
-    TYPE_CHECKING,
-    Any,
     Collection,
-    DefaultDict,
     Dict,
     Iterable,
-    Iterator,
     List,
     Mapping,
     Optional,
@@ -23,7 +17,6 @@ from typing import (
     Tuple,
     Type,
     Union,
-    overload,
 )
 
 import attrs
@@ -86,12 +79,6 @@ from .topology import (
     create_isobar_topologies,
     create_n_body_topology,
 )
-
-if TYPE_CHECKING:
-    try:
-        from IPython.lib.pretty import PrettyPrinter
-    except ImportError:
-        PrettyPrinter = Any
 
 
 class SolvingMode(Enum):
@@ -815,7 +802,7 @@ def _assert_defined(items: Collection, properties: Mapping) -> None:
         )
 
 
-def _to_sorted_tuple(
+def _sort_tuple(
     iterable: Iterable[StateTransition],
 ) -> Tuple[StateTransition, ...]:
     if not all(map(lambda t: isinstance(t, StateTransition), iterable)):
@@ -825,210 +812,50 @@ def _to_sorted_tuple(
     return tuple(sorted(iterable))
 
 
+@implement_pretty_repr
 @frozen
-class StateTransitionCollection(abc.Sequence):
-    """`.StateTransition` instances with the same `.Topology` and edge IDs."""
-
-    transitions: Tuple[StateTransition, ...] = field(
-        converter=_to_sorted_tuple
-    )
-    topology: Topology = field(init=False, repr=False)
-    initial_state: FrozenDict[int, Particle] = field(init=False, repr=False)
-    final_state: FrozenDict[int, Particle] = field(init=False, repr=False)
-
-    def __attrs_post_init__(self) -> None:
-        if not any(self.transitions):
-            ValueError(f"At least one {StateTransition.__name__} required")
-        some_transition = next(iter(self.transitions))
-        topology = some_transition.topology
-        if not all(map(lambda t: t.topology == topology, self.transitions)):
-            raise TypeError(
-                f"Not all {StateTransition.__name__} items have the same"
-                f" underlying topology. Expecting: {topology}"
-            )
-        object.__setattr__(self, "topology", topology)
-        object.__setattr__(
-            self,
-            "initial_state",
-            FrozenDict(
-                {
-                    i: s.particle
-                    for i, s in some_transition.states.items()
-                    if i in some_transition.topology.incoming_edge_ids
-                }
-            ),
-        )
-        object.__setattr__(
-            self,
-            "final_state",
-            FrozenDict(
-                {
-                    i: s.particle
-                    for i, s in some_transition.states.items()
-                    if i in some_transition.topology.outgoing_edge_ids
-                }
-            ),
-        )
-
-    def _repr_pretty_(self, p: "PrettyPrinter", cycle: bool) -> None:
-        class_name = type(self).__name__
-        if cycle:
-            p.text(f"{class_name}(...)")
-        else:
-            with p.group(indent=2, open=f"{class_name}(transitions=("):
-                for transition in self:
-                    p.breakable()
-                    p.pretty(transition)
-                    p.text(",")
-            p.breakable()
-            p.text("))")
-
-    def __contains__(self, item: object) -> bool:
-        return item in self.transitions
-
-    @overload
-    def __getitem__(self, idx: int) -> StateTransition:
-        ...
-
-    @overload
-    def __getitem__(self, idx: slice) -> Tuple[StateTransition]:
-        ...
-
-    def __getitem__(self, idx: Any) -> Any:
-        return self.transitions[idx]
-
-    def __iter__(self) -> Iterator[StateTransition]:
-        return iter(self.transitions)
-
-    def __len__(self) -> int:
-        return len(self.transitions)
-
-    @staticmethod
-    def from_graphs(
-        graphs: Iterable[StateTransitionGraph[ParticleWithSpin]],
-    ) -> "StateTransitionCollection":
-        transitions = [StateTransition.from_graph(g) for g in graphs]
-        return StateTransitionCollection(transitions)
-
-    def to_graphs(self) -> List[StateTransitionGraph[ParticleWithSpin]]:
-        return [transition.to_graph() for transition in sorted(self)]
-
-    def get_intermediate_particles(self) -> ParticleCollection:
-        """Extract the particle names of the intermediate states."""
-        intermediate_states = ParticleCollection()
-        for transition in self.transitions:
-            for state in transition.intermediate_states.values():
-                if state.particle not in intermediate_states:
-                    intermediate_states.add(state.particle)
-        return intermediate_states
-
-
-def _to_tuple(
-    iterable: Iterable[StateTransitionCollection],
-) -> Tuple[StateTransitionCollection, ...]:
-    if not all(
-        map(lambda t: isinstance(t, StateTransitionCollection), iterable)
-    ):
-        raise TypeError(
-            "Not all instances are of type"
-            f" {StateTransitionCollection.__name__}"
-        )
-    return tuple(iterable)
-
-
-@frozen(eq=False, hash=True)
 class ReactionInfo:
-    """`StateTransitionCollection` instances, grouped by `.Topology`."""
+    """Ordered collection of `StateTransition` instances."""
 
-    transition_groups: Tuple[StateTransitionCollection, ...] = field(
-        converter=_to_tuple
-    )
-    transitions: Tuple[StateTransition, ...] = field(
-        init=False, repr=False, eq=False
-    )
-    initial_state: FrozenDict[int, Particle] = field(init=False, repr=False)
-    final_state: FrozenDict[int, Particle] = field(init=False, repr=False)
+    transitions: Tuple[StateTransition, ...] = field(converter=_sort_tuple)
     formalism: str = field(validator=instance_of(str))
 
+    initial_state: FrozenDict[int, Particle] = field(
+        init=False, repr=False, eq=False
+    )
+    final_state: FrozenDict[int, Particle] = field(
+        init=False, repr=False, eq=False
+    )
+
     def __attrs_post_init__(self) -> None:
-        if len(self.transition_groups) == 0:
-            ValueError(
-                f"At least one {StateTransitionCollection.__name__} required"
-            )
-        transitions: List[StateTransition] = []
-        for grouping in self.transition_groups:
-            transitions.extend(sorted(grouping))
-        first_grouping = self.transition_groups[0]
-        object.__setattr__(self, "transitions", tuple(transitions))
-        object.__setattr__(self, "final_state", first_grouping.final_state)
-        object.__setattr__(self, "initial_state", first_grouping.initial_state)
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, ReactionInfo):
-            for own_grouping, other_grouping in zip_longest(
-                self.transition_groups, other.transition_groups
-            ):
-                if own_grouping != other_grouping:
-                    return False
-            return True
-        raise NotImplementedError(
-            f"Cannot compare {self.__class__.__name__} with "
-            f" {other.__class__.__name__}"
-        )
-
-    def _repr_pretty_(self, p: "PrettyPrinter", cycle: bool) -> None:
-        class_name = type(self).__name__
-        if cycle:
-            p.text(f"{class_name}(...)")
-        else:
-            with p.group(indent=2, open=f"{class_name}("):
-                p.breakable()
-                p.text("transition_groups=")
-                with p.group(indent=2, open="("):
-                    for transition_grouping in self.transition_groups:
-                        p.breakable()
-                        p.pretty(transition_grouping)
-                        p.text(",")
-                p.breakable()
-                p.text("),")
-                p.breakable()
-                p.text("formalism=")
-                p.pretty(self.formalism)
-                p.text(",")
-            p.breakable()
-            p.text(")")
+        transition = self.transitions[0]
+        initial = {i: s.particle for i, s in transition.initial_states.items()}
+        final = {i: s.particle for i, s in transition.final_states.items()}
+        object.__setattr__(self, "final_state", final)
+        object.__setattr__(self, "initial_state", initial)
 
     def get_intermediate_particles(self) -> ParticleCollection:
         """Extract the names of the intermediate state particles."""
-        return ParticleCollection(
-            set().union(
-                *[
-                    grouping.get_intermediate_particles()
-                    for grouping in self.transition_groups
-                ]
-            )
-        )
+        particles = {
+            state.particle
+            for transition in self.transitions
+            for state in transition.intermediate_states.values()
+        }
+        return ParticleCollection(particles)
 
     @staticmethod
     def from_graphs(
         graphs: Iterable[StateTransitionGraph[ParticleWithSpin]],
         formalism: str,
     ) -> "ReactionInfo":
-        transition_mapping: DefaultDict[
-            Topology, List[StateTransition]
-        ] = defaultdict(list)
-        for graph in graphs:
-            transition_mapping[graph.topology].append(
-                StateTransition.from_graph(graph)
-            )
-        transition_groups = tuple(
-            StateTransitionCollection(transitions)
-            for transitions in transition_mapping.values()
-        )
-        return ReactionInfo(transition_groups, formalism)
+        transitions = [StateTransition.from_graph(g) for g in graphs]
+        return ReactionInfo(transitions, formalism)
 
     def to_graphs(self) -> List[StateTransitionGraph[ParticleWithSpin]]:
-        graphs: List[StateTransitionGraph[ParticleWithSpin]] = []
-        for grouping in self.transition_groups:
-            graphs.extend(grouping.to_graphs())
-        return graphs
+        return [transition.to_graph() for transition in self.transitions]
+
+    def group_by_topology(self) -> Dict[Topology, List[StateTransition]]:
+        groupings = defaultdict(list)
+        for transition in self.transitions:
+            groupings[transition.topology].append(transition)
+        return dict(groupings)

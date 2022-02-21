@@ -20,9 +20,8 @@ from qrules.transition import ReactionInfo
 
 
 def test_asdot(reaction: ReactionInfo):
-    for grouping in reaction.transition_groups:
-        for transition in grouping:
-            dot_data = io.asdot(transition)
+    for transition in reaction.transitions:
+        dot_data = io.asdot(transition)
         assert pydot.graph_from_dot_data(dot_data) is not None
     dot_data = io.asdot(reaction)
     assert pydot.graph_from_dot_data(dot_data) is not None
@@ -186,12 +185,9 @@ class TestWrite:
             assert pydot.graph_from_dot_data(dot_data) is not None
 
     def test_write_graph_list(self, output_dir: str, reaction: ReactionInfo):
-        for i, grouping in enumerate(reaction.transition_groups):
+        for i, transition in enumerate(reaction.transitions):
             output_file = output_dir + f"test_graph_list_{i}.gv"
-            io.write(
-                instance=grouping,
-                filename=output_file,
-            )
+            io.write(transition, filename=output_file)
             with open(output_file) as stream:
                 dot_data = stream.read()
             assert pydot.graph_from_dot_data(dot_data) is not None

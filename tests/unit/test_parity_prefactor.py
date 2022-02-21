@@ -69,7 +69,7 @@ def test_parity_prefactor(
 
     reaction = stm.find_solutions(problem_sets)
 
-    assert len(reaction.transition_groups) == 1
+    assert len(reaction.group_by_topology()) == 1
     for transition in reaction.transitions:
         in_edges = [
             state_id
