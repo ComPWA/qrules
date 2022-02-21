@@ -9,7 +9,7 @@ from qrules.io._dot import (
     _get_particle_graphs,
     _strip_projections,
 )
-from qrules.particle import ParticleCollection
+from qrules.particle import Particle, ParticleCollection
 from qrules.topology import (
     Edge,
     Topology,
@@ -210,13 +210,15 @@ def test_collapse_graphs(
     pdg = particle_database
     particle_graphs = _get_particle_graphs(reaction.to_graphs())
     assert len(particle_graphs) == 2
+
     collapsed_graphs = _collapse_graphs(reaction.to_graphs())
     assert len(collapsed_graphs) == 1
     graph = next(iter(collapsed_graphs))
     edge_id = next(iter(graph.topology.intermediate_edge_ids))
     f_resonances = pdg.filter(lambda p: p.name in ["f(0)(980)", "f(0)(1500)"])
     intermediate_states = graph.states[edge_id]
-    assert isinstance(intermediate_states, ParticleCollection)
+    assert isinstance(intermediate_states, tuple)
+    assert all(map(lambda i: isinstance(i, Particle), intermediate_states))
     assert intermediate_states == f_resonances
 
 

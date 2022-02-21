@@ -43,9 +43,9 @@ from attrs.validators import instance_of
 from qrules._implementers import implement_pretty_repr
 
 if sys.version_info >= (3, 8):
-    from typing import Protocol
+    from typing import Protocol, runtime_checkable
 else:
-    from typing_extensions import Protocol
+    from typing_extensions import Protocol, runtime_checkable
 
 if TYPE_CHECKING:
     try:
@@ -653,6 +653,13 @@ EdgeType = TypeVar("EdgeType")
 """A `~typing.TypeVar` representing the type of edge properties."""
 NodeType = TypeVar("NodeType")
 """A `~typing.TypeVar` representing the type of node properties."""
+
+
+@runtime_checkable
+class Transition(Protocol[EdgeType, NodeType]):
+    topology: Topology
+    states: Dict[int, EdgeType]
+    interactions: Dict[int, NodeType]
 
 
 @implement_pretty_repr
