@@ -7,7 +7,6 @@ and from disk, so that they can be used by external packages, or just to store
 """
 
 import json
-from collections import abc
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -16,7 +15,7 @@ import yaml
 
 from qrules.particle import Particle, ParticleCollection
 from qrules.topology import Topology, Transition
-from qrules.transition import ProblemSet, ReactionInfo, State
+from qrules.transition import ReactionInfo, State
 
 from . import _dict, _dot
 
@@ -123,39 +122,18 @@ def asdot(
 
     .. seealso:: :doc:`/usage/visualize`
     """
-    if edge_style is None:
-        edge_style = {}
-    if node_style is None:
-        node_style = {}
-    if isinstance(instance, (ProblemSet, Topology, Transition)):
-        dot = _dot.graph_to_dot(
-            instance,
-            render_node=render_node,
-            render_final_state_id=render_final_state_id,
-            render_resonance_id=render_resonance_id,
-            render_initial_state_id=render_initial_state_id,
-            edge_style=edge_style,
-            node_style=node_style,
-        )
-        return _dot.insert_graphviz_styling(dot, graphviz_attrs=figure_style)
-    if isinstance(instance, ReactionInfo):
-        instance = instance.transitions
-    if isinstance(instance, abc.Iterable):
-        dot = _dot.graph_list_to_dot(
-            instance,
-            render_node=render_node,
-            render_final_state_id=render_final_state_id,
-            render_resonance_id=render_resonance_id,
-            render_initial_state_id=render_initial_state_id,
-            strip_spin=strip_spin,
-            collapse_graphs=collapse_graphs,
-            edge_style=edge_style,
-            node_style=node_style,
-        )
-        return _dot.insert_graphviz_styling(dot, graphviz_attrs=figure_style)
-    raise NotImplementedError(
-        f"Cannot convert a {instance.__class__.__name__} to DOT language"
+    print_dot = _dot.GraphPrinter(
+        render_node=render_node,
+        render_final_state_id=render_final_state_id,
+        render_resonance_id=render_resonance_id,
+        render_initial_state_id=render_initial_state_id,
+        strip_spin=strip_spin,
+        collapse_graphs=collapse_graphs,
+        figure_style=figure_style,
+        edge_style=edge_style,
+        node_style=node_style,
     )
+    return print_dot(instance)
 
 
 def load(filename: str) -> object:
