@@ -3,10 +3,22 @@
 See :doc:`/usage/visualize` for more info.
 """
 
+import logging
 import re
 import string
 from collections import abc
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Union, cast
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+    cast,
+)
 
 import attrs
 from attrs import Attribute, define, field
@@ -159,7 +171,7 @@ class GraphPrinter:
             for node_id, settings in node_settings.items():
                 label = ""
                 if self.render_node:
-                    label = _create_node_label(settings)
+                    label = _render_property(settings)
                 node = f"{prefix}N{node_id}"
                 lines += [
                     self._create_graphviz_node(node, label, self.node_style)
@@ -168,7 +180,7 @@ class GraphPrinter:
             for node_id, node_prop in obj.interactions.items():
                 label = ""
                 if self.render_node:
-                    label = _create_node_label(node_prop)
+                    label = _render_property(node_prop)
                 node = f"{prefix}N{node_id}"
                 lines += [
                     self._create_graphviz_node(node, label, self.node_style)
@@ -281,21 +293,17 @@ def _create_edge_label(
             edge_property = edge_setting
         if initial_fact:
             edge_property = initial_fact
-        return ___render_edge_with_id(edge_id, edge_property, render_edge_id)
+        return __render_edge_with_id(edge_id, edge_property, render_edge_id)
     edge_prop = graph.states.get(edge_id)
-    return ___render_edge_with_id(edge_id, edge_prop, render_edge_id)
+    return __render_edge_with_id(edge_id, edge_prop, render_edge_id)
 
 
-def ___render_edge_with_id(
-    edge_id: int,
-    edge_prop: Optional[
-        Union[EdgeSettings, Iterable[Particle], Particle, ParticleWithSpin]
-    ],
-    render_edge_id: bool,
+def __render_edge_with_id(
+    edge_id: int, edge_prop: Any, render_edge_id: bool
 ) -> str:
     if edge_prop is None or not edge_prop:
         return str(edge_id)
-    edge_label = __edge_to_string(edge_prop)
+    edge_label = _render_property(edge_prop)
     if not render_edge_id:
         return edge_label
     if "\n" in edge_label:
@@ -303,76 +311,31 @@ def ___render_edge_with_id(
     return f"{edge_id}: {edge_label}"
 
 
-def __edge_to_string(edge_prop: Any) -> str:
-    # pylint: disable=too-many-return-statements
-    if edge_prop is None:
-        return ""
-    if isinstance(edge_prop, str):
-        return edge_prop
-    if isinstance(edge_prop, EdgeSettings):
-        return __render_settings(edge_prop)
-    if isinstance(edge_prop, Particle):
-        return edge_prop.name
-    if isinstance(edge_prop, State):
-        edge_prop = edge_prop.particle, edge_prop.spin_projection
-    if isinstance(edge_prop, Spin):
-        return __render_spin(edge_prop)
-    if isinstance(edge_prop, tuple):
-        if len(edge_prop) == 2:
-            particle, spin_projection = edge_prop
-            if isinstance(particle, Particle) and isinstance(
-                spin_projection, (int, float)
-            ):
-                projection_label = _to_fraction(
-                    spin_projection, render_plus=True
-                )
-                return f"{particle.name}[{projection_label}]"
-    if isinstance(edge_prop, abc.Iterable):
-        return "\n".join(map(__edge_to_string, edge_prop))
-    return str(edge_prop)
+def _interaction_properties_to_str(node_prop: InteractionProperties) -> str:
+    lines = []
+    if node_prop.l_magnitude is not None:
+        if node_prop.l_projection is None:
+            l_label = _to_fraction(node_prop.l_magnitude)
+        else:
+            l_label = _spin_to_str(
+                Spin(node_prop.l_magnitude, node_prop.l_projection)
+            )
+        lines.append(f"L={l_label}")
+    if node_prop.s_magnitude is not None:
+        if node_prop.s_projection is None:
+            s_label = _to_fraction(node_prop.s_magnitude)
+        else:
+            s_label = _spin_to_str(
+                Spin(node_prop.s_magnitude, node_prop.s_projection)
+            )
+        lines.append(f"S={s_label}")
+    if node_prop.parity_prefactor is not None:
+        label = _to_fraction(node_prop.parity_prefactor, render_plus=True)
+        lines.append(f"P={label}")
+    return "\n".join(lines)
 
 
-def _create_node_label(
-    node_prop: Union[InteractionProperties, NodeSettings]
-) -> str:
-    if isinstance(node_prop, NodeSettings):
-        return __render_settings(node_prop)
-    if isinstance(node_prop, InteractionProperties):
-        output = ""
-        if node_prop.l_magnitude is not None:
-            if node_prop.l_projection is None:
-                l_label = _to_fraction(node_prop.l_magnitude)
-            else:
-                l_label = __render_spin(
-                    (node_prop.l_magnitude, node_prop.l_projection)
-                )
-            output += f"L={l_label}\n"
-        if node_prop.s_magnitude is not None:
-            if node_prop.s_projection is None:
-                s_label = _to_fraction(node_prop.s_magnitude)
-            else:
-                s_label = __render_spin(
-                    (node_prop.s_magnitude, node_prop.s_projection)
-                )
-            output += f"S={s_label}\n"
-        if node_prop.parity_prefactor is not None:
-            label = _to_fraction(node_prop.parity_prefactor, render_plus=True)
-            output += f"P={label}"
-        return output
-    raise NotImplementedError
-
-
-def __render_spin(spin: Union[Spin, Tuple[float, float]]) -> str:
-    if isinstance(spin, Spin):
-        spin_magnitude = _to_fraction(spin.magnitude)
-        spin_projection = _to_fraction(spin.projection, render_plus=True)
-    else:
-        spin_magnitude = _to_fraction(spin[0])
-        spin_projection = _to_fraction(spin[1], render_plus=True)
-    return f"|{spin_magnitude},{spin_projection}⟩"
-
-
-def __render_settings(settings: Union[EdgeSettings, NodeSettings]) -> str:
+def _settings_to_str(settings: Union[EdgeSettings, NodeSettings]) -> str:
     output = ""
     if settings.rule_priorities:
         output += "RULE PRIORITIES\n"
@@ -400,6 +363,57 @@ def __extract_priority(description: str) -> int:
         raise ValueError(f"{description} does not contain a priority number")
     priority = matches[1]
     return int(priority)
+
+
+def _particle_to_str(particle: Particle) -> str:
+    return particle.name
+
+
+def _spin_to_str(spin: Spin) -> str:
+    spin_magnitude = _to_fraction(spin.magnitude)
+    spin_projection = _to_fraction(spin.projection, render_plus=True)
+    return f"|{spin_magnitude},{spin_projection}⟩"
+
+
+def _state_to_str(state: State) -> str:
+    particle = state.particle.name
+    spin_projection = _to_fraction(state.spin_projection, render_plus=True)
+    return f"{particle}[{spin_projection}]"
+
+
+def _tuple_to_str(obj: tuple) -> str:
+    if len(obj) == 2:
+        if isinstance(obj[0], Particle) and isinstance(obj[1], (float, int)):
+            state = State(*obj)
+            return _state_to_str(state)
+        if all(map(lambda i: isinstance(i, (float, int)), obj)):
+            spin = Spin(*obj)
+            return _spin_to_str(spin)
+    logging.warning(f"No DOT render implemented for tuple of size {len(obj)}")
+    return str(obj)
+
+
+PROPERTY_TO_STR_CONVERTERS: Dict[Any, Callable[[Any], str]] = {
+    str: lambda _: _,
+    tuple: _tuple_to_str,
+    Particle: _particle_to_str,
+    Spin: _spin_to_str,
+    State: _state_to_str,
+    InteractionProperties: _interaction_properties_to_str,
+    (EdgeSettings, NodeSettings): _settings_to_str,
+}
+
+
+def _render_property(obj: Any) -> str:
+    if obj is None:
+        return ""
+    for typ, converter in PROPERTY_TO_STR_CONVERTERS.items():
+        if isinstance(obj, typ):
+            return converter(obj)
+        if isinstance(obj, abc.Iterable):
+            return "\n".join(map(_render_property, obj))
+    logging.warning(f"No DOT render implemented type {type(obj).__name__}")
+    return str(obj)
 
 
 def _get_particle_graphs(
