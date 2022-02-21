@@ -5,6 +5,7 @@ See :doc:`/usage/visualize` for more info.
 
 import functools
 import re
+import string
 from collections import abc
 from typing import (
     Any,
@@ -74,7 +75,7 @@ def _create_graphviz_edge(
     if label:
         updated_graphviz_attrs["label"] = label
     styling = __create_graphviz_edge_node_styling(updated_graphviz_attrs)
-    return f'    "{from_node}" -> "{to_node}"{styling};\n'
+    return f"    {from_node} -> {to_node}{styling};\n"
 
 
 def _create_graphviz_node(
@@ -82,7 +83,7 @@ def _create_graphviz_node(
 ) -> str:
     updated_graphviz_attrs = {"shape": None, **graphviz_attrs, "label": label}
     styling = __create_graphviz_edge_node_styling(updated_graphviz_attrs)
-    return f'    "{name}"{styling};\n'
+    return f"    {name}{styling};\n"
 
 
 def __dot_kwargs_to_header(graphviz_attrs: Dict[str, Any]) -> str:
@@ -182,7 +183,7 @@ def graph_list_to_dot(
     for i, graph in enumerate(reversed(graphs)):
         dot += __graph_to_dot_content(
             graph,
-            prefix=f"g{i}_",
+            prefix=f"T{i}_",
             render_node=render_node,
             render_final_state_id=render_final_state_id,
             render_resonance_id=render_resonance_id,
@@ -275,7 +276,7 @@ def __graph_to_dot_content(  # pylint: disable=too-many-branches,too-many-locals
             if render_node:
                 node_label = __node_label(settings)
             dot += _create_graphviz_node(
-                name=f"{prefix}node{node_id}",
+                name=f"{prefix}N{node_id}",
                 label=node_label,
                 graphviz_attrs=node_style,
             )
@@ -285,7 +286,7 @@ def __graph_to_dot_content(  # pylint: disable=too-many-branches,too-many-locals
             if render_node:
                 node_label = __node_label(node_prop)
             dot += _create_graphviz_node(
-                name=f"{prefix}node{node_id}",
+                name=f"{prefix}N{node_id}",
                 label=node_label,
                 graphviz_attrs=node_style,
             )
@@ -296,7 +297,7 @@ def __graph_to_dot_content(  # pylint: disable=too-many-branches,too-many-locals
                 if render_node:
                     node_label = f"({node_id})"
                 dot += _create_graphviz_node(
-                    name=f"{prefix}node{node_id}",
+                    name=f"{prefix}N{node_id}",
                     label=node_label,
                     graphviz_attrs=node_style,
                 )
@@ -305,12 +306,14 @@ def __graph_to_dot_content(  # pylint: disable=too-many-branches,too-many-locals
 
 def __node_name(edge_id: int, node_id: Optional[int] = None) -> str:
     if node_id is None:
-        return f"edge{edge_id}"
-    return f"node{node_id}"
+        if edge_id < 0:  # initial state
+            return string.ascii_uppercase[-edge_id - 1]
+        return str(edge_id)
+    return f"N{node_id}"
 
 
 def __rank_string(node_edge_ids: Iterable[int], prefix: str = "") -> str:
-    name_list = [f'"{prefix}{__node_name(i)}"' for i in node_edge_ids]
+    name_list = [f"{prefix}{__node_name(i)}" for i in node_edge_ids]
     name_string = ", ".join(name_list)
     return _DOT_RANK_SAME.format(name_string)
 
