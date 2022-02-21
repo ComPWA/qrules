@@ -376,7 +376,7 @@ def get_originating_node_list(
     ]
 
 
-@define(kw_only=True)
+@define
 class MutableTopology:
     edges: Dict[int, Edge] = field(factory=dict, converter=dict)
     nodes: Set[int] = field(factory=set, converter=set)
