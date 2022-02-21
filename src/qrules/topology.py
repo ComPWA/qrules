@@ -382,10 +382,28 @@ def get_originating_node_list(
     ]
 
 
+def _to_mutable_topology_nodes(inst: Iterable[int]) -> Set[int]:
+    return set(inst)
+
+
+def _to_mutable_topology_edges(inst: Mapping[int, Edge]) -> Dict[int, Edge]:
+    return dict(inst)
+
+
 @define
 class MutableTopology:
-    edges: Dict[int, Edge] = field(factory=dict, converter=dict)
-    nodes: Set[int] = field(factory=set, converter=set)
+    nodes: Set[int] = field(
+        converter=_to_mutable_topology_nodes,
+        factory=set,
+        on_setattr=deep_iterable(member_validator=instance_of(int)),
+    )
+    edges: Dict[int, Edge] = field(
+        converter=_to_mutable_topology_edges,
+        factory=dict,
+        on_setattr=deep_mapping(
+            key_validator=instance_of(int), value_validator=instance_of(Edge)
+        ),
+    )
 
     def freeze(self) -> Topology:
         return Topology(
@@ -517,9 +535,7 @@ class SimpleStateTransitionTopologyBuilder:
         seed_graph = MutableTopology()
         current_open_end_edges = list(range(number_of_initial_edges))
         seed_graph.add_edges(current_open_end_edges)
-        extendable_graph_list: List[Tuple[MutableTopology, List[int]]] = [
-            (seed_graph, current_open_end_edges)
-        ]
+        extendable_graph_list = [(seed_graph, current_open_end_edges)]
 
         while extendable_graph_list:
             active_graph_list = extendable_graph_list

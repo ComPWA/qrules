@@ -102,7 +102,7 @@ class TestMutableTopology:
     def test_add_and_attach(self, two_to_three_decay: Topology):
         topology = MutableTopology(
             edges=two_to_three_decay.edges,
-            nodes=two_to_three_decay.nodes,  # type: ignore[arg-type]
+            nodes=two_to_three_decay.nodes,
         )
         topology.add_node(3)
         topology.add_edges([7, 8])
@@ -118,7 +118,7 @@ class TestMutableTopology:
     def test_add_exceptions(self, two_to_three_decay: Topology):
         topology = MutableTopology(
             edges=two_to_three_decay.edges,
-            nodes=two_to_three_decay.nodes,  # type: ignore[arg-type]
+            nodes=two_to_three_decay.nodes,
         )
         with pytest.raises(ValueError, match=r"Node nr. 0 already exists"):
             topology.add_node(0)
