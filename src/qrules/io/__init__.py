@@ -14,32 +14,19 @@ import attrs
 import yaml
 
 from qrules.particle import Particle, ParticleCollection
-from qrules.topology import Topology, Transition
-from qrules.transition import ReactionInfo, State
+from qrules.topology import Topology
 
 from . import _dict, _dot
 
 
 def asdict(instance: object) -> dict:
     # pylint: disable=protected-access
-    if isinstance(instance, Particle):
-        return _dict.from_particle(instance)
     if isinstance(instance, ParticleCollection):
         return _dict.from_particle_collection(instance)
-    if isinstance(instance, (ReactionInfo, State)):
-        return attrs.asdict(
-            instance,
-            recurse=True,
-            filter=lambda a, _: a.init,
-            value_serializer=_dict._value_serializer,
-        )
-    if isinstance(instance, Transition):
-        return _dict.from_transition(instance)
-    if isinstance(instance, Topology):
-        return _dict.from_topology(instance)
+    if attrs.has(type(instance)):
+        return _dict.from_attrs_decorated(instance)
     raise NotImplementedError(
-        "No conversion for dict available for class"
-        f" {instance.__class__.__name__}"
+        f"No conversion to dict available for class {type(instance).__name__}"
     )
 
 
