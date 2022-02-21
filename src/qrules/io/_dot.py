@@ -355,8 +355,11 @@ def ___render_edge_with_id(
 
 
 def __edge_to_string(edge_prop: Any) -> str:
+    # pylint: disable=too-many-return-statements
     if edge_prop is None:
         return ""
+    if isinstance(edge_prop, str):
+        return edge_prop
     if isinstance(edge_prop, EdgeSettings):
         return __render_settings(edge_prop)
     if isinstance(edge_prop, Particle):
@@ -377,7 +380,7 @@ def __edge_to_string(edge_prop: Any) -> str:
                 return f"{particle.name}[{projection_label}]"
     if isinstance(edge_prop, abc.Iterable):
         return "\n".join(map(__edge_to_string, edge_prop))
-    raise NotImplementedError
+    return str(edge_prop)
 
 
 def __node_label(node_prop: Union[InteractionProperties, NodeSettings]) -> str:
