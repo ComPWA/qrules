@@ -8,12 +8,12 @@ rendered as clickable links.
 See also https://github.com/sphinx-doc/sphinx/issues/5868.
 """
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 if TYPE_CHECKING:
+    from docutils import nodes
     from sphinx.addnodes import pending_xref
     from sphinx.environment import BuildEnvironment
-
 
 __TARGET_SUBSTITUTIONS = {
     "a set-like object providing a view on D's items": "typing.ItemsView",
@@ -23,6 +23,38 @@ __TARGET_SUBSTITUTIONS = {
 }
 __REF_TYPE_SUBSTITUTIONS = {
     "None": "obj",
+    "qrules.combinatorics.InitialFacts": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.baryon_number": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.bottomness": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.c_parity": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.charge": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.charmness": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.electron_lepton_number": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.g_parity": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.isospin_magnitude": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.isospin_projection": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.mass": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.muon_lepton_number": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.parity": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.pid": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.spin_magnitude": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.spin_projection": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.strangeness": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.tau_lepton_number": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.topness": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.width": "obj",
+    "qrules.quantum_numbers.NodeQuantumNumbers.l_magnitude": "obj",
+    "qrules.quantum_numbers.NodeQuantumNumbers.l_projection": "obj",
+    "qrules.quantum_numbers.NodeQuantumNumbers.parity_prefactor": "obj",
+    "qrules.quantum_numbers.NodeQuantumNumbers.s_magnitude": "obj",
+    "qrules.quantum_numbers.NodeQuantumNumbers.s_projection": "obj",
+    "qrules.solving.GraphElementProperties": "obj",
+    "qrules.solving.GraphSettings": "obj",
+    "qrules.topology.EdgeType": "obj",
+    "qrules.topology.KeyType": "obj",
+    "qrules.topology.NodeType": "obj",
+    "qrules.topology.ValueType": "obj",
+    "qrules.transition.StateTransition": "obj",
 }
 
 
@@ -31,32 +63,66 @@ def _new_type_to_xref(
     env: "BuildEnvironment" = None,
     suppress_prefix: bool = False,
 ) -> "pending_xref":
-    if env:
-        kwargs = {
-            "py:module": env.ref_context.get("py:module"),
-            "py:class": env.ref_context.get("py:class"),
-        }
-    else:
-        kwargs = {}
-
-    target = __TARGET_SUBSTITUTIONS.get(target, target)
-    reftype = __REF_TYPE_SUBSTITUTIONS.get(target, "class")
-    if suppress_prefix:
-        short_text = target.split(".")[-1]
-    else:
-        short_text = target
-
-    from docutils.nodes import Text
+    import sphinx
     from sphinx.addnodes import pending_xref
 
+    if sphinx.version_info >= (4, 4):
+        # https://github.com/sphinx-doc/sphinx/blob/v4.4.0/sphinx/domains/python.py#L110-L133
+        from sphinx.domains.python import (  # type: ignore[attr-defined]
+            parse_reftarget,
+        )
+
+        reftype, target, title, refspecific = parse_reftarget(
+            target, suppress_prefix
+        )
+        target = __TARGET_SUBSTITUTIONS.get(target, target)
+        reftype = __REF_TYPE_SUBSTITUTIONS.get(target, reftype)
+        assert env is not None
+        return pending_xref(
+            "",
+            *__create_nodes(env, title),
+            refdomain="py",
+            reftype=reftype,
+            reftarget=target,
+            refspecific=refspecific,
+            **__get_env_kwargs(env),
+        )
+
+    # Sphinx <4.4.0
+    # https://github.com/sphinx-doc/sphinx/blob/v4.3.2/sphinx/domains/python.py#L83-L107
+    target = __TARGET_SUBSTITUTIONS.get(target, target)
+    reftype = __REF_TYPE_SUBSTITUTIONS.get(target, "class")
+    assert env is not None
     return pending_xref(
         "",
-        Text(short_text),
+        *__create_nodes(env, target),
         refdomain="py",
         reftype=reftype,
         reftarget=target,
-        **kwargs,
+        **__get_env_kwargs(env),
     )
+
+
+def __get_env_kwargs(env: "BuildEnvironment") -> dict:
+    if env:
+        return {
+            "py:module": env.ref_context.get("py:module"),
+            "py:class": env.ref_context.get("py:class"),
+        }
+    return {}
+
+
+def __create_nodes(env: "BuildEnvironment", title: str) -> "List[nodes.Node]":
+    from docutils import nodes
+    from sphinx.addnodes import pending_xref_condition
+
+    short_name = title.split(".")[-1]
+    if env.config.python_use_unqualified_type_names:
+        return [
+            pending_xref_condition("", short_name, condition="resolved"),
+            pending_xref_condition("", title, condition="*"),
+        ]
+    return [nodes.Text(short_name)]
 
 
 def relink_references() -> None:

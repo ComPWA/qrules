@@ -169,19 +169,14 @@ class _SolutionContainer:
 @implement_pretty_repr
 @define
 class ProblemSet:
-    """Particle reaction problem set, defined as a graph like data structure.
-
-    Args:
-        topology: `.Topology` that contains the structure of the reaction.
-        initial_facts: `.InitialFacts` that contain the info of initial and
-          final state in connection with the topology.
-        solving_settings: Solving related settings such as the conservation
-          rules and the quantum number domains.
-    """
+    """Particle reaction problem set as a graph-like data structure."""
 
     topology: Topology
-    initial_facts: InitialFacts
-    solving_settings: GraphSettings
+    """`.Topology` over which the problem set is defined."""
+    initial_facts: "InitialFacts"
+    """Information about the initial and final state."""
+    solving_settings: "GraphSettings"
+    """Solving settings, such as conservation rules and QN-domains."""
 
     def to_qn_problem_set(self) -> QNProblemSet:
         interactions = {
@@ -412,7 +407,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         return _group_by_strength(problem_sets)
 
     def __determine_graph_settings(
-        self, topology: Topology, initial_facts: InitialFacts
+        self, topology: Topology, initial_facts: "InitialFacts"
     ) -> List[GraphSettings]:
         # pylint: disable=too-many-locals
         def create_intermediate_edge_qn_domains() -> Dict:

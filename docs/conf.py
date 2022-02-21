@@ -175,6 +175,12 @@ autodoc_default_options = {
     ),
 }
 autodoc_member_order = "bysource"
+autodoc_type_aliases = {
+    "GraphElementProperties": "qrules.solving.GraphElementProperties",
+    "GraphSettings": "qrules.solving.GraphSettings",
+    "InitialFacts": "qrules.combinatorics.InitialFacts",
+    "StateTransition": "qrules.transition.StateTransition",
+}
 autodoc_typehints_format = "short"
 codeautolink_concat_default = True
 AUTODOC_INSERT_SIGNATURE_LINEBREAKS = True

@@ -132,7 +132,7 @@ def check_reaction_violations(  # pylint: disable=too-many-arguments
         particle_db = load_pdg()
 
     def _check_violations(
-        facts: InitialFacts,
+        facts: "InitialFacts",
         node_rules: Dict[int, Set[Rule]],
         edge_rules: Dict[int, Set[GraphElementRule]],
     ) -> QNResult:

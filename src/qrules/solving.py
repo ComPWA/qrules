@@ -90,9 +90,11 @@ class NodeSettings:
 
 
 GraphSettings = MutableTransition[EdgeSettings, NodeSettings]
+"""(Mutable) mapping of settings on a `.Topology`."""
 GraphElementProperties = MutableTransition[
     GraphEdgePropertyMap, GraphNodePropertyMap
 ]
+"""(Mutable) mapping of edge and node properties on a `.Topology`."""
 
 
 @implement_pretty_repr
@@ -106,8 +108,8 @@ class QNProblemSet:
         and variable domains for nodes and edges of the :attr:`topology`.
     """
 
-    initial_facts: GraphElementProperties
-    solving_settings: GraphSettings
+    initial_facts: "GraphElementProperties"
+    solving_settings: "GraphSettings"
 
     @property
     def topology(self) -> Topology:
