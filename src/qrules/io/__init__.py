@@ -58,7 +58,7 @@ __REQUIRED_TOPOLOGY_FIELDS = {
 def asdot(
     instance: object,
     *,
-    render_node: bool = False,
+    render_node: Optional[bool] = None,
     render_final_state_id: bool = True,
     render_resonance_id: bool = False,
     render_initial_state_id: bool = False,

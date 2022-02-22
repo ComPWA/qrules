@@ -50,7 +50,7 @@ def _create_default_figure_style(
 
 @define(on_setattr=_check_booleans)
 class GraphPrinter:
-    render_node: bool = False
+    render_node: Optional[bool] = None
     render_final_state_id: bool = True
     render_resonance_id: bool = False
     render_initial_state_id: bool = False
@@ -176,17 +176,17 @@ class GraphPrinter:
                     self._create_graphviz_node(node, label, self.node_style)
                 ]
         if isinstance(obj, Topology):
-            if len(topology.nodes) > 1:
-                for node_id in topology.nodes:
-                    label = ""
-                    if self.render_node:
-                        label = f"({node_id})"
-                    node = f"{prefix}N{node_id}"
-                    lines += [
-                        self._create_graphviz_node(
-                            node, label, self.node_style
-                        )
-                    ]
+            render_node = self.render_node
+            if render_node is None and len(topology.nodes) > 1:
+                render_node = True
+            for node_id in topology.nodes:
+                label = ""
+                if render_node:
+                    label = f"({node_id})"
+                node = f"{prefix}N{node_id}"
+                lines += [
+                    self._create_graphviz_node(node, label, self.node_style)
+                ]
         return lines
 
     def _create_graphviz_edge(
