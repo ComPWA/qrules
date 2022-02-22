@@ -23,6 +23,7 @@ disable=
     missing-module-docstring,   # pydocstyle
     no-member, # conflicts with attrs.field
     no-name-in-module,  # already checked by mypy
+    not-a-mapping, # conflicts with attrs.field
     not-an-iterable, # conflicts with attrs.field
     not-callable, # conflicts with attrs.field
     redefined-builtin, # flake8-built

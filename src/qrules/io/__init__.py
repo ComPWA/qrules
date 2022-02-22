@@ -7,7 +7,6 @@ and from disk, so that they can be used by external packages, or just to store
 """
 
 import json
-from collections import abc
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -15,32 +14,19 @@ import attrs
 import yaml
 
 from qrules.particle import Particle, ParticleCollection
-from qrules.topology import Topology, Transition
-from qrules.transition import ProblemSet, ReactionInfo, State
+from qrules.topology import Topology
 
 from . import _dict, _dot
 
 
 def asdict(instance: object) -> dict:
     # pylint: disable=protected-access
-    if isinstance(instance, Particle):
-        return _dict.from_particle(instance)
     if isinstance(instance, ParticleCollection):
         return _dict.from_particle_collection(instance)
-    if isinstance(instance, (ReactionInfo, State)):
-        return attrs.asdict(
-            instance,
-            recurse=True,
-            filter=lambda a, _: a.init,
-            value_serializer=_dict._value_serializer,
-        )
-    if isinstance(instance, Transition):
-        return _dict.from_transition(instance)
-    if isinstance(instance, Topology):
-        return _dict.from_topology(instance)
+    if attrs.has(type(instance)):
+        return _dict.from_attrs_decorated(instance)
     raise NotImplementedError(
-        "No conversion for dict available for class"
-        f" {instance.__class__.__name__}"
+        f"No conversion to dict available for class {type(instance).__name__}"
     )
 
 
@@ -72,7 +58,7 @@ __REQUIRED_TOPOLOGY_FIELDS = {
 def asdot(
     instance: object,
     *,
-    render_node: bool = False,
+    render_node: Optional[bool] = None,
     render_final_state_id: bool = True,
     render_resonance_id: bool = False,
     render_initial_state_id: bool = False,
@@ -123,39 +109,18 @@ def asdot(
 
     .. seealso:: :doc:`/usage/visualize`
     """
-    if edge_style is None:
-        edge_style = {}
-    if node_style is None:
-        node_style = {}
-    if isinstance(instance, (ProblemSet, Topology, Transition)):
-        dot = _dot.graph_to_dot(
-            instance,
-            render_node=render_node,
-            render_final_state_id=render_final_state_id,
-            render_resonance_id=render_resonance_id,
-            render_initial_state_id=render_initial_state_id,
-            edge_style=edge_style,
-            node_style=node_style,
-        )
-        return _dot.insert_graphviz_styling(dot, graphviz_attrs=figure_style)
-    if isinstance(instance, ReactionInfo):
-        instance = instance.transitions
-    if isinstance(instance, abc.Iterable):
-        dot = _dot.graph_list_to_dot(
-            instance,
-            render_node=render_node,
-            render_final_state_id=render_final_state_id,
-            render_resonance_id=render_resonance_id,
-            render_initial_state_id=render_initial_state_id,
-            strip_spin=strip_spin,
-            collapse_graphs=collapse_graphs,
-            edge_style=edge_style,
-            node_style=node_style,
-        )
-        return _dot.insert_graphviz_styling(dot, graphviz_attrs=figure_style)
-    raise NotImplementedError(
-        f"Cannot convert a {instance.__class__.__name__} to DOT language"
+    print_dot = _dot.GraphPrinter(
+        render_node=render_node,
+        render_final_state_id=render_final_state_id,
+        render_resonance_id=render_resonance_id,
+        render_initial_state_id=render_initial_state_id,
+        strip_spin=strip_spin,
+        collapse_graphs=collapse_graphs,
+        figure_style=figure_style,
+        edge_style=edge_style,
+        node_style=node_style,
     )
+    return print_dot(instance)
 
 
 def load(filename: str) -> object:

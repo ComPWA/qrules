@@ -138,7 +138,7 @@ def _convert_violated_rules_to_names(
             return rule.__name__
         if isinstance(rule, str):
             return rule
-        return rule.__class__.__name__
+        return type(rule).__name__
 
     converted_dict = defaultdict(set)
     for node_id, rule_set in rules.items():
@@ -158,7 +158,7 @@ def _convert_non_executed_rules_to_names(
             return rule.__name__
         if isinstance(rule, str):
             return rule
-        return rule.__class__.__name__
+        return type(rule).__name__
 
     converted_dict = defaultdict(set)
     for node_id, rule_set in rules.items():
@@ -195,7 +195,7 @@ class QNResult:
             self.violated_node_rules or self.violated_edge_rules
         ):
             raise ValueError(
-                f"Invalid {self.__class__.__name__}! Found"
+                f"Invalid {type(self).__name__}! Found"
                 f" {len(self.solutions)} solutions, but also violated rules.",
                 self.violated_node_rules,
                 self.violated_edge_rules,

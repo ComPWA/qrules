@@ -3,25 +3,18 @@
 See :doc:`/usage/visualize` for more info.
 """
 
-import functools
+import logging
 import re
+import string
 from collections import abc
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    Set,
-    Tuple,
-    Union,
-    cast,
-)
+from functools import singledispatch
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Union, cast
 
 import attrs
+from attrs import Attribute, define, field
+from attrs.converters import default_if_none
 
-from qrules.particle import Particle, ParticleWithSpin
+from qrules.particle import Particle, ParticleWithSpin, Spin
 from qrules.quantum_numbers import InteractionProperties, _to_fraction
 from qrules.solving import EdgeSettings, NodeSettings
 from qrules.topology import (
@@ -30,105 +23,221 @@ from qrules.topology import (
     Topology,
     Transition,
 )
-from qrules.transition import ProblemSet, State, StateTransition
-
-_DOT_HEAD = """digraph {
-    rankdir=LR;
-    node [shape=point, width=0];
-    edge [arrowhead=none];
-"""
-_DOT_TAIL = "}\n"
-_DOT_RANK_SAME = "    {{ rank=same {} }};\n"
+from qrules.transition import ProblemSet, ReactionInfo, State
 
 
-def embed_dot(func: Callable) -> Callable:
-    """Add a DOT head and tail to some DOT content."""
+def _check_booleans(
+    instance: "GraphPrinter", attribute: Attribute, value: bool
+) -> None:
+    # pylint: disable=unused-argument
+    if instance.strip_spin and instance.collapse_graphs:
+        raise ValueError("Cannot both strip spin and collapse graphs")
+    if instance.collapse_graphs and instance.render_node:
+        raise ValueError(
+            "Collapsed graphs cannot be rendered with node properties"
+        )
 
-    @functools.wraps(func)
-    def wrapper(*args: Any, **kwargs: Any) -> str:
-        dot = _DOT_HEAD
-        dot += func(*args, **kwargs)
-        dot += _DOT_TAIL
+
+def _create_default_figure_style(
+    style: Optional[Dict[str, Any]]
+) -> Dict[str, Any]:
+    figure_style = {"bgcolor": None}
+    if style is None:
+        return figure_style
+    figure_style.update(style)
+    return figure_style
+
+
+@define(on_setattr=_check_booleans)
+class GraphPrinter:
+    render_node: Optional[bool] = None
+    render_final_state_id: bool = True
+    render_resonance_id: bool = False
+    render_initial_state_id: bool = False
+    strip_spin: bool = False
+    collapse_graphs: bool = False
+
+    figure_style: Dict[str, Any] = field(
+        converter=_create_default_figure_style, default=None
+    )
+    edge_style: Dict[str, Any] = field(
+        converter=default_if_none(factory=dict), default=None  # type: ignore[misc]
+    )
+    node_style: Dict[str, Any] = field(
+        converter=default_if_none(factory=dict), default=None  # type: ignore[misc]
+    )
+    indent: int = 4
+
+    def __call__(self, obj: Any) -> str:
+        lines = self._create_preface()
+        lines += self._render(obj)
+        indented_lines = [self.indent * " " + s for s in lines]
+        dot = "digraph {\n"
+        dot += "\n".join(indented_lines)
+        dot += "\n}\n"
         return dot
 
-    return wrapper
+    def _create_preface(self) -> List[str]:
+        return [
+            "rankdir=LR",
+            "node [shape=none, width=0]",
+            "edge [arrowhead=none]",
+            *_create_graphviz_assignments(self.figure_style),
+        ]
+
+    def _render(self, obj: Any) -> List[str]:
+        if isinstance(obj, ReactionInfo):
+            obj = obj.transitions
+        if isinstance(obj, abc.Iterable):
+            return self._render_multiple_transitions(obj)
+        if isinstance(obj, (ProblemSet, Topology, Transition)):
+            return self._render_transition(obj)
+        raise NotImplementedError
+
+    def _render_multiple_transitions(self, obj: Iterable) -> List[str]:
+        if self.collapse_graphs:
+            transitions: list = _collapse_graphs(obj)
+        elif self.strip_spin:
+            if self.render_node:
+                transitions = sorted({_strip_projections(t) for t in obj})
+            else:
+                transitions = _get_particle_graphs(obj)
+        else:
+            transitions = list(obj)
+        lines = []
+        for i, graph in enumerate(reversed(list(transitions))):
+            lines += self._render_transition(graph, prefix=f"T{i}_")
+        return lines
+
+    def _render_transition(
+        self,
+        obj: Union[ProblemSet, Topology, Transition],
+        prefix: str = "",
+    ) -> List[str]:
+        # pylint: disable=too-many-branches,too-many-locals,too-many-statements
+        lines: List[str] = []
+        if isinstance(obj, tuple) and len(obj) == 2:
+            topology: Topology = obj[0]
+            rendered_graph: Union[ProblemSet, Topology, Transition] = obj[1]
+        elif isinstance(obj, (ProblemSet, Transition)):
+            rendered_graph = obj
+            topology = obj.topology
+        elif isinstance(obj, Topology):
+            rendered_graph = obj
+            topology = obj
+        else:
+            raise NotImplementedError(
+                f"Cannot render {type(obj).__name__} as dot"
+            )
+        for edge_id in topology.incoming_edge_ids | topology.outgoing_edge_ids:
+            if edge_id in topology.incoming_edge_ids:
+                render = self.render_initial_state_id
+            else:
+                render = self.render_final_state_id
+            label = _create_edge_label(rendered_graph, edge_id, render)
+            graphviz_node = prefix + _get_graphviz_node(edge_id)
+            lines += [
+                self._create_graphviz_node(
+                    graphviz_node, label, self.edge_style
+                )
+            ]
+        lines += [_create_same_rank_line(topology.incoming_edge_ids, prefix)]
+        lines += [_create_same_rank_line(topology.outgoing_edge_ids, prefix)]
+        for i, edge in topology.edges.items():
+            j, k = edge.ending_node_id, edge.originating_node_id
+            from_node = prefix + _get_graphviz_node(i, k)
+            to_node = prefix + _get_graphviz_node(i, j)
+            if j is None or k is None:
+                lines += [self._create_graphviz_edge(from_node, to_node)]
+            else:
+                label = _create_edge_label(
+                    rendered_graph, i, self.render_resonance_id
+                )
+                lines += [
+                    self._create_graphviz_edge(from_node, to_node, label)
+                ]
+        if isinstance(obj, ProblemSet):
+            node_settings = obj.solving_settings.interactions
+            for node_id, settings in node_settings.items():
+                label = ""
+                if self.render_node:
+                    label = as_string(settings)
+                node = f"{prefix}N{node_id}"
+                lines += [
+                    self._create_graphviz_node(node, label, self.node_style)
+                ]
+        if isinstance(obj, Transition):
+            for node_id, node_prop in obj.interactions.items():
+                label = ""
+                if self.render_node:
+                    label = as_string(node_prop)
+                node = f"{prefix}N{node_id}"
+                lines += [
+                    self._create_graphviz_node(node, label, self.node_style)
+                ]
+        if isinstance(obj, Topology):
+            render_node = self.render_node
+            if render_node is None and len(topology.nodes) > 1:
+                render_node = True
+            for node_id in topology.nodes:
+                label = ""
+                if render_node:
+                    label = f"({node_id})"
+                node = f"{prefix}N{node_id}"
+                lines += [
+                    self._create_graphviz_node(node, label, self.node_style)
+                ]
+        return lines
+
+    def _create_graphviz_edge(
+        self, from_node: str, to_node: str, label: str = ""
+    ) -> str:
+        style = dict(self.edge_style)  # copy
+        if "label" in style:
+            del style["label"]
+        if label:
+            style["label"] = label
+        styling = _create_graphviz_styling(style)
+        return f"{from_node} -> {to_node}{styling}"
+
+    @staticmethod
+    def _create_graphviz_node(
+        node: str, label: str, style: Dict[str, Any]
+    ) -> str:
+        style = dict(style)  # copy
+        style["label"] = label
+        styling = _create_graphviz_styling(style)
+        return f"{node}{styling}"
 
 
-def insert_graphviz_styling(dot: str, graphviz_attrs: Dict[str, Any]) -> str:
-    if "bgcolor" not in graphviz_attrs:
-        graphviz_attrs["bgcolor"] = None
-    header = __dot_kwargs_to_header(graphviz_attrs)
-    return dot.replace(_DOT_HEAD, _DOT_HEAD + header)
-
-
-def _create_graphviz_edge(
-    from_node: str,
-    to_node: str,
-    *,
-    label: str = "",
-    graphviz_attrs: Dict[str, Any],
-) -> str:
-    updated_graphviz_attrs = dict(graphviz_attrs)
-    if "label" in updated_graphviz_attrs:
-        del updated_graphviz_attrs["label"]
-    if label:
-        updated_graphviz_attrs["label"] = label
-    styling = __create_graphviz_edge_node_styling(updated_graphviz_attrs)
-    return f'    "{from_node}" -> "{to_node}"{styling};\n'
-
-
-def _create_graphviz_node(
-    name: str, label: str, graphviz_attrs: Dict[str, Any]
-) -> str:
-    updated_graphviz_attrs = {"shape": None, **graphviz_attrs, "label": label}
-    styling = __create_graphviz_edge_node_styling(updated_graphviz_attrs)
-    return f'    "{name}"{styling};\n'
-
-
-def __dot_kwargs_to_header(graphviz_attrs: Dict[str, Any]) -> str:
-    r"""Create DOT-compatible header lines from Graphviz attributes.
-
-    >>> __dot_kwargs_to_header({"size": 12})
-    '    size=12;\n'
-    >>> __dot_kwargs_to_header({"bgcolor": "red", "size": 8})
-    '    bgcolor="red";\n    size=8;\n'
-    """
-    if not graphviz_attrs:
-        return ""
-    assignments = __create_graphviz_assignments(graphviz_attrs)
-    indent = "    "
-    line_ending = ";\n"
-    return indent + f"{line_ending}{indent}".join(assignments) + line_ending
-
-
-def __create_graphviz_edge_node_styling(graphviz_attrs: Dict[str, Any]) -> str:
+def _create_graphviz_styling(graphviz_attrs: Dict[str, Any]) -> str:
     """Create a `str` of Graphviz attribute assignments for a node or edge.
 
     See `Graphviz attributes <https://graphviz.org/doc/info/attrs.html>`_ for
     the assignment syntax.
 
-    >>> __create_graphviz_edge_node_styling({"size": 12})
+    >>> _create_graphviz_styling({"size": 12})
     ' [size=12]'
-    >>> __create_graphviz_edge_node_styling({"color": "red", "size": 8})
+    >>> _create_graphviz_styling({"color": "red", "size": 8})
     ' [color="red", size=8]'
     """
     if not graphviz_attrs:
         return ""
-    assignments = __create_graphviz_assignments(graphviz_attrs)
+    assignments = _create_graphviz_assignments(graphviz_attrs)
     return f" [{', '.join(assignments)}]"
 
 
-def __create_graphviz_assignments(graphviz_attrs: Dict[str, Any]) -> List[str]:
+def _create_graphviz_assignments(graphviz_attrs: Dict[str, Any]) -> List[str]:
     """Create a `list` of graphviz attribute assignments.
 
     See `Graphviz attributes <https://graphviz.org/doc/info/attrs.html>`_ for
     the assignment syntax.
 
-    >>> __create_graphviz_assignments({"size": 12})
+    >>> _create_graphviz_assignments({"size": 12})
     ['size=12']
-    >>> __create_graphviz_assignments({"color": "red", "size": 8})
+    >>> _create_graphviz_assignments({"color": "red", "size": 8})
     ['color="red"', 'size=8']
-    >>> __create_graphviz_assignments({"shape": None})
+    >>> _create_graphviz_assignments({"shape": None})
     ['shape=none']
     """
     items = []
@@ -141,181 +250,23 @@ def __create_graphviz_assignments(graphviz_attrs: Dict[str, Any]) -> List[str]:
     return items
 
 
-@embed_dot
-def graph_list_to_dot(
-    graphs: Iterable[Transition],
-    *,
-    render_node: bool,
-    render_final_state_id: bool,
-    render_resonance_id: bool,
-    render_initial_state_id: bool,
-    strip_spin: bool,
-    collapse_graphs: bool,
-    edge_style: Dict[str, Any],
-    node_style: Dict[str, Any],
-) -> str:
-    if strip_spin and collapse_graphs:
-        raise ValueError("Cannot both strip spin and collapse graphs")
-    if collapse_graphs:
-        if render_node:
-            raise ValueError(
-                "Collapsed graphs cannot be rendered with node properties"
-            )
-        graphs = _collapse_graphs(graphs)
-    elif strip_spin:
-        if render_node:
-            stripped_graphs = []
-            for graph in graphs:
-                if isinstance(graph, FrozenTransition):
-                    graph = graph.convert(
-                        lambda s: (s.particle, s.spin_projection)
-                    )
-                stripped_graph = _strip_projections(graph)
-                if stripped_graph not in stripped_graphs:
-                    stripped_graphs.append(stripped_graph)
-            graphs = stripped_graphs
-        else:
-            graphs = _get_particle_graphs(graphs)
-    dot = ""
-    if not isinstance(graphs, abc.Sequence):
-        graphs = list(graphs)
-    for i, graph in enumerate(reversed(graphs)):
-        dot += __graph_to_dot_content(
-            graph,
-            prefix=f"g{i}_",
-            render_node=render_node,
-            render_final_state_id=render_final_state_id,
-            render_resonance_id=render_resonance_id,
-            render_initial_state_id=render_initial_state_id,
-            edge_style=edge_style,
-            node_style=node_style,
-        )
-    return dot
-
-
-@embed_dot
-def graph_to_dot(
-    graph: Transition,
-    *,
-    render_node: bool,
-    render_final_state_id: bool,
-    render_resonance_id: bool,
-    render_initial_state_id: bool,
-    edge_style: Dict[str, Any],
-    node_style: Dict[str, Any],
-) -> str:
-    return __graph_to_dot_content(
-        graph,
-        render_node=render_node,
-        render_final_state_id=render_final_state_id,
-        render_resonance_id=render_resonance_id,
-        render_initial_state_id=render_initial_state_id,
-        edge_style=edge_style,
-        node_style=node_style,
-    )
-
-
-def __graph_to_dot_content(  # pylint: disable=too-many-branches,too-many-locals,too-many-statements
-    graph: Union[ProblemSet, StateTransition, Topology, Transition],
-    prefix: str = "",
-    *,
-    render_node: bool,
-    render_final_state_id: bool,
-    render_resonance_id: bool,
-    render_initial_state_id: bool,
-    edge_style: Dict[str, Any],
-    node_style: Dict[str, Any],
-) -> str:
-    dot = ""
-    if isinstance(graph, tuple) and len(graph) == 2:
-        topology: Topology = graph[0]
-        rendered_graph: Union[ProblemSet, Topology, Transition] = graph[1]
-    elif isinstance(graph, (ProblemSet, Transition)):
-        rendered_graph = graph
-        topology = graph.topology
-    elif isinstance(graph, Topology):
-        rendered_graph = graph
-        topology = graph
-    else:
-        raise NotImplementedError(
-            f"Cannot render {graph.__class__.__name__} as dot"
-        )
-    top = topology.incoming_edge_ids
-    outs = topology.outgoing_edge_ids
-    for edge_id in top | outs:
-        if edge_id in top:
-            render = render_initial_state_id
-        else:
-            render = render_final_state_id
-        edge_label = __get_edge_label(rendered_graph, edge_id, render)
-        dot += _create_graphviz_node(
-            name=prefix + __node_name(edge_id),
-            label=edge_label,
-            graphviz_attrs=edge_style,
-        )
-    dot += __rank_string(top, prefix)
-    dot += __rank_string(outs, prefix)
-    for i, edge in topology.edges.items():
-        j, k = edge.ending_node_id, edge.originating_node_id
-        from_node = prefix + __node_name(i, k)
-        to_node = prefix + __node_name(i, j)
-        if j is None or k is None:
-            dot += _create_graphviz_edge(
-                from_node, to_node, graphviz_attrs=edge_style
-            )
-        else:
-            label = __get_edge_label(rendered_graph, i, render_resonance_id)
-            dot += _create_graphviz_edge(
-                from_node, to_node, label=label, graphviz_attrs=edge_style
-            )
-    if isinstance(graph, ProblemSet):
-        node_settings = graph.solving_settings.interactions
-        for node_id, settings in node_settings.items():
-            node_label = ""
-            if render_node:
-                node_label = __node_label(settings)
-            dot += _create_graphviz_node(
-                name=f"{prefix}node{node_id}",
-                label=node_label,
-                graphviz_attrs=node_style,
-            )
-    if isinstance(graph, Transition):
-        for node_id, node_prop in graph.interactions.items():
-            node_label = ""
-            if render_node:
-                node_label = __node_label(node_prop)
-            dot += _create_graphviz_node(
-                name=f"{prefix}node{node_id}",
-                label=node_label,
-                graphviz_attrs=node_style,
-            )
-    if isinstance(graph, Topology):
-        if len(topology.nodes) > 1:
-            for node_id in topology.nodes:
-                node_label = ""
-                if render_node:
-                    node_label = f"({node_id})"
-                dot += _create_graphviz_node(
-                    name=f"{prefix}node{node_id}",
-                    label=node_label,
-                    graphviz_attrs=node_style,
-                )
-    return dot
-
-
-def __node_name(edge_id: int, node_id: Optional[int] = None) -> str:
+def _get_graphviz_node(edge_id: int, node_id: Optional[int] = None) -> str:
     if node_id is None:
-        return f"edge{edge_id}"
-    return f"node{node_id}"
+        if edge_id < 0:  # initial state
+            return string.ascii_uppercase[-edge_id - 1]
+        return str(edge_id)
+    return f"N{node_id}"
 
 
-def __rank_string(node_edge_ids: Iterable[int], prefix: str = "") -> str:
-    name_list = [f'"{prefix}{__node_name(i)}"' for i in node_edge_ids]
+def _create_same_rank_line(
+    node_edge_ids: Iterable[int], prefix: str = ""
+) -> str:
+    name_list = [f"{prefix}{_get_graphviz_node(i)}" for i in node_edge_ids]
     name_string = ", ".join(name_list)
-    return _DOT_RANK_SAME.format(name_string)
+    return f"{{ rank=same {name_string} }}"
 
 
-def __get_edge_label(
+def _create_edge_label(
     graph: Union[ProblemSet, Topology, Transition],
     edge_id: int,
     render_edge_id: bool,
@@ -332,21 +283,17 @@ def __get_edge_label(
             edge_property = edge_setting
         if initial_fact:
             edge_property = initial_fact
-        return ___render_edge_with_id(edge_id, edge_property, render_edge_id)
+        return __render_edge_with_id(edge_id, edge_property, render_edge_id)
     edge_prop = graph.states.get(edge_id)
-    return ___render_edge_with_id(edge_id, edge_prop, render_edge_id)
+    return __render_edge_with_id(edge_id, edge_prop, render_edge_id)
 
 
-def ___render_edge_with_id(
-    edge_id: int,
-    edge_prop: Optional[
-        Union[EdgeSettings, Iterable[Particle], Particle, ParticleWithSpin]
-    ],
-    render_edge_id: bool,
+def __render_edge_with_id(
+    edge_id: int, edge_prop: Any, render_edge_id: bool
 ) -> str:
     if edge_prop is None or not edge_prop:
         return str(edge_id)
-    edge_label = __render_edge_property(edge_prop)
+    edge_label = as_string(edge_prop)
     if not render_edge_id:
         return edge_label
     if "\n" in edge_label:
@@ -354,57 +301,51 @@ def ___render_edge_with_id(
     return f"{edge_id}: {edge_label}"
 
 
-def __render_edge_property(
-    edge_prop: Optional[
-        Union[EdgeSettings, Iterable[Particle], Particle, ParticleWithSpin]
-    ]
-) -> str:
-    if isinstance(edge_prop, EdgeSettings):
-        return __render_settings(edge_prop)
-    if isinstance(edge_prop, Particle):
-        return edge_prop.name
-    if isinstance(edge_prop, abc.Iterable) and all(
-        map(lambda i: isinstance(i, Particle), edge_prop)
-    ):
-        return "\n".join(map(lambda p: p.name, edge_prop))
-    if isinstance(edge_prop, State):
-        edge_prop = edge_prop.particle, edge_prop.spin_projection
-    if isinstance(edge_prop, tuple) and len(edge_prop) == 2:
-        particle, spin_projection = edge_prop
-        projection_label = _to_fraction(spin_projection, render_plus=True)
-        return f"{particle.name}[{projection_label}]"
-    raise NotImplementedError
+@singledispatch
+def as_string(obj: Any) -> str:
+    """Render an edge or node property on a `.Transition` as a `str`.
+
+    This function is decorated with :func:`functools.singledispatch`, which
+    means that you can easily register other converter functions. An example:
+
+    >>> from qrules.io._dot import as_string
+    >>> as_string(10)
+    '10'
+    >>> _ = as_string.register(int, lambda _: "new int rendering")
+    >>> as_string(10)
+    'new int rendering'
+    """
+    logging.warning(f"No DOT renderer implemented type {type(obj).__name__}")
+    return str(obj)
 
 
-def __node_label(node_prop: Union[InteractionProperties, NodeSettings]) -> str:
-    if isinstance(node_prop, NodeSettings):
-        return __render_settings(node_prop)
-    if isinstance(node_prop, InteractionProperties):
-        output = ""
-        if node_prop.l_magnitude is not None:
-            l_magnitude = _to_fraction(node_prop.l_magnitude)
-            if node_prop.l_projection is None:
-                l_label = l_magnitude
-            else:
-                l_projection = _to_fraction(node_prop.l_projection)
-                l_label = f"({l_magnitude}, {l_projection})"
-            output += f"l={l_label}\n"
-        if node_prop.s_magnitude is not None:
-            s_magnitude = _to_fraction(node_prop.s_magnitude)
-            if node_prop.s_projection is None:
-                s_label = s_magnitude
-            else:
-                s_projection = _to_fraction(node_prop.s_projection)
-                s_label = f"({s_magnitude}, {s_projection})"
-            output += f"s={s_label}\n"
-        if node_prop.parity_prefactor is not None:
-            label = _to_fraction(node_prop.parity_prefactor, render_plus=True)
-            output += f"P={label}"
-        return output
-    raise NotImplementedError
+as_string.register(str, lambda _: _)  # avoid warning for str type
 
 
-def __render_settings(settings: Union[EdgeSettings, NodeSettings]) -> str:
+@as_string.register(InteractionProperties)
+def _(obj: InteractionProperties) -> str:
+    lines = []
+    if obj.l_magnitude is not None:
+        if obj.l_projection is None:
+            l_label = _to_fraction(obj.l_magnitude)
+        else:
+            l_label = _spin_to_str(Spin(obj.l_magnitude, obj.l_projection))
+        lines.append(f"L={l_label}")
+    if obj.s_magnitude is not None:
+        if obj.s_projection is None:
+            s_label = _to_fraction(obj.s_magnitude)
+        else:
+            s_label = _spin_to_str(Spin(obj.s_magnitude, obj.s_projection))
+        lines.append(f"S={s_label}")
+    if obj.parity_prefactor is not None:
+        label = _to_fraction(obj.parity_prefactor, render_plus=True)
+        lines.append(f"P={label}")
+    return "\n".join(lines)
+
+
+@as_string.register(EdgeSettings)
+@as_string.register(NodeSettings)
+def _(settings: Union[EdgeSettings, NodeSettings]) -> str:
     output = ""
     if settings.rule_priorities:
         output += "RULE PRIORITIES\n"
@@ -432,6 +373,40 @@ def __extract_priority(description: str) -> int:
         raise ValueError(f"{description} does not contain a priority number")
     priority = matches[1]
     return int(priority)
+
+
+@as_string.register(Particle)
+def _(particle: Particle) -> str:
+    return particle.name
+
+
+@as_string.register(Spin)
+def _spin_to_str(spin: Spin) -> str:
+    spin_magnitude = _to_fraction(spin.magnitude)
+    spin_projection = _to_fraction(spin.projection, render_plus=True)
+    return f"|{spin_magnitude},{spin_projection}⟩"
+
+
+@as_string.register(State)
+def _state_to_str(state: State) -> str:
+    particle = state.particle.name
+    spin_projection = _to_fraction(state.spin_projection, render_plus=True)
+    return f"{particle}[{spin_projection}]"
+
+
+@as_string.register(tuple)
+def _(obj: tuple) -> str:
+    if len(obj) == 2:
+        if isinstance(obj[0], Particle) and isinstance(obj[1], (float, int)):
+            state = State(*obj)
+            return _state_to_str(state)
+        if all(map(lambda o: isinstance(o, (float, int)), obj)):
+            spin = Spin(*obj)
+            return _spin_to_str(spin)
+    if all(map(lambda o: isinstance(o, Particle), obj)):
+        return "\n".join(map(as_string, obj))
+    logging.warning(f"No DOT render implemented for tuple of size {len(obj)}")
+    return str(obj)
 
 
 def _get_particle_graphs(
@@ -494,7 +469,7 @@ def __to_particle(state: Any) -> Particle:
 
 def _collapse_graphs(
     graphs: Iterable[Transition[ParticleWithSpin, InteractionProperties]],
-) -> "Tuple[FrozenTransition[Tuple[Particle, ...], None], ...]":
+) -> "List[FrozenTransition[Tuple[Particle, ...], None]]":
     transition_groups: "Dict[Topology, MutableTransition[Set[Particle], None]]" = {
         g.topology: MutableTransition(
             g.topology,
@@ -525,4 +500,4 @@ def _collapse_graphs(
                 interactions=group.interactions,
             )
         )
-    return tuple(collected_graphs)
+    return collected_graphs

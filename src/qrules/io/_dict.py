@@ -10,35 +10,17 @@ import attrs
 
 from qrules.particle import Parity, Particle, ParticleCollection, Spin
 from qrules.quantum_numbers import InteractionProperties
-from qrules.topology import Edge, FrozenTransition, Topology, Transition
+from qrules.topology import Edge, FrozenTransition, Topology
 from qrules.transition import ReactionInfo, State
 
 
 def from_particle_collection(particles: ParticleCollection) -> dict:
-    return {"particles": [from_particle(p) for p in particles]}
+    return {"particles": [from_attrs_decorated(p) for p in particles]}
 
 
-def from_particle(particle: Particle) -> dict:
+def from_attrs_decorated(inst: Any) -> dict:
     return attrs.asdict(
-        particle,
-        recurse=True,
-        value_serializer=_value_serializer,
-        filter=lambda attribute, value: attribute.default != value,
-    )
-
-
-def from_transition(graph: Transition) -> dict:
-    return attrs.asdict(
-        graph,
-        recurse=True,
-        value_serializer=_value_serializer,
-        filter=lambda attribute, value: attribute.default != value,
-    )
-
-
-def from_topology(topology: Topology) -> dict:
-    return attrs.asdict(
-        topology,
+        inst,
         recurse=True,
         value_serializer=_value_serializer,
         filter=lambda a, v: a.init and a.default != v,

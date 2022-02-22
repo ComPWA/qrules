@@ -101,7 +101,7 @@ class FrozenDict(  # pylint: disable=too-many-ancestors
                 self.__hash ^= hash(key_value_pair)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.__mapping})"
+        return f"{type(self).__name__}({self.__mapping})"
 
     def _repr_pretty_(self, p: "PrettyPrinter", cycle: bool) -> None:
         class_name = type(self).__name__
@@ -133,8 +133,8 @@ class FrozenDict(  # pylint: disable=too-many-ancestors
             return sorted_self > sorted_other
 
         raise NotImplementedError(
-            f"Can only compare {self.__class__.__name__} with a mapping,"
-            f" not with {other.__class__.__name__}"
+            f"Can only compare {type(self).__name__} with a mapping,"
+            f" not with {type(other).__name__}"
         )
 
     def __hash__(self) -> int:

@@ -72,13 +72,12 @@ class _KinematicRepresentation:
                 and self.final_state == other.final_state
             )
         raise ValueError(
-            f"Cannot compare {self.__class__.__name__} with"
-            f" {other.__class__.__name__}"
+            f"Cannot compare {type(self).__name__} with {type(other).__name__}"
         )
 
     def __repr__(self) -> str:
         return (
-            f"{self.__class__.__name__}("
+            f"{type(self).__name__}("
             f"initial_state={self.initial_state}, "
             f"final_state={self.final_state})"
         )
@@ -123,8 +122,7 @@ class _KinematicRepresentation:
                     )
             return is_sublist(other, self.final_state)
         raise ValueError(
-            f"Cannot compare {self.__class__.__name__} with"
-            f" {other.__class__.__name__}"
+            f"Cannot compare {type(self).__name__} with {type(other).__name__}"
         )
 
     def __import(
@@ -157,7 +155,7 @@ class _KinematicRepresentation:
         if isinstance(item, dict) and "Name" in item:
             return str(item["Name"])
         raise ValueError(
-            f"Cannot extract particle name from {item.__class__.__name__}"
+            f"Cannot extract particle name from {type(item).__name__}"
         )
 
 
@@ -479,7 +477,7 @@ def perform_external_edge_identical_particle_combinatorics(
     """
     if not isinstance(graph, MutableTransition):
         raise TypeError(
-            f"graph argument is not of type {MutableTransition.__class__}"
+            f"graph argument is not of type {MutableTransition.__name__}"
         )
     temp_new_graphs = _external_edge_identical_particle_combinatorics(
         graph, __get_final_state_edge_ids

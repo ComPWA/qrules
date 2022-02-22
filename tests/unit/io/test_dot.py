@@ -36,45 +36,45 @@ def test_asdot_exact_format(reaction: ReactionInfo):
     if reaction.formalism == "helicity":
         expected_dot = """
 digraph {
-    rankdir=LR;
-    node [shape=point, width=0];
-    edge [arrowhead=none];
-    bgcolor=none;
-    "edge0" [shape=none, label="0: gamma[-1]"];
-    "edge1" [shape=none, label="1: pi0[0]"];
-    "edge2" [shape=none, label="2: pi0[0]"];
-    "edge-1" [shape=none, label="J/psi(1S)[-1]"];
-    { rank=same "edge-1" };
-    { rank=same "edge0", "edge1", "edge2" };
-    "edge-1" -> "node0";
-    "node0" -> "node1" [label="f(0)(980)[0]"];
-    "node0" -> "edge0";
-    "node1" -> "edge1";
-    "node1" -> "edge2";
-    "node0" [shape=none, label="P=+1"];
-    "node1" [shape=none, label="P=+1"];
+    rankdir=LR
+    node [shape=none, width=0]
+    edge [arrowhead=none]
+    bgcolor=none
+    0 [label="0: gamma[-1]"]
+    1 [label="1: pi0[0]"]
+    2 [label="2: pi0[0]"]
+    A [label="J/psi(1S)[-1]"]
+    { rank=same A }
+    { rank=same 0, 1, 2 }
+    A -> N0
+    N0 -> N1 [label="f(0)(980)[0]"]
+    N0 -> 0
+    N1 -> 1
+    N1 -> 2
+    N0 [label="P=+1"]
+    N1 [label="P=+1"]
 }
         """
     else:
         expected_dot = """
 digraph {
-    rankdir=LR;
-    node [shape=point, width=0];
-    edge [arrowhead=none];
-    bgcolor=none;
-    "edge0" [shape=none, label="0: gamma[-1]"];
-    "edge1" [shape=none, label="1: pi0[0]"];
-    "edge2" [shape=none, label="2: pi0[0]"];
-    "edge-1" [shape=none, label="J/psi(1S)[-1]"];
-    { rank=same "edge-1" };
-    { rank=same "edge0", "edge1", "edge2" };
-    "edge-1" -> "node0";
-    "node0" -> "node1" [label="f(0)(980)[0]"];
-    "node0" -> "edge0";
-    "node1" -> "edge1";
-    "node1" -> "edge2";
-    "node0" [shape=none, label="l=(0, 0)\ns=(1, -1)\nP=+1"];
-    "node1" [shape=none, label="l=(0, 0)\ns=(0, 0)\nP=+1"];
+    rankdir=LR
+    node [shape=none, width=0]
+    edge [arrowhead=none]
+    bgcolor=none
+    0 [label="0: gamma[-1]"]
+    1 [label="1: pi0[0]"]
+    2 [label="2: pi0[0]"]
+    A [label="J/psi(1S)[-1]"]
+    { rank=same A }
+    { rank=same 0, 1, 2 }
+    A -> N0
+    N0 -> N1 [label="f(0)(980)[0]"]
+    N0 -> 0
+    N1 -> 1
+    N1 -> 2
+    N0 [label="L=|0,0⟩\nS=|1,-1⟩\nP=+1"]
+    N1 [label="L=|0,0⟩\nS=|0,0⟩\nP=+1"]
 }
         """
     assert dot.strip() == expected_dot.strip()
@@ -85,8 +85,8 @@ def test_asdot_graphviz_attrs(reaction: ReactionInfo):
     assert pydot.graph_from_dot_data(dot_data) is not None
     dot_data = io.asdot(reaction, bgcolor="red", size=12)
     assert pydot.graph_from_dot_data(dot_data) is not None
-    assert '\n    bgcolor="red";\n' in dot_data
-    assert "\n    size=12;\n" in dot_data
+    assert '\n    bgcolor="red"\n' in dot_data
+    assert "\n    size=12\n" in dot_data
     assert "bgcolor=none" not in dot_data
 
 
@@ -100,13 +100,9 @@ def test_asdot_with_styled_edges_and_nodes(reaction: ReactionInfo, output_dir):
     assert pydot.graph_from_dot_data(dot) is not None
     with open(output_dir + f"styled_{reaction.formalism}.gv", "w") as stream:
         stream.write(dot)
-    assert (
-        '"edge0" [shape=none, fontcolor="blue", label="0: gamma[-1]"];' in dot
-    )
-    assert (
-        '"node0" -> "node1" [fontcolor="blue", label="f(0)(980)[0]"];' in dot
-    )
-    assert '"node0" [shape="ellipse", fontcolor="darkgreen", label=""];' in dot
+    assert '0 [fontcolor="blue", label="0: gamma[-1]"]' in dot
+    assert 'N0 -> N1 [fontcolor="blue", label="f(0)(980)[0]"]' in dot
+    assert 'N0 [fontcolor="darkgreen", shape="ellipse", label=""]' in dot
 
 
 def test_asdot_no_label_overwriting(reaction: ReactionInfo):
