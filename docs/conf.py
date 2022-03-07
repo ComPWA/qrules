@@ -235,9 +235,9 @@ nitpick_ignore = [
 # Intersphinx settings
 version_remapping = {
     "jsonschema": {
-        "4.3.2": "4.3.1",
-        "4.3.3": "4.3.1",
-        "4.4.0": "4.3.1",
+        "4.3.2": "4.8.0",
+        "4.3.3": "4.8.0",
+        "4.4.0": "4.8.0",
     },
 }
 
@@ -301,6 +301,9 @@ copybutton_prompt_text = r">>> |\.\.\. "  # doctest
 
 # Settings for linkcheck
 linkcheck_anchors = False
+linkcheck_ignore = [
+    "https://doi.org/10.1002/andp.19955070504",  # 403 for onlinelibrary.wiley.com
+]
 
 # Settings for myst_nb
 execution_timeout = -1
