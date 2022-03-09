@@ -612,11 +612,11 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             self.filter_ignore_qns,
         )
 
+        execution_info = final_result.execution_info
         if (
             final_result.execution_info.violated_edge_rules
             or final_result.execution_info.violated_node_rules
         ):
-            execution_info = final_result.execution_info
             violated_rules: Set[str] = set()
             for rules in execution_info.violated_edge_rules.values():
                 violated_rules |= rules
