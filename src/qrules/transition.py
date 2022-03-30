@@ -607,8 +607,8 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
 
     def _solve(self, qn_problem_set: QNProblemSet) -> Tuple[QNProblemSet, QNResult]:
         solver = CSPSolver(self.__allowed_intermediate_particles)
-
-        return (qn_problem_set, solver.find_solutions(qn_problem_set))
+        solutions = solver.find_solutions(qn_problem_set)
+        return qn_problem_set, solutions
 
     def __convert_result(
         self, topology: Topology, qn_result: QNResult
