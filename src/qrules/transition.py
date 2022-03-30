@@ -526,7 +526,9 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             temp_qn_results: List[Tuple[QNProblemSet, QNResult]] = []
             if self.__number_of_threads > 1:
                 with Pool(self.__number_of_threads) as pool:
-                    for qn_result in pool.imap_unordered(self._solve, qn_problems, 1):
+                    for qn_result in pool.imap_unordered(
+                        self._solve, qn_problems, chunksize=1
+                    ):
                         temp_qn_results.append(qn_result)
                         progress_bar.update()
             else:
@@ -541,7 +543,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
                 if strength not in results:
                     results[strength] = temp_result
                 else:
-                    results[strength].extend(temp_result, True)
+                    results[strength].extend(temp_result, intersect_violations=True)
             if results[strength].solutions and self.reaction_mode == SolvingMode.FAST:
                 break
         progress_bar.close()
