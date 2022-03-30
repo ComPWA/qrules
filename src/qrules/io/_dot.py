@@ -291,6 +291,18 @@ def as_string(obj: Any) -> str:
 as_string.register(str, lambda _: _)  # avoid warning for str type
 
 
+@as_string.register(dict)
+def _(obj: dict) -> str:
+    lines = []
+    for key, value in obj.items():
+        if isinstance(key, type) or callable(key):
+            key_repr = key.__name__
+        else:
+            key_repr = key
+        lines.append(f"{key_repr} = {value}")
+    return "\n".join(lines)
+
+
 @as_string.register(InteractionProperties)
 def _(obj: InteractionProperties) -> str:
     lines = []
