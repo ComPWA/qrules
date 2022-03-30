@@ -223,7 +223,6 @@ html_theme_options = {
     },
     "show_navbar_depth": 2,
     "show_toc_level": 2,
-    "theme_dev_mode": True,
 }
 html_title = "Quantum number conservation rules"
 panels_add_bootstrap_css = False  # wider page width with sphinx-panels
