@@ -37,6 +37,11 @@
     "**/.tox/**": true
   },
   "git.rebaseWhenSync": true,
+  "github-actions.workflows.pinned.workflows": [
+    ".github/workflows/linkcheck.yml",
+    ".github/workflows/ci-tests.yml",
+    ".github/workflows/ci-docs.yml"
+  ],
   "json.schemas": [
     {
       "fileMatch": ["*particle*.json"],
