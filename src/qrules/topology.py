@@ -63,6 +63,7 @@ class Comparable(Protocol):
         ...
 
 
+# pylint: disable=invalid-name
 KeyType = TypeVar("KeyType", bound=Comparable)
 """Type the keys of the `~typing.Mapping`, see `~typing.KeysView`."""
 ValueType = TypeVar("ValueType")

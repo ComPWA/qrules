@@ -35,7 +35,7 @@ Scalar = Union[int, float]
 # InteractionRule = Union[EdgeQNConservationRule, ConservationRule]
 Rule = Union[GraphElementRule, EdgeQNConservationRule, ConservationRule]
 
-_ElementType = TypeVar("_ElementType")
+_ElementType = TypeVar("_ElementType")  # pylint: disable=invalid-name
 
 GraphElementPropertyMap = Dict[Type[_ElementType], Scalar]
 GraphEdgePropertyMap = GraphElementPropertyMap[EdgeQuantumNumber]
