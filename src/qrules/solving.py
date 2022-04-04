@@ -876,7 +876,9 @@ class Scoresheet:
         return self.__rule_passes
 
 
-_QNType = TypeVar("_QNType", EdgeQuantumNumber, NodeQuantumNumber)
+_QNType = TypeVar(  # pylint: disable=invalid-name
+    "_QNType", EdgeQuantumNumber, NodeQuantumNumber
+)
 
 
 class _GraphElementConstraint(Generic[_QNType], Constraint):

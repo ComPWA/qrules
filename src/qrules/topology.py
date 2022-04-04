@@ -820,6 +820,7 @@ def _attach_node_to_edges(
     return (temp_graph, new_open_end_lines)
 
 
+# pylint: disable=invalid-name
 EdgeType = TypeVar("EdgeType")
 NodeType = TypeVar("NodeType")
 NewEdgeType = TypeVar("NewEdgeType")
@@ -852,19 +853,16 @@ class Transition(ABC, Generic[EdgeType, NodeType]):
     @abstractmethod
     def topology(self) -> Topology:
         """`Topology` over which `states` and `interactions` are defined."""
-        ...
 
     @property
     @abstractmethod
     def states(self) -> Mapping[int, EdgeType]:
         """Mapping of properties over its `topology` `~Topology.edges`."""
-        ...
 
     @property
     @abstractmethod
     def interactions(self) -> Mapping[int, NodeType]:
         """Mapping of properties over its `topology` `~Topology.nodes`."""
-        ...
 
     @property
     def initial_states(self) -> Dict[int, EdgeType]:
