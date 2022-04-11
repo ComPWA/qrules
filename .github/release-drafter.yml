@@ -9,7 +9,9 @@ categories:
   - title: 💡 New features
     label: 💡 Feature
   - title: ⚠️ Interface
-    label: ⚠️ Interface
+    labels:
+      - ⚠️ Interface
+      - 📖 Physics
   - title: 🐛 Bug fixes
     label: Bug
   - title: 🔨 Internal maintenance
@@ -19,23 +21,15 @@ categories:
   - title: 🖱️ Developer Experience
     label: 🖱️ DX
 
-change-template: |
-  <details>
-  <summary>$TITLE (#$NUMBER)</summary>
-
-  $BODY
-
-  </details>
+change-template: "- $TITLE (#$NUMBER)"
 
 replacers:
-  - search: /<summary>([a-z]+!?:\s*)(.*)</summary>/g
-    replace: <summary>$2</summary>
+  - search: /([a-z]+!?:\s*)(.*)/g
+    replace: $2
 
 sort-direction: ascending
 
 template: |
-  # Release $NEXT_PATCH_VERSION
-
-  See all documentation for this version [here](https://qrules.rtfd.io/en/$NEXT_PATCH_VERSION).
+  _See all documentation for this version [here](https://qrules.rtfd.io/en/$NEXT_PATCH_VERSION)._
 
   $CHANGES
