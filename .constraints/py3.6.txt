@@ -105,11 +105,9 @@ pandocfilters==1.5.0
 parso==0.7.1
 particle==0.20.1
 pathspec==0.9.0
-pep517==0.12.0
 pep8-naming==0.12.1
 pexpect==4.8.0
 pickleshare==0.7.5
-pip-tools==6.4.0
 platformdirs==2.4.0
 pluggy==1.0.0
 pre-commit==2.17.0
@@ -196,5 +194,4 @@ wrapt==1.14.0
 zipp==3.6.0
 
 # The following packages are considered to be unsafe in a requirements file:
-# pip
 # setuptools
