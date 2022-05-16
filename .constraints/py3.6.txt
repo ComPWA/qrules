@@ -5,11 +5,11 @@
 #    pip-compile --extra=dev --no-annotate --output-file=.constraints/py3.6.txt --strip-extras setup.py
 #
 alabaster==0.7.12
-anyio==3.5.0
+anyio==3.6.1
 aquirdturtle-collapsible-headings==3.1.0
 argon2-cffi==21.3.0
 argon2-cffi-bindings==21.2.0
-astroid==2.11.4
+astroid==2.11.5
 async-generator==1.10
 attrs==21.4.0
 babel==2.10.1
@@ -64,7 +64,7 @@ ipywidgets==7.7.0
 isort==5.10.1
 jedi==0.17.2
 jinja2==3.0.3
-json5==0.9.6
+json5==0.9.8
 jsonschema==3.2.0
 jupyter==1.0.0
 jupyter-cache==0.4.3
@@ -125,8 +125,8 @@ pydocstyle==6.1.1
 pydot==1.4.2
 pyflakes==2.4.0
 pygments==2.12.0
-pylint==2.13.8
-pyparsing==3.0.8
+pylint==2.13.9
+pyparsing==3.0.9
 pyrsistent==0.18.0
 pytest==7.0.1
 pytest-cov==3.0.0
