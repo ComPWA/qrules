@@ -246,7 +246,7 @@ class Solver(ABC):
 def _merge_particle_candidates_with_solutions(
     solutions: List[QuantumNumberSolution],
     topology: Topology,
-    allowed_particles: List[GraphEdgePropertyMap],
+    allowed_quantum_numbers: Iterable[GraphEdgePropertyMap],
 ) -> List[QuantumNumberSolution]:
     merged_solutions = []
 
@@ -257,7 +257,7 @@ def _merge_particle_candidates_with_solutions(
         for int_edge_id in intermediate_edges:
             particle_edges = __get_particle_candidates_for_state(
                 solution.states[int_edge_id],
-                allowed_particles,
+                allowed_quantum_numbers,
             )
             if len(particle_edges) == 0:
                 logging.debug("Did not find any particle candidates for")
@@ -287,11 +287,11 @@ def _merge_particle_candidates_with_solutions(
 
 def __get_particle_candidates_for_state(
     state: GraphEdgePropertyMap,
-    allowed_particles: List[GraphEdgePropertyMap],
+    allowed_quantum_numbers: Iterable[GraphEdgePropertyMap],
 ) -> List[GraphEdgePropertyMap]:
     particle_edges = []
 
-    for particle_qns in allowed_particles:
+    for particle_qns in allowed_quantum_numbers:
         if __is_sub_mapping(state, particle_qns):
             particle_edges.append(particle_qns)
 
@@ -486,7 +486,7 @@ class CSPSolver(Solver):
 
     # pylint: disable=too-many-instance-attributes
     def __init__(
-        self, allowed_intermediate_particles: List[GraphEdgePropertyMap]
+        self, allowed_intermediate_states: Iterable[GraphEdgePropertyMap]
     ):
         self.__variables: Set[
             Union[_EdgeVariableInfo, _NodeVariableInfo]
@@ -503,7 +503,7 @@ class CSPSolver(Solver):
             int, Set[GraphElementRule]
         ] = defaultdict(set)
         self.__problem = Problem(BacktrackingSolver(True))
-        self.__allowed_intermediate_particles = allowed_intermediate_particles
+        self.__allowed_intermediate_states = tuple(allowed_intermediate_states)
         self.__scoresheet = Scoresheet()
 
     def find_solutions(self, problem_set: QNProblemSet) -> QNResult:
@@ -541,7 +541,7 @@ class CSPSolver(Solver):
                 _merge_particle_candidates_with_solutions(
                     solutions,
                     problem_set.topology,
-                    self.__allowed_intermediate_particles,
+                    self.__allowed_intermediate_states,
                 )
             )
         else:
