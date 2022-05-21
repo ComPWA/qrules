@@ -33,7 +33,7 @@ jobs:
           pip install .
       - name: Test with pytest-cov
         run: pytest tests -n auto --cov=qrules --cov-report=xml
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         if: ${{ always() }}
         with:
           name: test_output_${{ matrix.os }}_${{ matrix.python-version }}
@@ -81,7 +81,7 @@ jobs:
           pip install -c .constraints/py${{ matrix.python-version }}.txt -e .[test]
       - name: Run unit tests and doctests with pytest
         run: pytest -n auto
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         if: ${{ always() }}
         with:
           name: test_output_${{ matrix.os }}_${{ matrix.python-version }}
