@@ -349,21 +349,21 @@ def _(settings: Union[EdgeSettings, NodeSettings]) -> str:
     output = ""
     if settings.rule_priorities:
         output += "RULE PRIORITIES\n"
-        rule_names = map(
-            lambda item: f"{item[0].__name__} - {item[1]}",  # type: ignore[union-attr]
-            settings.rule_priorities.items(),
+        rule_names = (
+            f"{item[0].__name__} - {item[1]}"  # type: ignore[union-attr]
+            for item in settings.rule_priorities.items()
         )
         sorted_names = sorted(rule_names, key=__extract_priority, reverse=True)
         output += "\n".join(sorted_names)
     if settings.qn_domains:
         if output:
             output += "\n"
-        domains = map(
-            lambda item: f"{item[0].__name__} ∊ {item[1]}",
-            settings.qn_domains.items(),
+        domains = sorted(
+            f"{item[0].__name__} ∊ {item[1]}"
+            for item in settings.qn_domains.items()
         )
         output += "DOMAINS\n"
-        output += "\n".join(sorted(domains))
+        output += "\n".join(domains)
     return output
 
 
@@ -400,10 +400,10 @@ def _(obj: tuple) -> str:
         if isinstance(obj[0], Particle) and isinstance(obj[1], (float, int)):
             state = State(*obj)
             return _state_to_str(state)
-        if all(map(lambda o: isinstance(o, (float, int)), obj)):
+        if all(isinstance(o, (float, int)) for o in obj):
             spin = Spin(*obj)
             return _spin_to_str(spin)
-    if all(map(lambda o: isinstance(o, Particle), obj)):
+    if all(isinstance(o, Particle) for o in obj):
         return "\n".join(map(as_string, obj))
     logging.warning(f"No DOT render implemented for tuple of size {len(obj)}")
     return str(obj)

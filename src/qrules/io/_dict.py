@@ -31,7 +31,7 @@ def _value_serializer(  # pylint: disable=unused-argument
     inst: type, field: attrs.Attribute, value: Any
 ) -> Any:
     if isinstance(value, abc.Mapping):
-        if all(map(lambda p: isinstance(p, Particle), value.values())):
+        if all(isinstance(p, Particle) for p in value.values()):
             return {k: v.name for k, v in value.items()}
         return dict(value)
     if not isinstance(inst, (ReactionInfo, State, FrozenTransition)):
