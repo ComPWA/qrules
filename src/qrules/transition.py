@@ -692,9 +692,9 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
 def _safe_wrap_list(
     nested_list: Union[List[str], List[List[str]]]
 ) -> List[List[str]]:
-    if all(map(lambda i: isinstance(i, list), nested_list)):
+    if all(isinstance(i, list) for i in nested_list):
         return nested_list  # type: ignore[return-value]
-    if all(map(lambda i: isinstance(i, str), nested_list)):
+    if all(isinstance(i, str) for i in nested_list):
         return [nested_list]  # type: ignore[list-item]
     raise TypeError(
         f"Input final state grouping {nested_list} is not a list of lists of"
