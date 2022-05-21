@@ -439,21 +439,21 @@ def __render_settings(settings: Union[EdgeSettings, NodeSettings]) -> str:
     output = ""
     if settings.rule_priorities:
         output += "RULE PRIORITIES\n"
-        rule_names = map(
-            lambda item: f"{item[0].__name__} - {item[1]}",  # type: ignore[union-attr]
-            settings.rule_priorities.items(),
+        rule_names = (
+            f"{item[0].__name__} - {item[1]}"  # type: ignore[union-attr]
+            for item in settings.rule_priorities.items()
         )
         sorted_names = sorted(rule_names, key=__extract_priority, reverse=True)
         output += "\n".join(sorted_names)
     if settings.qn_domains:
         if output:
             output += "\n"
-        domains = map(
-            lambda item: f"{item[0].__name__} ∊ {item[1]}",
-            settings.qn_domains.items(),
+        domains = sorted(
+            f"{item[0].__name__} ∊ {item[1]}"
+            for item in settings.qn_domains.items()
         )
         output += "DOMAINS\n"
-        output += "\n".join(sorted(domains))
+        output += "\n".join(domains)
     return output
 
 

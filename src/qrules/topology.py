@@ -164,7 +164,7 @@ class Edge:
 
 
 def _to_frozenset(iterable: Iterable[int]) -> FrozenSet[int]:
-    if not all(map(lambda i: isinstance(i, int), iterable)):
+    if any(not isinstance(i, int) for i in iterable):
         raise TypeError(f"Not all items in {iterable} are of type int")
     return frozenset(iterable)
 

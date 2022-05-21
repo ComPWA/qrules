@@ -694,9 +694,9 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
 def _safe_wrap_list(
     nested_list: Union[List[str], List[List[str]]]
 ) -> List[List[str]]:
-    if all(map(lambda i: isinstance(i, list), nested_list)):
+    if all(isinstance(i, list) for i in nested_list):
         return nested_list  # type: ignore[return-value]
-    if all(map(lambda i: isinstance(i, str), nested_list)):
+    if all(isinstance(i, str) for i in nested_list):
         return [nested_list]  # type: ignore[list-item]
     raise TypeError(
         f"Input final state grouping {nested_list} is not a list of lists of"
@@ -818,7 +818,7 @@ def _assert_defined(items: Collection, properties: Mapping) -> None:
 def _to_sorted_tuple(
     iterable: Iterable[StateTransition],
 ) -> Tuple[StateTransition, ...]:
-    if not all(map(lambda t: isinstance(t, StateTransition), iterable)):
+    if any(not isinstance(t, StateTransition) for t in iterable):
         raise TypeError(
             f"Not all instances are of type {StateTransition.__name__}"
         )
@@ -841,7 +841,7 @@ class StateTransitionCollection(abc.Sequence):
             ValueError(f"At least one {StateTransition.__name__} required")
         some_transition = next(iter(self.transitions))
         topology = some_transition.topology
-        if not all(map(lambda t: t.topology == topology, self.transitions)):
+        if any(t.topology != topology for t in self.transitions):
             raise TypeError(
                 f"Not all {StateTransition.__name__} items have the same"
                 f" underlying topology. Expecting: {topology}"
@@ -926,9 +926,7 @@ class StateTransitionCollection(abc.Sequence):
 def _to_tuple(
     iterable: Iterable[StateTransitionCollection],
 ) -> Tuple[StateTransitionCollection, ...]:
-    if not all(
-        map(lambda t: isinstance(t, StateTransitionCollection), iterable)
-    ):
+    if any(not isinstance(t, StateTransitionCollection) for t in iterable):
         raise TypeError(
             "Not all instances are of type"
             f" {StateTransitionCollection.__name__}"
