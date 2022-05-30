@@ -266,7 +266,7 @@ def create_initial_facts(  # pylint: disable=too-many-locals
             kinematic_permutation, particle_db
         )
         edge_initial_facts.extend(
-            [MutableTransition(topology, states=x) for x in spin_permutations]
+            [MutableTransition(topology, states=x) for x in spin_permutations]  # type: ignore[arg-type]
         )
     return edge_initial_facts
 

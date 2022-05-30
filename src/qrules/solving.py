@@ -441,8 +441,8 @@ def validate_full_solution(problem_set: QNProblemSet) -> QNResult:
         [
             MutableTransition(
                 topology=problem_set.topology,
-                states=problem_set.initial_facts.states,
-                interactions=problem_set.initial_facts.interactions,
+                states=problem_set.initial_facts.states,  # type: ignore[arg-type]
+                interactions=problem_set.initial_facts.interactions,  # type: ignore[arg-type]
             )
         ],
     )
@@ -548,8 +548,8 @@ class CSPSolver(Solver):
             full_particle_solutions = [
                 QuantumNumberSolution(
                     topology=problem_set.topology,
-                    interactions=problem_set.initial_facts.interactions,
-                    states=problem_set.initial_facts.states,
+                    interactions=problem_set.initial_facts.interactions,  # type: ignore[arg-type]
+                    states=problem_set.initial_facts.states,  # type: ignore[arg-type]
                 )
             ]
 
@@ -569,16 +569,16 @@ class CSPSolver(Solver):
                     validate_full_solution(
                         QNProblemSet(
                             initial_facts=MutableTransition(
-                                topology, states, interactions
+                                topology, states, interactions  # type: ignore[arg-type]
                             ),
                             solving_settings=MutableTransition(
                                 topology,
                                 interactions={
-                                    i: NodeSettings(conservation_rules=rules)
+                                    i: NodeSettings(conservation_rules=rules)  # type: ignore[misc]
                                     for i, rules in node_not_executed_rules.items()
                                 },
                                 states={
-                                    i: EdgeSettings(conservation_rules=rules)
+                                    i: EdgeSettings(conservation_rules=rules)  # type: ignore[misc]
                                     for i, rules in edge_not_executed_rules.items()
                                 },
                             ),
@@ -825,7 +825,9 @@ class CSPSolver(Solver):
         self, topology: Topology, solutions: List[Dict[str, Scalar]]
     ) -> List[QuantumNumberSolution]:
         """Convert keys of CSP solutions from `str` to quantum number types."""
-        converted_solutions = []
+        converted_solutions: List[
+            MutableTransition[GraphEdgePropertyMap, GraphNodePropertyMap]
+        ] = []
         for solution in solutions:
             states: Dict[int, GraphEdgePropertyMap] = defaultdict(dict)
             interactions: Dict[int, GraphNodePropertyMap] = defaultdict(dict)
@@ -839,7 +841,7 @@ class CSPSolver(Solver):
                 else:
                     interactions[ele_id].update({qn_type: value})  # type: ignore[dict-item]
             converted_solutions.append(
-                MutableTransition(topology, states, interactions)
+                MutableTransition(topology, states, interactions)  # type: ignore[arg-type]
             )
         return converted_solutions
 
