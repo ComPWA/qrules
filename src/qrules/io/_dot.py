@@ -473,8 +473,8 @@ def _collapse_graphs(
     transition_groups: "Dict[Topology, MutableTransition[Set[Particle], None]]" = {
         g.topology: MutableTransition(
             g.topology,
-            states={i: set() for i in g.topology.edges},
-            interactions={i: None for i in g.topology.nodes},
+            states={i: set() for i in g.topology.edges},  # type: ignore[misc]
+            interactions={i: None for i in g.topology.nodes},  # type: ignore[misc]
         )
         for g in graphs
     }

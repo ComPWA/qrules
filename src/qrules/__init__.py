@@ -136,11 +136,11 @@ def check_reaction_violations(  # pylint: disable=too-many-arguments
             solving_settings=MutableTransition(
                 facts.topology,
                 interactions={
-                    i: NodeSettings(conservation_rules=rules)
+                    i: NodeSettings(conservation_rules=rules)  # type: ignore[misc]
                     for i, rules in node_rules.items()
                 },
                 states={
-                    i: EdgeSettings(conservation_rules=rules)
+                    i: EdgeSettings(conservation_rules=rules)  # type: ignore[misc]
                     for i, rules in edge_rules.items()
                 },
             ),

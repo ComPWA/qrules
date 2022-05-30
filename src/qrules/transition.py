@@ -200,7 +200,7 @@ class ProblemSet:
         }
         return QNProblemSet(
             initial_facts=MutableTransition(
-                self.topology, states, interactions
+                self.topology, states, interactions  # type: ignore[arg-type]
             ),
             solving_settings=self.solving_settings,
         )
@@ -474,7 +474,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             MutableTransition(
                 topology,
                 states={
-                    edge_id: create_edge_settings(edge_id)
+                    edge_id: create_edge_settings(edge_id)  # type: ignore[misc]
                     for edge_id in topology.edges
                 },
             )
@@ -665,14 +665,14 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         """
         solutions = []
         for solution in qn_result.solutions:
-            graph = MutableTransition(
+            graph = MutableTransition(  # type: ignore[var-annotated]
                 topology=topology,
                 interactions={
-                    i: create_interaction_properties(x)
+                    i: create_interaction_properties(x)  # type: ignore[misc]
                     for i, x in solution.interactions.items()
                 },
                 states={
-                    i: create_particle(x, self.__particles)
+                    i: create_particle(x, self.__particles)  # type: ignore[misc]
                     for i, x in solution.states.items()
                 },
             )
@@ -717,10 +717,10 @@ def _match_final_state_ids(
     return MutableTransition(
         new_topology,
         states={
-            i: graph.states[id_remapping.get(i, i)]
+            i: graph.states[id_remapping.get(i, i)]  # type: ignore[misc]
             for i in graph.topology.edges
         },
-        interactions={i: graph.interactions[i] for i in graph.topology.nodes},
+        interactions={i: graph.interactions[i] for i in graph.topology.nodes},  # type: ignore[misc]
     )
 
 
