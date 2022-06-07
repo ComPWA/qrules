@@ -14,7 +14,6 @@ build:
     python: "3.8"
   apt_packages:
     - graphviz
-  commands:
-    - pip install -e .[doc] -c .constraints/py3.8.txt
-    - cat docs/conf.py
-    - sphinx-build --keep-going -TW -b html docs/ _readthedocs/html
+  jobs:
+    post_install:
+      - pip install -e .[doc] -c .constraints/py3.8.txt
