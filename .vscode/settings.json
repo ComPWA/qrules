@@ -74,7 +74,6 @@
   },
   "telemetry.telemetryLevel": "off",
   "yaml.schemas": {
-    "./src/qrules/particle-validation.json": ["*particle*.y*ml"],
-    "https://raw.githubusercontent.com/readthedocs/readthedocs.org/master/readthedocs/rtd_tests/fixtures/spec/v2/schema.yml": ".readthedocs.yml"
+    "./src/qrules/particle-validation.json": ["*particle*.y*ml"]
   }
 }
