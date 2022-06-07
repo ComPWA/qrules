@@ -13,7 +13,7 @@ build:
   tools:
     python: "3.8"
   commands:
-    - apt install -y graphviz
+    - sudo apt-get install -y graphviz
     - pip install -e .[doc] -c .constraints/py3.8.txt
     - cat docs/conf.py
     - sphinx-build --keep-going -TW -b html docs/ _readthedocs/html
