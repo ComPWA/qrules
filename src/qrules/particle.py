@@ -383,12 +383,12 @@ class ParticleCollection(abc.MutableSet):
         """Search for a particle by either name (`str`) or PID (`int`)."""
         if isinstance(search_term, str):
             particle_name = search_term
-            return self.__getitem__(particle_name)
+            return self.__getitem__(particle_name)  # pylint: disable=C2801
         if isinstance(search_term, int):
             if search_term not in self.__pid_to_name:
                 raise KeyError(f"No particle with PID {search_term}")
             particle_name = self.__pid_to_name[search_term]
-            return self.__getitem__(particle_name)
+            return self.__getitem__(particle_name)  # pylint: disable=C2801
         raise NotImplementedError(
             f"Cannot search for a search term of type {type(search_term)}"
         )

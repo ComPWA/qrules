@@ -1,5 +1,5 @@
 # pyright: reportUnusedImport=false
-# pylint: disable=eval-used, no-self-use
+# pylint: disable=eval-used
 from operator import itemgetter
 from typing import List
 

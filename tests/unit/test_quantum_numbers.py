@@ -1,4 +1,4 @@
-# pylint: disable=eval-used, no-self-use
+# pylint: disable=eval-used
 import typing
 from copy import deepcopy
 
