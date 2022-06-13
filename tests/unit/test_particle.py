@@ -1,4 +1,4 @@
-# pylint: disable=eval-used, no-self-use, redefined-outer-name
+# pylint: disable=eval-used redefined-outer-name
 # pyright: reportUnusedImport=false
 import logging
 from copy import deepcopy

@@ -1,5 +1,5 @@
 # pyright: reportUnusedImport=false
-# pylint: disable=eval-used, no-self-use
+# pylint: disable=eval-used
 from copy import deepcopy
 
 import pytest

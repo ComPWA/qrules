@@ -1,4 +1,4 @@
-# pylint: disable=eval-used, no-self-use, redefined-outer-name, too-many-arguments
+# pylint: disable=eval-used redefined-outer-name too-many-arguments
 # pyright: reportUnusedImport=false
 import typing
 
