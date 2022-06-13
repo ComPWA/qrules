@@ -929,9 +929,9 @@ class FrozenTransition(Transition, Generic[EdgeType, NodeType]):
         """Cast the edge and/or node properties to another type."""
         # pylint: disable=unnecessary-lambda
         if state_converter is None:
-            state_converter = lambda _: _
+            state_converter = _identity_function
         if interaction_converter is None:
-            interaction_converter = lambda _: _
+            interaction_converter = _identity_function
         return FrozenTransition(
             self.topology,
             states={
@@ -942,6 +942,10 @@ class FrozenTransition(Transition, Generic[EdgeType, NodeType]):
                 for i, interaction in self.interactions.items()
             },
         )
+
+
+def _identity_function(obj: Any) -> Any:
+    return obj
 
 
 def _cast_states(obj: Mapping[int, EdgeType]) -> Dict[int, EdgeType]:
