@@ -158,7 +158,7 @@ extensions = [
     "sphinx_codeautolink",
     "sphinx_comments",
     "sphinx_copybutton",
-    "sphinx_panels",
+    "sphinx_design",
     "sphinx_thebe",
     "sphinx_togglebutton",
     "sphinxcontrib.bibtex",
@@ -232,7 +232,6 @@ html_theme_options = {
     "show_toc_level": 2,
 }
 html_title = "Quantum number conservation rules"
-panels_add_bootstrap_css = False  # wider page width with sphinx-design
 pygments_style = "sphinx"
 todo_include_todos = False
 viewcode_follow_imported_members = True
