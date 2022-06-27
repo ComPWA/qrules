@@ -34,9 +34,7 @@ def extend_docstrings() -> None:
             continue
         function_arguments = inspect.signature(definition).parameters
         if len(function_arguments):
-            raise ValueError(
-                f"Local function {name} should not have a signature"
-            )
+            raise ValueError(f"Local function {name} should not have a signature")
         definition()
 
 
@@ -92,9 +90,7 @@ def extend_Topology() -> None:
     )
 
 
-def _append_to_docstring(
-    class_type: Union[Callable, Type], appended_text: str
-) -> None:
+def _append_to_docstring(class_type: Union[Callable, Type], appended_text: str) -> None:
     assert class_type.__doc__ is not None
     class_type.__doc__ += appended_text
 

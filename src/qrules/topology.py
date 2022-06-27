@@ -5,8 +5,7 @@
 
 - `Topology` and its builder functions :func:`create_isobar_topologies` and
   :func:`create_n_body_topology`.
-- `Transition` and its two implementations `MutableTransition` and
-  `FrozenTransition`.
+- `Transition` and its two implementations `MutableTransition` and `FrozenTransition`.
 
 .. autolink-preface::
 
@@ -79,12 +78,11 @@ class FrozenDict(  # pylint: disable=too-many-ancestors
 ):
     """An **immutable** and **hashable** version of a `dict`.
 
-    `FrozenDict` makes it possible to make classes hashable if they are
-    decorated with :func:`attr.frozen` and contain `~typing.Mapping`-like
-    attributes. If these attributes were to be implemented with a normal
-    `dict`, the instance is strictly speaking still mutable (even if those
-    attributes are a `property`) and the class is therefore not safely
-    hashable.
+    `FrozenDict` makes it possible to make classes hashable if they are decorated with
+    :func:`attr.frozen` and contain `~typing.Mapping`-like attributes. If these
+    attributes were to be implemented with a normal `dict`, the instance is strictly
+    speaking still mutable (even if those attributes are a `property`) and the class is
+    therefore not safely hashable.
 
     .. warning:: The keys have to be comparable, that is, they need to have a
         :meth:`~object.__lt__` method.
@@ -166,21 +164,17 @@ def _to_optional_int(optional_int: Optional[int]) -> Optional[int]:
 class Edge:
     """Struct-like definition of an edge, used in `Topology.edges`."""
 
-    originating_node_id: Optional[int] = field(
-        default=None, converter=_to_optional_int
-    )
+    originating_node_id: Optional[int] = field(default=None, converter=_to_optional_int)
     """Node ID where the `Edge` **starts**.
 
-    An `Edge` is **incoming to** a `Topology` if its `originating_node_id` is
-    `None` (see `~Topology.incoming_edge_ids`).
+    An `Edge` is **incoming to** a `Topology` if its `originating_node_id` is `None`
+    (see `~Topology.incoming_edge_ids`).
     """
-    ending_node_id: Optional[int] = field(
-        default=None, converter=_to_optional_int
-    )
+    ending_node_id: Optional[int] = field(default=None, converter=_to_optional_int)
     """Node ID where the `Edge` **ends**.
 
-    An `Edge` is **outgoing from** a `Topology` if its `ending_node_id` is
-    `None` (see `~Topology.outgoing_edge_ids`).
+    An `Edge` is **outgoing from** a `Topology` if its `ending_node_id` is `None` (see
+    `~Topology.outgoing_edge_ids`).
     """
 
     def get_connected_nodes(self) -> Set[int]:
@@ -204,22 +198,22 @@ class Topology:
     # noqa: D416
     """Directed Feynman-like graph without edge or node properties.
 
-    A `Topology` is **directed** in the sense that its edges are ingoing and
-    outgoing to specific nodes. This is to mimic Feynman graphs, which have a
-    time axis. Note that a `Topology` is not strictly speaking a graph from
-    graph theory, because it allows open edges, like a Feynman-diagram.
+    A `Topology` is **directed** in the sense that its edges are ingoing and outgoing to
+    specific nodes. This is to mimic Feynman graphs, which have a time axis. Note that a
+    `Topology` is not strictly speaking a graph from graph theory, because it allows
+    open edges, like a Feynman-diagram.
 
-    The edges and nodes can be provided with properties with a `Transition`,
-    which contains a `~Transition.topology`.
+    The edges and nodes can be provided with properties with a `Transition`, which
+    contains a `~Transition.topology`.
 
-    As opposed to a `MutableTopology`, a `Topology` is frozen, hashable, and
-    ordered, so that it can be used as a kind of fingerprint for a
-    `Transition`. In addition, the IDs of `edges` are guaranteed to be
-    sequential integers and follow a specific pattern:
+    As opposed to a `MutableTopology`, a `Topology` is frozen, hashable, and ordered, so
+    that it can be used as a kind of fingerprint for a `Transition`. In addition, the
+    IDs of `edges` are guaranteed to be sequential integers and follow a specific
+    pattern:
 
     - `incoming_edge_ids` (`~Transition.initial_states`) are always negative.
-    - `outgoing_edge_ids` (`~Transition.final_states`) lie in the range
-      :code:`0...n-1` with :code:`n` the number of final states.
+    - `outgoing_edge_ids` (`~Transition.final_states`) lie in the range :code:`0...n-1`
+      with :code:`n` the number of final states.
     - `intermediate_edge_ids` continue counting from :code:`n`.
 
     See also :meth:`MutableTopology.organize_edge_ids`.
@@ -276,15 +270,11 @@ class Topology:
         inter = sorted(set(self.edges) - set(incoming) - set(outgoing))
         expected = list(range(-len(incoming), 0))
         if sorted(incoming) != expected:
-            raise ValueError(
-                f"Incoming edge IDs should be {expected}, not {incoming}."
-            )
+            raise ValueError(f"Incoming edge IDs should be {expected}, not {incoming}.")
         n_out = len(outgoing)
         expected = list(range(0, n_out))
         if sorted(outgoing) != expected:
-            raise ValueError(
-                f"Outgoing edge IDs should be {expected}, not {outgoing}."
-            )
+            raise ValueError(f"Outgoing edge IDs should be {expected}, not {outgoing}.")
         expected = list(range(n_out, n_out + len(inter)))
         if sorted(inter) != expected:
             raise ValueError(f"Intermediate edge IDs should be {expected}.")
@@ -298,8 +288,7 @@ class Topology:
             connected_nodes = edge.get_connected_nodes()
             if not connected_nodes:
                 raise ValueError(
-                    f"Edge nr. {edge_id} is not connected to any other node"
-                    f" ({edge})"
+                    f"Edge nr. {edge_id} is not connected to any other node ({edge})"
                 )
             if not connected_nodes <= self.nodes:
                 raise ValueError(
@@ -314,9 +303,7 @@ class Topology:
         for node_id in self.nodes:
             surrounding_nodes = self.__get_surrounding_nodes(node_id)
             if not surrounding_nodes:
-                raise ValueError(
-                    f"Node {node_id} is not connected to any other node"
-                )
+                raise ValueError(f"Node {node_id} is not connected to any other node")
 
     def __get_surrounding_nodes(self, node_id: int) -> Set[int]:
         surrounding_nodes = set()
@@ -330,8 +317,8 @@ class Topology:
     def is_isomorphic(self, other: "Topology") -> bool:
         """Check if two graphs are isomorphic.
 
-        Returns `True` if the two graphs have a one-to-one mapping of the node
-        IDs and edge IDs.
+        Returns `True` if the two graphs have a one-to-one mapping of the node IDs and
+        edge IDs.
 
         .. warning:: Not yet implemented.
         """
@@ -390,8 +377,8 @@ class Topology:
     def relabel_edges(self, old_to_new: Mapping[int, int]) -> "Topology":
         """Create a new `Topology` with new edge IDs.
 
-        This method is particularly useful when creating permutations of a
-        `Topology`, e.g.:
+        This method is particularly useful when creating permutations of a `Topology`,
+        e.g.:
 
         >>> topologies = create_isobar_topologies(3)
         >>> len(topologies)
@@ -416,23 +403,18 @@ class Topology:
         return self.relabel_edges({edge_id1: edge_id2, edge_id2: edge_id1})
 
 
-def get_originating_node_list(
-    topology: Topology, edge_ids: Iterable[int]
-) -> List[int]:
+def get_originating_node_list(topology: Topology, edge_ids: Iterable[int]) -> List[int]:
     """Get list of node ids from which the supplied edges originate from.
 
     Args:
         topology: The `Topology` on which to perform the search.
-        edge_ids ([int]): A list of edge ids for which the origin node is
-            searched for.
+        edge_ids ([int]): A list of edge ids for which the origin node is searched for.
     """
 
     def __get_originating_node(edge_id: int) -> Optional[int]:
         return topology.edges[edge_id].originating_node_id
 
-    return [
-        node_id for node_id in map(__get_originating_node, edge_ids) if node_id
-    ]
+    return [node_id for node_id in map(__get_originating_node, edge_ids) if node_id]
 
 
 def _to_mutable_topology_nodes(inst: Iterable[int]) -> Set[int]:
@@ -447,9 +429,9 @@ def _to_mutable_topology_edges(inst: Mapping[int, Edge]) -> Dict[int, Edge]:
 class MutableTopology:
     """Mutable version of a `Topology`.
 
-    A `MutableTopology` can be used to conveniently build up a `Topology` (see
-    e.g. `SimpleStateTransitionTopologyBuilder`). It does not have restrictions
-    on the numbering of edge and node IDs.
+    A `MutableTopology` can be used to conveniently build up a `Topology` (see e.g.
+    `SimpleStateTransitionTopologyBuilder`). It does not have restrictions on the
+    numbering of edge and node IDs.
     """
 
     nodes: Set[int] = field(
@@ -545,8 +527,8 @@ class MutableTopology:
     def organize_edge_ids(self) -> "MutableTopology":
         """Organize edge IDS so that they lie in range :code:`[-m, n+i]`.
 
-        Here, :code:`m` is the number of `.incoming_edge_ids`, :code:`n` is the
-        number of `.outgoing_edge_ids`, and :code:`i` is the number of
+        Here, :code:`m` is the number of `.incoming_edge_ids`, :code:`n` is the number
+        of `.outgoing_edge_ids`, and :code:`i` is the number of
         `.intermediate_edge_ids`.
 
         In other words, relabel the edges so that:
@@ -556,9 +538,7 @@ class MutableTopology:
         - intermediate edge IDs lie in the range :code:`[n+1, n+2, ...]`.
         """
         incoming = {
-            i
-            for i, edge in self.edges.items()
-            if edge.originating_node_id is None
+            i for i, edge in self.edges.items() if edge.originating_node_id is None
         }
         outgoing = {
             edge_id
@@ -571,9 +551,7 @@ class MutableTopology:
             start=-len(incoming),
         )
         old_to_new_id = {j: i for i, j in new_to_old_id}
-        new_edges = {
-            old_to_new_id.get(i, i): edge for i, edge in self.edges.items()
-        }
+        new_edges = {old_to_new_id.get(i, i): edge for i, edge in self.edges.items()}
         return attrs.evolve(self, edges=new_edges)
 
     def freeze(self) -> Topology:
@@ -593,31 +571,22 @@ class InteractionNode:
 
     def __attrs_post_init__(self) -> None:
         if self.number_of_ingoing_edges < 1:
-            raise ValueError(
-                "Number of incoming edges has to be larger than 0"
-            )
+            raise ValueError("Number of incoming edges has to be larger than 0")
         if self.number_of_outgoing_edges < 1:
-            raise ValueError(
-                "Number of outgoing edges has to be larger than 0"
-            )
+            raise ValueError("Number of outgoing edges has to be larger than 0")
 
 
 class SimpleStateTransitionTopologyBuilder:
     """Simple topology builder.
 
-    Recursively tries to add the interaction nodes to available open end
-    edges/lines in all combinations until the number of open end lines matches
-    the final state lines.
+    Recursively tries to add the interaction nodes to available open end edges/lines in
+    all combinations until the number of open end lines matches the final state lines.
     """
 
-    def __init__(
-        self, interaction_node_set: Iterable[InteractionNode]
-    ) -> None:
+    def __init__(self, interaction_node_set: Iterable[InteractionNode]) -> None:
         if not isinstance(interaction_node_set, list):
             raise TypeError("interaction_node_set must be a list")
-        self.interaction_node_set: List[InteractionNode] = list(
-            interaction_node_set
-        )
+        self.interaction_node_set: List[InteractionNode] = list(interaction_node_set)
 
     def build(
         self, number_of_initial_edges: int, number_of_final_edges: int
@@ -671,9 +640,7 @@ class SimpleStateTransitionTopologyBuilder:
         # Try to extend the graph with interaction nodes
         # that have equal or less ingoing lines than active lines
         for interaction_node in self.interaction_node_set:
-            if interaction_node.number_of_ingoing_edges <= len(
-                current_open_end_edges
-            ):
+            if interaction_node.number_of_ingoing_edges <= len(current_open_end_edges):
                 # make all combinations
                 combis = list(
                     itertools.combinations(
@@ -691,9 +658,7 @@ class SimpleStateTransitionTopologyBuilder:
                         combis.remove(comb2)
 
                 for combi in combis:
-                    new_graph = _attach_node_to_edges(
-                        pair, interaction_node, combi
-                    )
+                    new_graph = _attach_node_to_edges(pair, interaction_node, combi)
                     extended_graph_list.append(new_graph)
 
         return extended_graph_list
@@ -709,8 +674,8 @@ def create_isobar_topologies(
             (`~.Transition.final_states`).
 
     Returns:
-        A sorted `tuple` of non-isomorphic `Topology` instances, all with the
-        same number of final states.
+        A sorted `tuple` of non-isomorphic `Topology` instances, all with the same
+        number of final states.
 
     Example:
         >>> topologies = create_isobar_topologies(number_of_final_states=4)
@@ -724,9 +689,7 @@ def create_isobar_topologies(
         True
     """
     if number_of_final_states < 2:
-        raise ValueError(
-            "At least two final states required for an isobar decay"
-        )
+        raise ValueError("At least two final states required for an isobar decay")
     builder = SimpleStateTransitionTopologyBuilder([InteractionNode(1, 2)])
     topologies = builder.build(
         number_of_initial_edges=1,
@@ -830,20 +793,18 @@ NewNodeType = TypeVar("NewNodeType")
 class Transition(ABC, Generic[EdgeType, NodeType]):
     """Mapping of edge and node properties over a `.Topology`.
 
-    This **interface** class describes a transition from an initial state to a
-    final state by providing a mapping of properties over the `~Topology.edges`
-    and `~Topology.nodes` of its `topology`. Since a `Topology` behaves like a
-    Feynman graph, **edges** are considered as "`states`" and **nodes** are
-    considered as `interactions` between those states.
+    This **interface** class describes a transition from an initial state to a final
+    state by providing a mapping of properties over the `~Topology.edges` and
+    `~Topology.nodes` of its `topology`. Since a `Topology` behaves like a Feynman
+    graph, **edges** are considered as "`states`" and **nodes** are considered as
+    `interactions` between those states.
 
     There are two implementation classes:
 
-    - `FrozenTransition`: a complete, hashable and ordered mapping of
-      properties over the `~Topology.edges` and `~Topology.nodes` in its
-      `~FrozenTransition.topology`.
-    - `MutableTransition`: comparable to `MutableTopology` in that it is used
-      internally when finding solutions through the `.StateTransitionManager`
-      etc.
+    - `FrozenTransition`: a complete, hashable and ordered mapping of properties over
+      the `~Topology.edges` and `~Topology.nodes` in its `~FrozenTransition.topology`.
+    - `MutableTransition`: comparable to `MutableTopology` in that it is used internally
+      when finding solutions through the `.StateTransitionManager` etc.
 
     These classes are also provided with **mixin** attributes `initial_states`,
     `final_states`, `intermediate_states`, and :meth:`filter_states`.
@@ -934,9 +895,7 @@ class FrozenTransition(Transition, Generic[EdgeType, NodeType]):
             interaction_converter = _identity_function
         return FrozenTransition(
             self.topology,
-            states={
-                i: state_converter(state) for i, state in self.states.items()
-            },
+            states={i: state_converter(state) for i, state in self.states.items()},
             interactions={
                 i: interaction_converter(interaction)
                 for i, interaction in self.interactions.items()
@@ -973,12 +932,8 @@ class MutableTransition(Transition, Generic[EdgeType, NodeType]):
     def compare(
         self,
         other: "MutableTransition",
-        state_comparator: Optional[
-            Callable[[EdgeType, EdgeType], bool]
-        ] = None,
-        interaction_comparator: Optional[
-            Callable[[NodeType, NodeType], bool]
-        ] = None,
+        state_comparator: Optional[Callable[[EdgeType, EdgeType], bool]] = None,
+        interaction_comparator: Optional[Callable[[NodeType, NodeType], bool]] = None,
     ) -> bool:
         if self.topology != other.topology:
             return False

@@ -23,17 +23,16 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort)
 
-QRules is a Python package for **validating and generating particle reactions**
-using quantum number conservation rules. The user only has to provide a certain
-set of boundary conditions (initial and final state, allowed interaction types,
-expected decay topologies, etc.). QRules will then span the space of allowed
-quantum numbers over all allowed decay topologies and particle instances that
-correspond with the sets of allowed quantum numbers it has found.
+QRules is a Python package for **validating and generating particle reactions** using
+quantum number conservation rules. The user only has to provide a certain set of
+boundary conditions (initial and final state, allowed interaction types, expected decay
+topologies, etc.). QRules will then span the space of allowed quantum numbers over all
+allowed decay topologies and particle instances that correspond with the sets of allowed
+quantum numbers it has found.
 
-The resulting state transition objects are particularly useful for **amplitude
-analysis / Partial Wave Analysis** as they contain all information (such as
-expected masses, widths, and spin projections) that is needed to formulate an
-amplitude model.
+The resulting state transition objects are particularly useful for **amplitude analysis
+/ Partial Wave Analysis** as they contain all information (such as expected masses,
+widths, and spin projections) that is needed to formulate an amplitude model.
 
 Visit [qrules.rtfd.io](https://qrules.readthedocs.io) for more information!
 
@@ -58,8 +57,7 @@ For an overview of **upcoming releases and planned functionality**, see
     - EM-charge conservation
     - Parity, C-Parity, G-Parity conservation
     - Mass conservation
-  - Predefined sets of conservation rules representing Strong, EM, Weak
-    interactions
+  - Predefined sets of conservation rules representing Strong, EM, Weak interactions
 
 ## Contribute
 

@@ -3,11 +3,7 @@ import pytest
 
 import qrules
 from qrules import io
-from qrules.io._dot import (
-    _collapse_graphs,
-    _get_particle_graphs,
-    _strip_projections,
-)
+from qrules.io._dot import _collapse_graphs, _get_particle_graphs, _strip_projections
 from qrules.particle import Particle, ParticleCollection
 from qrules.topology import (
     Edge,

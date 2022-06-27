@@ -1,15 +1,13 @@
 # pylint: disable=import-outside-toplevel
 """A collection of particle info containers.
 
-The :mod:`.particle` module is the starting point of `qrules`. Its main
-interface is the `ParticleCollection`, which is a collection of immutable
-`Particle` instances that are uniquely defined by their properties. As such, it
-can be used stand-alone as a database of quantum numbers (see
-:doc:`/usage/particle`).
+The :mod:`.particle` module is the starting point of `qrules`. Its main interface is the
+`ParticleCollection`, which is a collection of immutable `Particle` instances that are
+uniquely defined by their properties. As such, it can be used stand-alone as a database
+of quantum numbers (see :doc:`/usage/particle`).
 
-The `.transition` module uses the properties of `Particle` instances when it
-computes which `.MutableTransition` s are allowed between an initial state
-and final state.
+The `.transition` module uses the properties of `Particle` instances when it computes
+which `.MutableTransition` s are allowed between an initial state and final state.
 """
 
 import logging
@@ -73,8 +71,7 @@ class Spin:
         if abs(self.projection) > self.magnitude:
             if self.magnitude < 0.0:
                 raise ValueError(
-                    "Spin magnitude has to be positive, but is"
-                    f" {self.magnitude}"
+                    f"Spin magnitude has to be positive, but is {self.magnitude}"
                 )
             raise ValueError(
                 "Absolute value of spin projection cannot be larger than its "
@@ -131,16 +128,15 @@ def _to_spin(value: Union[Spin, Tuple[float, float]]) -> Spin:
 class Particle:  # pylint: disable=too-many-instance-attributes
     """Immutable container of data defining a physical particle.
 
-    A `Particle` is defined by the minimum set of the quantum numbers that
-    every possible instances of that particle have in common (the "static"
-    quantum numbers of the particle). A "non-static" quantum number is the spin
-    projection. Hence `Particle` instances do **not** contain spin projection
-    information.
+    A `Particle` is defined by the minimum set of the quantum numbers that every
+    possible instances of that particle have in common (the "static" quantum numbers of
+    the particle). A "non-static" quantum number is the spin projection. Hence
+    `Particle` instances do **not** contain spin projection information.
 
-    `Particle` instances are uniquely defined by their quantum numbers and
-    properties like `~Particle.mass`. The `~Particle.name` and `~Particle.pid`
-    are therefore just labels that are not taken into account when checking if
-    two `Particle` instances are equal.
+    `Particle` instances are uniquely defined by their quantum numbers and properties
+    like `~Particle.mass`. The `~Particle.name` and `~Particle.pid` are therefore just
+    labels that are not taken into account when checking if two `Particle` instances are
+    equal.
 
     .. note:: As opposed to classes such as `.EdgeQuantumNumbers` and
         `.NodeQuantumNumbers`, the `Particle` class serves as an interface to
@@ -165,23 +161,15 @@ class Particle:  # pylint: disable=too-many-instance-attributes
     electron_lepton_number: int = field(default=0, validator=instance_of(int))
     muon_lepton_number: int = field(default=0, validator=instance_of(int))
     tau_lepton_number: int = field(default=0, validator=instance_of(int))
-    parity: Optional[Parity] = field(
-        converter=optional(_to_parity), default=None
-    )
-    c_parity: Optional[Parity] = field(
-        converter=optional(_to_parity), default=None
-    )
-    g_parity: Optional[Parity] = field(
-        converter=optional(_to_parity), default=None
-    )
+    parity: Optional[Parity] = field(converter=optional(_to_parity), default=None)
+    c_parity: Optional[Parity] = field(converter=optional(_to_parity), default=None)
+    g_parity: Optional[Parity] = field(converter=optional(_to_parity), default=None)
 
     def __attrs_post_init__(self) -> None:
         if self.isospin is not None and not gellmann_nishijima(
             GellMannNishijimaInput(
                 charge=self.charge,
-                isospin_projection=self.isospin.projection
-                if self.isospin
-                else None,
+                isospin_projection=self.isospin.projection if self.isospin else None,
                 strangeness=self.strangeness,
                 charmness=self.charmness,
                 bottomness=self.bottomness,
@@ -279,9 +267,7 @@ class ParticleCollection(abc.MutableSet):
             return instance in self.__particles.values()
         if isinstance(instance, int):
             return instance in self.__pid_to_name
-        raise NotImplementedError(
-            f"Cannot search for type {type(instance).__name__}"
-        )
+        raise NotImplementedError(f"Cannot search for type {type(instance).__name__}")
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, abc.Iterable):
@@ -293,9 +279,7 @@ class ParticleCollection(abc.MutableSet):
     def __getitem__(self, particle_name: str) -> Particle:
         if particle_name in self.__particles:
             return self.__particles[particle_name]
-        error_message = (
-            f"No particle with name '{particle_name}' in the database"
-        )
+        error_message = f"No particle with name '{particle_name}' in the database"
         candidates = [
             p.name
             for p in sorted(self, key=lambda p: p.mass)
@@ -409,9 +393,7 @@ class ParticleCollection(abc.MutableSet):
         >>> sorted(list(subset.names))
         ['K(2)(1820)+', 'K(2)(1820)0', 'K(2)*(1980)+', 'K(2)*(1980)0']
         """
-        return ParticleCollection(
-            {particle for particle in self if function(particle)}
-        )
+        return ParticleCollection({particle for particle in self if function(particle)})
 
     def update(self, other: Iterable[Particle]) -> None:
         if not isinstance(other, abc.Iterable):
@@ -457,9 +439,7 @@ def create_particle(  # pylint: disable=too-many-arguments,too-many-locals
         width=width if width else template_particle.width,
         spin=spin if spin else template_particle.spin,
         charge=charge if charge else template_particle.charge,
-        strangeness=strangeness
-        if strangeness
-        else template_particle.strangeness,
+        strangeness=strangeness if strangeness else template_particle.strangeness,
         charmness=charmness if charmness else template_particle.charmness,
         bottomness=bottomness if bottomness else template_particle.bottomness,
         topness=topness if topness else template_particle.topness,
@@ -479,12 +459,8 @@ def create_particle(  # pylint: disable=too-many-arguments,too-many-locals
         if isospin is None
         else template_particle.isospin,
         parity=template_particle.parity if parity is None else Parity(parity),
-        c_parity=template_particle.c_parity
-        if c_parity is None
-        else Parity(c_parity),
-        g_parity=template_particle.g_parity
-        if g_parity is None
-        else Parity(g_parity),
+        c_parity=template_particle.c_parity if c_parity is None else Parity(c_parity),
+        g_parity=template_particle.g_parity if g_parity is None else Parity(g_parity),
     )
 
 
@@ -505,9 +481,7 @@ def create_antiparticle(
     return Particle(
         name=new_name if new_name else "anti-" + template_particle.name,
         pid=-template_particle.pid,
-        latex=new_latex
-        if new_latex
-        else Rf"\overline{{{template_particle.latex}}}",
+        latex=new_latex if new_latex else Rf"\overline{{{template_particle.latex}}}",
         mass=template_particle.mass,
         width=template_particle.width,
         charge=-template_particle.charge,
@@ -530,8 +504,8 @@ def create_antiparticle(
 def load_pdg() -> ParticleCollection:
     """Create a `.ParticleCollection` with all entries from the PDG.
 
-    PDG info is imported from the `scikit-hep/particle
-    <https://github.com/scikit-hep/particle>`_ package.
+    PDG info is imported from the `scikit-hep/particle <https://github.com/scikit-
+    hep/particle>`_ package.
     """
     from particle import Particle as PdgDatabase
 
@@ -671,10 +645,7 @@ def __isospin_projection_from_pdg(pdg_particle: "PdgDatabase") -> float:
             projection += quark_content.count("u") + quark_content.count("D")
             projection -= quark_content.count("U") + quark_content.count("d")
             projection *= 0.5
-    if (
-        pdg_particle.I is not None
-        and not (pdg_particle.I - projection).is_integer()
-    ):
+    if pdg_particle.I is not None and not (pdg_particle.I - projection).is_integer():
         raise ValueError(f"Cannot have isospin {(pdg_particle.I, projection)}")
     return projection
 

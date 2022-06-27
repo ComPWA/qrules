@@ -199,15 +199,10 @@ def test_create_edge_properties(
 ):
     particle = particle_database[particle_name]
 
-    assert (
-        create_edge_properties(particle, spin_projection)
-        == expected_properties
-    )
+    assert create_edge_properties(particle, spin_projection) == expected_properties
 
 
-def make_ls_test_graph(
-    angular_momentum_magnitude, coupled_spin_magnitude, particle
-):
+def make_ls_test_graph(angular_momentum_magnitude, coupled_spin_magnitude, particle):
     topology = Topology(
         nodes={0},
         edges={-1: Edge(None, 0)},
@@ -259,9 +254,7 @@ class TestSolutionFilter:
         assert len(results) == result
 
         for ls_pair in ls_pairs:
-            graphs.append(
-                make_ls_test_graph_scrambled(ls_pair[0], ls_pair[1], pi0)
-            )
+            graphs.append(make_ls_test_graph_scrambled(ls_pair[0], ls_pair[1], pi0))
         results = remove_duplicate_solutions(graphs)
         assert len(results) == result
 
@@ -369,9 +362,7 @@ def test_edge_swap(particle_database, initial_state, final_state):
     stm.set_allowed_interaction_types([InteractionType.STRONG])
 
     problem_sets = stm.create_problem_sets()
-    init_graphs: List[
-        MutableTransition[ParticleWithSpin, InteractionProperties]
-    ] = []
+    init_graphs: List[MutableTransition[ParticleWithSpin, InteractionProperties]] = []
     for _, problem_set_list in problem_sets.items():
         init_graphs.extend([_create_graph(x) for x in problem_set_list])
 
@@ -417,9 +408,7 @@ def test_match_external_edges(particle_database, initial_state, final_state):
     stm.set_allowed_interaction_types([InteractionType.STRONG])
 
     problem_sets = stm.create_problem_sets()
-    init_graphs: List[
-        MutableTransition[ParticleWithSpin, InteractionProperties]
-    ] = []
+    init_graphs: List[MutableTransition[ParticleWithSpin, InteractionProperties]] = []
     for _, problem_set_list in problem_sets.items():
         init_graphs.extend([_create_graph(x) for x in problem_set_list])
 
@@ -508,9 +497,7 @@ def test_external_edge_identical_particle_combinatorics(
 
     match_external_edges(init_graphs)
 
-    comb_graphs: List[
-        MutableTransition[ParticleWithSpin, InteractionProperties]
-    ] = []
+    comb_graphs: List[MutableTransition[ParticleWithSpin, InteractionProperties]] = []
     for group in init_graphs:
         comb_graphs.extend(
             perform_external_edge_identical_particle_combinatorics(group)

@@ -1,10 +1,9 @@
 """Definitions used internally for type hints and signatures.
 
-`qrules` is strictly typed (enforced through :doc:`mypy <mypy:index>`). This
-module bundles structures and definitions that don't serve as data containers
-but only as type hints. `.EdgeQuantumNumbers` and `.NodeQuantumNumbers` are the
-main structures and serve as a bridge between the :mod:`.particle` and the
-:mod:`.conservation_rules` module.
+`qrules` is strictly typed (enforced through :doc:`mypy <mypy:index>`). This module
+bundles structures and definitions that don't serve as data containers but only as type
+hints. `.EdgeQuantumNumbers` and `.NodeQuantumNumbers` are the main structures and serve
+as a bridge between the :mod:`.particle` and the :mod:`.conservation_rules` module.
 """
 
 from decimal import Decimal
@@ -65,13 +64,12 @@ def _to_fraction(value: Union[float, int], render_plus: bool = False) -> str:
 class EdgeQuantumNumbers:  # pylint: disable=too-many-instance-attributes
     """Definition of quantum numbers for edges.
 
-    This class defines the types that are used in the
-    :mod:`.conservation_rules`, for instance in
-    `.additive_quantum_number_rule`. You can also create data classes (see
-    :func:`attrs.define`) with data members that are typed as the data members
-    of `.EdgeQuantumNumbers` (see for example `.HelicityParityEdgeInput`) and
-    use them in conservation rules that satisfy the appropriate rule protocol
-    (see `.ConservationRule`, `.EdgeQNConservationRule`).
+    This class defines the types that are used in the :mod:`.conservation_rules`, for
+    instance in `.additive_quantum_number_rule`. You can also create data classes (see
+    :func:`attrs.define`) with data members that are typed as the data members of
+    `.EdgeQuantumNumbers` (see for example `.HelicityParityEdgeInput`) and use them in
+    conservation rules that satisfy the appropriate rule protocol (see
+    `.ConservationRule`, `.EdgeQNConservationRule`).
     """
 
     pid = NewType("pid", int)
@@ -169,39 +167,31 @@ def _to_optional_int(optional_int: Optional[int]) -> Optional[int]:
 class InteractionProperties:
     """Immutable data structure containing interaction properties.
 
-    Interactions are represented by a node on a `.MutableTransition`. This
-    class represents the properties that are carried collectively by the edges
-    that this node connects.
+    Interactions are represented by a node on a `.MutableTransition`. This class
+    represents the properties that are carried collectively by the edges that this node
+    connects.
 
-    Interaction properties are in particular important in the canonical basis
-    of the helicity formalism. There, the *coupled spin* and angular momentum
-    of each interaction are used for the Clebsch-Gordan coefficients for each
-    term in a sequential amplitude.
+    Interaction properties are in particular important in the canonical basis of the
+    helicity formalism. There, the *coupled spin* and angular momentum of each
+    interaction are used for the Clebsch-Gordan coefficients for each term in a
+    sequential amplitude.
 
-    .. note:: As opposed to `NodeQuantumNumbers`, the `InteractionProperties`
-        class serves as an interface to the user.
+    .. note:: As opposed to `NodeQuantumNumbers`, the `InteractionProperties` class
+        serves as an interface to the user.
     """
 
     l_magnitude: Optional[int] = field(  # L cannot be half integer
         default=None, converter=_to_optional_int
     )
-    l_projection: Optional[int] = field(
-        default=None, converter=_to_optional_int
-    )
-    s_magnitude: Optional[float] = field(
-        default=None, converter=_to_optional_float
-    )
-    s_projection: Optional[float] = field(
-        default=None, converter=_to_optional_float
-    )
+    l_projection: Optional[int] = field(default=None, converter=_to_optional_int)
+    s_magnitude: Optional[float] = field(default=None, converter=_to_optional_float)
+    s_projection: Optional[float] = field(default=None, converter=_to_optional_float)
     parity_prefactor: Optional[float] = field(
         default=None, converter=_to_optional_float
     )
 
 
-def arange(
-    x_1: float, x_2: float, delta: float = 1.0
-) -> Generator[float, None, None]:
+def arange(x_1: float, x_2: float, delta: float = 1.0) -> Generator[float, None, None]:
     current = Decimal(x_1)
     while current < x_2:
         yield float(current)

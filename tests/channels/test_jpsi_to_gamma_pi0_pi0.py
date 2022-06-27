@@ -41,10 +41,7 @@ def test_number_of_solutions(
     )
     assert len(reaction.group_by_topology()) == n_topologies
     assert len(reaction.transitions) == number_of_solutions
-    assert (
-        reaction.get_intermediate_particles().names
-        == allowed_intermediate_particles
-    )
+    assert reaction.get_intermediate_particles().names == allowed_intermediate_particles
 
 
 def test_id_to_particle_mappings(particle_database):
@@ -70,9 +67,7 @@ def test_id_to_particle_mappings(particle_database):
         graph, graph.topology.incoming_edge_ids
     )
     for transition in iter_transitions:
-        graph = transition.convert(
-            lambda s: (s.particle, s.spin_projection)
-        ).unfreeze()
+        graph = transition.convert(lambda s: (s.particle, s.spin_projection)).unfreeze()
         assert ref_mapping_fs == _create_edge_id_particle_mapping(
             graph, graph.topology.outgoing_edge_ids
         )
