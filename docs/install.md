@@ -8,7 +8,9 @@
 
 The fastest way of installing this package is through PyPI or Conda:
 
-:::{tabbed} PyPI
+::::{tab-set}
+
+:::{tab-item} PyPI
 
 ```shell
 python3 -m pip install qrules
@@ -16,13 +18,15 @@ python3 -m pip install qrules
 
 :::
 
-:::{tabbed} Conda
+:::{tab-item} Conda
 
 ```shell
 conda install -c conda-forge qrules
 ```
 
 :::
+
+::::
 
 This installs the [latest release](https://github.com/ComPWA/qrules/releases) that you
 can find on the [`stable`](https://github.com/ComPWA/qrules/tree/stable) branch.
@@ -64,7 +68,9 @@ Next, you install the project in editable mode with either
 [Conda](https://docs.conda.io) or [`pip`](https://pypi.org/project/pip). It's
 recommended to use Conda, because this also pins the version of Python.
 
-:::{tabbed} Conda
+::::{tab-set}
+
+:::{tab-item} Conda
 
 ```shell
 conda env create
@@ -75,7 +81,7 @@ This installs the project in a Conda environment following the definitions in
 
 :::
 
-:::{tabbed} PyPI
+:::{tab-item} PyPI
 
 1. **[Recommended]** Create a virtual environment with
    [`venv`](https://docs.python.org/3/library/venv.html) (see
@@ -92,6 +98,8 @@ This installs the project in a Conda environment following the definitions in
    ```
 
 :::
+
+::::
 
 See {ref}`compwa-org:develop:Updating` for how to update the dependencies when new
 commits come in.
