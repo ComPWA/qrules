@@ -1,9 +1,9 @@
 # pylint: disable=too-many-return-statements
 """Serialization module for the `qrules`.
 
-The `.io` module provides tools to export or import objects from `qrules` to
-and from disk, so that they can be used by external packages, or just to store
-(cache) the state of the system.
+The `.io` module provides tools to export or import objects from `qrules` to and from
+disk, so that they can be used by external packages, or just to store (cache) the state
+of the system.
 """
 
 import json
@@ -48,8 +48,7 @@ def asdict(instance: object) -> dict:
     if isinstance(instance, Topology):
         return _dict.from_topology(instance)
     raise NotImplementedError(
-        "No conversion for dict available for class"
-        f" {instance.__class__.__name__}"
+        f"No conversion for dict available for class {instance.__class__.__name__}"
     )
 
 
@@ -73,9 +72,7 @@ def fromdict(definition: dict) -> object:
 
 
 __REQUIRED_PARTICLE_FIELDS = {
-    field.name
-    for field in attrs.fields(Particle)
-    if field.default == attrs.NOTHING
+    field.name for field in attrs.fields(Particle) if field.default == attrs.NOTHING
 }
 __REQUIRED_TOPOLOGY_FIELDS = {
     field.name for field in attrs.fields(Topology) if field.init
@@ -101,19 +98,18 @@ def asdot(
     `.StateTransitionGraph` or a `list` of `.StateTransitionGraph` instances.
 
     Args:
-        instance: the input `object` that is to be rendered as DOT (graphviz)
-            language.
+        instance: the input `object` that is to be rendered as DOT (graphviz) language.
 
-        strip_spin: Normally, each `.StateTransitionGraph` has a `.Particle`
-            with a spin projection on its edges. This option hides the
-            projections, leaving only `.Particle` names on edges.
+        strip_spin: Normally, each `.StateTransitionGraph` has a `.Particle` with a spin
+            projection on its edges. This option hides the projections, leaving only
+            `.Particle` names on edges.
 
-        collapse_graphs: Group all transitions by equivalent kinematic topology
-            and combine all allowed particles on each edge.
+        collapse_graphs: Group all transitions by equivalent kinematic topology and
+            combine all allowed particles on each edge.
 
-        render_node: Whether or not to render node ID (in the case of a
-            `.Topology`) and/or node properties (in the case of a
-            `.StateTransitionGraph`). Meaning of the labels:
+        render_node: Whether or not to render node ID (in the case of a `.Topology`)
+            and/or node properties (in the case of a `.StateTransitionGraph`). Meaning
+            of the labels:
 
             - :math:`P`: parity prefactor
             - :math:`s`: tuple of **coupled spin** magnitude and its
@@ -131,8 +127,8 @@ def asdot(
 
     .. seealso::
 
-        See `Graphviz attributes <https://graphviz.org/doc/info/attrs.html>`_
-        for the available styling arguments.
+        See `Graphviz attributes <https://graphviz.org/doc/info/attrs.html>`_ for the
+        available styling arguments.
 
     .. seealso:: :doc:`/usage/visualize`
     """
@@ -182,16 +178,12 @@ def load(filename: str) -> object:
         if file_extension in ["yaml", "yml"]:
             definition = yaml.load(stream, Loader=yaml.SafeLoader)
             return fromdict(definition)
-    raise NotImplementedError(
-        f'No loader defined for file type "{file_extension}"'
-    )
+    raise NotImplementedError(f'No loader defined for file type "{file_extension}"')
 
 
 class _IncreasedIndent(yaml.Dumper):
     # pylint: disable=too-many-ancestors
-    def increase_indent(
-        self, flow: bool = False, indentless: bool = False
-    ) -> None:
+    def increase_indent(self, flow: bool = False, indentless: bool = False) -> None:
         return super().increase_indent(flow, False)
 
     def write_line_break(self, data: Optional[str] = None) -> None:
@@ -224,9 +216,7 @@ def write(instance: object, filename: str) -> None:
             with open(filename, "w") as stream:
                 stream.write(output_str)
             return
-    raise NotImplementedError(
-        f'No writer defined for file type "{file_extension}"'
-    )
+    raise NotImplementedError(f'No writer defined for file type "{file_extension}"')
 
 
 def _get_file_extension(filename: str) -> str:

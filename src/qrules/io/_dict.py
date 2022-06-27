@@ -8,13 +8,7 @@ from typing import Any, Dict
 
 import attrs
 
-from qrules.particle import (
-    Parity,
-    Particle,
-    ParticleCollection,
-    ParticleWithSpin,
-    Spin,
-)
+from qrules.particle import Parity, Particle, ParticleCollection, ParticleWithSpin, Spin
 from qrules.quantum_numbers import InteractionProperties
 from qrules.topology import Edge, StateTransitionGraph, Topology
 from qrules.transition import (
@@ -97,9 +91,7 @@ def build_particle_collection(
 ) -> ParticleCollection:
     if do_validate:
         validate_particle_collection(definition)
-    return ParticleCollection(
-        build_particle(p) for p in definition["particles"]
-    )
+    return ParticleCollection(build_particle(p) for p in definition["particles"])
 
 
 def build_particle(definition: dict) -> Particle:
@@ -147,8 +139,7 @@ def build_stg(definition: dict) -> StateTransitionGraph[ParticleWithSpin]:
 
 def build_stc(definition: dict) -> StateTransitionCollection:
     transitions = [
-        build_state_transition(graph_def)
-        for graph_def in definition["transitions"]
+        build_state_transition(graph_def) for graph_def in definition["transitions"]
     ]
     return StateTransitionCollection(transitions=transitions)
 

@@ -43,10 +43,7 @@ def test_number_of_solutions(
     )
     assert len(reaction.transition_groups) == n_topologies
     assert len(reaction.transitions) == number_of_solutions
-    assert (
-        reaction.get_intermediate_particles().names
-        == allowed_intermediate_particles
-    )
+    assert reaction.get_intermediate_particles().names == allowed_intermediate_particles
 
 
 def test_id_to_particle_mappings(particle_database):

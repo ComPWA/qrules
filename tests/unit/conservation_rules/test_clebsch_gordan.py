@@ -14,9 +14,7 @@ from qrules.particle import Spin
 
 from .test_spin import __create_two_body_decay_spin_data
 
-_SpinRuleInputType = Tuple[
-    List[SpinEdgeInput], List[SpinEdgeInput], SpinNodeInput
-]
+_SpinRuleInputType = Tuple[List[SpinEdgeInput], List[SpinEdgeInput], SpinNodeInput]
 
 
 @pytest.mark.parametrize(

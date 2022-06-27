@@ -6,17 +6,7 @@ See :doc:`/usage/visualize` for more info.
 import functools
 import re
 from collections import abc
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Mapping,
-    Optional,
-    Tuple,
-    Union,
-)
+from typing import Any, Callable, Dict, Iterable, List, Mapping, Optional, Tuple, Union
 
 import attrs
 
@@ -72,9 +62,7 @@ def _create_graphviz_edge(
     return f'    "{from_node}" -> "{to_node}"{styling};\n'
 
 
-def _create_graphviz_node(
-    name: str, label: str, graphviz_attrs: Dict[str, Any]
-) -> str:
+def _create_graphviz_node(name: str, label: str, graphviz_attrs: Dict[str, Any]) -> str:
     updated_graphviz_attrs = {"shape": None, **graphviz_attrs, "label": label}
     styling = __create_graphviz_edge_node_styling(updated_graphviz_attrs)
     return f'    "{name}"{styling};\n'
@@ -99,8 +87,8 @@ def __dot_kwargs_to_header(graphviz_attrs: Dict[str, Any]) -> str:
 def __create_graphviz_edge_node_styling(graphviz_attrs: Dict[str, Any]) -> str:
     """Create a `str` of Graphviz attribute assignments for a node or edge.
 
-    See `Graphviz attributes <https://graphviz.org/doc/info/attrs.html>`_ for
-    the assignment syntax.
+    See `Graphviz attributes <https://graphviz.org/doc/info/attrs.html>`_ for the
+    assignment syntax.
 
     >>> __create_graphviz_edge_node_styling({"size": 12})
     ' [size=12]'
@@ -116,8 +104,8 @@ def __create_graphviz_edge_node_styling(graphviz_attrs: Dict[str, Any]) -> str:
 def __create_graphviz_assignments(graphviz_attrs: Dict[str, Any]) -> List[str]:
     """Create a `list` of graphviz attribute assignments.
 
-    See `Graphviz attributes <https://graphviz.org/doc/info/attrs.html>`_ for
-    the assignment syntax.
+    See `Graphviz attributes <https://graphviz.org/doc/info/attrs.html>`_ for the
+    assignment syntax.
 
     >>> __create_graphviz_assignments({"size": 12})
     ['size=12']
@@ -153,9 +141,7 @@ def graph_list_to_dot(
         raise ValueError("Cannot both strip spin and collapse graphs")
     if collapse_graphs:
         if render_node:
-            raise ValueError(
-                "Collapsed graphs cannot be rendered with node properties"
-            )
+            raise ValueError("Collapsed graphs cannot be rendered with node properties")
         graphs = _collapse_graphs(graphs)
     elif strip_spin:
         if render_node:
@@ -247,9 +233,7 @@ def __graph_to_dot_content(  # pylint: disable=too-many-branches,too-many-locals
         rendered_graph = graph
         topology = graph
     else:
-        raise NotImplementedError(
-            f"Cannot render {graph.__class__.__name__} as dot"
-        )
+        raise NotImplementedError(f"Cannot render {graph.__class__.__name__} as dot")
     top = topology.incoming_edge_ids
     outs = topology.outgoing_edge_ids
     for edge_id in top | outs:
@@ -270,9 +254,7 @@ def __graph_to_dot_content(  # pylint: disable=too-many-branches,too-many-locals
         from_node = prefix + __node_name(i, k)
         to_node = prefix + __node_name(i, j)
         if j is None or k is None:
-            dot += _create_graphviz_edge(
-                from_node, to_node, graphviz_attrs=edge_style
-            )
+            dot += _create_graphviz_edge(from_node, to_node, graphviz_attrs=edge_style)
         else:
             label = __get_edge_label(rendered_graph, i, render_resonance_id)
             dot += _create_graphviz_edge(
@@ -291,9 +273,7 @@ def __graph_to_dot_content(  # pylint: disable=too-many-branches,too-many-locals
             )
     if isinstance(graph, (StateTransition, StateTransitionGraph)):
         if isinstance(graph, StateTransition):
-            interactions: Mapping[
-                int, InteractionProperties
-            ] = graph.interactions
+            interactions: Mapping[int, InteractionProperties] = graph.interactions
         else:
             interactions = {i: graph.get_node_props(i) for i in topology.nodes}
         for node_id, node_prop in interactions.items():
@@ -367,9 +347,7 @@ def __get_edge_label(
         if render_edge_id:
             return str(edge_id)
         return ""
-    raise NotImplementedError(
-        f"Cannot render {graph.__class__.__name__} as dot"
-    )
+    raise NotImplementedError(f"Cannot render {graph.__class__.__name__} as dot")
 
 
 def ___render_edge_with_id(
@@ -449,8 +427,7 @@ def __render_settings(settings: Union[EdgeSettings, NodeSettings]) -> str:
         if output:
             output += "\n"
         domains = sorted(
-            f"{item[0].__name__} ∊ {item[1]}"
-            for item in settings.qn_domains.items()
+            f"{item[0].__name__} ∊ {item[1]}" for item in settings.qn_domains.items()
         )
         output += "DOMAINS\n"
         output += "\n".join(domains)
@@ -480,9 +457,7 @@ def _get_particle_graphs(
         if isinstance(transition, StateTransition):
             transition = transition.to_graph()
         if any(
-            transition.compare(
-                other, edge_comparator=lambda e1, e2: e1[0] == e2
-            )
+            transition.compare(other, edge_comparator=lambda e1, e2: e1[0] == e2)
             for other in inventory
         ):
             continue
@@ -532,9 +507,7 @@ def _collapse_graphs(
             graph.topology.intermediate_edge_ids
             != merged_graph.topology.intermediate_edge_ids
         ):
-            raise ValueError(
-                "Cannot merge graphs that don't have the same edge IDs"
-            )
+            raise ValueError("Cannot merge graphs that don't have the same edge IDs")
         for i in graph.topology.edges:
             particle = graph.get_edge_props(i)
             other_particles = merged_graph.get_edge_props(i)
@@ -576,8 +549,7 @@ def _collapse_graphs(
                 StateTransitionGraph[ParticleCollection](
                     topology=graph.topology,
                     node_props={
-                        i: graph.get_node_props(i)
-                        for i in graph.topology.nodes
+                        i: graph.get_node_props(i) for i in graph.topology.nodes
                     },
                     edge_props=new_edge_props,
                 )

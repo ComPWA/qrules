@@ -3,11 +3,7 @@ import pytest
 
 import qrules
 from qrules import io
-from qrules.io._dot import (
-    _collapse_graphs,
-    _get_particle_graphs,
-    _strip_projections,
-)
+from qrules.io._dot import _collapse_graphs, _get_particle_graphs, _strip_projections
 from qrules.particle import ParticleCollection
 from qrules.topology import (
     Edge,
@@ -100,12 +96,8 @@ def test_asdot_with_styled_edges_and_nodes(reaction: ReactionInfo, output_dir):
     assert pydot.graph_from_dot_data(dot) is not None
     with open(output_dir + f"styled_{reaction.formalism}.gv", "w") as stream:
         stream.write(dot)
-    assert (
-        '"edge0" [shape=none, fontcolor="blue", label="0: gamma[-1]"];' in dot
-    )
-    assert (
-        '"node0" -> "node1" [fontcolor="blue", label="f(0)(980)[0]"];' in dot
-    )
+    assert '"edge0" [shape=none, fontcolor="blue", label="0: gamma[-1]"];' in dot
+    assert '"node0" -> "node1" [fontcolor="blue", label="f(0)(980)[0]"];' in dot
     assert '"node0" [shape="ellipse", fontcolor="darkgreen", label=""];' in dot
 
 

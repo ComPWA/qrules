@@ -15,18 +15,10 @@ from qrules.quantum_numbers import Parity
     [
         (
             (
+                [CParityEdgeInput(spin_magnitude=0.0, pid=1, c_parity=Parity(-1))],
                 [
-                    CParityEdgeInput(
-                        spin_magnitude=0.0, pid=1, c_parity=Parity(-1)
-                    )
-                ],
-                [
-                    CParityEdgeInput(
-                        spin_magnitude=0.0, pid=1, c_parity=Parity(-1)
-                    ),
-                    CParityEdgeInput(
-                        spin_magnitude=0.0, pid=1, c_parity=Parity(1)
-                    ),
+                    CParityEdgeInput(spin_magnitude=0.0, pid=1, c_parity=Parity(-1)),
+                    CParityEdgeInput(spin_magnitude=0.0, pid=1, c_parity=Parity(1)),
                 ],
                 None,
             ),
@@ -34,18 +26,10 @@ from qrules.quantum_numbers import Parity
         ),
         (
             (
+                [CParityEdgeInput(spin_magnitude=0.0, pid=1, c_parity=Parity(1))],
                 [
-                    CParityEdgeInput(
-                        spin_magnitude=0.0, pid=1, c_parity=Parity(1)
-                    )
-                ],
-                [
-                    CParityEdgeInput(
-                        spin_magnitude=0.0, pid=1, c_parity=Parity(-1)
-                    ),
-                    CParityEdgeInput(
-                        spin_magnitude=0.0, pid=1, c_parity=Parity(1)
-                    ),
+                    CParityEdgeInput(spin_magnitude=0.0, pid=1, c_parity=Parity(-1)),
+                    CParityEdgeInput(spin_magnitude=0.0, pid=1, c_parity=Parity(1)),
                 ],
                 None,
             ),
@@ -96,9 +80,7 @@ def test_c_parity_multiparticle_boson(rule_input, expected):
                     CParityEdgeInput(spin_magnitude=0.5, pid=100),
                     CParityEdgeInput(spin_magnitude=0.5, pid=-100),
                 ],
-                CParityNodeInput(
-                    l_magnitude=l_magnitude, s_magnitude=s_magnitude
-                ),
+                CParityNodeInput(l_magnitude=l_magnitude, s_magnitude=s_magnitude),
             ),
             (s_magnitude + l_magnitude) % 2 == abs(c_parity - 1) / 2,
         )

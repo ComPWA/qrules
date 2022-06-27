@@ -21,9 +21,7 @@ from .topology import StateTransitionGraph
 
 Strength = float
 
-GraphSettingsGroups = Dict[
-    Strength, List[Tuple[StateTransitionGraph, GraphSettings]]
-]
+GraphSettingsGroups = Dict[Strength, List[Tuple[StateTransitionGraph, GraphSettings]]]
 
 
 def create_edge_properties(
@@ -52,9 +50,7 @@ def create_edge_properties(
         property_map[EdgeQuantumNumbers.spin_projection] = spin_projection
     if isospin is not None:
         property_map[EdgeQuantumNumbers.isospin_magnitude] = isospin.magnitude
-        property_map[
-            EdgeQuantumNumbers.isospin_projection
-        ] = isospin.projection
+        property_map[EdgeQuantumNumbers.isospin_projection] = isospin.projection
     return property_map
 
 
@@ -86,8 +82,8 @@ def create_particle(
 ) -> ParticleWithSpin:
     """Create a Particle with spin projection from a qn dictionary.
 
-    The implementation assumes the edge properties match the attributes of a
-    particle inside the `.ParticleCollection`.
+    The implementation assumes the edge properties match the attributes of a particle
+    inside the `.ParticleCollection`.
 
     Args:
         edge_props: The quantum number dictionary.
@@ -95,16 +91,15 @@ def create_particle(
           reference `.particle` to lower the memory footprint.
 
     Raises:
-        KeyError: If the edge properties do not contain the pid information or
-          no particle with the same pid is found in the `.ParticleCollection`.
+        KeyError: If the edge properties do not contain the pid information or no
+            particle with the same pid is found in the `.ParticleCollection`.
 
         ValueError: If the edge properties do not contain spin projection info.
     """
     particle = particle_db.find(int(edge_props[EdgeQuantumNumbers.pid]))
     if EdgeQuantumNumbers.spin_projection not in edge_props:
         raise ValueError(
-            f"{GraphEdgePropertyMap.__name__} does not contain a spin"
-            " projection"
+            f"{GraphEdgePropertyMap.__name__} does not contain a spin projection"
         )
     spin_projection = edge_props[EdgeQuantumNumbers.spin_projection]
 
@@ -129,8 +124,7 @@ def filter_interaction_types(
     allowed_interaction_types: List[InteractionType],
 ) -> List[InteractionType]:
     int_type_intersection = list(
-        set(allowed_interaction_types)
-        & set(valid_determined_interaction_types)
+        set(allowed_interaction_types) & set(valid_determined_interaction_types)
     )
     if int_type_intersection:
         return int_type_intersection
@@ -248,9 +242,7 @@ def _check_equal_ignoring_qns(
 ) -> Optional[StateTransitionGraph]:
     """Define equal operator for graphs, ignoring certain quantum numbers."""
     if not isinstance(ref_graph, StateTransitionGraph):
-        raise TypeError(
-            "Reference graph has to be of type StateTransitionGraph"
-        )
+        raise TypeError("Reference graph has to be of type StateTransitionGraph")
     found_graph = None
     node_comparator = NodePropertyComparator(ignored_qn_list)
     for graph in solutions:
@@ -302,8 +294,7 @@ def filter_graphs(
         For the more advanced user, lambda functions can be used as filters.
 
     Example:
-        Selecting only the solutions, in which the :math:`\rho` decays via
-        p-wave:
+        Selecting only the solutions, in which the :math:`\rho` decays via p-wave:
 
         .. code-block:: python
 
@@ -331,8 +322,8 @@ def require_interaction_property(
 
     Closure, which can be used as a filter function in :func:`.filter_graphs`.
 
-    It selects graphs based on a requirement on the property of specific
-    interaction nodes.
+    It selects graphs based on a requirement on the property of specific interaction
+    nodes.
 
     Args:
         ingoing_particle_name (str): name of particle, used to find nodes which
@@ -345,9 +336,8 @@ def require_interaction_property(
 
     Return:
         Callable[Any, bool]:
-            - *True* if the graph has nodes with an ingoing particle of the
-              given name, and the graph fullfills the quantum number
-              requirement
+            - *True* if the graph has nodes with an ingoing particle of the given name,
+              and the graph fullfills the quantum number requirement
             - *False* otherwise
     """
 

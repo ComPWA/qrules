@@ -1,8 +1,8 @@
 """Check duck typing.
 
-Ideally, the rule input classes use a `~typing.Protocol`. This is not possible,
-however, because of https://github.com/python/mypy/issues/6850. Duck typing is
-therefore checked through functions defined in this test.
+Ideally, the rule input classes use a `~typing.Protocol`. This is not possible, however,
+because of https://github.com/python/mypy/issues/6850. Duck typing is therefore checked
+through functions defined in this test.
 """
 
 import inspect
@@ -62,9 +62,7 @@ def __get_duck_types(instance: Type) -> Set[Type]:
 
 def test_is_duck_type():
     assert __is_duck_type(NodeQuantumNumbers, InteractionProperties)
-    assert __is_duck_type(
-        conservation_rules.CParityNodeInput, NodeQuantumNumbers
-    )
+    assert __is_duck_type(conservation_rules.CParityNodeInput, NodeQuantumNumbers)
     assert __is_duck_type(conservation_rules.MassEdgeInput, Particle)
 
 

@@ -198,15 +198,10 @@ def test_create_edge_properties(
 ):
     particle = particle_database[particle_name]
 
-    assert (
-        create_edge_properties(particle, spin_projection)
-        == expected_properties
-    )
+    assert create_edge_properties(particle, spin_projection) == expected_properties
 
 
-def make_ls_test_graph(
-    angular_momentum_magnitude, coupled_spin_magnitude, particle
-):
+def make_ls_test_graph(angular_momentum_magnitude, coupled_spin_magnitude, particle):
     graph = StateTransitionGraph[ParticleWithSpin](
         topology=Topology(
             nodes={0},
@@ -260,9 +255,7 @@ class TestSolutionFilter:
         assert len(results) == result
 
         for ls_pair in ls_pairs:
-            graphs.append(
-                make_ls_test_graph_scrambled(ls_pair[0], ls_pair[1], pi0)
-            )
+            graphs.append(make_ls_test_graph_scrambled(ls_pair[0], ls_pair[1], pi0))
         results = remove_duplicate_solutions(graphs)
         assert len(results) == result
 

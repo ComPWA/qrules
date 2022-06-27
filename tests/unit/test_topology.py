@@ -141,9 +141,7 @@ class TestMutableTopology:
 class TestSimpleStateTransitionTopologyBuilder:
     def test_two_body_states(self):
         two_body_decay_node = InteractionNode(1, 2)
-        simple_builder = SimpleStateTransitionTopologyBuilder(
-            [two_body_decay_node]
-        )
+        simple_builder = SimpleStateTransitionTopologyBuilder([two_body_decay_node])
         all_graphs = simple_builder.build(1, 3)
         assert len(all_graphs) == 1
 
@@ -198,9 +196,7 @@ class TestTopology:
     def test_constructor_exceptions(self, nodes, edges):
         with pytest.raises(
             ValueError,
-            match=(
-                r"(not connected to any other node|has non-existing node IDs)"
-            ),
+            match=r"(not connected to any other node|has non-existing node IDs)",
         ):
             assert Topology(nodes=nodes, edges=edges)
 

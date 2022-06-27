@@ -64,11 +64,7 @@ from .quantum_numbers import (
     NodeQuantumNumber,
     NodeQuantumNumbers,
 )
-from .settings import (
-    InteractionType,
-    NumberOfThreads,
-    create_interaction_settings,
-)
+from .settings import InteractionType, NumberOfThreads, create_interaction_settings
 from .solving import (
     CSPSolver,
     EdgeSettings,
@@ -109,15 +105,11 @@ class ExecutionInfo:
     not_executed_node_rules: Dict[int, Set[str]] = field(
         factory=lambda: defaultdict(set)
     )
-    violated_node_rules: Dict[int, Set[str]] = field(
-        factory=lambda: defaultdict(set)
-    )
+    violated_node_rules: Dict[int, Set[str]] = field(factory=lambda: defaultdict(set))
     not_executed_edge_rules: Dict[int, Set[str]] = field(
         factory=lambda: defaultdict(set)
     )
-    violated_edge_rules: Dict[int, Set[str]] = field(
-        factory=lambda: defaultdict(set)
-    )
+    violated_edge_rules: Dict[int, Set[str]] = field(factory=lambda: defaultdict(set))
 
     def extend(
         self, other_result: "ExecutionInfo", intersect_violations: bool = False
@@ -151,9 +143,7 @@ class ExecutionInfo:
 class _SolutionContainer:
     """Defines a result of a `.ProblemSet`."""
 
-    solutions: List[StateTransitionGraph[ParticleWithSpin]] = field(
-        factory=list
-    )
+    solutions: List[StateTransitionGraph[ParticleWithSpin]] = field(factory=list)
     execution_info: ExecutionInfo = field(default=ExecutionInfo())
 
     def __attrs_post_init__(self) -> None:
@@ -175,9 +165,7 @@ class _SolutionContainer:
             self.solutions.extend(other.solutions)
             self.execution_info.clear()
         else:
-            self.execution_info.extend(
-                other.execution_info, intersect_violations
-            )
+            self.execution_info.extend(other.execution_info, intersect_violations)
 
 
 @implement_pretty_repr
@@ -218,21 +206,15 @@ class ProblemSet:
 def _group_by_strength(
     problem_sets: List[ProblemSet],
 ) -> Dict[float, List[ProblemSet]]:
-    def calculate_strength(
-        node_interaction_settings: Dict[int, NodeSettings]
-    ) -> float:
+    def calculate_strength(node_interaction_settings: Dict[int, NodeSettings]) -> float:
         strength = 1.0
         for int_setting in node_interaction_settings.values():
             strength *= int_setting.interaction_strength
         return strength
 
-    strength_sorted_problem_sets: Dict[float, List[ProblemSet]] = defaultdict(
-        list
-    )
+    strength_sorted_problem_sets: Dict[float, List[ProblemSet]] = defaultdict(list)
     for problem_set in problem_sets:
-        strength = calculate_strength(
-            problem_set.solving_settings.node_settings
-        )
+        strength = calculate_strength(problem_set.solving_settings.node_settings)
         strength_sorted_problem_sets[strength].append(problem_set)
     return strength_sorted_problem_sets
 
@@ -336,27 +318,20 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
                 max_spin_magnitude=max_spin_magnitude,
             )
 
-        self.__user_allowed_intermediate_particles = (
-            allowed_intermediate_particles
-        )
+        self.__user_allowed_intermediate_particles = allowed_intermediate_particles
         self.__allowed_intermediate_particles: List[GraphEdgePropertyMap] = []
         if allowed_intermediate_particles is not None:
-            self.set_allowed_intermediate_particles(
-                allowed_intermediate_particles
-            )
+            self.set_allowed_intermediate_particles(allowed_intermediate_particles)
         else:
             self.__allowed_intermediate_particles = [
                 create_edge_properties(x) for x in self.__particles
             ]
 
-    def set_allowed_intermediate_particles(
-        self, particle_names: List[str]
-    ) -> None:
+    def set_allowed_intermediate_particles(self, particle_names: List[str]) -> None:
         self.__allowed_intermediate_particles = []
         for particle_name in particle_names:
             matches = self.__particles.filter(
-                lambda p: particle_name  # pylint: disable=cell-var-from-loop
-                in p.name
+                lambda p: particle_name in p.name  # pylint: disable=cell-var-from-loop
             )
             if len(matches) == 0:
                 raise LookupError(
@@ -375,9 +350,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         self, fs_group: Union[List[str], List[List[str]]]
     ) -> None:
         if not isinstance(fs_group, list):
-            raise ValueError(
-                "The final state grouping has to be of type list."
-            )
+            raise ValueError("The final state grouping has to be of type list.")
         if len(fs_group) > 0:
             if self.final_state_groupings is None:
                 self.final_state_groupings = []
@@ -391,14 +364,11 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         for allowed_types in allowed_interaction_types:
             if not isinstance(allowed_types, InteractionType):
                 raise TypeError(
-                    "allowed interaction types must be of type"
-                    "[InteractionType]"
+                    "allowed interaction types must be of type[InteractionType]"
                 )
             if allowed_types not in self.interaction_type_settings:
                 logging.info(self.interaction_type_settings.keys())
-                raise ValueError(
-                    f"interaction {allowed_types} not found in settings"
-                )
+                raise ValueError(f"interaction {allowed_types} not found in settings")
         self.allowed_interaction_types = list(allowed_interaction_types)
 
     def create_problem_sets(self) -> Dict[float, List[ProblemSet]]:
@@ -437,12 +407,10 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
                 intermediate_edge_domains: Dict[
                     Type[EdgeQuantumNumber], Set
                 ] = defaultdict(set)
-                intermediate_edge_domains[
-                    EdgeQuantumNumbers.spin_projection
-                ].update(
-                    self.interaction_type_settings[InteractionType.WEAK][
-                        0
-                    ].qn_domains[EdgeQuantumNumbers.spin_projection]
+                intermediate_edge_domains[EdgeQuantumNumbers.spin_projection].update(
+                    self.interaction_type_settings[InteractionType.WEAK][0].qn_domains[
+                        EdgeQuantumNumbers.spin_projection
+                    ]
                 )
                 for particle_props in self.__allowed_intermediate_particles:
                     for edge_qn, qn_value in particle_props.items():
@@ -456,17 +424,13 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
                     and k is not EdgeQuantumNumbers.width
                 }
 
-            return self.interaction_type_settings[InteractionType.WEAK][
-                0
-            ].qn_domains
+            return self.interaction_type_settings[InteractionType.WEAK][0].qn_domains
 
         intermediate_state_edges = topology.intermediate_edge_ids
         int_edge_domains = create_intermediate_edge_qn_domains()
 
         def create_edge_settings(edge_id: int) -> EdgeSettings:
-            settings = copy(
-                self.interaction_type_settings[InteractionType.WEAK][0]
-            )
+            settings = copy(self.interaction_type_settings[InteractionType.WEAK][0])
             if edge_id in intermediate_state_edges:
                 settings.qn_domains = int_edge_domains
             else:
@@ -479,8 +443,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         graph_settings: List[GraphSettings] = [
             GraphSettings(
                 edge_settings={
-                    edge_id: create_edge_settings(edge_id)
-                    for edge_id in topology.edges
+                    edge_id: create_edge_settings(edge_id) for edge_id in topology.edges
                 },
                 node_settings={},
             )
@@ -492,15 +455,11 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             in_edge_ids = topology.get_edge_ids_outgoing_from_node(node_id)
             in_edge_props = [
                 initial_facts.edge_props[edge_id]
-                for edge_id in [
-                    x for x in in_edge_ids if x in initial_state_edges
-                ]
+                for edge_id in [x for x in in_edge_ids if x in initial_state_edges]
             ]
             out_edge_props = [
                 initial_facts.edge_props[edge_id]
-                for edge_id in [
-                    x for x in out_edge_ids if x in final_state_edges
-                ]
+                for edge_id in [x for x in out_edge_ids if x in final_state_edges]
             ]
             node_props = InteractionProperties()
             if node_id in initial_facts.node_props:
@@ -555,8 +514,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         )
         for strength, problems in sorted(problem_sets.items(), reverse=True):
             logging.info(
-                "processing interaction settings group with "
-                f"strength {strength}",
+                f"processing interaction settings group with strength {strength}",
             )
             logging.info(f"{len(problems)} entries in this group")
             logging.info(f"running with {self.__number_of_threads} threads...")
@@ -570,9 +528,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             temp_qn_results: List[Tuple[QNProblemSet, QNResult]] = []
             if self.__number_of_threads > 1:
                 with Pool(self.__number_of_threads) as pool:
-                    for qn_result in pool.imap_unordered(
-                        self._solve, qn_problems, 1
-                    ):
+                    for qn_result in pool.imap_unordered(self._solve, qn_problems, 1):
                         temp_qn_results.append(qn_result)
                         progress_bar.update()
             else:
@@ -588,10 +544,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
                     results[strength] = temp_result
                 else:
                     results[strength].extend(temp_result, True)
-            if (
-                results[strength].solutions
-                and self.reaction_mode == SolvingMode.FAST
-            ):
+            if results[strength].solutions and self.reaction_mode == SolvingMode.FAST:
                 break
         progress_bar.close()
 
@@ -645,14 +598,11 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
 
         match_external_edges(final_solutions)
         final_solutions = [
-            _match_final_state_ids(graph, self.final_state)
-            for graph in final_solutions
+            _match_final_state_ids(graph, self.final_state) for graph in final_solutions
         ]
         return ReactionInfo.from_graphs(final_solutions, self.formalism)
 
-    def _solve(
-        self, qn_problem_set: QNProblemSet
-    ) -> Tuple[QNProblemSet, QNResult]:
+    def _solve(self, qn_problem_set: QNProblemSet) -> Tuple[QNProblemSet, QNResult]:
         solver = CSPSolver(self.__allowed_intermediate_particles)
 
         return (qn_problem_set, solver.find_solutions(qn_problem_set))
@@ -662,8 +612,8 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
     ) -> _SolutionContainer:
         """Converts a `.QNResult` with a `.Topology` into `.ReactionInfo`.
 
-        The ParticleCollection is used to retrieve a particle instance
-        reference to lower the memory footprint.
+        The ParticleCollection is used to retrieve a particle instance reference to
+        lower the memory footprint.
         """
         solutions = []
         for solution in qn_result.solutions:
@@ -691,16 +641,13 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         )
 
 
-def _safe_wrap_list(
-    nested_list: Union[List[str], List[List[str]]]
-) -> List[List[str]]:
+def _safe_wrap_list(nested_list: Union[List[str], List[List[str]]]) -> List[List[str]]:
     if all(isinstance(i, list) for i in nested_list):
         return nested_list  # type: ignore[return-value]
     if all(isinstance(i, str) for i in nested_list):
         return [nested_list]  # type: ignore[list-item]
     raise TypeError(
-        f"Input final state grouping {nested_list} is not a list of lists of"
-        " strings"
+        f"Input final state grouping {nested_list} is not a list of lists of strings"
     )
 
 
@@ -750,9 +697,7 @@ class StateTransition:
 
     topology: Topology = field(validator=instance_of(Topology))
     states: FrozenDict[int, State] = field(converter=FrozenDict)
-    interactions: FrozenDict[int, InteractionProperties] = field(
-        converter=FrozenDict
-    )
+    interactions: FrozenDict[int, InteractionProperties] = field(converter=FrozenDict)
 
     def __attrs_post_init__(self) -> None:
         _assert_defined(self.topology.edges, self.states)
@@ -765,10 +710,7 @@ class StateTransition:
         return StateTransition(
             topology=graph.topology,
             states=FrozenDict(
-                {
-                    i: State(*graph.get_edge_props(i))
-                    for i in graph.topology.edges
-                }
+                {i: State(*graph.get_edge_props(i)) for i in graph.topology.edges}
             ),
             interactions=FrozenDict(
                 {i: graph.get_node_props(i) for i in graph.topology.nodes}
@@ -819,9 +761,7 @@ def _to_sorted_tuple(
     iterable: Iterable[StateTransition],
 ) -> Tuple[StateTransition, ...]:
     if any(not isinstance(t, StateTransition) for t in iterable):
-        raise TypeError(
-            f"Not all instances are of type {StateTransition.__name__}"
-        )
+        raise TypeError(f"Not all instances are of type {StateTransition.__name__}")
     return tuple(sorted(iterable))
 
 
@@ -829,9 +769,7 @@ def _to_sorted_tuple(
 class StateTransitionCollection(abc.Sequence):
     """`.StateTransition` instances with the same `.Topology` and edge IDs."""
 
-    transitions: Tuple[StateTransition, ...] = field(
-        converter=_to_sorted_tuple
-    )
+    transitions: Tuple[StateTransition, ...] = field(converter=_to_sorted_tuple)
     topology: Topology = field(init=False, repr=False)
     initial_state: FrozenDict[int, Particle] = field(init=False, repr=False)
     final_state: FrozenDict[int, Particle] = field(init=False, repr=False)
@@ -928,8 +866,7 @@ def _to_tuple(
 ) -> Tuple[StateTransitionCollection, ...]:
     if any(not isinstance(t, StateTransitionCollection) for t in iterable):
         raise TypeError(
-            "Not all instances are of type"
-            f" {StateTransitionCollection.__name__}"
+            f"Not all instances are of type {StateTransitionCollection.__name__}"
         )
     return tuple(iterable)
 
@@ -941,18 +878,14 @@ class ReactionInfo:
     transition_groups: Tuple[StateTransitionCollection, ...] = field(
         converter=_to_tuple
     )
-    transitions: Tuple[StateTransition, ...] = field(
-        init=False, repr=False, eq=False
-    )
+    transitions: Tuple[StateTransition, ...] = field(init=False, repr=False, eq=False)
     initial_state: FrozenDict[int, Particle] = field(init=False, repr=False)
     final_state: FrozenDict[int, Particle] = field(init=False, repr=False)
     formalism: str = field(validator=instance_of(str))
 
     def __attrs_post_init__(self) -> None:
         if len(self.transition_groups) == 0:
-            ValueError(
-                f"At least one {StateTransitionCollection.__name__} required"
-            )
+            ValueError(f"At least one {StateTransitionCollection.__name__} required")
         transitions: List[StateTransition] = []
         for grouping in self.transition_groups:
             transitions.extend(sorted(grouping))
@@ -970,8 +903,7 @@ class ReactionInfo:
                     return False
             return True
         raise NotImplementedError(
-            f"Cannot compare {self.__class__.__name__} with "
-            f" {other.__class__.__name__}"
+            f"Cannot compare {self.__class__.__name__} with  {other.__class__.__name__}"
         )
 
     def _repr_pretty_(self, p: "PrettyPrinter", cycle: bool) -> None:
@@ -1012,13 +944,11 @@ class ReactionInfo:
         graphs: Iterable[StateTransitionGraph[ParticleWithSpin]],
         formalism: str,
     ) -> "ReactionInfo":
-        transition_mapping: DefaultDict[
-            Topology, List[StateTransition]
-        ] = defaultdict(list)
+        transition_mapping: DefaultDict[Topology, List[StateTransition]] = defaultdict(
+            list
+        )
         for graph in graphs:
-            transition_mapping[graph.topology].append(
-                StateTransition.from_graph(graph)
-            )
+            transition_mapping[graph.topology].append(StateTransition.from_graph(graph))
         transition_groups = tuple(
             StateTransitionCollection(transitions)
             for transitions in transition_mapping.values()

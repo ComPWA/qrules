@@ -27,7 +27,6 @@ def test_generate_transitions(resonance_names):
     final_state = dict(enumerate(final_state_names))
     for transition in reaction.transitions:
         this_final_state = {
-            i: state.particle.name
-            for i, state in transition.final_states.items()
+            i: state.particle.name for i, state in transition.final_states.items()
         }
         assert final_state == this_final_state

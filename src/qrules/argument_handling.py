@@ -1,8 +1,8 @@
 """Handles argument handling for rules.
 
-Responsibilities are the check of requirements for rules and the creation of
-the arguments from general graph property maps. The information is extracted
-from the type annotations of the rules.
+Responsibilities are the check of requirements for rules and the creation of the
+arguments from general graph property maps. The information is extracted from the type
+annotations of the rules.
 """
 
 import inspect
@@ -67,9 +67,7 @@ def _is_node_quantum_number(qn_type: Any) -> bool:
 class _CompositeArgumentCheck:
     def __init__(
         self,
-        class_field_types: Union[
-            List[EdgeQuantumNumber], List[NodeQuantumNumber]
-        ],
+        class_field_types: Union[List[EdgeQuantumNumber], List[NodeQuantumNumber]],
     ) -> None:
         self.__class_field_types = class_field_types
 
@@ -78,8 +76,7 @@ class _CompositeArgumentCheck:
         props: GraphElementPropertyMap,
     ) -> bool:
         return all(
-            class_field_type in props
-            for class_field_type in self.__class_field_types
+            class_field_type in props for class_field_type in self.__class_field_types
         )
 
 
@@ -131,9 +128,7 @@ class _ValueExtractor(Generic[_ElementType]):
 
         return None
 
-    def __extract(
-        self, props: GraphElementPropertyMap[_ElementType]
-    ) -> _ElementType:
+    def __extract(self, props: GraphElementPropertyMap[_ElementType]) -> _ElementType:
         value = props[self.__obj_type]
         if value is None:
             return None
@@ -149,9 +144,7 @@ class _CompositeArgumentCreator:
     def __init__(self, class_type: type) -> None:
         self.__class_type = class_type
         self.__extractors = {
-            class_field.name: _ValueExtractor[EdgeQuantumNumber](
-                class_field.type
-            )
+            class_field.name: _ValueExtractor[EdgeQuantumNumber](class_field.type)
             if _is_edge_quantum_number(class_field.type)
             else _ValueExtractor[NodeQuantumNumber](class_field.type)
             for class_field in attrs.fields(class_type)
@@ -212,9 +205,7 @@ class RuleArgumentHandler:
                     for class_field in attrs.fields(qn_type)
                     if not _is_optional(class_field.type)
                 ]
-                qn_check_function: Callable[
-                    ..., bool
-                ] = _CompositeArgumentCheck(
+                qn_check_function: Callable[..., bool] = _CompositeArgumentCheck(
                     class_field_types  # type: ignore[arg-type]
                 )
             else:
@@ -240,9 +231,7 @@ class RuleArgumentHandler:
                 is_list = True
 
             if attrs.has(qn_type):
-                arg_builder: Callable[..., Any] = _CompositeArgumentCreator(
-                    qn_type
-                )
+                arg_builder: Callable[..., Any] = _CompositeArgumentCreator(qn_type)
             else:
                 if _is_edge_quantum_number(qn_type):
                     arg_builder = _ValueExtractor[EdgeQuantumNumber](qn_type)
@@ -269,9 +258,7 @@ class RuleArgumentHandler:
             rule_annotations = []
             rule_func_signature = inspect.signature(rule)
             if not rule_func_signature.return_annotation:
-                raise TypeError(
-                    f"missing return type annotation for rule {str(rule)}"
-                )
+                raise TypeError(f"missing return type annotation for rule {str(rule)}")
             for par in rule_func_signature.parameters.values():
                 if not par.annotation:
                     raise TypeError(
@@ -284,19 +271,17 @@ class RuleArgumentHandler:
             try:
                 self.__verify(rule_annotations)
             except TypeError as exception:
-                raise TypeError(
-                    f"rule {str(rule)}: {str(exception)}"
-                ) from exception
+                raise TypeError(f"rule {str(rule)}: {str(exception)}") from exception
 
             # then create requirements check function and add to dict
-            self.__rule_to_requirements_check[
-                rule
-            ] = self.__create_requirements_check(rule_annotations)
+            self.__rule_to_requirements_check[rule] = self.__create_requirements_check(
+                rule_annotations
+            )
 
             # then create arguments builder function and add to dict
-            self.__rule_to_argument_builder[
-                rule
-            ] = self.__create_argument_builder(rule_annotations)
+            self.__rule_to_argument_builder[rule] = self.__create_argument_builder(
+                rule_annotations
+            )
 
         return (
             self.__rule_to_requirements_check[rule],

@@ -86,9 +86,7 @@ class TestState:
 
 class TestStateTransition:
     def test_ordering(self, reaction: ReactionInfo):
-        sorted_transitions: List[StateTransition] = sorted(
-            reaction.transitions
-        )
+        sorted_transitions: List[StateTransition] = sorted(reaction.transitions)
         if reaction.formalism.startswith("cano"):
             first = sorted_transitions[0]
             second = sorted_transitions[1]
@@ -203,8 +201,6 @@ class TestStateTransitionManager:
         particle_name = "N(753)"
         with pytest.raises(
             LookupError,
-            match=(
-                r"Could not find any matches for allowed intermediate particle"
-            ),
+            match=r"Could not find any matches for allowed intermediate particle",
         ):
             stm.set_allowed_intermediate_particles([particle_name])

@@ -150,12 +150,8 @@ def _to_optional_int(optional_int: Optional[int]) -> Optional[int]:
 class Edge:
     """Struct-like definition of an edge, used in `Topology`."""
 
-    originating_node_id: Optional[int] = field(
-        default=None, converter=_to_optional_int
-    )
-    ending_node_id: Optional[int] = field(
-        default=None, converter=_to_optional_int
-    )
+    originating_node_id: Optional[int] = field(default=None, converter=_to_optional_int)
+    ending_node_id: Optional[int] = field(default=None, converter=_to_optional_int)
 
     def get_connected_nodes(self) -> Set[int]:
         connected_nodes = {self.ending_node_id, self.originating_node_id}
@@ -174,11 +170,10 @@ def _to_frozenset(iterable: Iterable[int]) -> FrozenSet[int]:
 class Topology:
     """Directed Feynman-like graph without edge or node properties.
 
-    Forms the underlying topology of `StateTransitionGraph`. The graphs are
-    directed, meaning the edges are ingoing and outgoing to specific nodes
-    (since feynman graphs also have a time axis). Note that a `Topology` is not
-    strictly speaking a graph from graph theory, because it allows open edges,
-    like a Feynman-diagram.
+    Forms the underlying topology of `StateTransitionGraph`. The graphs are directed,
+    meaning the edges are ingoing and outgoing to specific nodes (since feynman graphs
+    also have a time axis). Note that a `Topology` is not strictly speaking a graph from
+    graph theory, because it allows open edges, like a Feynman-diagram.
     """
 
     nodes: FrozenSet[int] = field(converter=_to_frozenset)
@@ -211,9 +206,7 @@ class Topology:
         object.__setattr__(
             self,
             "intermediate_edge_ids",
-            frozenset(self.edges)
-            ^ self.incoming_edge_ids
-            ^ self.outgoing_edge_ids,
+            frozenset(self.edges) ^ self.incoming_edge_ids ^ self.outgoing_edge_ids,
         )
 
     def __verify(self) -> None:
@@ -222,8 +215,7 @@ class Topology:
             connected_nodes = edge.get_connected_nodes()
             if not connected_nodes:
                 raise ValueError(
-                    f"Edge nr. {edge_id} is not connected to any other node"
-                    f" ({edge})"
+                    f"Edge nr. {edge_id} is not connected to any other node ({edge})"
                 )
             if not connected_nodes <= self.nodes:
                 raise ValueError(
@@ -238,9 +230,7 @@ class Topology:
         for node_id in self.nodes:
             surrounding_nodes = self.__get_surrounding_nodes(node_id)
             if not surrounding_nodes:
-                raise ValueError(
-                    f"Node {node_id} is not connected to any other node"
-                )
+                raise ValueError(f"Node {node_id} is not connected to any other node")
 
     def __get_surrounding_nodes(self, node_id: int) -> Set[int]:
         surrounding_nodes = set()
@@ -254,8 +244,8 @@ class Topology:
     def is_isomorphic(self, other: "Topology") -> bool:
         """Check if two graphs are isomorphic.
 
-        Returns `True` if the two graphs have a one-to-one mapping of the node
-        IDs and edge IDs.
+        Returns `True` if the two graphs have a one-to-one mapping of the node IDs and
+        edge IDs.
         """
         raise NotImplementedError
 
@@ -334,8 +324,8 @@ class Topology:
     def relabel_edges(self, old_to_new_id: Mapping[int, int]) -> "Topology":
         """Create a new `Topology` with new edge IDs.
 
-        This method is particularly useful when creating permutations of a
-        `Topology`, e.g.:
+        This method is particularly useful when creating permutations of a `Topology`,
+        e.g.:
 
         >>> topologies = create_isobar_topologies(3)
         >>> len(topologies)
@@ -349,32 +339,25 @@ class Topology:
         >>> len(permuted_topologies)
         3
         """
-        new_edges = {
-            old_to_new_id.get(i, i): edge for i, edge in self.edges.items()
-        }
+        new_edges = {old_to_new_id.get(i, i): edge for i, edge in self.edges.items()}
         return attrs.evolve(self, edges=new_edges)
 
     def swap_edges(self, edge_id1: int, edge_id2: int) -> "Topology":
         return self.relabel_edges({edge_id1: edge_id2, edge_id2: edge_id1})
 
 
-def get_originating_node_list(
-    topology: Topology, edge_ids: Iterable[int]
-) -> List[int]:
+def get_originating_node_list(topology: Topology, edge_ids: Iterable[int]) -> List[int]:
     """Get list of node ids from which the supplied edges originate from.
 
     Args:
         topology: The `Topology` on which to perform the search.
-        edge_ids ([int]): A list of edge ids for which the origin node is
-            searched for.
+        edge_ids ([int]): A list of edge ids for which the origin node is searched for.
     """
 
     def __get_originating_node(edge_id: int) -> Optional[int]:
         return topology.edges[edge_id].originating_node_id
 
-    return [
-        node_id for node_id in map(__get_originating_node, edge_ids) if node_id
-    ]
+    return [node_id for node_id in map(__get_originating_node, edge_ids) if node_id]
 
 
 @define(kw_only=True)
@@ -469,31 +452,22 @@ class InteractionNode:
 
     def __attrs_post_init__(self) -> None:
         if self.number_of_ingoing_edges < 1:
-            raise ValueError(
-                "Number of incoming edges has to be larger than 0"
-            )
+            raise ValueError("Number of incoming edges has to be larger than 0")
         if self.number_of_outgoing_edges < 1:
-            raise ValueError(
-                "Number of outgoing edges has to be larger than 0"
-            )
+            raise ValueError("Number of outgoing edges has to be larger than 0")
 
 
 class SimpleStateTransitionTopologyBuilder:
     """Simple topology builder.
 
-    Recursively tries to add the interaction nodes to available open end
-    edges/lines in all combinations until the number of open end lines matches
-    the final state lines.
+    Recursively tries to add the interaction nodes to available open end edges/lines in
+    all combinations until the number of open end lines matches the final state lines.
     """
 
-    def __init__(
-        self, interaction_node_set: Iterable[InteractionNode]
-    ) -> None:
+    def __init__(self, interaction_node_set: Iterable[InteractionNode]) -> None:
         if not isinstance(interaction_node_set, list):
             raise TypeError("interaction_node_set must be a list")
-        self.interaction_node_set: List[InteractionNode] = list(
-            interaction_node_set
-        )
+        self.interaction_node_set: List[InteractionNode] = list(interaction_node_set)
 
     def build(
         self, number_of_initial_edges: int, number_of_final_edges: int
@@ -550,9 +524,7 @@ class SimpleStateTransitionTopologyBuilder:
         # Try to extend the graph with interaction nodes
         # that have equal or less ingoing lines than active lines
         for interaction_node in self.interaction_node_set:
-            if interaction_node.number_of_ingoing_edges <= len(
-                current_open_end_edges
-            ):
+            if interaction_node.number_of_ingoing_edges <= len(current_open_end_edges):
                 # make all combinations
                 combis = list(
                     itertools.combinations(
@@ -570,9 +542,7 @@ class SimpleStateTransitionTopologyBuilder:
                         combis.remove(comb2)
 
                 for combi in combis:
-                    new_graph = _attach_node_to_edges(
-                        pair, interaction_node, combi
-                    )
+                    new_graph = _attach_node_to_edges(pair, interaction_node, combi)
                     extended_graph_list.append(new_graph)
 
         return extended_graph_list
@@ -582,9 +552,7 @@ def create_isobar_topologies(
     number_of_final_states: int,
 ) -> Tuple[Topology, ...]:
     if number_of_final_states < 2:
-        raise ValueError(
-            "At least two final states required for an isobar decay"
-        )
+        raise ValueError("At least two final states required for an isobar decay")
     builder = SimpleStateTransitionTopologyBuilder([InteractionNode(1, 2)])
     topologies = builder.build(
         number_of_initial_edges=1,
@@ -660,10 +628,10 @@ EdgeType = TypeVar("EdgeType")
 class StateTransitionGraph(Generic[EdgeType]):
     """Graph class that resembles a frozen `.Topology` with properties.
 
-    This class should contain the full information of a state transition from a
-    initial state to a final state. This information can be attached to the
-    nodes and edges via properties. In case not all information is provided,
-    error can be raised on property retrieval.
+    This class should contain the full information of a state transition from a initial
+    state to a final state. This information can be attached to the nodes and edges via
+    properties. In case not all information is provided, error can be raised on property
+    retrieval.
     """
 
     def __init__(
@@ -695,8 +663,7 @@ class StateTransitionGraph(Generic[EdgeType]):
                     return False
             return True
         raise NotImplementedError(
-            f"Cannot compare {self.__class__.__name__}"
-            f" with {other.__class__.__name__}"
+            f"Cannot compare {self.__class__.__name__} with {other.__class__.__name__}"
         )
 
     def get_node_props(self, node_id: int) -> InteractionProperties:
@@ -712,8 +679,8 @@ class StateTransitionGraph(Generic[EdgeType]):
     ) -> "StateTransitionGraph[EdgeType]":
         """Changes the node and edge properties of a graph instance.
 
-        Since a `.StateTransitionGraph` is frozen (cannot be modified), the
-        evolve function will also create a shallow copy the properties.
+        Since a `.StateTransitionGraph` is frozen (cannot be modified), the evolve
+        function will also create a shallow copy the properties.
         """
         new_node_props = copy.copy(self.__node_props)
         if node_props:
@@ -745,15 +712,11 @@ class StateTransitionGraph(Generic[EdgeType]):
             return False
         if edge_comparator is not None:
             for i in self.topology.edges:
-                if not edge_comparator(
-                    self.get_edge_props(i), other.get_edge_props(i)
-                ):
+                if not edge_comparator(self.get_edge_props(i), other.get_edge_props(i)):
                     return False
         if node_comparator is not None:
             for i in self.topology.nodes:
-                if not node_comparator(
-                    self.get_node_props(i), other.get_node_props(i)
-                ):
+                if not node_comparator(self.get_node_props(i), other.get_node_props(i)):
                     return False
         return True
 
