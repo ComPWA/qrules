@@ -72,19 +72,18 @@ def asdot(
     `.MutableTransition` or a `list` of `.MutableTransition` instances.
 
     Args:
-        instance: the input `object` that is to be rendered as DOT (graphviz)
-            language.
+        instance: the input `object` that is to be rendered as DOT (graphviz) language.
 
-        strip_spin: Normally, each `.MutableTransition` has a `.Particle`
-            with a spin projection on its edges. This option hides the
-            projections, leaving only `.Particle` names on edges.
+        strip_spin: Normally, each `.MutableTransition` has a `.Particle` with a spin
+            projection on its edges. This option hides the projections, leaving only
+            `.Particle` names on edges.
 
         collapse_graphs: Group all transitions by equivalent kinematic topology
             and combine all allowed particles on each edge.
 
-        render_node: Whether or not to render node ID (in the case of a
-            `.Topology`) and/or node properties (in the case of a
-            `.MutableTransition`). Meaning of the labels:
+        render_node: Whether or not to render node ID (in the case of a `.Topology`)
+            and/or node properties (in the case of a `.MutableTransition`). Meaning of
+            the labels:
 
             - :math:`P`: parity prefactor
             - :math:`s`: tuple of **coupled spin** magnitude and its
@@ -102,8 +101,8 @@ def asdot(
 
     .. seealso::
 
-        See `Graphviz attributes <https://graphviz.org/doc/info/attrs.html>`_
-        for the available styling arguments.
+        See `Graphviz attributes <https://graphviz.org/doc/info/attrs.html>`_ for the
+        available styling arguments.
 
     .. seealso:: :doc:`/usage/visualize`
     """

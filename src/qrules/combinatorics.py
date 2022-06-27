@@ -161,9 +161,8 @@ def _get_kinematic_representation(
 ) -> _KinematicRepresentation:
     r"""Group final or initial states by node, sorted by length of the group.
 
-    The resulting sorted groups can be used to check whether two
-    `.MutableTransition` instances are kinematically identical. For
-    instance, the following two graphs:
+    The resulting sorted groups can be used to check whether two `.MutableTransition`
+    instances are kinematically identical. For instance, the following two graphs:
 
     .. code-block::
 
@@ -193,12 +192,12 @@ def _get_kinematic_representation(
         kinematic_representation.initial_state == \
             [["J/psi"], ["J/psi"]]
 
-    and are therefore kinematically identical. The nested lists are sorted (by
-    `list` length and element content) for comparisons.
+    and are therefore kinematically identical. The nested lists are sorted (by `list`
+    length and element content) for comparisons.
 
-    Note: more precisely, the states represented here by a `str` only also have
-    a list of allowed spin projections, for instance, :code:`("J/psi", [-1,
-    +1])`. Note that a `tuple` is also sortable.
+    Note: more precisely, the states represented here by a `str` only also have a list
+    of allowed spin projections, for instance, :code:`("J/psi", [-1, +1])`. Note that a
+    `tuple` is also sortable.
     """
 
     def get_state_groupings(

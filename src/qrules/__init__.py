@@ -1,20 +1,19 @@
 # pylint: disable=too-many-lines
 """A rule based system that facilitates particle reaction analysis.
 
-QRules generates allowed particle transitions from a set of conservation rules
-and boundary conditions as specified by the user. The user boundary conditions
-for a particle reaction problem are for example the initial state, final state,
-and allowed interactions.
+QRules generates allowed particle transitions from a set of conservation rules and
+boundary conditions as specified by the user. The user boundary conditions for a
+particle reaction problem are for example the initial state, final state, and allowed
+interactions.
 
-The core of `qrules` computes which transitions (represented by a
-`.MutableTransition`) are allowed between a certain initial and final state.
-Internally, the system propagates the quantum numbers defined by the
-`particle` module through the `.MutableTransition`, while
-satisfying the rules define by the :mod:`.conservation_rules` module. See
+The core of `qrules` computes which transitions (represented by a `.MutableTransition`)
+are allowed between a certain initial and final state. Internally, the system propagates
+the quantum numbers defined by the `particle` module through the `.MutableTransition`,
+while satisfying the rules define by the :mod:`.conservation_rules` module. See
 :doc:`/usage/reaction` and :doc:`/usage/particle`.
 
-Finally, the `.io` module provides tools that can read and write the objects of
-this framework.
+Finally, the `.io` module provides tools that can read and write the objects of this
+framework.
 """
 
 from itertools import product
@@ -79,8 +78,8 @@ def check_reaction_violations(  # pylint: disable=too-many-arguments
       final_state: Shortform description of the final state w/o spin
         projections.
       mass_conservation_factor: Factor with which the width is multiplied when
-        checking for `.MassConservation`. Set to `None` in order to deactivate
-        mass conservation.
+        checking for `.MassConservation`. Set to `None` in order to deactivate mass
+        conservation.
       particle_db (Optional): Custom `.ParticleCollection` object.  Defaults to
         the `.ParticleCollection` returned by `.load_pdg`.
       max_angular_momentum: Maximum angular momentum over which to generate
@@ -89,10 +88,9 @@ def check_reaction_violations(  # pylint: disable=too-many-arguments
         :math:`LS`-couplings.
 
     Returns:
-      Set of least violating rules. The set can have multiple entries, as
-      several quantum numbers can be violated. Each entry in the frozenset
-      represents a group of rules that together violate all possible quantum
-      number configurations.
+      Set of least violating rules. The set can have multiple entries, as several
+      quantum numbers can be violated. Each entry in the frozenset represents a group of
+      rules that together violate all possible quantum number configurations.
 
     Example:
         >>> import qrules
@@ -276,22 +274,21 @@ def generate_transitions(  # pylint: disable=too-many-arguments
 ) -> ReactionInfo:
     """Generate allowed transitions between an initial and final state.
 
-    Serves as a facade to the `.StateTransitionManager` (see
-    :doc:`/usage/reaction`).
+    Serves as a facade to the `.StateTransitionManager` (see :doc:`/usage/reaction`).
 
     Arguments:
         initial_state (list): A list of particle names in the initial
-            state. You can specify spin projections for these particles with a
-            `tuple`, e.g. :code:`("J/psi(1S)", [-1, 0, +1])`. If spin
-            projections are not specified, all projections are taken, so the
-            example here would be equivalent to :code:`"J/psi(1S)"`.
+            state. You can specify spin projections for these particles with a `tuple`,
+            e.g. :code:`("J/psi(1S)", [-1, 0, +1])`. If spin projections are not
+            specified, all projections are taken, so the example here would be
+            equivalent to :code:`"J/psi(1S)"`.
 
         final_state (list): Same as :code:`initial_state`, but for final state
             particles.
 
         allowed_intermediate_particles (`list`, optional): A list of particle
-            states that you want to allow as intermediate states. This helps
-            (1) filter out resonances and (2) speed up computation time.
+            states that you want to allow as intermediate states. This helps (1) filter
+            out resonances and (2) speed up computation time.
 
         allowed_interaction_types: Interaction types you want to consider. For
             instance, :code:`["s", "em"]` results in `~.InteractionType.EM` and
@@ -302,11 +299,10 @@ def generate_transitions(  # pylint: disable=too-many-arguments
             the eventual amplitude model.
 
         particle_db (`.ParticleCollection`, optional): The particles that you
-            want to be involved in the reaction. Uses `.load_pdg` by default.
-            It's better to use a subset for larger reactions, because of
-            the computation times. This argument is especially useful when you
-            want to use your own particle definitions (see
-            :doc:`/usage/particle`).
+            want to be involved in the reaction. Uses `.load_pdg` by default. It's
+            better to use a subset for larger reactions, because of the computation
+            times. This argument is especially useful when you want to use your own
+            particle definitions (see :doc:`/usage/particle`).
 
         mass_conservation_factor: Width factor that is taken into account for
             for the `.MassConservation` rule.
@@ -328,8 +324,8 @@ def generate_transitions(  # pylint: disable=too-many-arguments
             transitions. Defaults to the current value returned by
             :meth:`.settings.NumberOfThreads.get`.
 
-    An example (where, for illustrative purposes only, we specify all
-    arguments) would be:
+    An example (where, for illustrative purposes only, we specify all arguments) would
+    be:
 
     >>> import qrules
     >>> reaction = qrules.generate_transitions(

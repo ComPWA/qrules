@@ -5,8 +5,7 @@
 
 - `Topology` and its builder functions :func:`create_isobar_topologies` and
   :func:`create_n_body_topology`.
-- `Transition` and its two implementations `MutableTransition` and
-  `FrozenTransition`.
+- `Transition` and its two implementations `MutableTransition` and `FrozenTransition`.
 
 .. autolink-preface::
 
@@ -79,12 +78,11 @@ class FrozenDict(  # pylint: disable=too-many-ancestors
 ):
     """An **immutable** and **hashable** version of a `dict`.
 
-    `FrozenDict` makes it possible to make classes hashable if they are
-    decorated with :func:`attr.frozen` and contain `~typing.Mapping`-like
-    attributes. If these attributes were to be implemented with a normal
-    `dict`, the instance is strictly speaking still mutable (even if those
-    attributes are a `property`) and the class is therefore not safely
-    hashable.
+    `FrozenDict` makes it possible to make classes hashable if they are decorated with
+    :func:`attr.frozen` and contain `~typing.Mapping`-like attributes. If these
+    attributes were to be implemented with a normal `dict`, the instance is strictly
+    speaking still mutable (even if those attributes are a `property`) and the class is
+    therefore not safely hashable.
 
     .. warning:: The keys have to be comparable, that is, they need to have a
         :meth:`~object.__lt__` method.
@@ -169,14 +167,14 @@ class Edge:
     originating_node_id: Optional[int] = field(default=None, converter=_to_optional_int)
     """Node ID where the `Edge` **starts**.
 
-    An `Edge` is **incoming to** a `Topology` if its `originating_node_id` is
-    `None` (see `~Topology.incoming_edge_ids`).
+    An `Edge` is **incoming to** a `Topology` if its `originating_node_id` is `None`
+    (see `~Topology.incoming_edge_ids`).
     """
     ending_node_id: Optional[int] = field(default=None, converter=_to_optional_int)
     """Node ID where the `Edge` **ends**.
 
-    An `Edge` is **outgoing from** a `Topology` if its `ending_node_id` is
-    `None` (see `~Topology.outgoing_edge_ids`).
+    An `Edge` is **outgoing from** a `Topology` if its `ending_node_id` is `None` (see
+    `~Topology.outgoing_edge_ids`).
     """
 
     def get_connected_nodes(self) -> Set[int]:
@@ -200,22 +198,22 @@ class Topology:
     # noqa: D416
     """Directed Feynman-like graph without edge or node properties.
 
-    A `Topology` is **directed** in the sense that its edges are ingoing and
-    outgoing to specific nodes. This is to mimic Feynman graphs, which have a
-    time axis. Note that a `Topology` is not strictly speaking a graph from
-    graph theory, because it allows open edges, like a Feynman-diagram.
+    A `Topology` is **directed** in the sense that its edges are ingoing and outgoing to
+    specific nodes. This is to mimic Feynman graphs, which have a time axis. Note that a
+    `Topology` is not strictly speaking a graph from graph theory, because it allows
+    open edges, like a Feynman-diagram.
 
-    The edges and nodes can be provided with properties with a `Transition`,
-    which contains a `~Transition.topology`.
+    The edges and nodes can be provided with properties with a `Transition`, which
+    contains a `~Transition.topology`.
 
-    As opposed to a `MutableTopology`, a `Topology` is frozen, hashable, and
-    ordered, so that it can be used as a kind of fingerprint for a
-    `Transition`. In addition, the IDs of `edges` are guaranteed to be
-    sequential integers and follow a specific pattern:
+    As opposed to a `MutableTopology`, a `Topology` is frozen, hashable, and ordered, so
+    that it can be used as a kind of fingerprint for a `Transition`. In addition, the
+    IDs of `edges` are guaranteed to be sequential integers and follow a specific
+    pattern:
 
     - `incoming_edge_ids` (`~Transition.initial_states`) are always negative.
-    - `outgoing_edge_ids` (`~Transition.final_states`) lie in the range
-      :code:`0...n-1` with :code:`n` the number of final states.
+    - `outgoing_edge_ids` (`~Transition.final_states`) lie in the range :code:`0...n-1`
+      with :code:`n` the number of final states.
     - `intermediate_edge_ids` continue counting from :code:`n`.
 
     See also :meth:`MutableTopology.organize_edge_ids`.
@@ -319,8 +317,8 @@ class Topology:
     def is_isomorphic(self, other: "Topology") -> bool:
         """Check if two graphs are isomorphic.
 
-        Returns `True` if the two graphs have a one-to-one mapping of the node
-        IDs and edge IDs.
+        Returns `True` if the two graphs have a one-to-one mapping of the node IDs and
+        edge IDs.
 
         .. warning:: Not yet implemented.
         """
@@ -379,8 +377,8 @@ class Topology:
     def relabel_edges(self, old_to_new: Mapping[int, int]) -> "Topology":
         """Create a new `Topology` with new edge IDs.
 
-        This method is particularly useful when creating permutations of a
-        `Topology`, e.g.:
+        This method is particularly useful when creating permutations of a `Topology`,
+        e.g.:
 
         >>> topologies = create_isobar_topologies(3)
         >>> len(topologies)
@@ -410,8 +408,7 @@ def get_originating_node_list(topology: Topology, edge_ids: Iterable[int]) -> Li
 
     Args:
         topology: The `Topology` on which to perform the search.
-        edge_ids ([int]): A list of edge ids for which the origin node is
-            searched for.
+        edge_ids ([int]): A list of edge ids for which the origin node is searched for.
     """
 
     def __get_originating_node(edge_id: int) -> Optional[int]:
@@ -530,8 +527,8 @@ class MutableTopology:
     def organize_edge_ids(self) -> "MutableTopology":
         """Organize edge IDS so that they lie in range :code:`[-m, n+i]`.
 
-        Here, :code:`m` is the number of `.incoming_edge_ids`, :code:`n` is the
-        number of `.outgoing_edge_ids`, and :code:`i` is the number of
+        Here, :code:`m` is the number of `.incoming_edge_ids`, :code:`n` is the number
+        of `.outgoing_edge_ids`, and :code:`i` is the number of
         `.intermediate_edge_ids`.
 
         In other words, relabel the edges so that:
@@ -677,8 +674,8 @@ def create_isobar_topologies(
             (`~.Transition.final_states`).
 
     Returns:
-        A sorted `tuple` of non-isomorphic `Topology` instances, all with the
-        same number of final states.
+        A sorted `tuple` of non-isomorphic `Topology` instances, all with the same
+        number of final states.
 
     Example:
         >>> topologies = create_isobar_topologies(number_of_final_states=4)
@@ -796,20 +793,18 @@ NewNodeType = TypeVar("NewNodeType")
 class Transition(ABC, Generic[EdgeType, NodeType]):
     """Mapping of edge and node properties over a `.Topology`.
 
-    This **interface** class describes a transition from an initial state to a
-    final state by providing a mapping of properties over the `~Topology.edges`
-    and `~Topology.nodes` of its `topology`. Since a `Topology` behaves like a
-    Feynman graph, **edges** are considered as "`states`" and **nodes** are
-    considered as `interactions` between those states.
+    This **interface** class describes a transition from an initial state to a final
+    state by providing a mapping of properties over the `~Topology.edges` and
+    `~Topology.nodes` of its `topology`. Since a `Topology` behaves like a Feynman
+    graph, **edges** are considered as "`states`" and **nodes** are considered as
+    `interactions` between those states.
 
     There are two implementation classes:
 
-    - `FrozenTransition`: a complete, hashable and ordered mapping of
-      properties over the `~Topology.edges` and `~Topology.nodes` in its
-      `~FrozenTransition.topology`.
-    - `MutableTransition`: comparable to `MutableTopology` in that it is used
-      internally when finding solutions through the `.StateTransitionManager`
-      etc.
+    - `FrozenTransition`: a complete, hashable and ordered mapping of properties over
+      the `~Topology.edges` and `~Topology.nodes` in its `~FrozenTransition.topology`.
+    - `MutableTransition`: comparable to `MutableTopology` in that it is used internally
+      when finding solutions through the `.StateTransitionManager` etc.
 
     These classes are also provided with **mixin** attributes `initial_states`,
     `final_states`, `intermediate_states`, and :meth:`filter_states`.

@@ -82,17 +82,17 @@ def create_particle(
 ) -> ParticleWithSpin:
     """Create a Particle with spin projection from a qn dictionary.
 
-    The implementation assumes the edge properties match the attributes of a
-    particle inside the `.ParticleCollection`.
+    The implementation assumes the edge properties match the attributes of a particle
+    inside the `.ParticleCollection`.
 
     Args:
-        states: The quantum number dictionary.
-        particle_db: A `.ParticleCollection` which is used to retrieve a
-          reference `.particle` to lower the memory footprint.
+        states: The quantum number dictionary. particle_db: A `.ParticleCollection`
+            which is used to retrieve a reference `.particle` to lower the memory
+            footprint.
 
     Raises:
-        KeyError: If the edge properties do not contain the pid information or
-          no particle with the same pid is found in the `.ParticleCollection`.
+        KeyError: If the edge properties do not contain the pid information or no
+            particle with the same pid is found in the `.ParticleCollection`.
 
         ValueError: If the edge properties do not contain spin projection info.
     """
@@ -288,16 +288,14 @@ def filter_graphs(
 ) -> List[MutableTransition]:
     r"""Implement filtering of a list of `.MutableTransition` 's.
 
-    This function can be used to select a subset of
-    `.MutableTransition` 's from a list. Only the graphs passing
-    all supplied filters will be returned.
+    This function can be used to select a subset of `.MutableTransition` 's from a list.
+    Only the graphs passing all supplied filters will be returned.
 
     Note:
         For the more advanced user, lambda functions can be used as filters.
 
     Example:
-        Selecting only the solutions, in which the :math:`\rho` decays via
-        p-wave:
+        Selecting only the solutions, in which the :math:`\rho` decays via p-wave:
 
         .. code-block:: python
 
@@ -325,8 +323,8 @@ def require_interaction_property(
 
     Closure, which can be used as a filter function in :func:`.filter_graphs`.
 
-    It selects graphs based on a requirement on the property of specific
-    interaction nodes.
+    It selects graphs based on a requirement on the property of specific interaction
+    nodes.
 
     Args:
         ingoing_particle_name (str): name of particle, used to find nodes which
@@ -339,9 +337,8 @@ def require_interaction_property(
 
     Return:
         Callable[Any, bool]:
-            - *True* if the graph has nodes with an ingoing particle of the
-              given name, and the graph fullfills the quantum number
-              requirement
+            - *True* if the graph has nodes with an ingoing particle of the given name,
+              and the graph fullfills the quantum number requirement
             - *False* otherwise
     """
 

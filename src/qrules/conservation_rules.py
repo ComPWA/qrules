@@ -1,23 +1,21 @@
 """Collection of quantum number conservation rules for particle reactions.
 
-This module is the place where the 'expert' defines the rules that verify
-quantum numbers of the reaction.
+This module is the place where the 'expert' defines the rules that verify quantum
+numbers of the reaction.
 
-A rule is a function that takes quantum numbers as input and outputs a boolean.
-There are three different types of rules:
+A rule is a function that takes quantum numbers as input and outputs a boolean. There
+are three different types of rules:
 
 1. `GraphElementRule` that work on individual graph edges or nodes.
-2. `EdgeQNConservationRule` that work on the interaction level, which use
-   ingoing edges, outgoing edges as arguments.  E.g.: `.ChargeConservation`.
-3. `ConservationRule` that work on the interaction level, which use ingoing
-   edges, outgoing edges and a interaction node as arguments. E.g:
-   `.parity_conservation`.
+2. `EdgeQNConservationRule` that work on the interaction level, which use ingoing edges,
+   outgoing edges as arguments.  E.g.: `.ChargeConservation`.
+3. `ConservationRule` that work on the interaction level, which use ingoing edges,
+   outgoing edges and a interaction node as arguments. E.g: `.parity_conservation`.
 
-The arguments can be any type of quantum number. However a rule argument
-resembling edges only accepts `~.quantum_numbers.EdgeQuantumNumbers`. Similarly
-arguments that resemble a node only accept
-`~.quantum_numbers.NodeQuantumNumbers`. The argument types do not have to be
-limited to a single quantum number, but can be a composite (see
+The arguments can be any type of quantum number. However a rule argument resembling
+edges only accepts `~.quantum_numbers.EdgeQuantumNumbers`. Similarly arguments that
+resemble a node only accept `~.quantum_numbers.NodeQuantumNumbers`. The argument types
+do not have to be limited to a single quantum number, but can be a composite (see
 `.CParityEdgeInput`).
 
 .. warning::
@@ -33,17 +31,16 @@ Generally, the conditions can be separated into two categories:
 * variable conditions
 * toplogical conditions
 
-Currently, only variable conditions are being used. Topological conditions
-could be created in the form of `~typing.Tuple` instead of `~typing.List`.
+Currently, only variable conditions are being used. Topological conditions could be
+created in the form of `~typing.Tuple` instead of `~typing.List`.
 
-For additive quantum numbers, the decorator `additive_quantum_number_rule`
-can be used to automatically generate the appropriate behavior.
+For additive quantum numbers, the decorator `additive_quantum_number_rule` can be used
+to automatically generate the appropriate behavior.
 
 
-The module is therefore strongly typed (both
-for the reader of the code and for type checking with :doc:`mypy
-<mypy:index>`). An example is `.HelicityParityEdgeInput`, which has been
-defined to provide type checks on `.parity_conservation_helicity`.
+The module is therefore strongly typed (both for the reader of the code and for type
+checking with :doc:`mypy <mypy:index>`). An example is `.HelicityParityEdgeInput`, which
+has been defined to provide type checks on `.parity_conservation_helicity`.
 
 .. seealso:: :doc:`/usage/conservation`
 """
@@ -51,6 +48,7 @@ defined to provide type checks on `.parity_conservation_helicity`.
 import sys
 from copy import deepcopy
 from functools import reduce
+from textwrap import dedent
 from typing import Any, Callable, List, Optional, Set, Tuple, Type, Union
 
 from attrs import define, field, frozen
@@ -106,15 +104,14 @@ def additive_quantum_number_rule(
 ) -> Callable[[Any], EdgeQNConservationRule]:
     r"""Class decorator for creating an additive conservation rule.
 
-    Use this decorator to create a `EdgeQNConservationRule` for a quantum number
-    to which an additive conservation rule applies:
+    Use this decorator to create a `EdgeQNConservationRule` for a quantum number to
+    which an additive conservation rule applies:
 
     .. math:: \sum q_{in} = \sum q_{out}
 
     Args:
         quantum_number: Quantum number to which you want to apply the additive
-            conservation check. An example would be
-            `.EdgeQuantumNumbers.charge`.
+            conservation check. An example would be `.EdgeQuantumNumbers.charge`.
     """
 
     def decorator(rule_class: Any) -> EdgeQNConservationRule:
@@ -127,9 +124,12 @@ def additive_quantum_number_rule(
             return sum(ingoing_edge_qns) == sum(outgoing_edge_qns)
 
         rule_class.__call__ = new_call
-        rule_class.__doc__ = (
-            f"""Decorated via `{additive_quantum_number_rule.__name__}`.\n\n"""
-            f"""Check for `~.EdgeQuantumNumbers.{quantum_number.__name__}` conservation."""
+        rule_class.__doc__ = dedent(
+            f"""
+            Decorated via `{additive_quantum_number_rule.__name__}`.
+
+            Check for `~.EdgeQuantumNumbers.{quantum_number.__name__}` conservation.
+            """
         )
         return rule_class
 
@@ -210,8 +210,8 @@ def parity_conservation_helicity(
 
     .. math:: \mathrm{parity\,prefactor} = P_1 P_2 P_3 (-1)^{S_2+S_3-S_1}
 
-    .. note:: Only the special case :math:`\lambda_1=\lambda_2=0` may
-      return False independent on the parity prefactor.
+    .. note:: Only the special case :math:`\lambda_1=\lambda_2=0` may return `False`
+        independent on the parity prefactor.
     """
     if len(ingoing_edge_qns) == 1 and len(outgoing_edge_qns) == 2:
         out_spins = [x.spin_magnitude for x in outgoing_edge_qns]
@@ -390,16 +390,15 @@ def identical_particle_symmetrization(
 ) -> bool:
     """Verifies multi particle state symmetrization for identical particles.
 
-    In case of a multi particle state with identical particles, their exchange
-    symmetry has to follow the spin statistic theorem.
+    In case of a multi particle state with identical particles, their exchange symmetry
+    has to follow the spin statistic theorem.
 
-    For bosonic systems the total exchange symmetry (parity) has to be even
-    (+1). For fermionic systems the total exchange symmetry (parity) has to be
-    odd (-1).
+    For bosonic systems the total exchange symmetry (parity) has to be even (+1). For
+    fermionic systems the total exchange symmetry (parity) has to be odd (-1).
 
-    In case of a particle decaying into N identical particles (N>1), the
-    decaying particle has to have the same parity as required by the spin
-    statistic theorem of the multi body state.
+    In case of a particle decaying into N identical particles (N>1), the decaying
+    particle has to have the same parity as required by the spin statistic theorem of
+    the multi body state.
     """
 
     def _check_particles_identical(
@@ -633,8 +632,8 @@ def isospin_conservation(
     .. math::
         |I_1 - I_2| \leq I \leq |I_1 + I_2|
 
-    Also checks :math:`I_{1,z} + I_{2,z} = I_z` and if Clebsch-Gordan
-    coefficients are all 0.
+    Also checks :math:`I_{1,z} + I_{2,z} = I_z` and if Clebsch-Gordan coefficients are
+    all 0.
     """
     if not sum(x.isospin_projection for x in ingoing_isospins) == sum(
         x.isospin_projection for x in outgoing_isospins
@@ -677,8 +676,7 @@ def spin_conservation(
     .. math::
         |L - S| \leq J \leq |L + S|
 
-    Also checks :math:`M_1 + M_2 = M` and if Clebsch-Gordan coefficients
-    are all 0.
+    Also checks :math:`M_1 + M_2 = M` and if Clebsch-Gordan coefficients are all 0.
 
     .. seealso:: /docs/usage/ls-coupling
     """
@@ -747,12 +745,12 @@ def clebsch_gordan_helicity_to_canonical(
 ) -> bool:
     """Implement Clebsch-Gordan checks.
 
-    For :math:`S_1, S_2` to :math:`S` and the :math:`L,S` to :math:`J`
-    coupling based on the conversion of helicity to canonical amplitude sums.
+    For :math:`S_1, S_2` to :math:`S` and the :math:`L,S` to :math:`J` coupling based on
+    the conversion of helicity to canonical amplitude sums.
 
-    .. note:: This rule does not check that the spin magnitudes couple
-      correctly to :math:`L` and :math:`S`, as this is already performed by
-      `.spin_magnitude_conservation`.
+    .. note:: This rule does not check that the spin magnitudes couple correctly to
+        :math:`L` and :math:`S`, as this is already performed by
+        `.spin_magnitude_conservation`.
     """
     if len(ingoing_spins) == 1 and len(outgoing_spins) == 2:
         out_spin1 = _Spin(
@@ -903,9 +901,9 @@ class MassConservation:
 
         :math:`M_{out} - N \cdot W_{out} < M_{in} + N \cdot W_{in}`
 
-        It makes sure that the net mass outgoing state :math:`M_{out}` is
-        smaller than the net mass of the ingoing state :math:`M_{in}`. Also the
-        width :math:`W` of the states is taken into account.
+        It makes sure that the net mass outgoing state :math:`M_{out}` is smaller than
+        the net mass of the ingoing state :math:`M_{in}`. Also the width :math:`W` of
+        the states is taken into account.
         """
         mass_in = sum(x.mass for x in ingoing_edge_qns)
         width_in = sum(x.width for x in ingoing_edge_qns if x.width)

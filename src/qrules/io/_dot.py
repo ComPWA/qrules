@@ -186,8 +186,8 @@ class GraphPrinter:
 def _create_graphviz_styling(graphviz_attrs: Dict[str, Any]) -> str:
     """Create a `str` of Graphviz attribute assignments for a node or edge.
 
-    See `Graphviz attributes <https://graphviz.org/doc/info/attrs.html>`_ for
-    the assignment syntax.
+    See `Graphviz attributes <https://graphviz.org/doc/info/attrs.html>`_ for the
+    assignment syntax.
 
     >>> _create_graphviz_styling({"size": 12})
     ' [size=12]'
@@ -203,8 +203,8 @@ def _create_graphviz_styling(graphviz_attrs: Dict[str, Any]) -> str:
 def _create_graphviz_assignments(graphviz_attrs: Dict[str, Any]) -> List[str]:
     """Create a `list` of graphviz attribute assignments.
 
-    See `Graphviz attributes <https://graphviz.org/doc/info/attrs.html>`_ for
-    the assignment syntax.
+    See `Graphviz attributes <https://graphviz.org/doc/info/attrs.html>`_ for the
+    assignment syntax.
 
     >>> _create_graphviz_assignments({"size": 12})
     ['size=12']
@@ -274,8 +274,8 @@ def __render_edge_with_id(edge_id: int, edge_prop: Any, render_edge_id: bool) ->
 def as_string(obj: Any) -> str:
     """Render an edge or node property on a `.Transition` as a `str`.
 
-    This function is decorated with :func:`functools.singledispatch`, which
-    means that you can easily register other converter functions. An example:
+    This function is decorated with :func:`functools.singledispatch`, which means that
+    you can easily register other converter functions. An example:
 
     >>> from qrules.io._dot import as_string
     >>> as_string(10)
@@ -382,8 +382,8 @@ def _get_particle_graphs(
 ) -> "List[FrozenTransition[Particle, None]]":
     """Strip `list` of `.Transition` s of the spin projections.
 
-    Extract a `list` of `.Transition` instances with only `.Particle` instances
-    on the edges.
+    Extract a `list` of `.Transition` instances with only `.Particle` instances on the
+    edges.
 
     .. seealso:: :doc:`/usage/visualize`
     """

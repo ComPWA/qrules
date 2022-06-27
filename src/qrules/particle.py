@@ -1,15 +1,13 @@
 # pylint: disable=import-outside-toplevel
 """A collection of particle info containers.
 
-The :mod:`.particle` module is the starting point of `qrules`. Its main
-interface is the `ParticleCollection`, which is a collection of immutable
-`Particle` instances that are uniquely defined by their properties. As such, it
-can be used stand-alone as a database of quantum numbers (see
-:doc:`/usage/particle`).
+The :mod:`.particle` module is the starting point of `qrules`. Its main interface is the
+`ParticleCollection`, which is a collection of immutable `Particle` instances that are
+uniquely defined by their properties. As such, it can be used stand-alone as a database
+of quantum numbers (see :doc:`/usage/particle`).
 
-The `.transition` module uses the properties of `Particle` instances when it
-computes which `.MutableTransition` s are allowed between an initial state
-and final state.
+The `.transition` module uses the properties of `Particle` instances when it computes
+which `.MutableTransition` s are allowed between an initial state and final state.
 """
 
 import logging
@@ -130,16 +128,15 @@ def _to_spin(value: Union[Spin, Tuple[float, float]]) -> Spin:
 class Particle:  # pylint: disable=too-many-instance-attributes
     """Immutable container of data defining a physical particle.
 
-    A `Particle` is defined by the minimum set of the quantum numbers that
-    every possible instances of that particle have in common (the "static"
-    quantum numbers of the particle). A "non-static" quantum number is the spin
-    projection. Hence `Particle` instances do **not** contain spin projection
-    information.
+    A `Particle` is defined by the minimum set of the quantum numbers that every
+    possible instances of that particle have in common (the "static" quantum numbers of
+    the particle). A "non-static" quantum number is the spin projection. Hence
+    `Particle` instances do **not** contain spin projection information.
 
-    `Particle` instances are uniquely defined by their quantum numbers and
-    properties like `~Particle.mass`. The `~Particle.name` and `~Particle.pid`
-    are therefore just labels that are not taken into account when checking if
-    two `Particle` instances are equal.
+    `Particle` instances are uniquely defined by their quantum numbers and properties
+    like `~Particle.mass`. The `~Particle.name` and `~Particle.pid` are therefore just
+    labels that are not taken into account when checking if two `Particle` instances are
+    equal.
 
     .. note:: As opposed to classes such as `.EdgeQuantumNumbers` and
         `.NodeQuantumNumbers`, the `Particle` class serves as an interface to

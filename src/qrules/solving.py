@@ -68,9 +68,9 @@ class EdgeSettings:
 class NodeSettings:
     """Container class for the interaction settings.
 
-    This class can be assigned to each node of a state transition graph. Hence,
-    these settings contain the complete configuration information which is
-    required for the solution finding, e.g:
+    This class can be assigned to each node of a state transition graph. Hence, these
+    settings contain the complete configuration information which is required for the
+    solution finding, e.g:
 
       - set of conservation rules
       - mapping of rules to priorities (optional)
@@ -99,8 +99,8 @@ class QNProblemSet:
 
     Args:
       initial_facts: all of the known facts quantum numbers of the problem.
-      solving_settings: solving specific settings, such as the specific rules
-        and variable domains for nodes and edges of the :attr:`topology`.
+      solving_settings: solving specific settings, such as the specific rules and
+        variable domains for nodes and edges of the :attr:`topology`.
     """
 
     initial_facts: "GraphElementProperties"
@@ -212,17 +212,16 @@ class Solver(ABC):
     def find_solutions(self, problem_set: QNProblemSet) -> QNResult:
         """Find solutions for the given input.
 
-        It is expected that this function determines and returns all of the
-        found solutions. In case no solutions are found a partial list of
-        violated rules has to be given. This list of violated rules does not
-        have to be complete.
+        It is expected that this function determines and returns all of the found
+        solutions. In case no solutions are found a partial list of violated rules has
+        to be given. This list of violated rules does not have to be complete.
 
         Args:
-          problem_set (`.QNProblemSet`): states a problem set
+            problem_set (`.QNProblemSet`): states a problem set
 
         Returns:
-          QNResult: contains possible solutions, violated rules and not executed
-          rules due to requirement issues.
+            QNResult: contains possible solutions, violated rules and not executed
+                rules due to requirement issues.
         """
 
 
@@ -453,10 +452,10 @@ class CSPSolver(Solver):
 
     Solving this done with the python-constraint module.
 
-    The variables are the quantum numbers of particles/edges, but also some
-    composite quantum numbers which are attributed to the interaction nodes
-    (such as angular momentum :math:`L`). The conservation rules serve as the
-    constraints and a special wrapper class serves as an adapter.
+    The variables are the quantum numbers of particles/edges, but also some composite
+    quantum numbers which are attributed to the interaction nodes (such as angular
+    momentum :math:`L`). The conservation rules serve as the constraints and a special
+    wrapper class serves as an adapter.
     """
 
     # pylint: disable=too-many-instance-attributes
@@ -888,10 +887,10 @@ class _GraphElementConstraint(Generic[_QNType], Constraint):
     ) -> bool:
         """Perform the constraint checking.
 
-        If the forwardcheck parameter is not false, besides telling if the
-        constraint is currently broken or not, the constraint implementation
-        may choose to hide values from the domains of unassigned variables to
-        prevent them from being used, and thus prune the search space.
+        If the forwardcheck parameter is not false, besides telling if the constraint is
+        currently broken or not, the constraint implementation may choose to hide values
+        from the domains of unassigned variables to prevent them from being used, and
+        thus prune the search space.
 
         Args:
             variables: Variables affected by that constraint, in the same order
@@ -909,8 +908,7 @@ class _GraphElementConstraint(Generic[_QNType], Constraint):
 
         Return:
             bool:
-                Boolean value stating if this constraint is currently broken
-                or not.
+                Boolean value stating if this constraint is currently broken or not.
         """
         params = [(x, assignments.get(x, _unassigned)) for x in variables]
         missing = [name for (name, val) in params if val is _unassigned]
@@ -1028,10 +1026,10 @@ class _ConservationRuleConstraintWrapper(Constraint):
     ) -> bool:
         """Perform the constraint checking.
 
-        If the forwardcheck parameter is not false, besides telling if the
-        constraint is currently broken or not, the constraint implementation
-        may choose to hide values from the domains of unassigned variables to
-        prevent them from being used, and thus prune the search space.
+        If the forwardcheck parameter is not false, besides telling if the constraint is
+        currently broken or not, the constraint implementation may choose to hide values
+        from the domains of unassigned variables to prevent them from being used, and
+        thus prune the search space.
 
         Args:
             variables: Variables affected by that constraint, in the same order
@@ -1049,8 +1047,7 @@ class _ConservationRuleConstraintWrapper(Constraint):
 
         Return:
             bool:
-                Boolean value stating if this constraint is currently broken
-                or not.
+                Boolean value stating if this constraint is currently broken or not.
         """
         params = [(x, assignments.get(x, _unassigned)) for x in variables]
         missing = [name for (name, val) in params if val is _unassigned]
