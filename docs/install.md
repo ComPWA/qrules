@@ -99,6 +99,8 @@ This installs the project in a Conda environment following the definitions in
 
 :::
 
+::::
+
 See {ref}`compwa-org:develop:Updating` for how to update the dependencies when new
 commits come in.
 
