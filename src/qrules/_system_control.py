@@ -21,9 +21,7 @@ from .topology import MutableTransition
 
 Strength = float
 
-GraphSettingsGroups = Dict[
-    Strength, List[Tuple[MutableTransition, GraphSettings]]
-]
+GraphSettingsGroups = Dict[Strength, List[Tuple[MutableTransition, GraphSettings]]]
 
 
 def create_edge_properties(
@@ -52,9 +50,7 @@ def create_edge_properties(
         property_map[EdgeQuantumNumbers.spin_projection] = spin_projection
     if isospin is not None:
         property_map[EdgeQuantumNumbers.isospin_magnitude] = isospin.magnitude
-        property_map[
-            EdgeQuantumNumbers.isospin_projection
-        ] = isospin.projection
+        property_map[EdgeQuantumNumbers.isospin_projection] = isospin.projection
     return property_map
 
 
@@ -103,8 +99,7 @@ def create_particle(
     particle = particle_db.find(int(states[EdgeQuantumNumbers.pid]))
     if EdgeQuantumNumbers.spin_projection not in states:
         raise ValueError(
-            f"{GraphEdgePropertyMap.__name__} does not contain a spin"
-            " projection"
+            f"{GraphEdgePropertyMap.__name__} does not contain a spin projection"
         )
     spin_projection = states[EdgeQuantumNumbers.spin_projection]
 
@@ -129,8 +124,7 @@ def filter_interaction_types(
     allowed_interaction_types: List[InteractionType],
 ) -> List[InteractionType]:
     int_type_intersection = list(
-        set(allowed_interaction_types)
-        & set(valid_determined_interaction_types)
+        set(allowed_interaction_types) & set(valid_determined_interaction_types)
     )
     if int_type_intersection:
         return int_type_intersection
@@ -197,9 +191,7 @@ class LeptonCheck(InteractionDeterminator):
 
 
 def remove_duplicate_solutions(
-    solutions: List[
-        "MutableTransition[ParticleWithSpin, InteractionProperties]"
-    ],
+    solutions: List["MutableTransition[ParticleWithSpin, InteractionProperties]"],
     remove_qns_list: Optional[Set[Type[NodeQuantumNumber]]] = None,
     ignore_qns_list: Optional[Set[Type[NodeQuantumNumber]]] = None,
 ) -> "List[MutableTransition[ParticleWithSpin, InteractionProperties]]":

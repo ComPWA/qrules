@@ -1,9 +1,9 @@
 # pylint: disable=too-many-return-statements
 """Serialization module for the `qrules`.
 
-The `.io` module provides tools to export or import objects from `qrules` to
-and from disk, so that they can be used by external packages, or just to store
-(cache) the state of the system.
+The `.io` module provides tools to export or import objects from `qrules` to and from
+disk, so that they can be used by external packages, or just to store (cache) the state
+of the system.
 """
 
 import json
@@ -46,9 +46,7 @@ def fromdict(definition: dict) -> object:
 
 
 __REQUIRED_PARTICLE_FIELDS = {
-    field.name
-    for field in attrs.fields(Particle)
-    if field.default == attrs.NOTHING
+    field.name for field in attrs.fields(Particle) if field.default == attrs.NOTHING
 }
 __REQUIRED_TOPOLOGY_FIELDS = {
     field.name for field in attrs.fields(Topology) if field.init
@@ -132,16 +130,12 @@ def load(filename: str) -> object:
         if file_extension in ["yaml", "yml"]:
             definition = yaml.load(stream, Loader=yaml.SafeLoader)
             return fromdict(definition)
-    raise NotImplementedError(
-        f'No loader defined for file type "{file_extension}"'
-    )
+    raise NotImplementedError(f'No loader defined for file type "{file_extension}"')
 
 
 class _IncreasedIndent(yaml.Dumper):
     # pylint: disable=too-many-ancestors
-    def increase_indent(
-        self, flow: bool = False, indentless: bool = False
-    ) -> None:
+    def increase_indent(self, flow: bool = False, indentless: bool = False) -> None:
         return super().increase_indent(flow, False)
 
     def write_line_break(self, data: Optional[str] = None) -> None:
@@ -174,9 +168,7 @@ def write(instance: object, filename: str) -> None:
             with open(filename, "w") as stream:
                 stream.write(output_str)
             return
-    raise NotImplementedError(
-        f'No writer defined for file type "{file_extension}"'
-    )
+    raise NotImplementedError(f'No writer defined for file type "{file_extension}"')
 
 
 def _get_file_extension(filename: str) -> str:

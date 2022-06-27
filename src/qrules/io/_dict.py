@@ -52,9 +52,7 @@ def build_particle_collection(
 ) -> ParticleCollection:
     if do_validate:
         validate_particle_collection(definition)
-    return ParticleCollection(
-        build_particle(p) for p in definition["particles"]
-    )
+    return ParticleCollection(build_particle(p) for p in definition["particles"])
 
 
 def build_particle(definition: dict) -> Particle:
@@ -70,8 +68,7 @@ def build_particle(definition: dict) -> Particle:
 
 def build_reaction_info(definition: dict) -> ReactionInfo:
     transitions = [
-        build_transition(transition_def)
-        for transition_def in definition["transitions"]
+        build_transition(transition_def) for transition_def in definition["transitions"]
     ]
     return ReactionInfo(transitions, formalism=definition["formalism"])
 

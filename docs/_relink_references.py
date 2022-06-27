@@ -66,13 +66,9 @@ def _new_type_to_xref(
 
     if sphinx.version_info >= (4, 4):
         # https://github.com/sphinx-doc/sphinx/blob/v4.4.0/sphinx/domains/python.py#L110-L133
-        from sphinx.domains.python import (  # type: ignore[attr-defined]
-            parse_reftarget,
-        )
+        from sphinx.domains.python import parse_reftarget  # type: ignore[attr-defined]
 
-        reftype, target, title, refspecific = parse_reftarget(
-            target, suppress_prefix
-        )
+        reftype, target, title, refspecific = parse_reftarget(target, suppress_prefix)
         target = __TARGET_SUBSTITUTIONS.get(target, target)
         reftype = __REF_TYPE_SUBSTITUTIONS.get(target, reftype)
         assert env is not None

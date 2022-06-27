@@ -18,16 +18,7 @@ this framework.
 """
 
 from itertools import product
-from typing import (
-    Dict,
-    FrozenSet,
-    Iterable,
-    List,
-    Optional,
-    Sequence,
-    Set,
-    Union,
-)
+from typing import Dict, FrozenSet, Iterable, List, Optional, Sequence, Set, Union
 
 import attrs
 
@@ -64,12 +55,7 @@ from .settings import (
 )
 from .solving import NodeSettings, QNResult, Rule, validate_full_solution
 from .topology import MutableTransition, create_n_body_topology
-from .transition import (
-    EdgeSettings,
-    ProblemSet,
-    ReactionInfo,
-    StateTransitionManager,
-)
+from .transition import EdgeSettings, ProblemSet, ReactionInfo, StateTransitionManager
 
 
 def check_reaction_violations(  # pylint: disable=too-many-arguments
@@ -158,23 +144,21 @@ def check_reaction_violations(  # pylint: disable=too-many-arguments
             node_rules={},
             edge_rules={
                 edge_id: pure_edge_rules
-                for edge_id in topology.incoming_edge_ids
-                | topology.outgoing_edge_ids
+                for edge_id in topology.incoming_edge_ids | topology.outgoing_edge_ids
             },
         )
 
         if edge_check_result.violated_edge_rules:
             raise ValueError(
-                "Some edges violate"
-                f" {edge_check_result.violated_edge_rules.values()}"
+                f"Some edges violate {edge_check_result.violated_edge_rules.values()}"
             )
 
     def check_edge_qn_conservation() -> Set[FrozenSet[str]]:
         """Check if edge quantum numbers are conserved.
 
-        Those rules give the same results, independent on the node and spin
-        props. Note they are also independent of the topology and hence their
-        results are always correct.
+        Those rules give the same results, independent on the node and spin props. Note
+        they are also independent of the topology and hence their results are always
+        correct.
         """
         edge_qn_conservation_rules: Set[Rule] = {
             BaryonNumberConservation(),
@@ -188,17 +172,13 @@ def check_reaction_violations(  # pylint: disable=too-many-arguments
             isospin_conservation,
         }
         if len(initial_state) == 1 and mass_conservation_factor is not None:
-            edge_qn_conservation_rules.add(
-                MassConservation(mass_conservation_factor)
-            )
+            edge_qn_conservation_rules.add(MassConservation(mass_conservation_factor))
 
         return {
             frozenset((x,))
             for x in _check_violations(
                 initial_facts[0],
-                node_rules={
-                    i: edge_qn_conservation_rules for i in topology.nodes
-                },
+                node_rules={i: edge_qn_conservation_rules for i in topology.nodes},
                 edge_rules={},
             ).violated_node_rules[node_id]
         }
@@ -386,9 +366,7 @@ def generate_transitions(  # pylint: disable=too-many-arguments
     )
     if allowed_interaction_types is not None:
         if isinstance(allowed_interaction_types, str):
-            interaction_types = [
-                InteractionType.from_str(allowed_interaction_types)
-            ]
+            interaction_types = [InteractionType.from_str(allowed_interaction_types)]
         else:
             interaction_types = [
                 InteractionType.from_str(description)

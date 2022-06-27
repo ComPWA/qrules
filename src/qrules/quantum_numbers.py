@@ -185,23 +185,15 @@ class InteractionProperties:
     l_magnitude: Optional[int] = field(  # L cannot be half integer
         default=None, converter=_to_optional_int
     )
-    l_projection: Optional[int] = field(
-        default=None, converter=_to_optional_int
-    )
-    s_magnitude: Optional[float] = field(
-        default=None, converter=_to_optional_float
-    )
-    s_projection: Optional[float] = field(
-        default=None, converter=_to_optional_float
-    )
+    l_projection: Optional[int] = field(default=None, converter=_to_optional_int)
+    s_magnitude: Optional[float] = field(default=None, converter=_to_optional_float)
+    s_projection: Optional[float] = field(default=None, converter=_to_optional_float)
     parity_prefactor: Optional[float] = field(
         default=None, converter=_to_optional_float
     )
 
 
-def arange(
-    x_1: float, x_2: float, delta: float = 1.0
-) -> Generator[float, None, None]:
+def arange(x_1: float, x_2: float, delta: float = 1.0) -> Generator[float, None, None]:
     current = Decimal(x_1)
     while current < x_2:
         yield float(current)

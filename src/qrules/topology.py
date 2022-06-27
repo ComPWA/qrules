@@ -166,17 +166,13 @@ def _to_optional_int(optional_int: Optional[int]) -> Optional[int]:
 class Edge:
     """Struct-like definition of an edge, used in `Topology.edges`."""
 
-    originating_node_id: Optional[int] = field(
-        default=None, converter=_to_optional_int
-    )
+    originating_node_id: Optional[int] = field(default=None, converter=_to_optional_int)
     """Node ID where the `Edge` **starts**.
 
     An `Edge` is **incoming to** a `Topology` if its `originating_node_id` is
     `None` (see `~Topology.incoming_edge_ids`).
     """
-    ending_node_id: Optional[int] = field(
-        default=None, converter=_to_optional_int
-    )
+    ending_node_id: Optional[int] = field(default=None, converter=_to_optional_int)
     """Node ID where the `Edge` **ends**.
 
     An `Edge` is **outgoing from** a `Topology` if its `ending_node_id` is
@@ -276,15 +272,11 @@ class Topology:
         inter = sorted(set(self.edges) - set(incoming) - set(outgoing))
         expected = list(range(-len(incoming), 0))
         if sorted(incoming) != expected:
-            raise ValueError(
-                f"Incoming edge IDs should be {expected}, not {incoming}."
-            )
+            raise ValueError(f"Incoming edge IDs should be {expected}, not {incoming}.")
         n_out = len(outgoing)
         expected = list(range(0, n_out))
         if sorted(outgoing) != expected:
-            raise ValueError(
-                f"Outgoing edge IDs should be {expected}, not {outgoing}."
-            )
+            raise ValueError(f"Outgoing edge IDs should be {expected}, not {outgoing}.")
         expected = list(range(n_out, n_out + len(inter)))
         if sorted(inter) != expected:
             raise ValueError(f"Intermediate edge IDs should be {expected}.")
@@ -298,8 +290,7 @@ class Topology:
             connected_nodes = edge.get_connected_nodes()
             if not connected_nodes:
                 raise ValueError(
-                    f"Edge nr. {edge_id} is not connected to any other node"
-                    f" ({edge})"
+                    f"Edge nr. {edge_id} is not connected to any other node ({edge})"
                 )
             if not connected_nodes <= self.nodes:
                 raise ValueError(
@@ -314,9 +305,7 @@ class Topology:
         for node_id in self.nodes:
             surrounding_nodes = self.__get_surrounding_nodes(node_id)
             if not surrounding_nodes:
-                raise ValueError(
-                    f"Node {node_id} is not connected to any other node"
-                )
+                raise ValueError(f"Node {node_id} is not connected to any other node")
 
     def __get_surrounding_nodes(self, node_id: int) -> Set[int]:
         surrounding_nodes = set()
@@ -416,9 +405,7 @@ class Topology:
         return self.relabel_edges({edge_id1: edge_id2, edge_id2: edge_id1})
 
 
-def get_originating_node_list(
-    topology: Topology, edge_ids: Iterable[int]
-) -> List[int]:
+def get_originating_node_list(topology: Topology, edge_ids: Iterable[int]) -> List[int]:
     """Get list of node ids from which the supplied edges originate from.
 
     Args:
@@ -430,9 +417,7 @@ def get_originating_node_list(
     def __get_originating_node(edge_id: int) -> Optional[int]:
         return topology.edges[edge_id].originating_node_id
 
-    return [
-        node_id for node_id in map(__get_originating_node, edge_ids) if node_id
-    ]
+    return [node_id for node_id in map(__get_originating_node, edge_ids) if node_id]
 
 
 def _to_mutable_topology_nodes(inst: Iterable[int]) -> Set[int]:
@@ -447,9 +432,9 @@ def _to_mutable_topology_edges(inst: Mapping[int, Edge]) -> Dict[int, Edge]:
 class MutableTopology:
     """Mutable version of a `Topology`.
 
-    A `MutableTopology` can be used to conveniently build up a `Topology` (see
-    e.g. `SimpleStateTransitionTopologyBuilder`). It does not have restrictions
-    on the numbering of edge and node IDs.
+    A `MutableTopology` can be used to conveniently build up a `Topology` (see e.g.
+    `SimpleStateTransitionTopologyBuilder`). It does not have restrictions on the
+    numbering of edge and node IDs.
     """
 
     nodes: Set[int] = field(
@@ -556,9 +541,7 @@ class MutableTopology:
         - intermediate edge IDs lie in the range :code:`[n+1, n+2, ...]`.
         """
         incoming = {
-            i
-            for i, edge in self.edges.items()
-            if edge.originating_node_id is None
+            i for i, edge in self.edges.items() if edge.originating_node_id is None
         }
         outgoing = {
             edge_id
@@ -571,9 +554,7 @@ class MutableTopology:
             start=-len(incoming),
         )
         old_to_new_id = {j: i for i, j in new_to_old_id}
-        new_edges = {
-            old_to_new_id.get(i, i): edge for i, edge in self.edges.items()
-        }
+        new_edges = {old_to_new_id.get(i, i): edge for i, edge in self.edges.items()}
         return attrs.evolve(self, edges=new_edges)
 
     def freeze(self) -> Topology:
@@ -593,31 +574,22 @@ class InteractionNode:
 
     def __attrs_post_init__(self) -> None:
         if self.number_of_ingoing_edges < 1:
-            raise ValueError(
-                "Number of incoming edges has to be larger than 0"
-            )
+            raise ValueError("Number of incoming edges has to be larger than 0")
         if self.number_of_outgoing_edges < 1:
-            raise ValueError(
-                "Number of outgoing edges has to be larger than 0"
-            )
+            raise ValueError("Number of outgoing edges has to be larger than 0")
 
 
 class SimpleStateTransitionTopologyBuilder:
     """Simple topology builder.
 
-    Recursively tries to add the interaction nodes to available open end
-    edges/lines in all combinations until the number of open end lines matches
-    the final state lines.
+    Recursively tries to add the interaction nodes to available open end edges/lines in
+    all combinations until the number of open end lines matches the final state lines.
     """
 
-    def __init__(
-        self, interaction_node_set: Iterable[InteractionNode]
-    ) -> None:
+    def __init__(self, interaction_node_set: Iterable[InteractionNode]) -> None:
         if not isinstance(interaction_node_set, list):
             raise TypeError("interaction_node_set must be a list")
-        self.interaction_node_set: List[InteractionNode] = list(
-            interaction_node_set
-        )
+        self.interaction_node_set: List[InteractionNode] = list(interaction_node_set)
 
     def build(
         self, number_of_initial_edges: int, number_of_final_edges: int
@@ -671,9 +643,7 @@ class SimpleStateTransitionTopologyBuilder:
         # Try to extend the graph with interaction nodes
         # that have equal or less ingoing lines than active lines
         for interaction_node in self.interaction_node_set:
-            if interaction_node.number_of_ingoing_edges <= len(
-                current_open_end_edges
-            ):
+            if interaction_node.number_of_ingoing_edges <= len(current_open_end_edges):
                 # make all combinations
                 combis = list(
                     itertools.combinations(
@@ -691,9 +661,7 @@ class SimpleStateTransitionTopologyBuilder:
                         combis.remove(comb2)
 
                 for combi in combis:
-                    new_graph = _attach_node_to_edges(
-                        pair, interaction_node, combi
-                    )
+                    new_graph = _attach_node_to_edges(pair, interaction_node, combi)
                     extended_graph_list.append(new_graph)
 
         return extended_graph_list
@@ -724,9 +692,7 @@ def create_isobar_topologies(
         True
     """
     if number_of_final_states < 2:
-        raise ValueError(
-            "At least two final states required for an isobar decay"
-        )
+        raise ValueError("At least two final states required for an isobar decay")
     builder = SimpleStateTransitionTopologyBuilder([InteractionNode(1, 2)])
     topologies = builder.build(
         number_of_initial_edges=1,
@@ -934,9 +900,7 @@ class FrozenTransition(Transition, Generic[EdgeType, NodeType]):
             interaction_converter = _identity_function
         return FrozenTransition(
             self.topology,
-            states={
-                i: state_converter(state) for i, state in self.states.items()
-            },
+            states={i: state_converter(state) for i, state in self.states.items()},
             interactions={
                 i: interaction_converter(interaction)
                 for i, interaction in self.interactions.items()
@@ -973,12 +937,8 @@ class MutableTransition(Transition, Generic[EdgeType, NodeType]):
     def compare(
         self,
         other: "MutableTransition",
-        state_comparator: Optional[
-            Callable[[EdgeType, EdgeType], bool]
-        ] = None,
-        interaction_comparator: Optional[
-            Callable[[NodeType, NodeType], bool]
-        ] = None,
+        state_comparator: Optional[Callable[[EdgeType, EdgeType], bool]] = None,
+        interaction_comparator: Optional[Callable[[NodeType, NodeType], bool]] = None,
     ) -> bool:
         if self.topology != other.topology:
             return False

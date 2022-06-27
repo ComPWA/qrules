@@ -192,12 +192,8 @@ def parity_conservation(
 @frozen
 class HelicityParityEdgeInput:
     parity: EdgeQN.parity = field(converter=EdgeQN.parity)
-    spin_magnitude: EdgeQN.spin_magnitude = field(
-        converter=EdgeQN.spin_magnitude
-    )
-    spin_projection: EdgeQN.spin_projection = field(
-        converter=EdgeQN.spin_projection
-    )
+    spin_magnitude: EdgeQN.spin_magnitude = field(converter=EdgeQN.spin_magnitude)
+    spin_projection: EdgeQN.spin_projection = field(converter=EdgeQN.spin_projection)
 
 
 def parity_conservation_helicity(
@@ -229,10 +225,7 @@ def parity_conservation_helicity(
             sum(out_spins) - ingoing_edge_qns[0].spin_magnitude
         )
 
-        if (
-            all(x.spin_projection == 0.0 for x in outgoing_edge_qns)
-            and prefactor == -1
-        ):
+        if all(x.spin_projection == 0.0 for x in outgoing_edge_qns) and prefactor == -1:
             return False
 
         return prefactor == parity_prefactor
@@ -241,13 +234,9 @@ def parity_conservation_helicity(
 
 @frozen
 class CParityEdgeInput:
-    spin_magnitude: EdgeQN.spin_magnitude = field(
-        converter=EdgeQN.spin_magnitude
-    )
+    spin_magnitude: EdgeQN.spin_magnitude = field(converter=EdgeQN.spin_magnitude)
     pid: EdgeQN.pid = field(converter=EdgeQN.pid)
-    c_parity: Optional[EdgeQN.c_parity] = field(
-        converter=EdgeQN.c_parity, default=None
-    )
+    c_parity: Optional[EdgeQN.c_parity] = field(converter=EdgeQN.c_parity, default=None)
 
 
 @frozen
@@ -276,9 +265,7 @@ def c_parity_conservation(
 
         # two particle case
         if len(part_qns) == 2:
-            if _is_particle_antiparticle_pair(
-                part_qns[0].pid, part_qns[1].pid
-            ):
+            if _is_particle_antiparticle_pair(part_qns[0].pid, part_qns[1].pid):
                 ang_mom = interaction_qns.l_magnitude
                 # if boson
                 if _is_boson(part_qns[0].spin_magnitude):
@@ -288,15 +275,11 @@ def c_parity_conservation(
                     return (-1) ** int(ang_mom + coupled_spin)
         return None
 
-    c_parity_in = _get_c_parity_multiparticle(
-        ingoing_edge_qns, interaction_node_qns
-    )
+    c_parity_in = _get_c_parity_multiparticle(ingoing_edge_qns, interaction_node_qns)
     if c_parity_in is None:
         return True
 
-    c_parity_out = _get_c_parity_multiparticle(
-        outgoing_edge_qns, interaction_node_qns
-    )
+    c_parity_out = _get_c_parity_multiparticle(outgoing_edge_qns, interaction_node_qns)
     if c_parity_out is None:
         return True
 
@@ -308,13 +291,9 @@ class GParityEdgeInput:
     isospin_magnitude: EdgeQN.isospin_magnitude = field(
         converter=EdgeQN.isospin_magnitude
     )
-    spin_magnitude: EdgeQN.spin_magnitude = field(
-        converter=EdgeQN.spin_magnitude
-    )
+    spin_magnitude: EdgeQN.spin_magnitude = field(converter=EdgeQN.spin_magnitude)
     pid: EdgeQN.pid = field(converter=EdgeQN.pid)
-    g_parity: Optional[EdgeQN.g_parity] = field(
-        converter=EdgeQN.g_parity, default=None
-    )
+    g_parity: Optional[EdgeQN.g_parity] = field(converter=EdgeQN.g_parity, default=None)
 
 
 @frozen
@@ -359,21 +338,15 @@ def g_parity_conservation(
             (couple_state[0], couple_state[1]),
         )
         single_state_g_parity = (
-            ingoing_edge_qns[0].g_parity.value
-            if ingoing_edge_qns[0].g_parity
-            else None
+            ingoing_edge_qns[0].g_parity.value if ingoing_edge_qns[0].g_parity else None
         )
 
         if not couple_state_g_parity or not single_state_g_parity:
             return True
         return couple_state_g_parity == single_state_g_parity
 
-    no_g_parity_in_part = [
-        True for x in ingoing_edge_qns if x.g_parity is None
-    ]
-    no_g_parity_out_part = [
-        True for x in outgoing_edge_qns if x.g_parity is None
-    ]
+    no_g_parity_in_part = [True for x in ingoing_edge_qns if x.g_parity is None]
+    no_g_parity_out_part = [True for x in outgoing_edge_qns if x.g_parity is None]
     # if all states have G parity defined, then just multiply them
     if not any(no_g_parity_in_part + no_g_parity_out_part):
         in_g_parity = reduce(
@@ -406,12 +379,8 @@ def g_parity_conservation(
 
 @frozen
 class IdenticalParticleSymmetryOutEdgeInput:
-    spin_magnitude: EdgeQN.spin_magnitude = field(
-        converter=EdgeQN.spin_magnitude
-    )
-    spin_projection: EdgeQN.spin_projection = field(
-        converter=EdgeQN.spin_projection
-    )
+    spin_magnitude: EdgeQN.spin_magnitude = field(converter=EdgeQN.spin_magnitude)
+    spin_projection: EdgeQN.spin_projection = field(converter=EdgeQN.spin_projection)
     pid: EdgeQN.pid = field(converter=EdgeQN.pid)
 
 
@@ -523,17 +492,12 @@ def _check_magnitude(
 ) -> bool:
     def couple_mags(j_1: float, j_2: float) -> List[float]:
         return [
-            x / 2.0
-            for x in range(
-                int(2 * abs(j_1 - j_2)), int(2 * (j_1 + j_2 + 1)), 2
-            )
+            x / 2.0 for x in range(int(2 * abs(j_1 - j_2)), int(2 * (j_1 + j_2 + 1)), 2)
         ]
 
     def couple_magnitudes(
         magnitudes: List[float],
-        interaction_qns: Optional[
-            Union[SpinMagnitudeNodeInput, SpinNodeInput]
-        ],
+        interaction_qns: Optional[Union[SpinMagnitudeNodeInput, SpinNodeInput]],
     ) -> Set[float]:
         if len(magnitudes) == 1:
             return set(magnitudes)
@@ -587,15 +551,11 @@ def __calculate_total_spins(
         return set(spins)
     total_spins = __create_coupled_spins(spins)
     if interaction_qns:
-        coupled_spin = _Spin(
-            interaction_qns.s_magnitude, interaction_qns.s_projection
-        )
+        coupled_spin = _Spin(interaction_qns.s_magnitude, interaction_qns.s_projection)
         if coupled_spin in total_spins:
             return __spin_couplings(
                 coupled_spin,
-                _Spin(
-                    interaction_qns.l_magnitude, interaction_qns.l_projection
-                ),
+                _Spin(interaction_qns.l_magnitude, interaction_qns.l_projection),
             )
         total_spins = set()
 
@@ -633,9 +593,7 @@ def __spin_couplings(spin1: _Spin, spin2: _Spin) -> Set[_Spin]:
         _Spin(x, sum_proj)
         for x in arange(abs(s_1 - s_2), s_1 + s_2 + 1, 1.0)
         if x >= abs(sum_proj)
-        and not _is_clebsch_gordan_coefficient_zero(
-            spin1, spin2, _Spin(x, sum_proj)
-        )
+        and not _is_clebsch_gordan_coefficient_zero(spin1, spin2, _Spin(x, sum_proj))
     }
 
 
@@ -682,38 +640,24 @@ def isospin_conservation(
         x.isospin_projection for x in outgoing_isospins
     ):
         return False
-    if not all(
-        isospin_validity(x) for x in ingoing_isospins + outgoing_isospins
-    ):
+    if not all(isospin_validity(x) for x in ingoing_isospins + outgoing_isospins):
         return False
     return _check_spin_couplings(
-        [
-            _Spin(x.isospin_magnitude, x.isospin_projection)
-            for x in ingoing_isospins
-        ],
-        [
-            _Spin(x.isospin_magnitude, x.isospin_projection)
-            for x in outgoing_isospins
-        ],
+        [_Spin(x.isospin_magnitude, x.isospin_projection) for x in ingoing_isospins],
+        [_Spin(x.isospin_magnitude, x.isospin_projection) for x in outgoing_isospins],
         None,
     )
 
 
 @define
 class SpinEdgeInput:
-    spin_magnitude: EdgeQN.spin_magnitude = field(
-        converter=EdgeQN.spin_magnitude
-    )
-    spin_projection: EdgeQN.spin_projection = field(
-        converter=EdgeQN.spin_projection
-    )
+    spin_magnitude: EdgeQN.spin_magnitude = field(converter=EdgeQN.spin_magnitude)
+    spin_projection: EdgeQN.spin_projection = field(converter=EdgeQN.spin_projection)
 
 
 def spin_validity(spin: SpinEdgeInput) -> bool:
     r"""Check for valid spin magnitude and projection."""
-    return _check_spin_valid(
-        float(spin.spin_magnitude), float(spin.spin_projection)
-    )
+    return _check_spin_valid(float(spin.spin_magnitude), float(spin.spin_projection))
 
 
 def spin_conservation(
@@ -746,14 +690,8 @@ def spin_conservation(
     ):
 
         return _check_spin_couplings(
-            [
-                _Spin(x.spin_magnitude, x.spin_projection)
-                for x in ingoing_spins
-            ],
-            [
-                _Spin(x.spin_magnitude, x.spin_projection)
-                for x in outgoing_spins
-            ],
+            [_Spin(x.spin_magnitude, x.spin_projection) for x in ingoing_spins],
+            [_Spin(x.spin_magnitude, x.spin_projection) for x in outgoing_spins],
             interaction_qns,
         )
 
@@ -830,31 +768,21 @@ def clebsch_gordan_helicity_to_canonical(
         if helicity_diff != interaction_qns.s_projection:
             return False
 
-        ang_mom = _Spin(
-            interaction_qns.l_magnitude, interaction_qns.l_projection
-        )
-        coupled_spin = _Spin(
-            interaction_qns.s_magnitude, interaction_qns.s_projection
-        )
+        ang_mom = _Spin(interaction_qns.l_magnitude, interaction_qns.l_projection)
+        coupled_spin = _Spin(interaction_qns.s_magnitude, interaction_qns.s_projection)
         parent_spin = ingoing_spins[0].spin_magnitude
 
         coupled_spin = _Spin(coupled_spin.magnitude, helicity_diff)
-        if not _check_spin_valid(
-            coupled_spin.magnitude, coupled_spin.projection
-        ):
+        if not _check_spin_valid(coupled_spin.magnitude, coupled_spin.projection):
             return False
         in_spin = _Spin(parent_spin, helicity_diff)
         if not _check_spin_valid(in_spin.magnitude, in_spin.projection):
             return False
 
-        if _is_clebsch_gordan_coefficient_zero(
-            out_spin1, out_spin2, coupled_spin
-        ):
+        if _is_clebsch_gordan_coefficient_zero(out_spin1, out_spin2, coupled_spin):
             return False
 
-        return not _is_clebsch_gordan_coefficient_zero(
-            ang_mom, coupled_spin, in_spin
-        )
+        return not _is_clebsch_gordan_coefficient_zero(ang_mom, coupled_spin, in_spin)
     return False
 
 
@@ -949,9 +877,7 @@ def gellmann_nishijima(edge_qns: GellMannNishijimaInput) -> bool:
     isospin_3 = 0.0
     if edge_qns.isospin_projection:
         isospin_3 = edge_qns.isospin_projection
-    if float(edge_qns.charge) != (
-        isospin_3 + 0.5 * calculate_hypercharge(edge_qns)
-    ):
+    if float(edge_qns.charge) != (isospin_3 + 0.5 * calculate_hypercharge(edge_qns)):
         return False
     return True
 

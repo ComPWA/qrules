@@ -1,8 +1,8 @@
 """Perform permutations on the edges of a `.MutableTransition`.
 
-In a `.MutableTransition`, the edges represent quantum states, while the nodes
-represent interactions. This module provides tools to permutate, modify or
-extract these edge and node properties.
+In a `.MutableTransition`, the edges represent quantum states, while the nodes represent
+interactions. This module provides tools to permutate, modify or extract these edge and
+node properties.
 """
 
 import sys
@@ -38,9 +38,7 @@ else:
 
 StateWithSpins = Tuple[str, Sequence[float]]
 StateDefinition = Union[str, StateWithSpins]
-InitialFacts: TypeAlias = (
-    "MutableTransition[ParticleWithSpin, InteractionProperties]"
-)
+InitialFacts: TypeAlias = "MutableTransition[ParticleWithSpin, InteractionProperties]"
 """A `.Transition` with only initial and final state information."""
 
 
@@ -111,9 +109,9 @@ class _KinematicRepresentation:
             return True
 
         if isinstance(other, _KinematicRepresentation):
-            return is_sublist(
-                other.initial_state, self.initial_state
-            ) and is_sublist(other.final_state, self.final_state)
+            return is_sublist(other.initial_state, self.initial_state) and is_sublist(
+                other.final_state, self.final_state
+            )
         if isinstance(other, list):
             for item in other:
                 if not isinstance(item, list):
@@ -154,9 +152,7 @@ class _KinematicRepresentation:
             return item.name
         if isinstance(item, dict) and "Name" in item:
             return str(item["Name"])
-        raise ValueError(
-            f"Cannot extract particle name from {type(item).__name__}"
-        )
+        raise ValueError(f"Cannot extract particle name from {type(item).__name__}")
 
 
 def _get_kinematic_representation(
@@ -214,8 +210,7 @@ def _get_kinematic_representation(
         grouping_with_ids: Iterable[Iterable[int]],
     ) -> List[List[StateWithSpins]]:
         return [
-            [initial_facts[edge_id] for edge_id in group]
-            for group in grouping_with_ids
+            [initial_facts[edge_id] for edge_id in group] for group in grouping_with_ids
         ]
 
     initial_state_edge_groups = fill_groupings(
@@ -276,13 +271,9 @@ def _generate_kinematic_permutations(
     particle_db: ParticleCollection,
     initial_state: Sequence[StateDefinition],
     final_state: Sequence[StateDefinition],
-    allowed_kinematic_groupings: Optional[
-        List[_KinematicRepresentation]
-    ] = None,
+    allowed_kinematic_groupings: Optional[List[_KinematicRepresentation]] = None,
 ) -> List[Dict[int, StateWithSpins]]:
-    def assert_number_of_states(
-        state_definitions: Sized, edge_ids: Sized
-    ) -> None:
+    def assert_number_of_states(state_definitions: Sized, edge_ids: Sized) -> None:
         if len(state_definitions) != len(edge_ids):
             raise ValueError(
                 "Number of state definitions is not same as number of edge"
@@ -305,9 +296,7 @@ def _generate_kinematic_permutations(
     initial_state_with_projections = _safe_set_spin_projections(
         initial_state, particle_db
     )
-    final_state_with_projections = _safe_set_spin_projections(
-        final_state, particle_db
-    )
+    final_state_with_projections = _safe_set_spin_projections(final_state, particle_db)
 
     initial_facts_combinations: List[Dict[int, StateWithSpins]] = []
     kinematic_representations: List[_KinematicRepresentation] = []
@@ -316,9 +305,7 @@ def _generate_kinematic_permutations(
         initial_state_with_projections,
         final_state_with_projections,
     ):
-        kinematic_representation = _get_kinematic_representation(
-            topology, permutation
-        )
+        kinematic_representation = _get_kinematic_representation(topology, permutation)
         if kinematic_representation in kinematic_representations:
             continue
         if not is_allowed_grouping(kinematic_representation):
@@ -339,19 +326,14 @@ def _safe_set_spin_projections(
         if isinstance(state, str):
             particle_name = state
             particle = particle_db[state]
-            spin_projections = list(
-                arange(-particle.spin, particle.spin + 1, 1.0)
-            )
+            spin_projections = list(arange(-particle.spin, particle.spin + 1, 1.0))
             if particle.mass == 0.0:
                 if 0.0 in spin_projections:
                     del spin_projections[spin_projections.index(0.0)]
             state = (particle_name, spin_projections)
         return state
 
-    return [
-        safe_set_spin_projections(state, particle_db)
-        for state in list_of_states
-    ]
+    return [safe_set_spin_projections(state, particle_db) for state in list_of_states]
 
 
 def _generate_outer_edge_permutations(
@@ -395,9 +377,7 @@ def _generate_spin_permutations(
         initial_facts_permutations = []
         for temp_permutation in temp_permutations:
             initial_facts_permutations.extend(
-                populate_edge_with_spin_projections(
-                    temp_permutation, edge_id, state
-                )
+                populate_edge_with_spin_projections(temp_permutation, edge_id, state)
             )
 
     return initial_facts_permutations
@@ -424,9 +404,7 @@ def match_external_edges(
         return
     ref_graph_id = 0
     _match_external_edge_ids(graphs, ref_graph_id, __get_final_state_edge_ids)
-    _match_external_edge_ids(
-        graphs, ref_graph_id, __get_initial_state_edge_ids
-    )
+    _match_external_edge_ids(graphs, ref_graph_id, __get_initial_state_edge_ids)
 
 
 def _match_external_edge_ids(  # pylint: disable=too-many-locals
@@ -458,8 +436,7 @@ def _match_external_edge_ids(  # pylint: disable=too-many-locals
                         break
         if len(ref_mapping_copy) != 0:
             raise ValueError(
-                "Unable to match graphs, due to inherent graph"
-                " structure mismatch"
+                "Unable to match graphs, due to inherent graph structure mismatch"
             )
         swappings = _calculate_swappings(edge_ids_mapping)
         for edge_id1, edge_id2 in swappings.items():
@@ -471,14 +448,11 @@ def perform_external_edge_identical_particle_combinatorics(
 ) -> List[MutableTransition]:
     """Create combinatorics clones of the `.MutableTransition`.
 
-    In case of identical particles in the initial or final state. Only
-    identical particles, which do not enter or exit the same node allow for
-    combinatorics!
+    In case of identical particles in the initial or final state. Only identical
+    particles, which do not enter or exit the same node allow for combinatorics!
     """
     if not isinstance(graph, MutableTransition):
-        raise TypeError(
-            f"graph argument is not of type {MutableTransition.__name__}"
-        )
+        raise TypeError(f"graph argument is not of type {MutableTransition.__name__}")
     temp_new_graphs = _external_edge_identical_particle_combinatorics(
         graph, __get_final_state_edge_ids
     )
@@ -494,9 +468,7 @@ def perform_external_edge_identical_particle_combinatorics(
 
 def _external_edge_identical_particle_combinatorics(
     graph: "MutableTransition[ParticleWithSpin, InteractionProperties]",
-    external_edge_getter_function: Callable[
-        [MutableTransition], Iterable[int]
-    ],
+    external_edge_getter_function: Callable[[MutableTransition], Iterable[int]],
 ) -> List[MutableTransition]:
     # pylint: disable=too-many-locals
     new_graphs = [graph]
@@ -509,9 +481,7 @@ def _external_edge_identical_particle_combinatorics(
             identical_particle_groups[value] = set()
         identical_particle_groups[value].add(key)
     identical_particle_groups = {
-        key: value
-        for key, value in identical_particle_groups.items()
-        if len(value) > 1
+        key: value for key, value in identical_particle_groups.items() if len(value) > 1
     }
     # now for each identical particle group perform all permutations
     for edge_group in identical_particle_groups.values():

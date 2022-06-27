@@ -55,9 +55,7 @@ def test_create_domains(particle_database: ParticleCollection):
 
 @pytest.mark.parametrize("interaction_type", list(InteractionType))
 @pytest.mark.parametrize("nbody_topology", [False, True])
-@pytest.mark.parametrize(
-    "formalism", ["canonical", "canonical-helicity", "helicity"]
-)
+@pytest.mark.parametrize("formalism", ["canonical", "canonical-helicity", "helicity"])
 def test_create_interaction_settings(
     particle_database: ParticleCollection,
     interaction_type: InteractionType,
@@ -73,8 +71,7 @@ def test_create_interaction_settings(
 
     edge_settings, node_settings = settings[interaction_type]
     edge_qn_domains_str = {  # strings are easier to compare with pytest
-        qn_type.__name__: domain
-        for qn_type, domain in edge_settings.qn_domains.items()
+        qn_type.__name__: domain for qn_type, domain in edge_settings.qn_domains.items()
     }
     assert edge_qn_domains_str == {
         "baryon_number": [-1, 0, +1],
@@ -113,8 +110,7 @@ def test_create_interaction_settings(
         expected["s_projection"] = [0]
 
     node_qn_domains_str = {  # strings are easier to compare with pytest
-        qn_type.__name__: domain
-        for qn_type, domain in node_settings.qn_domains.items()
+        qn_type.__name__: domain for qn_type, domain in node_settings.qn_domains.items()
     }
     assert node_qn_domains_str == expected
 

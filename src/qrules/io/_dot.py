@@ -17,12 +17,7 @@ from attrs.converters import default_if_none
 from qrules.particle import Particle, ParticleWithSpin, Spin
 from qrules.quantum_numbers import InteractionProperties, _to_fraction
 from qrules.solving import EdgeSettings, NodeSettings
-from qrules.topology import (
-    FrozenTransition,
-    MutableTransition,
-    Topology,
-    Transition,
-)
+from qrules.topology import FrozenTransition, MutableTransition, Topology, Transition
 from qrules.transition import ProblemSet, ReactionInfo, State
 
 
@@ -33,14 +28,10 @@ def _check_booleans(
     if instance.strip_spin and instance.collapse_graphs:
         raise ValueError("Cannot both strip spin and collapse graphs")
     if instance.collapse_graphs and instance.render_node:
-        raise ValueError(
-            "Collapsed graphs cannot be rendered with node properties"
-        )
+        raise ValueError("Collapsed graphs cannot be rendered with node properties")
 
 
-def _create_default_figure_style(
-    style: Optional[Dict[str, Any]]
-) -> Dict[str, Any]:
+def _create_default_figure_style(style: Optional[Dict[str, Any]]) -> Dict[str, Any]:
     figure_style = {"bgcolor": None}
     if style is None:
         return figure_style
@@ -126,9 +117,7 @@ class GraphPrinter:
             rendered_graph = obj
             topology = obj
         else:
-            raise NotImplementedError(
-                f"Cannot render {type(obj).__name__} as dot"
-            )
+            raise NotImplementedError(f"Cannot render {type(obj).__name__} as dot")
         for edge_id in topology.incoming_edge_ids | topology.outgoing_edge_ids:
             if edge_id in topology.incoming_edge_ids:
                 render = self.render_initial_state_id
@@ -136,11 +125,7 @@ class GraphPrinter:
                 render = self.render_final_state_id
             label = _create_edge_label(rendered_graph, edge_id, render)
             graphviz_node = prefix + _get_graphviz_node(edge_id)
-            lines += [
-                self._create_graphviz_node(
-                    graphviz_node, label, self.edge_style
-                )
-            ]
+            lines += [self._create_graphviz_node(graphviz_node, label, self.edge_style)]
         lines += [_create_same_rank_line(topology.incoming_edge_ids, prefix)]
         lines += [_create_same_rank_line(topology.outgoing_edge_ids, prefix)]
         for i, edge in topology.edges.items():
@@ -150,12 +135,8 @@ class GraphPrinter:
             if j is None or k is None:
                 lines += [self._create_graphviz_edge(from_node, to_node)]
             else:
-                label = _create_edge_label(
-                    rendered_graph, i, self.render_resonance_id
-                )
-                lines += [
-                    self._create_graphviz_edge(from_node, to_node, label)
-                ]
+                label = _create_edge_label(rendered_graph, i, self.render_resonance_id)
+                lines += [self._create_graphviz_edge(from_node, to_node, label)]
         if isinstance(obj, ProblemSet):
             node_settings = obj.solving_settings.interactions
             for node_id, settings in node_settings.items():
@@ -163,18 +144,14 @@ class GraphPrinter:
                 if self.render_node:
                     label = as_string(settings)
                 node = f"{prefix}N{node_id}"
-                lines += [
-                    self._create_graphviz_node(node, label, self.node_style)
-                ]
+                lines += [self._create_graphviz_node(node, label, self.node_style)]
         if isinstance(obj, Transition):
             for node_id, node_prop in obj.interactions.items():
                 label = ""
                 if self.render_node:
                     label = as_string(node_prop)
                 node = f"{prefix}N{node_id}"
-                lines += [
-                    self._create_graphviz_node(node, label, self.node_style)
-                ]
+                lines += [self._create_graphviz_node(node, label, self.node_style)]
         if isinstance(obj, Topology):
             render_node = self.render_node
             if render_node is None and len(topology.nodes) > 1:
@@ -184,9 +161,7 @@ class GraphPrinter:
                 if render_node:
                     label = f"({node_id})"
                 node = f"{prefix}N{node_id}"
-                lines += [
-                    self._create_graphviz_node(node, label, self.node_style)
-                ]
+                lines += [self._create_graphviz_node(node, label, self.node_style)]
         return lines
 
     def _create_graphviz_edge(
@@ -201,9 +176,7 @@ class GraphPrinter:
         return f"{from_node} -> {to_node}{styling}"
 
     @staticmethod
-    def _create_graphviz_node(
-        node: str, label: str, style: Dict[str, Any]
-    ) -> str:
+    def _create_graphviz_node(node: str, label: str, style: Dict[str, Any]) -> str:
         style = dict(style)  # copy
         style["label"] = label
         styling = _create_graphviz_styling(style)
@@ -258,9 +231,7 @@ def _get_graphviz_node(edge_id: int, node_id: Optional[int] = None) -> str:
     return f"N{node_id}"
 
 
-def _create_same_rank_line(
-    node_edge_ids: Iterable[int], prefix: str = ""
-) -> str:
+def _create_same_rank_line(node_edge_ids: Iterable[int], prefix: str = "") -> str:
     name_list = [f"{prefix}{_get_graphviz_node(i)}" for i in node_edge_ids]
     name_string = ", ".join(name_list)
     return f"{{ rank=same {name_string} }}"
@@ -288,9 +259,7 @@ def _create_edge_label(
     return __render_edge_with_id(edge_id, edge_prop, render_edge_id)
 
 
-def __render_edge_with_id(
-    edge_id: int, edge_prop: Any, render_edge_id: bool
-) -> str:
+def __render_edge_with_id(edge_id: int, edge_prop: Any, render_edge_id: bool) -> str:
     if edge_prop is None or not edge_prop:
         return str(edge_id)
     edge_label = as_string(edge_prop)
@@ -359,8 +328,7 @@ def _(settings: Union[EdgeSettings, NodeSettings]) -> str:
         if output:
             output += "\n"
         domains = sorted(
-            f"{item[0].__name__} ∊ {item[1]}"
-            for item in settings.qn_domains.items()
+            f"{item[0].__name__} ∊ {item[1]}" for item in settings.qn_domains.items()
         )
         output += "DOMAINS\n"
         output += "\n".join(domains)
@@ -422,14 +390,10 @@ def _get_particle_graphs(
     inventory = set()
     for transition in graphs:
         if isinstance(transition, FrozenTransition):
-            transition = transition.convert(
-                lambda s: (s.particle, s.spin_projection)
-            )
+            transition = transition.convert(lambda s: (s.particle, s.spin_projection))
         stripped_transition = _strip_projections(transition)
         topology = stripped_transition.topology
-        particle_transition: FrozenTransition[
-            Particle, None
-        ] = FrozenTransition(
+        particle_transition: FrozenTransition[Particle, None] = FrozenTransition(
             stripped_transition.topology,
             states=stripped_transition.states,
             interactions={i: None for i in topology.nodes},
@@ -437,9 +401,7 @@ def _get_particle_graphs(
         inventory.add(particle_transition)
     return sorted(
         inventory,
-        key=lambda g: [
-            g.states[i].mass for i in g.topology.intermediate_edge_ids
-        ],
+        key=lambda g: [g.states[i].mass for i in g.topology.intermediate_edge_ids],
     )
 
 

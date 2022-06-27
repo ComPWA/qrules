@@ -5,12 +5,7 @@ from copy import deepcopy
 import pytest
 from IPython.lib.pretty import pretty
 
-from qrules.particle import (  # noqa: F401
-    Parity,
-    Particle,
-    ParticleCollection,
-    Spin,
-)
+from qrules.particle import Parity, Particle, ParticleCollection, Spin  # noqa: F401
 from qrules.quantum_numbers import InteractionProperties  # noqa: F401
 from qrules.topology import (  # noqa: F401
     Edge,
@@ -77,8 +72,6 @@ class TestStateTransitionManager:
         particle_name = "N(753)"
         with pytest.raises(
             LookupError,
-            match=(
-                r"Could not find any matches for allowed intermediate particle"
-            ),
+            match=r"Could not find any matches for allowed intermediate particle",
         ):
             stm.set_allowed_intermediate_particles([particle_name])

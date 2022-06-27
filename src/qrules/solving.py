@@ -2,10 +2,9 @@
 """Functions to solve a particle reaction problem.
 
 This module is responsible for solving a particle reaction problem stated by a
-`.QNProblemSet`. The `.Solver` classes (e.g. :class:`.CSPSolver`) generate new
-quantum numbers (for example belonging to an intermediate state) and validate
-the decay processes with the rules formulated by the :mod:`.conservation_rules`
-module.
+`.QNProblemSet`. The `.Solver` classes (e.g. :class:`.CSPSolver`) generate new quantum
+numbers (for example belonging to an intermediate state) and validate the decay
+processes with the rules formulated by the :mod:`.conservation_rules` module.
 """
 
 
@@ -32,13 +31,7 @@ from typing import (
 
 import attrs
 from attrs import define, field, frozen
-from constraint import (
-    BacktrackingSolver,
-    Constraint,
-    Problem,
-    Unassigned,
-    Variable,
-)
+from constraint import BacktrackingSolver, Constraint, Problem, Unassigned, Variable
 
 from qrules._implementers import implement_pretty_repr
 
@@ -51,11 +44,7 @@ from .argument_handling import (
     Scalar,
     get_required_qns,
 )
-from .quantum_numbers import (
-    EdgeQuantumNumber,
-    EdgeQuantumNumbers,
-    NodeQuantumNumber,
-)
+from .quantum_numbers import EdgeQuantumNumber, EdgeQuantumNumbers, NodeQuantumNumber
 from .topology import MutableTransition, Topology
 
 if sys.version_info >= (3, 10):
@@ -180,20 +169,14 @@ class QNResult:
     not_executed_node_rules: Dict[int, Set[str]] = field(
         factory=lambda: defaultdict(set)
     )
-    violated_node_rules: Dict[int, Set[str]] = field(
-        factory=lambda: defaultdict(set)
-    )
+    violated_node_rules: Dict[int, Set[str]] = field(factory=lambda: defaultdict(set))
     not_executed_edge_rules: Dict[int, Set[str]] = field(
         factory=lambda: defaultdict(set)
     )
-    violated_edge_rules: Dict[int, Set[str]] = field(
-        factory=lambda: defaultdict(set)
-    )
+    violated_edge_rules: Dict[int, Set[str]] = field(factory=lambda: defaultdict(set))
 
     def __attrs_post_init__(self) -> None:
-        if self.solutions and (
-            self.violated_node_rules or self.violated_edge_rules
-        ):
+        if self.solutions and (self.violated_node_rules or self.violated_edge_rules):
             raise ValueError(
                 f"Invalid {type(self).__name__}! Found"
                 f" {len(self.solutions)} solutions, but also violated rules.",
@@ -269,8 +252,7 @@ def _merge_particle_candidates_with_solutions(
                 for particle_edge in particle_edges:
                     # a "shallow" copy of the nested dicts is needed
                     new_edge_qns = {
-                        k: copy(v)
-                        for k, v in current_new_solution.states.items()
+                        k: copy(v) for k, v in current_new_solution.states.items()
                     }
                     new_edge_qns[int_edge_id].update(particle_edge)
                     temp_solution = attrs.evolve(
@@ -337,9 +319,8 @@ def validate_full_solution(problem_set: QNProblemSet) -> QNResult:
     ) -> List[dict]:
         """Create variables for the quantum numbers of the specified edges.
 
-        Initial and final state edges just get a single domain value.
-        Intermediate edges are initialized with the default domains of that
-        quantum number.
+        Initial and final state edges just get a single domain value. Intermediate edges
+        are initialized with the default domains of that quantum number.
         """
         variables = []
         for edge_id in edge_ids:
@@ -368,9 +349,7 @@ def validate_full_solution(problem_set: QNProblemSet) -> QNResult:
         return (in_edges_vars, out_edges_vars, node_vars)
 
     edge_violated_rules: Dict[int, Set[GraphElementRule]] = defaultdict(set)
-    edge_not_executed_rules: Dict[int, Set[GraphElementRule]] = defaultdict(
-        set
-    )
+    edge_not_executed_rules: Dict[int, Set[GraphElementRule]] = defaultdict(set)
     node_violated_rules: Dict[int, Set[Rule]] = defaultdict(set)
     node_not_executed_rules: Dict[int, Set[Rule]] = defaultdict(set)
     for (
@@ -462,13 +441,9 @@ def _create_variable_string(
 @define
 class _VariableContainer:
     ingoing_edge_variables: Set[_EdgeVariableInfo] = field(factory=set)
-    fixed_ingoing_edge_variables: Dict[int, GraphEdgePropertyMap] = field(
-        factory=dict
-    )
+    fixed_ingoing_edge_variables: Dict[int, GraphEdgePropertyMap] = field(factory=dict)
     outgoing_edge_variables: Set[_EdgeVariableInfo] = field(factory=set)
-    fixed_outgoing_edge_variables: Dict[int, GraphEdgePropertyMap] = field(
-        factory=dict
-    )
+    fixed_outgoing_edge_variables: Dict[int, GraphEdgePropertyMap] = field(factory=dict)
     node_variables: Set[_NodeVariableInfo] = field(factory=set)
     fixed_node_variables: GraphNodePropertyMap = field(factory=dict)
 
@@ -485,19 +460,13 @@ class CSPSolver(Solver):
     """
 
     # pylint: disable=too-many-instance-attributes
-    def __init__(
-        self, allowed_intermediate_particles: List[GraphEdgePropertyMap]
-    ):
-        self.__variables: Set[
-            Union[_EdgeVariableInfo, _NodeVariableInfo]
-        ] = set()
+    def __init__(self, allowed_intermediate_particles: List[GraphEdgePropertyMap]):
+        self.__variables: Set[Union[_EdgeVariableInfo, _NodeVariableInfo]] = set()
         self.__var_string_to_data: Dict[
             str, Union[_EdgeVariableInfo, _NodeVariableInfo]
         ] = {}
         self.__node_rules: Dict[int, Set[Rule]] = defaultdict(set)
-        self.__non_executable_node_rules: Dict[int, Set[Rule]] = defaultdict(
-            set
-        )
+        self.__non_executable_node_rules: Dict[int, Set[Rule]] = defaultdict(set)
         self.__edge_rules: Dict[int, Set[GraphElementRule]] = defaultdict(set)
         self.__non_executable_edge_rules: Dict[
             int, Set[GraphElementRule]
@@ -514,9 +483,7 @@ class CSPSolver(Solver):
         node_not_executed_rules = self.__non_executable_node_rules
         node_not_satisfied_rules: Dict[int, Set[Rule]] = defaultdict(set)
         edge_not_executed_rules = self.__non_executable_edge_rules
-        edge_not_satisfied_rules: Dict[
-            int, Set[GraphElementRule]
-        ] = defaultdict(set)
+        edge_not_satisfied_rules: Dict[int, Set[GraphElementRule]] = defaultdict(set)
         for node_id, rules in self.__node_rules.items():
             for rule in rules:
                 if self.__scoresheet.rule_calls[(node_id, rule)] == 0:
@@ -531,18 +498,14 @@ class CSPSolver(Solver):
                 elif self.__scoresheet.rule_passes[(edge_id, rule)] == 0:
                     edge_not_satisfied_rules[edge_id].add(rule)
 
-        solutions = self.__convert_solution_keys(
-            problem_set.topology, solutions
-        )
+        solutions = self.__convert_solution_keys(problem_set.topology, solutions)
 
         # insert particle instances
         if self.__node_rules or self.__edge_rules:
-            full_particle_solutions = (
-                _merge_particle_candidates_with_solutions(
-                    solutions,
-                    problem_set.topology,
-                    self.__allowed_intermediate_particles,
-                )
+            full_particle_solutions = _merge_particle_candidates_with_solutions(
+                solutions,
+                problem_set.topology,
+                self.__allowed_intermediate_particles,
             )
         else:
             full_particle_solutions = [
@@ -606,11 +569,11 @@ class CSPSolver(Solver):
     def __initialize_constraints(self, problem_set: QNProblemSet) -> None:
         """Initialize all of the constraints for this graph.
 
-        For each interaction node a set of independent constraints/conservation
-        laws are created. For each conservation law a new CSP wrapper is
-        created. This wrapper needs all of the qn numbers/variables which enter
-        or exit the node and play a role for this conservation law. Hence
-        variables are also created within this method.
+        For each interaction node a set of independent constraints/conservation laws are
+        created. For each conservation law a new CSP wrapper is created. This wrapper
+        needs all of the qn numbers/variables which enter or exit the node and play a
+        role for this conservation law. Hence variables are also created within this
+        method.
         """
         # pylint: disable=too-many-locals
 
@@ -630,9 +593,7 @@ class CSPSolver(Solver):
                 for x in graph_element_settings.conservation_rules
             ]
             # then sort according to priority
-            sorted_list = sorted(
-                priority_list, key=lambda x: x[1], reverse=True
-            )
+            sorted_list = sorted(priority_list, key=lambda x: x[1], reverse=True)
             # and strip away the priorities again
             return [x[0] for x in sorted_list]
 
@@ -663,9 +624,7 @@ class CSPSolver(Solver):
                 )
 
                 if edge_vars:
-                    var_strings = [
-                        _create_variable_string(*x) for x in edge_vars
-                    ]
+                    var_strings = [_create_variable_string(*x) for x in edge_vars]
                     self.__edge_rules[edge_id].add(rule)  # type: ignore[arg-type]
                     self.__problem.addConstraint(constraint, var_strings)
                 else:
@@ -679,30 +638,24 @@ class CSPSolver(Solver):
                 # from cons law and graph determine needed var lists
                 edge_qns, node_qns = get_required_qns(rule)
 
-                in_edges = problem_set.topology.get_edge_ids_ingoing_to_node(
-                    node_id
-                )
+                in_edges = problem_set.topology.get_edge_ids_ingoing_to_node(node_id)
                 in_edge_vars = self.__create_edge_variables(
                     in_edges, edge_qns, problem_set
                 )
                 variable_mapping.ingoing_edge_variables = in_edge_vars[0]
                 variable_mapping.fixed_ingoing_edge_variables = in_edge_vars[1]
-                var_list: List[
-                    Union[_EdgeVariableInfo, _NodeVariableInfo]
-                ] = list(variable_mapping.ingoing_edge_variables)
+                var_list: List[Union[_EdgeVariableInfo, _NodeVariableInfo]] = list(
+                    variable_mapping.ingoing_edge_variables
+                )
 
-                out_edges = (
-                    problem_set.topology.get_edge_ids_outgoing_from_node(
-                        node_id
-                    )
+                out_edges = problem_set.topology.get_edge_ids_outgoing_from_node(
+                    node_id
                 )
                 out_edge_vars = self.__create_edge_variables(
                     out_edges, edge_qns, problem_set
                 )
                 variable_mapping.outgoing_edge_variables = out_edge_vars[0]
-                variable_mapping.fixed_outgoing_edge_variables = out_edge_vars[
-                    1
-                ]
+                variable_mapping.fixed_outgoing_edge_variables = out_edge_vars[1]
                 var_list.extend(list(variable_mapping.outgoing_edge_variables))
 
                 # now create variables for node/interaction qns
@@ -729,9 +682,7 @@ class CSPSolver(Solver):
                         rule, variable_mapping, arg_handler, score_callback
                     )
                 if var_list:
-                    var_strings = [
-                        _create_variable_string(*x) for x in var_list
-                    ]
+                    var_strings = [_create_variable_string(*x) for x in var_list]
                     self.__node_rules[node_id].add(rule)
                     self.__problem.addConstraint(constraint, var_strings)
                 else:
@@ -745,10 +696,9 @@ class CSPSolver(Solver):
     ) -> Tuple[Set[_NodeVariableInfo], GraphNodePropertyMap]:
         """Create variables for the quantum numbers of the specified node.
 
-        If a quantum number is already defined for a node, then a fixed
-        variable is created, which cannot be changed by the csp solver.
-        Otherwise the node is initialized with the specified domain of that
-        quantum number.
+        If a quantum number is already defined for a node, then a fixed variable is
+        created, which cannot be changed by the csp solver. Otherwise the node is
+        initialized with the specified domain of that quantum number.
         """
         variables: Tuple[Set[_NodeVariableInfo], GraphNodePropertyMap] = (
             set(),
@@ -778,15 +728,12 @@ class CSPSolver(Solver):
     ) -> Tuple[Set[_EdgeVariableInfo], Dict[int, GraphEdgePropertyMap]]:
         """Create variables for the quantum numbers of the specified edges.
 
-        If a quantum number is already defined for an edge, then a fixed
-        variable is created, which cannot be changed by the csp solver. This is
-        the case for initial and final state edges. Otherwise the edges are
-        initialized with the specified domains of that quantum number.
+        If a quantum number is already defined for an edge, then a fixed variable is
+        created, which cannot be changed by the csp solver. This is the case for initial
+        and final state edges. Otherwise the edges are initialized with the specified
+        domains of that quantum number.
         """
-        variables: Tuple[
-            Set[_EdgeVariableInfo],
-            Dict[int, GraphEdgePropertyMap],
-        ] = (
+        variables: Tuple[Set[_EdgeVariableInfo], Dict[int, GraphEdgePropertyMap],] = (
             set(),
             {},
         )
@@ -797,9 +744,7 @@ class CSPSolver(Solver):
                 states = problem_set.initial_facts.states[edge_id]
                 for qn_type in qn_list:
                     if qn_type in states:
-                        variables[1][edge_id].update(
-                            {qn_type: states[qn_type]}
-                        )
+                        variables[1][edge_id].update({qn_type: states[qn_type]})
             else:
                 edge_settings = problem_set.solving_settings.states[edge_id]
                 for qn_type in qn_list:
@@ -834,9 +779,7 @@ class CSPSolver(Solver):
             for var_string, value in solution.items():
                 ele_id, qn_type = self.__var_string_to_data[var_string]
 
-                if qn_type in getattr(  # noqa: B009
-                    EdgeQuantumNumber, "__args__"
-                ):
+                if qn_type in getattr(EdgeQuantumNumber, "__args__"):  # noqa: B009
                     states[ele_id].update({qn_type: value})  # type: ignore[dict-item]
                 else:
                     interactions[ele_id].update({qn_type: value})  # type: ignore[dict-item]
@@ -886,8 +829,8 @@ _QNType = TypeVar(  # pylint: disable=invalid-name
 class _GraphElementConstraint(Generic[_QNType], Constraint):
     """Wrapper class of the python-constraint Constraint class.
 
-    This allows a customized definition of conservation rules, and hence a
-    cleaner user interface.
+    This allows a customized definition of conservation rules, and hence a cleaner user
+    interface.
     """
 
     # pylint: disable=too-many-arguments
@@ -924,10 +867,9 @@ class _GraphElementConstraint(Generic[_QNType], Constraint):
     ) -> None:
         """Fill the name decoding map.
 
-        Also initialize the in and out particle lists. The variable names
-        follow the scheme edge_id(delimiter)qn_name. This method creates a dict
-        linking the var name to a list that consists of the particle list index
-        and the qn name.
+        Also initialize the in and out particle lists. The variable names follow the
+        scheme edge_id(delimiter)qn_name. This method creates a dict linking the var
+        name to a list that consists of the particle list index and the qn name.
         """
         self.__qns.update(list(fixed_variables.values())[0])
         for element_id, qn_type in variables:
@@ -1007,8 +949,8 @@ class _GraphElementConstraint(Generic[_QNType], Constraint):
 class _ConservationRuleConstraintWrapper(Constraint):
     """Wrapper class of the python-constraint Constraint class.
 
-    This allows a customized definition of conservation rules, and hence a
-    cleaner user interface.
+    This allows a customized definition of conservation rules, and hence a cleaner user
+    interface.
     """
 
     # pylint: disable=too-many-instance-attributes
@@ -1038,15 +980,12 @@ class _ConservationRuleConstraintWrapper(Constraint):
 
         self.__initialize_variable_containers(variables)
 
-    def __initialize_variable_containers(
-        self, variables: _VariableContainer
-    ) -> None:
+    def __initialize_variable_containers(self, variables: _VariableContainer) -> None:
         """Fill the name decoding map.
 
-        Also initialize the in and out particle lists. The variable names
-        follow the scheme edge_id(delimiter)qn_name. This method creates a dict
-        linking the var name to a list that consists of the particle list index
-        and the qn name.
+        Also initialize the in and out particle lists. The variable names follow the
+        scheme edge_id(delimiter)qn_name. This method creates a dict linking the var
+        name to a list that consists of the particle list index and the qn name.
         """
 
         def _initialize_edge_container(
@@ -1076,9 +1015,7 @@ class _ConservationRuleConstraintWrapper(Constraint):
         # and now interaction node variables
         for var_info in variables.node_variables:
             self.__node_qns[var_info[1]] = None  # type: ignore[assignment]
-            self.__var_string_to_data[
-                _create_variable_string(*var_info)
-            ] = var_info
+            self.__var_string_to_data[_create_variable_string(*var_info)] = var_info
         self.__node_qns.update(variables.fixed_node_variables)
 
     def __call__(
@@ -1145,14 +1082,10 @@ class _ConservationRuleConstraintWrapper(Constraint):
     ) -> None:
         for var_string, value in parameters:
             index, qn_type = self.__var_string_to_data[var_string]
-            if (
-                index in self.__in_edges_qns
-                and qn_type in self.__in_edges_qns[index]
-            ):
+            if index in self.__in_edges_qns and qn_type in self.__in_edges_qns[index]:
                 self.__in_edges_qns[index][qn_type] = value  # type: ignore[index]
             elif (
-                index in self.__out_edges_qns
-                and qn_type in self.__out_edges_qns[index]
+                index in self.__out_edges_qns and qn_type in self.__out_edges_qns[index]
             ):
                 self.__out_edges_qns[index][qn_type] = value  # type: ignore[index]
             elif qn_type in self.__node_qns:

@@ -334,7 +334,9 @@ myst_enable_extensions = [
     "smartquotes",
     "substitution",
 ]
-BINDER_LINK = f"https://mybinder.org/v2/gh/ComPWA/{REPO_NAME}/{BRANCH}?filepath=docs/usage"
+BINDER_LINK = (
+    f"https://mybinder.org/v2/gh/ComPWA/{REPO_NAME}/{BRANCH}?filepath=docs/usage"
+)
 myst_substitutions = {
     "branch": BRANCH,
     "run_interactive": f"""
@@ -403,9 +405,7 @@ class MyStyle(UnsrtStyle):
         super().__init__(abbreviate_names=True)
 
     def format_names(self, role: Entry, as_sentence: bool = True) -> Node:
-        formatted_names = names(
-            role, sep=", ", sep2=" and ", last_sep=", and "
-        )
+        formatted_names = names(role, sep=", ", sep2=" and ", last_sep=", and ")
         if as_sentence:
             return sentence[formatted_names]
         else:
