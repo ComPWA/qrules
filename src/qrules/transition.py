@@ -326,8 +326,9 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
     def set_allowed_intermediate_particles(self, particle_names: List[str]) -> None:
         self.__allowed_intermediate_particles = []
         for particle_name in particle_names:
+            # pylint: disable=cell-var-from-loop
             matches = self.__particles.filter(
-                lambda p: particle_name in p.name  # pylint: disable=cell-var-from-loop
+                lambda p: particle_name in p.name  # noqa: B023
             )
             if len(matches) == 0:
                 raise LookupError(
