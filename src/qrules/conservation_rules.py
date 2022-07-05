@@ -686,7 +686,6 @@ def spin_conservation(
     if (len(ingoing_spins) == 1 and len(outgoing_spins) == 2) or (
         len(ingoing_spins) == 2 and len(outgoing_spins) == 1
     ):
-
         return _check_spin_couplings(
             [_Spin(x.spin_magnitude, x.spin_projection) for x in ingoing_spins],
             [_Spin(x.spin_magnitude, x.spin_projection) for x in outgoing_spins],

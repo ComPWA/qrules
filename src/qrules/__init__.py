@@ -18,16 +18,7 @@ framework.
 """
 
 from itertools import product
-from typing import (
-    Dict,
-    FrozenSet,
-    Iterable,
-    List,
-    Optional,
-    Sequence,
-    Set,
-    Union,
-)
+from typing import Dict, FrozenSet, Iterable, List, Optional, Sequence, Set, Union
 
 import attrs
 
@@ -62,20 +53,9 @@ from .settings import (
     _halves_domain,
     _int_domain,
 )
-from .solving import (
-    GraphSettings,
-    NodeSettings,
-    QNResult,
-    Rule,
-    validate_full_solution,
-)
+from .solving import GraphSettings, NodeSettings, QNResult, Rule, validate_full_solution
 from .topology import create_n_body_topology
-from .transition import (
-    EdgeSettings,
-    ProblemSet,
-    ReactionInfo,
-    StateTransitionManager,
-)
+from .transition import EdgeSettings, ProblemSet, ReactionInfo, StateTransitionManager
 
 
 def check_reaction_violations(  # pylint: disable=too-many-arguments

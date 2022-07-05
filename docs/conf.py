@@ -9,6 +9,7 @@ import re
 import shutil
 import subprocess
 import sys
+from typing import Dict
 
 import requests
 
@@ -238,15 +239,7 @@ nitpick_ignore = [
 
 
 # Intersphinx settings
-version_remapping = {
-    "jsonschema": {
-        "4.3.2": "4.8.0",
-        "4.3.3": "4.8.0",
-        "4.4.0": "4.8.0",
-        "4.5.1": "4.8.0",
-        "4.6.0": "4.8.0",
-    },
-}
+version_remapping: Dict[str, Dict[str, str]] = {}
 
 
 def get_version(package_name: str) -> str:
@@ -284,10 +277,7 @@ intersphinx_mapping = {
         "constraint.inv",
     ),
     "graphviz": ("https://graphviz.readthedocs.io/en/stable", None),
-    "jsonschema": (
-        f"https://python-jsonschema.readthedocs.io/en/v{get_version('jsonschema')}",
-        None,
-    ),
+    "jsonschema": ("https://python-jsonschema.readthedocs.io/en/stable", None),
     "mypy": ("https://mypy.readthedocs.io/en/stable", None),
     "pwa": ("https://pwa.readthedocs.io", None),
     "python": ("https://docs.python.org/3", None),
