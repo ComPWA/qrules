@@ -53,6 +53,7 @@ def _is_optional(field_type: Optional[type]) -> bool:
 
 def _is_sequence_type(input_type: type) -> bool:
     origin = getattr(input_type, "__origin__", None)
+    # pylint: disable=unhashable-member
     return origin in {list, tuple, List, Tuple}
 
 
