@@ -19,8 +19,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v4
         with:
           python-version: "3.8"
       - name: Install dependencies
@@ -39,6 +38,14 @@ jobs:
         # cspell:ignore printf
         run: |
           for log_file in $(ls docs/_build/html/reports/*); do
+            for i in $(seq 6); do echo; done
+            printf '%45s\n' | tr ' ' =
+            echo "$log_file"
+            printf '%45s\n' | tr ' ' =
+            echo
+            cat "$log_file"
+          done
+          for log_file in $(ls /tmp/sphinx-*.log); do
             for i in $(seq 6); do echo; done
             printf '%45s\n' | tr ' ' =
             echo "$log_file"
