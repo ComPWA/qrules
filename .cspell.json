@@ -107,6 +107,7 @@
         "kernelspec",
         "linkcheck",
         "macos",
+        "MAINT",
         "markdownlint",
         "mathrm",
         "maxdepth",
