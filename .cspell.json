@@ -78,6 +78,7 @@
         "concat",
         "conds",
         "displaystyle",
+        "docnb",
         "doctest",
         "doctests",
         "dotprint",
