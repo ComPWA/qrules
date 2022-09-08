@@ -9,7 +9,7 @@ anyio==3.6.1
 aquirdturtle-collapsible-headings==3.1.0
 argon2-cffi==21.3.0
 argon2-cffi-bindings==21.2.0
-astroid==2.12.5
+astroid==2.12.9
 attrs==21.4.0
 babel==2.10.3
 backcall==0.2.0
@@ -48,7 +48,7 @@ gprof2dot==2022.7.29
 graphviz==0.20.1
 greenlet==1.1.3
 hepunits==2.2.1
-identify==2.5.3
+identify==2.5.5
 idna==3.3
 imagesize==1.4.1
 importlib-metadata==4.2.0 ; python_version < "3.8.0"
@@ -71,7 +71,7 @@ jupyter-core==4.11.1
 jupyter-server==1.18.1
 jupyter-server-mathjax==0.2.6
 jupyter-sphinx==0.3.2
-jupyterlab==3.4.5
+jupyterlab==3.4.6
 jupyterlab-code-formatter==1.5.3
 jupyterlab-markup==1.1.0
 jupyterlab-myst==0.1.6 ; python_version >= "3.7.0"
@@ -106,7 +106,7 @@ packaging==21.3
 pandocfilters==1.5.0
 parso==0.8.3
 particle==0.20.1
-pathspec==0.10.0
+pathspec==0.10.1
 pep8-naming==0.13.2
 pexpect==4.8.0
 pickleshare==0.7.5
@@ -115,24 +115,24 @@ platformdirs==2.5.2
 pluggy==1.0.0
 pre-commit==2.20.0
 prometheus-client==0.14.1
-prompt-toolkit==3.0.30
-psutil==5.9.1
+prompt-toolkit==3.0.31
+psutil==5.9.2
 ptyprocess==0.7.0
 py==1.11.0
 pybtex==0.24.0
 pybtex-docutils==1.0.2
 pycodestyle==2.9.1
 pycparser==2.21
-pydantic==1.10.1
+pydantic==1.10.2
 pydata-sphinx-theme==0.8.1
 pydocstyle==6.1.1
 pydot==1.4.2
 pyflakes==2.5.0
 pygments==2.13.0
-pylint==2.15.0
+pylint==2.15.2
 pyparsing==3.0.9
 pyrsistent==0.18.1
-pytest==7.1.2
+pytest==7.1.3
 pytest-cov==3.0.0
 pytest-forked==1.4.0
 pytest-profiling==1.7.0
@@ -149,7 +149,7 @@ restructuredtext-lint==1.4.0
 send2trash==1.8.0
 six==1.16.0
 smmap==5.0.0
-sniffio==1.2.0
+sniffio==1.3.0
 snowballstemmer==2.2.0
 soupsieve==2.3.2.post1
 sphinx==4.3.2 ; python_version < "3.8.0"
@@ -170,15 +170,15 @@ sphinxcontrib-jsmath==1.0.1
 sphinxcontrib-qthelp==1.0.3
 sphinxcontrib-serializinghtml==1.1.5
 sphobjinv==2.2.2
-sqlalchemy==1.4.40
+sqlalchemy==1.4.41
 terminado==0.15.0
 tinycss2==1.1.1
 toml==0.10.2
 tomli==2.0.1
 tomlkit==0.11.4
 tornado==6.2
-tox==3.25.1
-tqdm==4.64.0
+tox==3.26.0
+tqdm==4.64.1
 traitlets==5.3.0
 typed-ast==1.5.4
 types-docutils==0.19.0
@@ -186,13 +186,13 @@ types-pkg-resources==0.1.3
 types-pyyaml==6.0.11
 types-requests==2.28.9
 types-setuptools==65.3.0
-types-urllib3==1.26.23
+types-urllib3==1.26.24
 typing-extensions==4.3.0 ; python_version < "3.10.0"
 urllib3==1.26.12
 virtualenv==20.15.1 ; python_version < "3.8.0"
 wcwidth==0.2.5
 webencodings==0.5.1
-websocket-client==1.4.0
+websocket-client==1.4.1
 wheel==0.37.1
 widgetsnbextension==3.6.1
 wrapt==1.14.1
