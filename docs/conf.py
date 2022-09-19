@@ -314,6 +314,7 @@ copybutton_prompt_text = r">>> |\.\.\. "  # doctest
 linkcheck_anchors = False
 
 # Settings for myst_nb
+nb_execution_show_tb = True
 nb_execution_timeout = -1
 nb_output_stderr = "remove"
 
