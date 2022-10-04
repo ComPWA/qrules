@@ -173,11 +173,11 @@ def create_interaction_settings(  # pylint: disable=too-many-locals,too-many-arg
     weak_node_settings = deepcopy(formalism_node_settings)
     weak_node_settings.conservation_rules.update(
         [
-            ChargeConservation(),
-            ElectronLNConservation(),
-            MuonLNConservation(),
-            TauLNConservation(),
-            BaryonNumberConservation(),
+            ChargeConservation(),  # type: ignore[abstract]
+            ElectronLNConservation(),  # type: ignore[abstract]
+            MuonLNConservation(),  # type: ignore[abstract]
+            TauLNConservation(),  # type: ignore[abstract]
+            BaryonNumberConservation(),  # type: ignore[abstract]
             identical_particle_symmetrization,
         ]
     )
@@ -192,9 +192,9 @@ def create_interaction_settings(  # pylint: disable=too-many-locals,too-many-arg
     em_node_settings = deepcopy(weak_node_settings)
     em_node_settings.conservation_rules.update(
         {
-            CharmConservation(),
-            StrangenessConservation(),
-            BottomnessConservation(),
+            CharmConservation(),  # type: ignore[abstract]
+            StrangenessConservation(),  # type: ignore[abstract]
+            BottomnessConservation(),  # type: ignore[abstract]
             parity_conservation,
             c_parity_conservation,
         }
