@@ -159,14 +159,14 @@ def check_reaction_violations(  # pylint: disable=too-many-arguments
         correct.
         """
         edge_qn_conservation_rules: Set[Rule] = {
-            BaryonNumberConservation(),
-            BottomnessConservation(),
-            ChargeConservation(),
-            CharmConservation(),
-            ElectronLNConservation(),
-            MuonLNConservation(),
-            StrangenessConservation(),
-            TauLNConservation(),
+            BaryonNumberConservation(),  # type: ignore[abstract]
+            BottomnessConservation(),  # type: ignore[abstract]
+            ChargeConservation(),  # type: ignore[abstract]
+            CharmConservation(),  # type: ignore[abstract]
+            ElectronLNConservation(),  # type: ignore[abstract]
+            MuonLNConservation(),  # type: ignore[abstract]
+            StrangenessConservation(),  # type: ignore[abstract]
+            TauLNConservation(),  # type: ignore[abstract]
             isospin_conservation,
         }
         if len(initial_state) == 1 and mass_conservation_factor is not None:

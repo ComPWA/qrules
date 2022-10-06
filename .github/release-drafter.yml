@@ -6,25 +6,27 @@ references:
   - epic/*
 
 categories:
-  - title: 💡 New features
+  - title: ✨ New features
     label: 💡 Feature
-  - title: ⚠️ Interface
-    labels:
-      - ⚠️ Interface
-      - 📖 Physics
+  - title: ⚠️ Enhancements and optimizations
+    label: ⚙️ Enhancement
+  - title: ⚠️ API changes
+    label: ⚠️ Interface
+  - title: ⚠️ Changes that may affect behavior
+    label: ❗ Behavior
   - title: 🐛 Bug fixes
-    label: Bug
-  - title: 🔨 Internal maintenance
-    label: 🔨 Maintenance
+    label: 🐛 Bug
   - title: 📝 Documentation
     label: 📝 Docs
+  - title: 🔨 Maintenance
+    label: 🔨 Maintenance
   - title: 🖱️ Developer Experience
     label: 🖱️ DX
 
 change-template: "- $TITLE (#$NUMBER)"
 
 replacers:
-  - search: /([a-z]+!?:\s*)(.*)/g
+  - search: /([A-Z]+!?:\s*)(.*)/g
     replace: $2
 
 sort-direction: ascending

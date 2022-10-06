@@ -1,5 +1,5 @@
 ci:
-  autoupdate_commit_msg: "ci: update pip constraints and pre-commit config"
+  autoupdate_commit_msg: "MAINT: update pip constraints and pre-commit config"
   autoupdate_schedule: quarterly # already done by requirements-cron.yml
   skip:
     # local hooks
@@ -41,11 +41,11 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/ComPWA/repo-maintenance
-    rev: 0.0.133
+    rev: 0.0.146
     hooks:
       - id: check-dev-files
         args:
-          - --pin-requirements=biweekly
+          - --pin-requirements=monthly
       - id: fix-nbformat-version
       - id: format-setup-cfg
       - id: set-nb-cells
@@ -55,7 +55,7 @@ repos:
           - --extras-require=doc,viz
 
   - repo: https://github.com/psf/black
-    rev: 22.6.0
+    rev: 22.8.0
     hooks:
       - id: black
 
@@ -65,12 +65,12 @@ repos:
       - id: blacken-docs
 
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v6.5.0
+    rev: v6.12.0
     hooks:
       - id: cspell
 
   - repo: https://github.com/myint/docformatter
-    rev: v1.4
+    rev: v1.5.0
     hooks:
       - id: docformatter
         args:
@@ -79,7 +79,7 @@ repos:
           - --wrap-summaries=88
 
   - repo: https://github.com/editorconfig-checker/editorconfig-checker.python
-    rev: 2.4.0
+    rev: 2.6.1
     hooks:
       - id: editorconfig-checker
         name: editorconfig-checker
@@ -106,7 +106,7 @@ repos:
       - id: isort
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.32.1
+    rev: v0.32.2
     hooks:
       - id: markdownlint
 
@@ -121,7 +121,7 @@ repos:
           - python
 
   - repo: https://github.com/nbQA-dev/nbQA
-    rev: 1.4.0
+    rev: 1.5.2
     hooks:
       - id: nbqa-black
         additional_dependencies:
@@ -133,7 +133,7 @@ repos:
           - --py36-plus
 
   - repo: https://github.com/kynan/nbstripout
-    rev: 0.6.0
+    rev: 0.6.1
     hooks:
       - id: nbstripout
         args:
@@ -152,9 +152,9 @@ repos:
             metadata.toc-showmarkdowntxt
             metadata.toc-showtags
             metadata.varInspector
-
+            metadata.vscode
   - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v2.7.1
+    rev: v3.0.0-alpha.0
     hooks:
       - id: prettier
 
@@ -177,12 +177,12 @@ repos:
           - python
 
   - repo: https://github.com/ComPWA/mirrors-pyright
-    rev: v1.1.265
+    rev: v1.1.273
     hooks:
       - id: pyright
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v2.37.3
+    rev: v3.0.0
     hooks:
       - id: pyupgrade
         args:
