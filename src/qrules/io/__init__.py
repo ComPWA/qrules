@@ -71,11 +71,12 @@ def fromdict(definition: dict) -> object:
     raise NotImplementedError(f"Could not determine type from keys {keys}")
 
 
+# pylint: disable=line-too-long
 __REQUIRED_PARTICLE_FIELDS = {
-    field.name for field in attrs.fields(Particle) if field.default == attrs.NOTHING
+    field.name for field in attrs.fields(Particle) if field.default == attrs.NOTHING  # type: ignore[arg-type]
 }
 __REQUIRED_TOPOLOGY_FIELDS = {
-    field.name for field in attrs.fields(Topology) if field.init
+    field.name for field in attrs.fields(Topology) if field.init  # type: ignore[arg-type]
 }
 
 
