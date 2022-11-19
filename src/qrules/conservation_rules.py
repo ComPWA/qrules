@@ -695,8 +695,8 @@ def spin_conservation(
     # otherwise don't use S and L and just check magnitude
     # are integral or non integral on both sides
     return (
-        sum(float(x.spin_magnitude) for x in ingoing_spins).is_integer()
-        == sum(float(x.spin_magnitude) for x in outgoing_spins).is_integer()
+        sum(float(x.spin_magnitude) for x in ingoing_spins).is_integer()  # type: ignore[union-attr]
+        == sum(float(x.spin_magnitude) for x in outgoing_spins).is_integer()  # type: ignore[union-attr]
     )
 
 
@@ -732,8 +732,8 @@ def spin_magnitude_conservation(
     # otherwise don't use S and L and just check magnitude
     # are integral or non integral on both sides
     return (
-        sum(float(x.spin_magnitude) for x in ingoing_spins).is_integer()
-        == sum(float(x.spin_magnitude) for x in outgoing_spins).is_integer()
+        sum(float(x.spin_magnitude) for x in ingoing_spins).is_integer()  # type: ignore[union-attr]
+        == sum(float(x.spin_magnitude) for x in outgoing_spins).is_integer()  # type: ignore[union-attr]
     )
 
 
