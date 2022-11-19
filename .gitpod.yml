@@ -23,6 +23,7 @@ vscode:
     - executablebookproject.myst-highlight
     - github.vscode-pull-request-github
     - joaompinto.vscode-graphviz
+    - ms-python.pylint
     - ms-python.python
     - ms-python.vscode-pylance
     - ms-vsliveshare.vsliveshare
