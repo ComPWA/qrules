@@ -24,6 +24,7 @@ vscode:
     - github.vscode-pull-request-github
     - joaompinto.vscode-graphviz
     - ms-python.flake8
+    - ms-python.isort
     - ms-python.pylint
     - ms-python.python
     - ms-python.vscode-pylance
