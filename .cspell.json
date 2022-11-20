@@ -1,10 +1,6 @@
 {
     "allowCompoundWords": true,
-    "enableFiletypes": [
-        "git-commit",
-        "julia",
-        "jupyter"
-    ],
+    "enableFiletypes": ["git-commit", "julia", "jupyter"],
     "flagWords": [
         "analyse",
         "colour",
@@ -27,6 +23,7 @@
         "*.svg",
         "*particle*.*ml",
         ".constraints/*.txt",
+        ".editorconfig",
         ".flake8*",
         ".gitignore",
         ".gitpod.*",
