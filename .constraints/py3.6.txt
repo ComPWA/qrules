@@ -65,10 +65,8 @@ jedi==0.17.2
 jinja2==3.0.3
 json5==0.9.10
 jsonschema==3.2.0
-jupyter==1.0.0
 jupyter-cache==0.4.3
 jupyter-client==7.1.2
-jupyter-console==6.4.3
 jupyter-core==4.9.2
 jupyter-server==1.13.1
 jupyter-server-mathjax==0.2.3
@@ -136,8 +134,6 @@ python-dateutil==2.8.2
 pytz==2022.6
 pyyaml==6.0
 pyzmq==24.0.1
-qtconsole==5.2.2
-qtpy==2.0.1
 requests==2.27.1
 restructuredtext-lint==1.4.0
 send2trash==1.8.0
