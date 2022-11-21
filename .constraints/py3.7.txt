@@ -68,7 +68,7 @@ jsonschema==4.17.0
 jupyter-cache==0.4.3
 jupyter-client==7.4.7
 jupyter-core==4.11.2
-jupyter-server==1.23.2
+jupyter-server==1.23.3
 jupyter-server-mathjax==0.2.6
 jupyter-sphinx==0.3.2
 jupyterlab==3.5.0
@@ -115,7 +115,7 @@ platformdirs==2.5.4
 pluggy==1.0.0
 pre-commit==2.20.0
 prometheus-client==0.15.0
-prompt-toolkit==3.0.32
+prompt-toolkit==3.0.33
 psutil==5.9.4
 ptyprocess==0.7.0
 py==1.11.0
