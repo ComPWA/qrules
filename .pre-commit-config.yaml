@@ -31,8 +31,7 @@ repos:
         exclude: >
           (?x)^(
             .*\.bib|
-            .*\.svg|
-            \.cspell\.json
+            .*\.svg
           )$
       - id: mixed-line-ending
       - id: name-tests-test
@@ -82,7 +81,7 @@ repos:
     rev: 2.6.1
     hooks:
       - id: editorconfig-checker
-        name: editorconfig-checker
+        name: editorconfig
         exclude: >
           (?x)^(
             .*\.ipynb|
@@ -153,6 +152,7 @@ repos:
             metadata.toc-showtags
             metadata.varInspector
             metadata.vscode
+
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v3.0.0-alpha.4
     hooks:
