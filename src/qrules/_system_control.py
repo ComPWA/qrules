@@ -112,7 +112,7 @@ def create_interaction_properties(
     converted_solution = {k.__name__: v for k, v in qn_solution.items()}
     kw_args = {
         x.name: converted_solution[x.name]
-        for x in attrs.fields(InteractionProperties)
+        for x in attrs.fields(InteractionProperties)  # type: ignore[arg-type]
         if x.name in converted_solution
     }
 
