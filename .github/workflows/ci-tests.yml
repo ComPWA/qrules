@@ -11,6 +11,7 @@ on:
       - main
       - epic/*
       - "[0-9]+.[0-9]+.x"
+  workflow_dispatch:
 
 jobs:
   codecov:
@@ -18,12 +19,20 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-20.04]
-        python-version: ["3.7"]
+        os:
+          - ubuntu-20.04
+        python-version:
+          - "3.7"
     steps:
-      - uses: actions/checkout@master
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        with:
+          key: |
+            ${{ github.workflow }}-${{ github.job }}-${{ matrix.os }}-py${{ matrix.python-version }}-${{ hashFiles('.constraints/py3.*.txt', 'setup.cfg') }}
+          path: |
+            .pytest_cache
+            ~/.cache/pip/
+      - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
@@ -50,7 +59,6 @@ jobs:
     strategy:
       matrix:
         os:
-          - macos-11
           - ubuntu-20.04
         python-version:
           - "3.6"
@@ -59,20 +67,21 @@ jobs:
           - "3.9"
           - "3.10"
         exclude:
-          - os: macos-11
-            python-version: "3.6"
-          - os: macos-11
-            python-version: "3.8"
-          - os: macos-11
-            python-version: "3.9"
-          - os: macos-11
-            python-version: "3.10"
           - os: ubuntu-20.04 # coverage job
+            python-version: "3.7"
+        include:
+          - os: macos-11
             python-version: "3.7"
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+      - uses: actions/cache@v3
+        with:
+          key: |
+            ${{ github.workflow }}-${{ github.job }}-${{ matrix.os }}-py${{ matrix.python-version }}-${{ hashFiles('.constraints/py3.*.txt', 'setup.cfg') }}
+          path: |
+            .pytest_cache
+            ~/.cache/pip/
+      - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies

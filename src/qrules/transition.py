@@ -233,7 +233,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         allowed_intermediate_particles: Optional[List[str]] = None,
         interaction_type_settings: Dict[
             InteractionType, Tuple[EdgeSettings, NodeSettings]
-        ] = None,
+        ] = None,  # type: ignore[assignment]
         formalism: str = "helicity",
         topology_building: str = "isobar",
         solving_mode: SolvingMode = SolvingMode.FAST,
