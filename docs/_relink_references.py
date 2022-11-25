@@ -58,7 +58,7 @@ __REF_TYPE_SUBSTITUTIONS = {
 
 def _new_type_to_xref(
     target: str,
-    env: "BuildEnvironment" = None,
+    env: "BuildEnvironment" = None,  # type: ignore[assignment]
     suppress_prefix: bool = False,
 ) -> "pending_xref":
     import sphinx

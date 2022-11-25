@@ -1,6 +1,7 @@
 # pylint: disable=eval-used redefined-outer-name
 # pyright: reportUnusedImport=false
 import logging
+import sys
 from copy import deepcopy
 
 import pytest
@@ -253,7 +254,9 @@ class TestParticleCollection:
             ("gama", "'gamma', 'Sigma0', 'Sigma-', 'Sigma+', 'Lambda'"),
             (
                 "omega",
-                "'omega(782)', 'omega(1420)', 'omega(3)(1670)', 'omega(1650)'",
+                "'omega(782)', 'omega(1420)', 'omega(3)(1670)', 'omega(1650)'"
+                if sys.version_info < (3, 7)
+                else "'omega(782)', 'omega(3)(1670)', 'omega(1650)'",
             ),
             ("p~~", "'p~'"),
             ("~", "'p~', 'n~'"),

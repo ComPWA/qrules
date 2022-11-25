@@ -18,8 +18,9 @@ jobs:
           fetch-depth: 0
       - name: Determine dependency changes
         run: |
-          DIFF="$(git diff origin/main --color -- .constraints .pre-commit-config.yaml setup.cfg)"
-          echo ::set-output name=diff::"${DIFF}"
+          echo 'diff<<EOF' >> $GITHUB_OUTPUT
+          git diff origin/main --color -- .constraints .pre-commit-config.yaml setup.cfg >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
         id: diff
     outputs:
       diff: ${{ steps.diff.outputs.diff }}
@@ -92,7 +93,7 @@ jobs:
           git checkout -b ${GITHUB_HEAD_REF}
           if [[ $(git status -s) ]]; then
             git add -A
-            git commit -m "MAINT: update pip constraints and pre-commit config"
+            git commit -m "MAINT: update pip constraints and pre-commit"
             git config pull.rebase true
             git pull origin ${GITHUB_HEAD_REF}
             git push origin HEAD:${GITHUB_HEAD_REF}

@@ -825,7 +825,9 @@ _QNType = TypeVar(  # pylint: disable=invalid-name
 )
 
 
-class _GraphElementConstraint(Generic[_QNType], Constraint):
+class _GraphElementConstraint(
+    Generic[_QNType], Constraint  # pyright: ignore[reportUntypedBaseClass]
+):
     """Wrapper class of the python-constraint Constraint class.
 
     This allows a customized definition of conservation rules, and hence a cleaner user
@@ -944,7 +946,9 @@ class _GraphElementConstraint(Generic[_QNType], Constraint):
                 )
 
 
-class _ConservationRuleConstraintWrapper(Constraint):
+class _ConservationRuleConstraintWrapper(
+    Constraint  # pyright: ignore[reportUntypedBaseClass]
+):
     """Wrapper class of the python-constraint Constraint class.
 
     This allows a customized definition of conservation rules, and hence a cleaner user
