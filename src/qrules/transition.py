@@ -152,8 +152,10 @@ class _SolutionContainer:
             or self.execution_info.violated_edge_rules
         ):
             raise ValueError(
-                f"Invalid {self.__class__.__name__}! Found"
-                f" {len(self.solutions)} solutions, but also violated rules.",
+                (
+                    f"Invalid {self.__class__.__name__}! Found"
+                    f" {len(self.solutions)} solutions, but also violated rules."
+                ),
                 self.execution_info.violated_node_rules,
                 self.execution_info.violated_edge_rules,
             )
@@ -551,8 +553,10 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
 
         for key, result in results.items():
             logging.info(
-                f"number of solutions for strength ({key}) "
-                f"after qn solving: {len(result.solutions)}",
+                (
+                    f"number of solutions for strength ({key}) "
+                    f"after qn solving: {len(result.solutions)}"
+                ),
             )
 
         final_result = _SolutionContainer()
