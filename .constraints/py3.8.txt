@@ -61,7 +61,7 @@ importlib-metadata==5.1.0
 importlib-resources==5.10.1
 iniconfig==1.1.1
 ipykernel==6.19.2
-ipython==8.7.0
+ipython==8.6.0
 ipython-genutils==0.2.0
 isort==5.10.1
 jedi==0.18.2
