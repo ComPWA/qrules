@@ -178,8 +178,10 @@ class QNResult:
     def __attrs_post_init__(self) -> None:
         if self.solutions and (self.violated_node_rules or self.violated_edge_rules):
             raise ValueError(
-                f"Invalid {type(self).__name__}! Found"
-                f" {len(self.solutions)} solutions, but also violated rules.",
+                (
+                    f"Invalid {type(self).__name__}! Found"
+                    f" {len(self.solutions)} solutions, but also violated rules."
+                ),
                 self.violated_node_rules,
                 self.violated_edge_rules,
             )
@@ -732,7 +734,10 @@ class CSPSolver(Solver):
         and final state edges. Otherwise the edges are initialized with the specified
         domains of that quantum number.
         """
-        variables: Tuple[Set[_EdgeVariableInfo], Dict[int, GraphEdgePropertyMap],] = (
+        variables: Tuple[
+            Set[_EdgeVariableInfo],
+            Dict[int, GraphEdgePropertyMap],
+        ] = (
             set(),
             {},
         )

@@ -335,8 +335,10 @@ class ParticleCollection(abc.MutableSet):
             equivalent_particles = {p for p in self if p == value}
             equivalent_particle = next(iter(equivalent_particles))
             raise ValueError(
-                f'Added particle "{value.name}" is equivalent to '
-                f'existing particle "{equivalent_particle.name}"',
+                (
+                    f'Added particle "{value.name}" is equivalent to '
+                    f'existing particle "{equivalent_particle.name}"'
+                ),
             )
         if value.name in self.__particles:
             logging.warning(f'Overwriting particle with name "{value.name}"')
