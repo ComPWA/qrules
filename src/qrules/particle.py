@@ -506,8 +506,8 @@ def create_antiparticle(
 def load_pdg() -> ParticleCollection:
     """Create a `.ParticleCollection` with all entries from the PDG.
 
-    PDG info is imported from the `scikit-hep/particle <https://github.com/scikit-
-    hep/particle>`_ package.
+    PDG info is imported from the `scikit-hep/particle
+    <https://github.com/scikit-hep/particle>`_ package.
     """
     from particle import Particle as PdgDatabase
 
