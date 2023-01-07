@@ -45,7 +45,7 @@ if TYPE_CHECKING:
     try:
         from IPython.lib.pretty import PrettyPrinter
     except ImportError:
-        PrettyPrinter = Any
+        PrettyPrinter = Any  # type: ignore[assignment,misc]
 
 
 def _to_float(value: SupportsFloat) -> float:
@@ -234,7 +234,7 @@ class Particle:  # pylint: disable=too-many-instance-attributes
                         if isinstance(value, Parity):
                             p.text(_to_fraction(int(value), render_plus=True))
                         else:
-                            p.pretty(value)
+                            p.pretty(value)  # type: ignore[attr-defined]
                         p.text(",")
             p.breakable()
             p.text(")")
@@ -325,7 +325,7 @@ class ParticleCollection(abc.MutableSet):
             with p.group(indent=2, open=f"{class_name}({{"):
                 for particle in self:
                     p.breakable()
-                    p.pretty(particle)
+                    p.pretty(particle)  # type: ignore[attr-defined]
                     p.text(",")
             p.breakable()
             p.text("})")

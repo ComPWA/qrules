@@ -59,7 +59,7 @@ if TYPE_CHECKING:
     try:
         from IPython.lib.pretty import PrettyPrinter
     except ImportError:
-        PrettyPrinter = Any
+        PrettyPrinter = Any  # type: ignore[assignment,misc]
 
 
 class _Comparable(Protocol):
@@ -110,7 +110,7 @@ class FrozenDict(  # pylint: disable=too-many-ancestors
                 for key, value in self.items():
                     p.breakable()
                     p.text(f"{key}: ")
-                    p.pretty(value)
+                    p.pretty(value)  # type: ignore[attr-defined]
                     p.text(",")
             p.breakable()
             p.text("})")
