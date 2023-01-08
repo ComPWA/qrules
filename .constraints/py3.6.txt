@@ -119,7 +119,7 @@ pycodestyle==2.8.0
 pycparser==2.21
 pydantic==1.9.2
 pydata-sphinx-theme==0.7.2
-pydocstyle==6.2.2
+pydocstyle==6.2.3
 pydot==1.4.2
 pyflakes==2.4.0
 pygments==2.14.0
