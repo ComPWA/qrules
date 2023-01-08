@@ -39,13 +39,9 @@ from .conservation_rules import GellMannNishijimaInput, gellmann_nishijima
 from .quantum_numbers import Parity, _to_fraction
 
 if TYPE_CHECKING:
+    from IPython.lib.pretty import PrettyPrinter
     from particle import Particle as PdgDatabase
     from particle.particle import enums
-
-    try:
-        from IPython.lib.pretty import PrettyPrinter
-    except ImportError:
-        PrettyPrinter = Any  # type: ignore[assignment,misc]
 
 
 def _to_float(value: SupportsFloat) -> float:

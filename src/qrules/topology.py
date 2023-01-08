@@ -56,10 +56,7 @@ else:
     from typing_extensions import Protocol
 
 if TYPE_CHECKING:
-    try:
-        from IPython.lib.pretty import PrettyPrinter
-    except ImportError:
-        PrettyPrinter = Any  # type: ignore[assignment,misc]
+    from IPython.lib.pretty import PrettyPrinter
 
 
 class _Comparable(Protocol):

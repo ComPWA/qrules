@@ -5,10 +5,7 @@ from typing import TYPE_CHECKING, Any, Type, TypeVar
 import attrs
 
 if TYPE_CHECKING:
-    try:
-        from IPython.lib.pretty import PrettyPrinter
-    except ImportError:
-        PrettyPrinter = Any  # type: ignore[assignment,misc]
+    from IPython.lib.pretty import PrettyPrinter
 
 
 _DecoratedClass = TypeVar("_DecoratedClass")
