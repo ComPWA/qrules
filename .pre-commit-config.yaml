@@ -40,7 +40,7 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/ComPWA/repo-maintenance
-    rev: 0.0.162
+    rev: 0.0.163
     hooks:
       - id: check-dev-files
         args:
@@ -161,7 +161,7 @@ repos:
       - id: prettier
 
   - repo: https://github.com/pycqa/pydocstyle
-    rev: 6.2.2
+    rev: 6.2.3
     hooks:
       - id: pydocstyle
 
