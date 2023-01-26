@@ -7,7 +7,6 @@ ci:
     - mypy
     - pylint
     # hooks that don't work on pre-commit.ci
-    - editorconfig-checker
     - pyright
 
 repos:
@@ -40,7 +39,7 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/ComPWA/repo-maintenance
-    rev: 0.0.161
+    rev: 86bdb68
     hooks:
       - id: check-dev-files
         args:
