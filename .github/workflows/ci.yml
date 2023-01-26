@@ -26,6 +26,5 @@ jobs:
     with:
       coverage-target: qrules
       macos-python-version: "3.7"
-
   style:
     uses: ComPWA/actions/.github/workflows/pre-commit.yml@dev
