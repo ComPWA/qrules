@@ -5,10 +5,7 @@ from typing import TYPE_CHECKING, Any, Type, TypeVar
 import attrs
 
 if TYPE_CHECKING:
-    try:
-        from IPython.lib.pretty import PrettyPrinter
-    except ImportError:
-        PrettyPrinter = Any
+    from IPython.lib.pretty import PrettyPrinter
 
 
 _DecoratedClass = TypeVar("_DecoratedClass")
@@ -35,11 +32,11 @@ def implement_pretty_repr(
                     value = getattr(self, field.name)
                     p.breakable()
                     p.text(f"{field.name}=")
-                    p.pretty(value)
+                    p.pretty(value)  # type: ignore[attr-defined]
                     p.text(",")
             p.breakable()
             p.text(")")
 
     # pylint: disable=protected-access
     decorated_class._repr_pretty_ = repr_pretty  # type: ignore[attr-defined]
-    return decorated_class
+    return decorated_class  # type: ignore[return-value]

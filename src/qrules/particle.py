@@ -39,13 +39,9 @@ from .conservation_rules import GellMannNishijimaInput, gellmann_nishijima
 from .quantum_numbers import Parity, _to_fraction
 
 if TYPE_CHECKING:
+    from IPython.lib.pretty import PrettyPrinter
     from particle import Particle as PdgDatabase
     from particle.particle import enums
-
-    try:
-        from IPython.lib.pretty import PrettyPrinter
-    except ImportError:
-        PrettyPrinter = Any
 
 
 def _to_float(value: SupportsFloat) -> float:
@@ -234,7 +230,7 @@ class Particle:  # pylint: disable=too-many-instance-attributes
                         if isinstance(value, Parity):
                             p.text(_to_fraction(int(value), render_plus=True))
                         else:
-                            p.pretty(value)
+                            p.pretty(value)  # type: ignore[attr-defined]
                         p.text(",")
             p.breakable()
             p.text(")")
@@ -325,7 +321,7 @@ class ParticleCollection(abc.MutableSet):
             with p.group(indent=2, open=f"{class_name}({{"):
                 for particle in self:
                     p.breakable()
-                    p.pretty(particle)
+                    p.pretty(particle)  # type: ignore[attr-defined]
                     p.text(",")
             p.breakable()
             p.text("})")
@@ -506,8 +502,8 @@ def create_antiparticle(
 def load_pdg() -> ParticleCollection:
     """Create a `.ParticleCollection` with all entries from the PDG.
 
-    PDG info is imported from the `scikit-hep/particle <https://github.com/scikit-
-    hep/particle>`_ package.
+    PDG info is imported from the `scikit-hep/particle
+    <https://github.com/scikit-hep/particle>`_ package.
     """
     from particle import Particle as PdgDatabase
 
