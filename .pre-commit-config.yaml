@@ -2,13 +2,11 @@ ci:
   autoupdate_commit_msg: "MAINT: update pip constraints and pre-commit"
   autoupdate_schedule: quarterly # already done by requirements-cron.yml
   skip:
-    # local hooks
     - flake8
     - mypy
     - pylint
-    # hooks that don't work on pre-commit.ci
-    - editorconfig-checker
     - pyright
+    - taplo
 
 repos:
   - repo: meta
@@ -40,10 +38,11 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/ComPWA/repo-maintenance
-    rev: 0.0.161
+    rev: 0.0.176
     hooks:
       - id: check-dev-files
         args:
+          - --doc-apt-packages=graphviz
           - --pin-requirements=monthly
           - --repo-name=qrules
           - --repo-title=QRules
@@ -54,6 +53,18 @@ repos:
           - --add-install-cell
           - --additional-packages=IPython
           - --extras-require=doc,viz
+
+  - repo: https://github.com/nbQA-dev/nbQA
+    rev: 1.5.3
+    hooks:
+      - id: nbqa-black
+        additional_dependencies:
+          - black>=22.1.0
+      - id: nbqa-flake8
+      - id: nbqa-isort
+      - id: nbqa-pyupgrade
+        args:
+          - --py36-plus
 
   - repo: https://github.com/psf/black
     rev: 22.12.0
@@ -80,16 +91,14 @@ repos:
           - --wrap-summaries=88
 
   - repo: https://github.com/editorconfig-checker/editorconfig-checker.python
-    rev: 2.6.2
+    rev: "2.6.2"
     hooks:
       - id: editorconfig-checker
         name: editorconfig
-        exclude: >
+        alias: ec
+        exclude: >-
           (?x)^(
-            .*\.ipynb|
-            .*\.md|
-            .*\.py|
-            LICENSE
+            .*\.py
           )$
 
   - repo: local
@@ -102,7 +111,7 @@ repos:
           - python
 
   - repo: https://github.com/pycqa/isort
-    rev: 5.10.1
+    rev: 5.12.0
     hooks:
       - id: isort
 
@@ -121,18 +130,6 @@ repos:
         types:
           - python
 
-  - repo: https://github.com/nbQA-dev/nbQA
-    rev: 1.5.3
-    hooks:
-      - id: nbqa-black
-        additional_dependencies:
-          - black>=22.1.0
-      - id: nbqa-flake8
-      - id: nbqa-isort
-      - id: nbqa-pyupgrade
-        args:
-          - --py36-plus
-
   - repo: https://github.com/kynan/nbstripout
     rev: 0.6.1
     hooks:
@@ -142,6 +139,7 @@ repos:
           - |
             cell.metadata.code_folding
             cell.metadata.id
+            cell.metadata.user_expressions
             metadata.celltoolbar
             metadata.colab.name
             metadata.colab.provenance
@@ -189,3 +187,8 @@ repos:
       - id: pyupgrade
         args:
           - --py36-plus
+
+  - repo: https://github.com/ComPWA/mirrors-taplo
+    rev: v0.8.0
+    hooks:
+      - id: taplo
