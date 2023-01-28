@@ -87,7 +87,7 @@ if TYPE_CHECKING:
     try:
         from IPython.lib.pretty import PrettyPrinter
     except ImportError:
-        PrettyPrinter = Any
+        PrettyPrinter = Any  # type: ignore[assignment,misc]
 
 
 class SolvingMode(Enum):
@@ -821,7 +821,7 @@ class StateTransitionCollection(abc.Sequence):
             with p.group(indent=2, open=f"{class_name}(transitions=("):
                 for transition in self:
                     p.breakable()
-                    p.pretty(transition)
+                    p.pretty(transition)  # type: ignore[attr-defined]
                     p.text(",")
             p.breakable()
             p.text("))")
@@ -922,13 +922,13 @@ class ReactionInfo:
                 with p.group(indent=2, open="("):
                     for transition_grouping in self.transition_groups:
                         p.breakable()
-                        p.pretty(transition_grouping)
+                        p.pretty(transition_grouping)  # type: ignore[attr-defined]
                         p.text(",")
                 p.breakable()
                 p.text("),")
                 p.breakable()
                 p.text("formalism=")
-                p.pretty(self.formalism)
+                p.pretty(self.formalism)  # type: ignore[attr-defined]
                 p.text(",")
             p.breakable()
             p.text(")")

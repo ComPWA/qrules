@@ -26,6 +26,7 @@ include = '\.pyi?$'
 preview = true
 target-version = [
     "py310",
+    "py311",
     "py36",
     "py37",
     "py38",
