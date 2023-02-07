@@ -403,9 +403,9 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             # if a list of intermediate states is given by user,
             # built a domain based on these states
             if self.__user_allowed_intermediate_particles:
-                intermediate_edge_domains: Dict[
-                    Type[EdgeQuantumNumber], Set
-                ] = defaultdict(set)
+                intermediate_edge_domains: Dict[Type[EdgeQuantumNumber], Set] = (
+                    defaultdict(set)
+                )
                 intermediate_edge_domains[EdgeQuantumNumbers.spin_projection].update(
                     self.interaction_type_settings[InteractionType.WEAK][0].qn_domains[
                         EdgeQuantumNumbers.spin_projection

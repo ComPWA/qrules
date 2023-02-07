@@ -469,9 +469,9 @@ class CSPSolver(Solver):
         self.__node_rules: Dict[int, Set[Rule]] = defaultdict(set)
         self.__non_executable_node_rules: Dict[int, Set[Rule]] = defaultdict(set)
         self.__edge_rules: Dict[int, Set[GraphElementRule]] = defaultdict(set)
-        self.__non_executable_edge_rules: Dict[
-            int, Set[GraphElementRule]
-        ] = defaultdict(set)
+        self.__non_executable_edge_rules: Dict[int, Set[GraphElementRule]] = (
+            defaultdict(set)
+        )
         self.__problem = Problem(BacktrackingSolver(True))
         self.__allowed_intermediate_particles = allowed_intermediate_particles
         self.__scoresheet = Scoresheet()
@@ -588,9 +588,11 @@ class CSPSolver(Solver):
         ) -> List[Rule]:
             # first add priorities to the entries
             priority_list = [
-                (x, graph_element_settings.rule_priorities[type(x)])
-                if type(x) in graph_element_settings.rule_priorities
-                else (x, 1)
+                (
+                    (x, graph_element_settings.rule_priorities[type(x)])
+                    if type(x) in graph_element_settings.rule_priorities
+                    else (x, 1)
+                )
                 for x in graph_element_settings.conservation_rules
             ]
             # then sort according to priority
@@ -879,9 +881,9 @@ class _GraphElementConstraint(
         """
         self.__qns.update(list(fixed_variables.values())[0])
         for element_id, qn_type in variables:
-            self.__var_string_to_data[
-                _create_variable_string(element_id, qn_type)
-            ] = qn_type
+            self.__var_string_to_data[_create_variable_string(element_id, qn_type)] = (
+                qn_type
+            )
             self.__qns.update({qn_type: None})
 
     def __call__(
