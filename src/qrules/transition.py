@@ -407,9 +407,9 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             # if a list of intermediate states is given by user,
             # built a domain based on these states
             if self.__user_allowed_intermediate_particles:
-                intermediate_edge_domains: Dict[
-                    Type[EdgeQuantumNumber], Set
-                ] = defaultdict(set)
+                intermediate_edge_domains: Dict[Type[EdgeQuantumNumber], Set] = (
+                    defaultdict(set)
+                )
                 intermediate_edge_domains[EdgeQuantumNumbers.spin_projection].update(
                     self.interaction_type_settings[InteractionType.WEAK][0].qn_domains[
                         EdgeQuantumNumbers.spin_projection
@@ -780,8 +780,8 @@ class StateTransitionCollection(abc.Sequence):
     final_state: FrozenDict[int, Particle] = field(init=False, repr=False)
 
     def __attrs_post_init__(self) -> None:
-        if not any(self.transitions):
-            ValueError(f"At least one {StateTransition.__name__} required")
+        if len(self.transitions) == 0:
+            raise ValueError(f"At least one {StateTransition.__name__} required")
         some_transition = next(iter(self.transitions))
         topology = some_transition.topology
         if any(t.topology != topology for t in self.transitions):
@@ -890,7 +890,9 @@ class ReactionInfo:
 
     def __attrs_post_init__(self) -> None:
         if len(self.transition_groups) == 0:
-            ValueError(f"At least one {StateTransitionCollection.__name__} required")
+            raise ValueError(
+                f"At least one {StateTransitionCollection.__name__} required"
+            )
         transitions: List[StateTransition] = []
         for grouping in self.transition_groups:
             transitions.extend(sorted(grouping))
