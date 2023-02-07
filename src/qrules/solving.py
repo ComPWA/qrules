@@ -589,7 +589,7 @@ class CSPSolver(Solver):
             # first add priorities to the entries
             priority_list = [
                 (
-                    (x, graph_element_settings.rule_priorities[type(x)])
+                    (x, graph_element_settings.rule_priorities[type(x)])  # type: ignore[index]
                     if type(x) in graph_element_settings.rule_priorities
                     else (x, 1)
                 )
@@ -610,9 +610,7 @@ class CSPSolver(Solver):
                 edge_qns, node_qns = get_required_qns(rule)
 
                 edge_vars, fixed_edge_vars = self.__create_edge_variables(
-                    [
-                        edge_id,
-                    ],
+                    [edge_id],
                     edge_qns,
                     problem_set,
                 )
