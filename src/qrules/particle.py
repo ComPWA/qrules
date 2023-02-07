@@ -441,21 +441,27 @@ def create_particle(  # pylint: disable=too-many-arguments,too-many-locals
         charmness=charmness if charmness else template_particle.charmness,
         bottomness=bottomness if bottomness else template_particle.bottomness,
         topness=topness if topness else template_particle.topness,
-        baryon_number=baryon_number
-        if baryon_number
-        else template_particle.baryon_number,
-        electron_lepton_number=electron_lepton_number
-        if electron_lepton_number
-        else template_particle.electron_lepton_number,
-        muon_lepton_number=muon_lepton_number
-        if muon_lepton_number
-        else template_particle.muon_lepton_number,
-        tau_lepton_number=tau_lepton_number
-        if tau_lepton_number
-        else template_particle.tau_lepton_number,
-        isospin=template_particle.isospin
-        if isospin is None
-        else template_particle.isospin,
+        baryon_number=(
+            baryon_number if baryon_number else template_particle.baryon_number
+        ),
+        electron_lepton_number=(
+            electron_lepton_number
+            if electron_lepton_number
+            else template_particle.electron_lepton_number
+        ),
+        muon_lepton_number=(
+            muon_lepton_number
+            if muon_lepton_number
+            else template_particle.muon_lepton_number
+        ),
+        tau_lepton_number=(
+            tau_lepton_number
+            if tau_lepton_number
+            else template_particle.tau_lepton_number
+        ),
+        isospin=(
+            template_particle.isospin if isospin is None else template_particle.isospin
+        ),
         parity=template_particle.parity if parity is None else Parity(parity),
         c_parity=template_particle.c_parity if c_parity is None else Parity(c_parity),
         g_parity=template_particle.g_parity if g_parity is None else Parity(g_parity),

@@ -149,9 +149,9 @@ def test_external_edge_initialization(
             {
                 EdgeQuantumNumbers.pid: 411,
                 EdgeQuantumNumbers.mass: 1.86966,
-                EdgeQuantumNumbers.width: 6.33e-13
-                if sys.version_info < (3, 7)
-                else 6.37e-13,
+                EdgeQuantumNumbers.width: (
+                    6.33e-13 if sys.version_info < (3, 7) else 6.37e-13
+                ),
                 EdgeQuantumNumbers.spin_magnitude: 0.0,
                 EdgeQuantumNumbers.spin_projection: 0,
                 EdgeQuantumNumbers.charge: 1,
