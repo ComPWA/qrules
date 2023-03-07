@@ -318,6 +318,9 @@ copybutton_prompt_text = r">>> |\.\.\. "  # doctest
 
 # Settings for linkcheck
 linkcheck_anchors = False
+linkcheck_ignore = [
+    "https://doi.org/10.1002/andp.19955070504",  # 403 for onlinelibrary.wiley.com
+]
 
 # Settings for myst_nb
 nb_execution_show_tb = True
