@@ -119,15 +119,18 @@ maxdepth: 2
 install
 usage
 references
+```
+
+```{toctree}
+---
+hidden:
+maxdepth: 2
+---
 API <api/qrules>
 Changelog <https://github.com/ComPWA/qrules/releases>
 Upcoming features <https://github.com/ComPWA/qrules/milestones?direction=asc&sort=title&state=open>
 Help developing <https://compwa-org.readthedocs.io/en/stable/develop.html>
 ```
-
-- {ref}`Python API <modindex>`
-- {ref}`General Index <genindex>`
-- {ref}`Search <search>`
 
 ```{toctree}
 ---
