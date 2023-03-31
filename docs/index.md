@@ -140,14 +140,5 @@ hidden:
 AmpForm <https://ampform.readthedocs.io>
 TensorWaves <https://tensorwaves.readthedocs.io>
 PWA Pages <https://pwa.readthedocs.io>
-```
-
-```{toctree}
----
-caption: ComPWA Organization
-hidden:
----
-Website <https://compwa-org.readthedocs.io>
-GitHub Repositories <https://github.com/ComPWA>
-About <https://compwa-org.readthedocs.io/en/stable/about.html>
+ComPWA project <https://compwa-org.readthedocs.io>
 ```
