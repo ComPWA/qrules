@@ -56,6 +56,15 @@ def get_branch_name() -> str:
     return branch_name
 
 
+def get_execution_mode() -> str:
+    if "FORCE_EXECUTE_NB" in os.environ:
+        print("\033[93;1mWill run ALL Jupyter notebooks!\033[0m")
+        return "force"
+    if "EXECUTE_NB" in os.environ:
+        return "cache"
+    return "off"
+
+
 BRANCH = get_branch_name()
 
 try:
@@ -363,14 +372,10 @@ linkcheck_ignore = [
 ]
 
 # Settings for myst_nb
+nb_execution_mode = get_execution_mode()
 nb_execution_show_tb = True
 nb_execution_timeout = -1
 nb_output_stderr = "remove"
-
-nb_execution_mode = "off"
-if "EXECUTE_NB" in os.environ:
-    print("\033[93;1mWill run Jupyter notebooks!\033[0m")
-    nb_execution_mode = "cache"
 
 # Settings for myst-parser
 myst_enable_extensions = [
