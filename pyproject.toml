@@ -25,20 +25,21 @@ exclude = '''
 include = '\.pyi?$'
 preview = true
 target-version = [
+    "py310",
+    "py311",
     "py36",
     "py37",
     "py38",
     "py39",
-    "py310",
 ]
 
 [tool.isort]
+known_third_party = "THIRDPARTY,particle"
 profile = "black"
 src_paths = [
     "src",
     "tests",
 ]
-known_third_party = "THIRDPARTY,particle"
 
 [tool.nbqa.addopts]
 black = [

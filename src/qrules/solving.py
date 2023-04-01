@@ -178,8 +178,10 @@ class QNResult:
     def __attrs_post_init__(self) -> None:
         if self.solutions and (self.violated_node_rules or self.violated_edge_rules):
             raise ValueError(
-                f"Invalid {type(self).__name__}! Found"
-                f" {len(self.solutions)} solutions, but also violated rules.",
+                (
+                    f"Invalid {type(self).__name__}! Found"
+                    f" {len(self.solutions)} solutions, but also violated rules."
+                ),
                 self.violated_node_rules,
                 self.violated_edge_rules,
             )
@@ -467,9 +469,9 @@ class CSPSolver(Solver):
         self.__node_rules: Dict[int, Set[Rule]] = defaultdict(set)
         self.__non_executable_node_rules: Dict[int, Set[Rule]] = defaultdict(set)
         self.__edge_rules: Dict[int, Set[GraphElementRule]] = defaultdict(set)
-        self.__non_executable_edge_rules: Dict[
-            int, Set[GraphElementRule]
-        ] = defaultdict(set)
+        self.__non_executable_edge_rules: Dict[int, Set[GraphElementRule]] = (
+            defaultdict(set)
+        )
         self.__problem = Problem(BacktrackingSolver(True))
         self.__allowed_intermediate_states = tuple(allowed_intermediate_states)
         self.__scoresheet = Scoresheet()
@@ -586,9 +588,11 @@ class CSPSolver(Solver):
         ) -> List[Rule]:
             # first add priorities to the entries
             priority_list = [
-                (x, graph_element_settings.rule_priorities[type(x)])
-                if type(x) in graph_element_settings.rule_priorities
-                else (x, 1)
+                (
+                    (x, graph_element_settings.rule_priorities[type(x)])  # type: ignore[index]
+                    if type(x) in graph_element_settings.rule_priorities
+                    else (x, 1)
+                )
                 for x in graph_element_settings.conservation_rules
             ]
             # then sort according to priority
@@ -606,9 +610,7 @@ class CSPSolver(Solver):
                 edge_qns, node_qns = get_required_qns(rule)
 
                 edge_vars, fixed_edge_vars = self.__create_edge_variables(
-                    [
-                        edge_id,
-                    ],
+                    [edge_id],
                     edge_qns,
                     problem_set,
                 )
@@ -732,7 +734,10 @@ class CSPSolver(Solver):
         and final state edges. Otherwise the edges are initialized with the specified
         domains of that quantum number.
         """
-        variables: Tuple[Set[_EdgeVariableInfo], Dict[int, GraphEdgePropertyMap],] = (
+        variables: Tuple[
+            Set[_EdgeVariableInfo],
+            Dict[int, GraphEdgePropertyMap],
+        ] = (
             set(),
             {},
         )
@@ -874,9 +879,9 @@ class _GraphElementConstraint(
         """
         self.__qns.update(list(fixed_variables.values())[0])
         for element_id, qn_type in variables:
-            self.__var_string_to_data[
-                _create_variable_string(element_id, qn_type)
-            ] = qn_type
+            self.__var_string_to_data[_create_variable_string(element_id, qn_type)] = (
+                qn_type
+            )
             self.__qns.update({qn_type: None})
 
     def __call__(

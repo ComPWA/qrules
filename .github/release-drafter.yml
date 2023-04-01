@@ -7,7 +7,7 @@ references:
 
 categories:
   - title: ✨ New features
-    label: 💡 Feature
+    label: ✨ Feature
   - title: ⚠️ Enhancements and optimizations
     label: ⚙️ Enhancement
   - title: ⚠️ API changes
@@ -35,3 +35,5 @@ template: |
   _See all documentation for this version [here](https://qrules.rtfd.io/en/$NEXT_PATCH_VERSION)._
 
   $CHANGES
+
+  _The full changelog as commits can be found [here](https://github.com/ComPWA/qrules/compare/$PREVIOUS_TAG...$NEXT_PATCH_VERSION)._

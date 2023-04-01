@@ -147,8 +147,10 @@ class _SolutionContainer:
             or self.execution_info.violated_edge_rules
         ):
             raise ValueError(
-                f"Invalid {type(self).__name__}! Found"
-                f" {len(self.solutions)} solutions, but also violated rules.",
+                (
+                    f"Invalid {type(self).__name__}! Found"
+                    f" {len(self.solutions)} solutions, but also violated rules."
+                ),
                 self.execution_info.violated_node_rules,
                 self.execution_info.violated_edge_rules,
             )
@@ -401,9 +403,9 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             # if a list of intermediate states is given by user,
             # built a domain based on these states
             if self.__user_allowed_intermediate_particles:
-                intermediate_edge_domains: Dict[
-                    Type[EdgeQuantumNumber], Set
-                ] = defaultdict(set)
+                intermediate_edge_domains: Dict[Type[EdgeQuantumNumber], Set] = (
+                    defaultdict(set)
+                )
                 intermediate_edge_domains[EdgeQuantumNumbers.spin_projection].update(
                     self.interaction_type_settings[InteractionType.WEAK][0].qn_domains[
                         EdgeQuantumNumbers.spin_projection
@@ -500,8 +502,10 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         results = self._find_particle_transitions(problem_sets)
         for strength, result in results.items():
             logging.info(
-                f"Number of solutions for strength {strength} after"
-                f"QN solving: {len(result.solutions)}",
+                (
+                    f"Number of solutions for strength {strength} after"
+                    f"QN solving: {len(result.solutions)}"
+                ),
             )
 
         final_result = _SolutionContainer()

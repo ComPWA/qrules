@@ -2,13 +2,11 @@ ci:
   autoupdate_commit_msg: "MAINT: update pip constraints and pre-commit"
   autoupdate_schedule: quarterly # already done by requirements-cron.yml
   skip:
-    # local hooks
     - flake8
     - mypy
     - pylint
-    # hooks that don't work on pre-commit.ci
-    - editorconfig-checker
     - pyright
+    - taplo
 
 repos:
   - repo: meta
@@ -40,11 +38,14 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/ComPWA/repo-maintenance
-    rev: 0.0.159
+    rev: 0.0.171
     hooks:
       - id: check-dev-files
         args:
+          - --doc-apt-packages=graphviz
           - --pin-requirements=monthly
+          - --repo-name=qrules
+          - --repo-title=QRules
       - id: fix-nbformat-version
       - id: format-setup-cfg
       - id: set-nb-cells
@@ -53,32 +54,35 @@ repos:
           - --additional-packages=IPython
           - --extras-require=doc,viz
 
+  - repo: https://github.com/nbQA-dev/nbQA
+    rev: 1.6.4
+    hooks:
+      - id: nbqa-black
+        additional_dependencies:
+          - black>=22.1.0
+      - id: nbqa-flake8
+      - id: nbqa-isort
+      - id: nbqa-pyupgrade
+        args:
+          - --py36-plus
+
   - repo: https://github.com/psf/black
-    rev: 22.10.0
+    rev: 23.1.0
     hooks:
       - id: black
 
   - repo: https://github.com/asottile/blacken-docs
-    rev: v1.12.1
+    rev: 1.13.0
     hooks:
       - id: blacken-docs
 
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v6.14.1
+    rev: v6.31.0
     hooks:
       - id: cspell
 
-  - repo: https://github.com/myint/docformatter
-    rev: v1.5.0
-    hooks:
-      - id: docformatter
-        args:
-          - --in-place
-          - --wrap-descriptions=88
-          - --wrap-summaries=88
-
   - repo: https://github.com/editorconfig-checker/editorconfig-checker.python
-    rev: 2.6.1
+    rev: 2.7.1
     hooks:
       - id: editorconfig-checker
         name: editorconfig
@@ -100,12 +104,12 @@ repos:
           - python
 
   - repo: https://github.com/pycqa/isort
-    rev: 5.10.1
+    rev: 5.12.0
     hooks:
       - id: isort
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.32.2
+    rev: v0.33.0
     hooks:
       - id: markdownlint
 
@@ -118,18 +122,6 @@ repos:
         require_serial: true
         types:
           - python
-
-  - repo: https://github.com/nbQA-dev/nbQA
-    rev: 1.5.3
-    hooks:
-      - id: nbqa-black
-        additional_dependencies:
-          - black>=22.1.0
-      - id: nbqa-flake8
-      - id: nbqa-isort
-      - id: nbqa-pyupgrade
-        args:
-          - --py36-plus
 
   - repo: https://github.com/kynan/nbstripout
     rev: 0.6.1
@@ -154,12 +146,12 @@ repos:
             metadata.vscode
 
   - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v3.0.0-alpha.4
+    rev: v3.0.0-alpha.6
     hooks:
       - id: prettier
 
   - repo: https://github.com/pycqa/pydocstyle
-    rev: 6.1.1
+    rev: 6.3.0
     hooks:
       - id: pydocstyle
 
@@ -177,13 +169,18 @@ repos:
           - python
 
   - repo: https://github.com/ComPWA/mirrors-pyright
-    rev: v1.1.281
+    rev: v1.1.300
     hooks:
       - id: pyright
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.2.2
+    rev: v3.3.1
     hooks:
       - id: pyupgrade
         args:
           - --py36-plus
+
+  - repo: https://github.com/ComPWA/mirrors-taplo
+    rev: v0.8.0
+    hooks:
+      - id: taplo

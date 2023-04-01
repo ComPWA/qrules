@@ -55,9 +55,11 @@
       "url": "https://zenodo.org/schemas/deposits/records/legacyrecord.json"
     }
   ],
+  "livePreview.defaultPreviewPath": "docs/_build/html",
   "pylint.importStrategy": "fromEnvironment",
   "python.analysis.autoImportCompletions": false,
   "python.analysis.diagnosticMode": "workspace",
+  "python.analysis.inlayHints.pytestParameters": true,
   "python.analysis.typeCheckingMode": "strict",
   "python.formatting.provider": "black",
   "python.linting.banditEnabled": false,
@@ -76,9 +78,9 @@
     "*/.pydocstyle": true,
     ".constraints/*.txt": true
   },
-  "telemetry.telemetryLevel": "off",
   "yaml.schemas": {
     "./src/qrules/particle-validation.json": ["*particle*.y*ml"],
+    "https://json.schemastore.org/github-workflow.json": "./.github/workflows/requirements.yml",
     "https://raw.githubusercontent.com/readthedocs/readthedocs.org/master/readthedocs/rtd_tests/fixtures/spec/v2/schema.yml": ".readthedocs.yml"
   }
 }

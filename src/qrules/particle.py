@@ -39,13 +39,9 @@ from .conservation_rules import GellMannNishijimaInput, gellmann_nishijima
 from .quantum_numbers import Parity, _to_fraction
 
 if TYPE_CHECKING:
+    from IPython.lib.pretty import PrettyPrinter
     from particle import Particle as PdgDatabase
     from particle.particle import enums
-
-    try:
-        from IPython.lib.pretty import PrettyPrinter
-    except ImportError:
-        PrettyPrinter = Any
 
 
 def _to_float(value: SupportsFloat) -> float:
@@ -234,7 +230,7 @@ class Particle:  # pylint: disable=too-many-instance-attributes
                         if isinstance(value, Parity):
                             p.text(_to_fraction(int(value), render_plus=True))
                         else:
-                            p.pretty(value)
+                            p.pretty(value)  # type: ignore[attr-defined]
                         p.text(",")
             p.breakable()
             p.text(")")
@@ -325,7 +321,7 @@ class ParticleCollection(abc.MutableSet):
             with p.group(indent=2, open=f"{class_name}({{"):
                 for particle in self:
                     p.breakable()
-                    p.pretty(particle)
+                    p.pretty(particle)  # type: ignore[attr-defined]
                     p.text(",")
             p.breakable()
             p.text("})")
@@ -335,8 +331,10 @@ class ParticleCollection(abc.MutableSet):
             equivalent_particles = {p for p in self if p == value}
             equivalent_particle = next(iter(equivalent_particles))
             raise ValueError(
-                f'Added particle "{value.name}" is equivalent to '
-                f'existing particle "{equivalent_particle.name}"',
+                (
+                    f'Added particle "{value.name}" is equivalent to '
+                    f'existing particle "{equivalent_particle.name}"'
+                ),
             )
         if value.name in self.__particles:
             logging.warning(f'Overwriting particle with name "{value.name}"')
@@ -443,21 +441,27 @@ def create_particle(  # pylint: disable=too-many-arguments,too-many-locals
         charmness=charmness if charmness else template_particle.charmness,
         bottomness=bottomness if bottomness else template_particle.bottomness,
         topness=topness if topness else template_particle.topness,
-        baryon_number=baryon_number
-        if baryon_number
-        else template_particle.baryon_number,
-        electron_lepton_number=electron_lepton_number
-        if electron_lepton_number
-        else template_particle.electron_lepton_number,
-        muon_lepton_number=muon_lepton_number
-        if muon_lepton_number
-        else template_particle.muon_lepton_number,
-        tau_lepton_number=tau_lepton_number
-        if tau_lepton_number
-        else template_particle.tau_lepton_number,
-        isospin=template_particle.isospin
-        if isospin is None
-        else template_particle.isospin,
+        baryon_number=(
+            baryon_number if baryon_number else template_particle.baryon_number
+        ),
+        electron_lepton_number=(
+            electron_lepton_number
+            if electron_lepton_number
+            else template_particle.electron_lepton_number
+        ),
+        muon_lepton_number=(
+            muon_lepton_number
+            if muon_lepton_number
+            else template_particle.muon_lepton_number
+        ),
+        tau_lepton_number=(
+            tau_lepton_number
+            if tau_lepton_number
+            else template_particle.tau_lepton_number
+        ),
+        isospin=(
+            template_particle.isospin if isospin is None else template_particle.isospin
+        ),
         parity=template_particle.parity if parity is None else Parity(parity),
         c_parity=template_particle.c_parity if c_parity is None else Parity(c_parity),
         g_parity=template_particle.g_parity if g_parity is None else Parity(g_parity),
@@ -504,8 +508,8 @@ def create_antiparticle(
 def load_pdg() -> ParticleCollection:
     """Create a `.ParticleCollection` with all entries from the PDG.
 
-    PDG info is imported from the `scikit-hep/particle <https://github.com/scikit-
-    hep/particle>`_ package.
+    PDG info is imported from the `scikit-hep/particle
+    <https://github.com/scikit-hep/particle>`_ package.
     """
     from particle import Particle as PdgDatabase
 
