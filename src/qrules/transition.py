@@ -563,21 +563,18 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         self, problem_sets: Dict[float, List[ProblemSet]]
     ) -> Dict[float, _SolutionContainer]:
         qn_results = self.find_quantum_number_transitions(problem_sets)
-        results: Dict[float, _SolutionContainer] = {}
+        results: Dict[float, _SolutionContainer] = defaultdict(_SolutionContainer)
         for strength, qn_solutions in qn_results.items():
             for qn_problem_set, qn_result in qn_solutions:
                 particle_result = self.__convert_to_particle_definitions(
                     qn_problem_set.topology,
                     qn_result,
                 )
-                if strength not in results:
-                    results[strength] = particle_result
-                else:
-                    results[strength].extend(
-                        particle_result,
-                        intersect_violations=True,
-                    )
-        return results
+                results[strength].extend(
+                    particle_result,
+                    intersect_violations=True,
+                )
+        return dict(results)
 
     def find_quantum_number_transitions(
         self, problem_sets: Dict[float, List[ProblemSet]]
