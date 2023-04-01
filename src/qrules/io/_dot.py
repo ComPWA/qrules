@@ -16,7 +16,7 @@ from attrs.converters import default_if_none
 
 from qrules.particle import Particle, ParticleWithSpin, Spin
 from qrules.quantum_numbers import InteractionProperties, _to_fraction
-from qrules.solving import EdgeSettings, NodeSettings
+from qrules.solving import EdgeSettings, NodeSettings, QNProblemSet, QNResult
 from qrules.topology import FrozenTransition, MutableTransition, Topology, Transition
 from qrules.transition import ProblemSet, ReactionInfo, State
 
@@ -77,13 +77,15 @@ class GraphPrinter:
         ]
 
     def _render(self, obj: Any) -> List[str]:
+        if isinstance(obj, QNResult):
+            obj = obj.solutions
         if isinstance(obj, ReactionInfo):
             obj = obj.transitions
         if isinstance(obj, abc.Iterable):
             return self._render_multiple_transitions(obj)
-        if isinstance(obj, (ProblemSet, Topology, Transition)):
+        if isinstance(obj, (ProblemSet, QNProblemSet, Topology, Transition)):
             return self._render_transition(obj)
-        raise NotImplementedError
+        raise NotImplementedError(f"No DOT rendering for type {type(obj).__name__}")
 
     def _render_multiple_transitions(self, obj: Iterable) -> List[str]:
         if self.collapse_graphs:
@@ -102,15 +104,17 @@ class GraphPrinter:
 
     def _render_transition(
         self,
-        obj: Union[ProblemSet, Topology, Transition],
+        obj: Union[ProblemSet, QNProblemSet, Topology, Transition],
         prefix: str = "",
     ) -> List[str]:
         # pylint: disable=too-many-branches,too-many-locals,too-many-statements
         lines: List[str] = []
         if isinstance(obj, tuple) and len(obj) == 2:
             topology: Topology = obj[0]
-            rendered_graph: Union[ProblemSet, Topology, Transition] = obj[1]
-        elif isinstance(obj, (ProblemSet, Transition)):
+            rendered_graph: Union[ProblemSet, QNProblemSet, Topology, Transition] = obj[
+                1
+            ]
+        elif isinstance(obj, (ProblemSet, QNProblemSet, Transition)):
             rendered_graph = obj
             topology = obj.topology
         elif isinstance(obj, Topology):
@@ -137,7 +141,7 @@ class GraphPrinter:
             else:
                 label = _create_edge_label(rendered_graph, i, self.render_resonance_id)
                 lines += [self._create_graphviz_edge(from_node, to_node, label)]
-        if isinstance(obj, ProblemSet):
+        if isinstance(obj, (ProblemSet, QNProblemSet)):
             node_settings = obj.solving_settings.interactions
             for node_id, settings in node_settings.items():
                 label = ""
@@ -238,7 +242,7 @@ def _create_same_rank_line(node_edge_ids: Iterable[int], prefix: str = "") -> st
 
 
 def _create_edge_label(
-    graph: Union[ProblemSet, Topology, Transition],
+    graph: Union[ProblemSet, QNProblemSet, Topology, Transition],
     edge_id: int,
     render_edge_id: bool,
 ) -> str:
@@ -246,14 +250,14 @@ def _create_edge_label(
         if render_edge_id:
             return str(edge_id)
         return ""
-    if isinstance(graph, ProblemSet):
+    if isinstance(graph, (ProblemSet, QNProblemSet)):
         edge_setting = graph.solving_settings.states.get(edge_id)
         initial_fact = graph.initial_facts.states.get(edge_id)
         edge_property: Optional[Union[EdgeSettings, ParticleWithSpin]] = None
         if edge_setting:
             edge_property = edge_setting
         if initial_fact:
-            edge_property = initial_fact
+            edge_property = initial_fact  # type: ignore[assignment]
         return __render_edge_with_id(edge_id, edge_property, render_edge_id)
     edge_prop = graph.states.get(edge_id)
     return __render_edge_with_id(edge_id, edge_prop, render_edge_id)
