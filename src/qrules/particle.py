@@ -388,7 +388,7 @@ class ParticleCollection(abc.MutableSet):
         ...     and p.spin == 2
         ...     and p.strangeness == 1
         ... )
-        >>> sorted(list(subset.names))
+        >>> sorted(subset.names)
         ['K(2)(1820)+', 'K(2)(1820)0', 'K(2)*(1980)+', 'K(2)*(1980)0']
         """
         return ParticleCollection({particle for particle in self if function(particle)})
