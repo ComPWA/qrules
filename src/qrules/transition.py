@@ -322,16 +322,15 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             )
 
         self.__intermediate_particle_filters = allowed_intermediate_particles
-        self.__allowed_intermediate_states: List[GraphEdgePropertyMap] = []
-        if allowed_intermediate_particles is not None:
-            self.set_allowed_intermediate_particles(allowed_intermediate_particles)
-        else:
-            self.__allowed_intermediate_states = [
+        if allowed_intermediate_particles is None:
+            self.__allowed_intermediate_states: List[GraphEdgePropertyMap] = [
                 create_edge_properties(x) for x in self.__particles
             ]
+        else:
+            self.set_allowed_intermediate_particles(allowed_intermediate_particles)
 
     def set_allowed_intermediate_particles(self, name_patterns: Iterable[str]) -> None:
-        self.__allowed_intermediate_states = []
+        selected_particles = ParticleCollection()
         for pattern in name_patterns:
             # pylint: disable=cell-var-from-loop
             matches = self.__particles.filter(lambda p: pattern in p.name)  # noqa: B023
@@ -340,9 +339,11 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
                     "Could not find any matches for allowed intermediate"
                     f' particle pattern "{pattern}"'
                 )
-            self.__allowed_intermediate_states += [
-                create_edge_properties(x) for x in matches
-            ]
+            selected_particles.update(matches)
+        self.__allowed_intermediate_states = [
+            create_edge_properties(x)
+            for x in sorted(selected_particles, key=lambda p: p.name)
+        ]
 
     @property
     def formalism(self) -> str:
