@@ -331,8 +331,10 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             self.set_allowed_intermediate_particles(allowed_intermediate_particles)
 
     def set_allowed_intermediate_particles(
-        self, name_patterns: Iterable[str], regex: bool = False
+        self, name_patterns: Union[Iterable[str], str], regex: bool = False
     ) -> None:
+        if isinstance(name_patterns, str):
+            name_patterns = [name_patterns]
         selected_particles = ParticleCollection()
         for pattern in name_patterns:
             # pylint: disable=cell-var-from-loop

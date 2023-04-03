@@ -75,7 +75,7 @@ class TestStateTransitionManager:
             LookupError,
             match=r"Could not find any matches for allowed intermediate particle",
         ):
-            stm.set_allowed_intermediate_particles([particle_name])
+            stm.set_allowed_intermediate_particles(particle_name)
 
     def test_regex_pattern(self):
         stm = StateTransitionManager(
@@ -95,7 +95,7 @@ class TestStateTransitionManager:
             "Delta(1920)++",
         ]
 
-        stm.set_allowed_intermediate_particles([r"^Delta\(\d(60|9[02])0\)"], regex=True)
+        stm.set_allowed_intermediate_particles(r"^Delta\(\d(60|9[02])0\)", regex=True)
         problem_sets = stm.create_problem_sets()
         reaction = stm.find_solutions(problem_sets)
         assert reaction.get_intermediate_particles().names == [
