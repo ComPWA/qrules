@@ -38,7 +38,7 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/ComPWA/repo-maintenance
-    rev: 0.0.171
+    rev: 0.0.175
     hooks:
       - id: check-dev-files
         args:
@@ -86,12 +86,10 @@ repos:
     hooks:
       - id: editorconfig-checker
         name: editorconfig
-        exclude: >
+        alias: ec
+        exclude: >-
           (?x)^(
-            .*\.ipynb|
-            .*\.md|
-            .*\.py|
-            LICENSE
+            .*\.py
           )$
 
   - repo: local
@@ -132,6 +130,7 @@ repos:
           - |
             cell.metadata.code_folding
             cell.metadata.id
+            cell.metadata.user_expressions
             metadata.celltoolbar
             metadata.colab.name
             metadata.colab.provenance
