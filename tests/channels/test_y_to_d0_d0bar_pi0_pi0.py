@@ -62,6 +62,6 @@ def test_resonance_filter(particle_database):
     assert result.get_intermediate_particles().names == [
         "D*(2007)0",
         "D*(2007)~0",
-        "D(0)*(2300)~0",
         "D(0)*(2300)0",
+        "D(0)*(2300)~0",
     ]
