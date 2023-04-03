@@ -6,22 +6,20 @@ def test_resonances():
     stm = StateTransitionManager(
         initial_state=["Lambda(c)+"],
         final_state=["p", "K-", "pi+"],
-        allowed_intermediate_particles=["Delta", "K", "Lambda"],
         mass_conservation_factor=0.6,
         max_angular_momentum=2,
     )
     stm.set_allowed_interaction_types([InteractionType.STRONG], node_id=1)
+    stm.set_allowed_intermediate_particles([r"Delta..(?!9)", r"^K", r"^L"], regex=True)
     problem_sets = stm.create_problem_sets()
     reaction = stm.find_solutions(problem_sets)
     resonances = reaction.get_intermediate_particles().names
+    # https://lc2pkpi-polarimetry.docs.cern.ch/amplitude-model.html#resonances-and-ls-scheme
     assert resonances == [
         "Delta(1232)++",
         "Delta(1600)++",
         "Delta(1620)++",
         "Delta(1700)++",
-        "Delta(1900)++",
-        "Delta(1910)++",
-        "Delta(1920)++",
         "K(0)*(700)~0",
         "K*(892)~0",
         "K*(1410)~0",
