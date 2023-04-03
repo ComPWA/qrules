@@ -321,7 +321,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
                 max_spin_magnitude=max_spin_magnitude,
             )
 
-        self.__user_allowed_intermediate_particles = allowed_intermediate_particles
+        self.__intermediate_particle_filters = allowed_intermediate_particles
         self.__allowed_intermediate_states: List[GraphEdgePropertyMap] = []
         if allowed_intermediate_particles is not None:
             self.set_allowed_intermediate_particles(allowed_intermediate_particles)
@@ -330,17 +330,15 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
                 create_edge_properties(x) for x in self.__particles
             ]
 
-    def set_allowed_intermediate_particles(self, particle_names: List[str]) -> None:
+    def set_allowed_intermediate_particles(self, name_patterns: Iterable[str]) -> None:
         self.__allowed_intermediate_states = []
-        for particle_name in particle_names:
+        for pattern in name_patterns:
             # pylint: disable=cell-var-from-loop
-            matches = self.__particles.filter(
-                lambda p: particle_name in p.name  # noqa: B023
-            )
+            matches = self.__particles.filter(lambda p: pattern in p.name)  # noqa: B023
             if len(matches) == 0:
                 raise LookupError(
                     "Could not find any matches for allowed intermediate"
-                    f' particle "{particle_name}"'
+                    f' particle pattern "{pattern}"'
                 )
             self.__allowed_intermediate_states += [
                 create_edge_properties(x) for x in matches
@@ -432,7 +430,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         def create_intermediate_edge_qn_domains() -> Dict:
             # if a list of intermediate states is given by user,
             # built a domain based on these states
-            if self.__user_allowed_intermediate_particles:
+            if self.__intermediate_particle_filters is not None:
                 intermediate_edge_domains: Dict[Type[EdgeQuantumNumber], Set] = (
                     defaultdict(set)
                 )
