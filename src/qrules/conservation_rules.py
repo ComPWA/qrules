@@ -182,6 +182,8 @@ def parity_conservation(
     l_magnitude: NodeQN.l_magnitude,
 ) -> bool:
     r"""Implement :math:`P_{in} = P_{out} \cdot (-1)^L`."""
+    if any(p is None for p in [*ingoing_edge_qns, *outgoing_edge_qns]):
+        return False
     if len(ingoing_edge_qns) == 1 and len(outgoing_edge_qns) == 2:
         parity_in = reduce(lambda x, y: x * y.value, ingoing_edge_qns, 1)
         parity_out = reduce(lambda x, y: x * y.value, outgoing_edge_qns, 1)
