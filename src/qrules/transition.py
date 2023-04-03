@@ -2,6 +2,7 @@
 """Find allowed transitions between an initial and final state."""
 
 import logging
+import re
 from collections import abc, defaultdict
 from copy import copy, deepcopy
 from enum import Enum, auto
@@ -324,30 +325,33 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
                 max_spin_magnitude=max_spin_magnitude,
             )
 
-        self.__user_allowed_intermediate_particles = allowed_intermediate_particles
-        self.__allowed_intermediate_particles: List[GraphEdgePropertyMap] = []
-        if allowed_intermediate_particles is not None:
-            self.set_allowed_intermediate_particles(allowed_intermediate_particles)
-        else:
-            self.__allowed_intermediate_particles = [
+        self.__intermediate_particle_filters = allowed_intermediate_particles
+        if allowed_intermediate_particles is None:
+            self.__allowed_intermediate_states: List[GraphEdgePropertyMap] = [
                 create_edge_properties(x) for x in self.__particles
             ]
+        else:
+            self.set_allowed_intermediate_particles(allowed_intermediate_particles)
 
-    def set_allowed_intermediate_particles(self, particle_names: List[str]) -> None:
-        self.__allowed_intermediate_particles = []
-        for particle_name in particle_names:
+    def set_allowed_intermediate_particles(
+        self, name_patterns: Union[Iterable[str], str], regex: bool = False
+    ) -> None:
+        if isinstance(name_patterns, str):
+            name_patterns = [name_patterns]
+        selected_particles = ParticleCollection()
+        for pattern in name_patterns:
             # pylint: disable=cell-var-from-loop
-            matches = self.__particles.filter(
-                lambda p: particle_name in p.name  # noqa: B023
-            )
+            matches = _filter_by_name_pattern(self.__particles, pattern, regex)
             if len(matches) == 0:
                 raise LookupError(
                     "Could not find any matches for allowed intermediate"
-                    f' particle "{particle_name}"'
+                    f' particle pattern "{pattern}"'
                 )
-            self.__allowed_intermediate_particles += [
-                create_edge_properties(x) for x in matches
-            ]
+            selected_particles.update(matches)
+        self.__allowed_intermediate_states = [
+            create_edge_properties(x)
+            for x in sorted(selected_particles, key=lambda p: p.name)
+        ]
 
     @property
     def formalism(self) -> str:
@@ -435,7 +439,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         def create_intermediate_edge_qn_domains() -> Dict:
             # if a list of intermediate states is given by user,
             # built a domain based on these states
-            if self.__user_allowed_intermediate_particles:
+            if self.__intermediate_particle_filters is not None:
                 intermediate_edge_domains: Dict[Type[EdgeQuantumNumber], Set] = (
                     defaultdict(set)
                 )
@@ -444,7 +448,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
                         EdgeQuantumNumbers.spin_projection
                     ]
                 )
-                for particle_props in self.__allowed_intermediate_particles:
+                for particle_props in self.__allowed_intermediate_states:
                     for edge_qn, qn_value in particle_props.items():
                         intermediate_edge_domains[edge_qn].add(qn_value)
 
@@ -638,9 +642,9 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         return ReactionInfo.from_graphs(final_solutions, self.formalism)
 
     def _solve(self, qn_problem_set: QNProblemSet) -> Tuple[QNProblemSet, QNResult]:
-        solver = CSPSolver(self.__allowed_intermediate_particles)
-
-        return (qn_problem_set, solver.find_solutions(qn_problem_set))
+        solver = CSPSolver(self.__allowed_intermediate_states)
+        solutions = solver.find_solutions(qn_problem_set)
+        return qn_problem_set, solutions
 
     def __convert_result(
         self, topology: Topology, qn_result: QNResult
@@ -684,6 +688,20 @@ def _safe_wrap_list(nested_list: Union[List[str], List[List[str]]]) -> List[List
     raise TypeError(
         f"Input final state grouping {nested_list} is not a list of lists of strings"
     )
+
+
+def _filter_by_name_pattern(
+    particles: ParticleCollection, pattern: str, regex: bool
+) -> ParticleCollection:
+    def match_regex(particle: Particle) -> bool:
+        return re.match(pattern, particle.name) is not None
+
+    def match_substring(particle: Particle) -> bool:
+        return pattern in particle.name
+
+    if regex:
+        return particles.filter(match_regex)
+    return particles.filter(match_substring)
 
 
 def _match_final_state_ids(

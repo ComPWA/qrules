@@ -14,6 +14,7 @@ from qrules.particle import (  # noqa: F401
     Spin,
 )
 from qrules.quantum_numbers import InteractionProperties  # noqa: F401
+from qrules.settings import InteractionType
 from qrules.topology import (  # noqa: F401
     Edge,
     FrozenDict,
@@ -203,4 +204,31 @@ class TestStateTransitionManager:
             LookupError,
             match=r"Could not find any matches for allowed intermediate particle",
         ):
-            stm.set_allowed_intermediate_particles([particle_name])
+            stm.set_allowed_intermediate_particles(particle_name)
+
+    def test_regex_pattern(self):
+        stm = StateTransitionManager(
+            initial_state=["Lambda(c)+"],
+            final_state=["p", "K-", "pi+"],
+            allowed_intermediate_particles=["Delta"],
+        )
+        stm.set_allowed_interaction_types([InteractionType.STRONG], node_id=1)
+        problem_sets = stm.create_problem_sets()
+        reaction = stm.find_solutions(problem_sets)
+        assert reaction.get_intermediate_particles().names == [
+            "Delta(1232)++",
+            "Delta(1600)++",
+            "Delta(1620)++",
+            "Delta(1900)++",
+            "Delta(1910)++",
+            "Delta(1920)++",
+        ]
+
+        stm.set_allowed_intermediate_particles(r"^Delta\(\d(60|9[02])0\)", regex=True)
+        problem_sets = stm.create_problem_sets()
+        reaction = stm.find_solutions(problem_sets)
+        assert reaction.get_intermediate_particles().names == [
+            "Delta(1600)++",
+            "Delta(1900)++",
+            "Delta(1920)++",
+        ]
