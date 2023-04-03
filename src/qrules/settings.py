@@ -105,6 +105,13 @@ class InteractionType(Enum):
         raise ValueError(f'Could not determine interaction type from "{description}"')
 
 
+DEFAULT_INTERACTION_TYPES = [
+    InteractionType.STRONG,
+    InteractionType.EM,
+    InteractionType.WEAK,
+]
+
+
 def create_interaction_settings(  # pylint: disable=too-many-locals,too-many-arguments
     formalism: str,
     particle_db: ParticleCollection,

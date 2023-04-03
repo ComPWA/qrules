@@ -64,7 +64,12 @@ from .quantum_numbers import (
     NodeQuantumNumber,
     NodeQuantumNumbers,
 )
-from .settings import InteractionType, NumberOfThreads, create_interaction_settings
+from .settings import (
+    DEFAULT_INTERACTION_TYPES,
+    InteractionType,
+    NumberOfThreads,
+    create_interaction_settings,
+)
 from .solving import (
     CSPSolver,
     EdgeSettings,
@@ -274,11 +279,10 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             GammaCheck(),
         ]
         self.final_state_groupings: Optional[List[List[List[str]]]] = None
-        self.allowed_interaction_types: List[InteractionType] = [
-            InteractionType.STRONG,
-            InteractionType.EM,
-            InteractionType.WEAK,
-        ]
+        self.__allowed_interaction_types: Union[
+            List[InteractionType],
+            Dict[int, List[InteractionType]],
+        ] = DEFAULT_INTERACTION_TYPES
         self.filter_remove_qns: Set[Type[NodeQuantumNumber]] = set()
         self.filter_ignore_qns: Set[Type[NodeQuantumNumber]] = set()
         if formalism == "helicity":
@@ -360,19 +364,44 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             nested_list = _safe_wrap_list(fs_group)
             self.final_state_groupings.append(nested_list)
 
+    @overload
+    def get_allowed_interaction_types(
+        self,
+    ) -> Union[List[InteractionType], Dict[int, List[InteractionType]]]:
+        ...
+
+    @overload
+    def get_allowed_interaction_types(self, node_id: int) -> List[InteractionType]:
+        ...
+
+    def get_allowed_interaction_types(self, node_id=None):  # type: ignore[no-untyped-def]
+        if node_id is None:
+            return self.__allowed_interaction_types
+        if isinstance(self.__allowed_interaction_types, list):
+            return self.__allowed_interaction_types
+        return self.__allowed_interaction_types.get(node_id, DEFAULT_INTERACTION_TYPES)
+
     def set_allowed_interaction_types(
-        self, allowed_interaction_types: Iterable[InteractionType]
+        self,
+        allowed_interaction_types: Iterable[InteractionType],
+        node_id: Optional[int] = None,
     ) -> None:
         # verify order
         for allowed_types in allowed_interaction_types:
             if not isinstance(allowed_types, InteractionType):
                 raise TypeError(
-                    "allowed interaction types must be of type[InteractionType]"
+                    "Allowed interaction types must be of type[InteractionType]"
                 )
             if allowed_types not in self.interaction_type_settings:
                 logging.info(self.interaction_type_settings.keys())
-                raise ValueError(f"interaction {allowed_types} not found in settings")
-        self.allowed_interaction_types = list(allowed_interaction_types)
+                raise ValueError(f"Interaction {allowed_types} not found in settings")
+        allowed_interaction_types = list(allowed_interaction_types)
+        if node_id is None:
+            self.__allowed_interaction_types = allowed_interaction_types
+        else:
+            if not isinstance(self.__allowed_interaction_types, dict):
+                self.__allowed_interaction_types = {}
+            self.__allowed_interaction_types[node_id] = allowed_interaction_types
 
     def create_problem_sets(self) -> Dict[float, List[ProblemSet]]:
         problem_sets = []
@@ -477,8 +506,9 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
                     )
                 else:
                     interaction_types = determined_interactions
+            allowed_interaction_types = self.get_allowed_interaction_types(node_id)
             interaction_types = filter_interaction_types(
-                interaction_types, self.allowed_interaction_types
+                interaction_types, allowed_interaction_types
             )
             logging.debug(
                 "using %s interaction order for node: %s",
