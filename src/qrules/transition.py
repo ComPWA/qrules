@@ -322,16 +322,16 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             )
 
         self.__user_allowed_intermediate_particles = allowed_intermediate_particles
-        self.__allowed_intermediate_particles: List[GraphEdgePropertyMap] = []
+        self.__allowed_intermediate_states: List[GraphEdgePropertyMap] = []
         if allowed_intermediate_particles is not None:
             self.set_allowed_intermediate_particles(allowed_intermediate_particles)
         else:
-            self.__allowed_intermediate_particles = [
+            self.__allowed_intermediate_states = [
                 create_edge_properties(x) for x in self.__particles
             ]
 
     def set_allowed_intermediate_particles(self, particle_names: List[str]) -> None:
-        self.__allowed_intermediate_particles = []
+        self.__allowed_intermediate_states = []
         for particle_name in particle_names:
             # pylint: disable=cell-var-from-loop
             matches = self.__particles.filter(
@@ -342,7 +342,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
                     "Could not find any matches for allowed intermediate"
                     f' particle "{particle_name}"'
                 )
-            self.__allowed_intermediate_particles += [
+            self.__allowed_intermediate_states += [
                 create_edge_properties(x) for x in matches
             ]
 
@@ -441,7 +441,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
                         EdgeQuantumNumbers.spin_projection
                     ]
                 )
-                for particle_props in self.__allowed_intermediate_particles:
+                for particle_props in self.__allowed_intermediate_states:
                     for edge_qn, qn_value in particle_props.items():
                         intermediate_edge_domains[edge_qn].add(qn_value)
 
@@ -653,7 +653,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         return qn_results
 
     def _solve(self, qn_problem_set: QNProblemSet) -> Tuple[QNProblemSet, QNResult]:
-        solver = CSPSolver(self.__allowed_intermediate_particles)
+        solver = CSPSolver(self.__allowed_intermediate_states)
         solutions = solver.find_solutions(qn_problem_set)
         return qn_problem_set, solutions
 
