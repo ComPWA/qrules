@@ -94,3 +94,12 @@ class TestStateTransitionManager:
             "Delta(1910)++",
             "Delta(1920)++",
         ]
+
+        stm.set_allowed_intermediate_particles([r"^Delta\(\d(60|9[02])0\)"], regex=True)
+        problem_sets = stm.create_problem_sets()
+        reaction = stm.find_solutions(problem_sets)
+        assert reaction.get_intermediate_particles().names == [
+            "Delta(1600)++",
+            "Delta(1900)++",
+            "Delta(1920)++",
+        ]

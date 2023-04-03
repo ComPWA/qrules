@@ -1,6 +1,7 @@
 """Find allowed transitions between an initial and final state."""
 
 import logging
+import re
 import sys
 from collections import defaultdict
 from copy import copy, deepcopy
@@ -329,11 +330,13 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         else:
             self.set_allowed_intermediate_particles(allowed_intermediate_particles)
 
-    def set_allowed_intermediate_particles(self, name_patterns: Iterable[str]) -> None:
+    def set_allowed_intermediate_particles(
+        self, name_patterns: Iterable[str], regex: bool = False
+    ) -> None:
         selected_particles = ParticleCollection()
         for pattern in name_patterns:
             # pylint: disable=cell-var-from-loop
-            matches = self.__particles.filter(lambda p: pattern in p.name)  # noqa: B023
+            matches = _filter_by_name_pattern(self.__particles, pattern, regex)
             if len(matches) == 0:
                 raise LookupError(
                     "Could not find any matches for allowed intermediate"
@@ -698,6 +701,20 @@ def _safe_wrap_list(nested_list: Union[List[str], List[List[str]]]) -> List[List
     raise TypeError(
         f"Input final state grouping {nested_list} is not a list of lists of strings"
     )
+
+
+def _filter_by_name_pattern(
+    particles: ParticleCollection, pattern: str, regex: bool
+) -> ParticleCollection:
+    def match_regex(particle: Particle) -> bool:
+        return re.match(pattern, particle.name) is not None
+
+    def match_substring(particle: Particle) -> bool:
+        return pattern in particle.name
+
+    if regex:
+        return particles.filter(match_regex)
+    return particles.filter(match_substring)
 
 
 def _match_final_state_ids(
