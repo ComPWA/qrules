@@ -6,6 +6,7 @@ def test_resonances():
     stm = StateTransitionManager(
         initial_state=["Lambda(c)+"],
         final_state=["p", "K-", "pi+"],
+        allowed_intermediate_particles=["Delta", "K", "Lambda"],
         mass_conservation_factor=0,
     )
     stm.set_allowed_interaction_types([InteractionType.STRONG], node_id=1)
@@ -23,6 +24,4 @@ def test_resonances():
         "Lambda(1810)",
         "Lambda(1800)",
         "Lambda(1890)",
-        "Sigma(1660)0",
-        "Sigma(1750)0",
     ]

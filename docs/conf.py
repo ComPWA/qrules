@@ -320,6 +320,7 @@ intersphinx_mapping = {
     "compwa-org": ("https://compwa-org.readthedocs.io", None),
     "constraint": ("https://labix.org/doc/constraint/public", "constraint.inv"),
     "graphviz": ("https://graphviz.readthedocs.io/en/stable", None),
+    "IPython": (f"https://ipython.readthedocs.io/en/{get_version('IPython')}", None),
     "jsonschema": ("https://python-jsonschema.readthedocs.io/en/stable", None),
     "mypy": ("https://mypy.readthedocs.io/en/stable", None),
     "pwa": ("https://pwa.readthedocs.io", None),
