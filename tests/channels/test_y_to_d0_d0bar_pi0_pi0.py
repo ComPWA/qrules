@@ -59,9 +59,9 @@ def test_resonance_filter(particle_database):
     stm.add_final_state_grouping([["D0", "pi0"], ["D~0", "pi0"]])
     problem_sets = stm.create_problem_sets()
     result = stm.find_solutions(problem_sets)
-    assert result.get_intermediate_particles().names == [
+    assert set(result.get_intermediate_particles().names) == {
         "D*(2007)0",
         "D*(2007)~0",
         "D(0)*(2300)0",
         "D(0)*(2300)~0",
-    ]
+    }
