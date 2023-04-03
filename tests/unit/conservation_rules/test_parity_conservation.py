@@ -32,9 +32,7 @@ from qrules.quantum_numbers import NodeQuantumNumbers, Parity
     ],
 )
 def test_parity_conservation(in_parities, out_parities, l_magnitude, expected):
-    assert (
-        parity_conservation(in_parities, out_parities, l_magnitude) is expected
-    )
+    assert parity_conservation(in_parities, out_parities, l_magnitude) is expected
 
 
 @pytest.mark.parametrize(
@@ -61,8 +59,7 @@ def test_parity_conservation(in_parities, out_parities, l_magnitude, expected):
                 ),
             ],
             NodeQuantumNumbers.parity_prefactor(1),
-            in_parity * out_parity1 * out_parity2 * (-1) ** (in_spin_mag % 2)
-            == 1,
+            in_parity * out_parity1 * out_parity2 * (-1) ** (in_spin_mag % 2) == 1,
         )
         for in_spin_mag, in_parity, out_parity1, out_parity2 in product(
             range(0, 4), [-1, 1], [-1, 1], [-1, 1]
@@ -73,8 +70,7 @@ def test_parity_conservation_helicity_prefactor(
     in_parities, out_parities, l_magnitude, expected
 ):
     assert (
-        parity_conservation_helicity(in_parities, out_parities, l_magnitude)
-        is expected
+        parity_conservation_helicity(in_parities, out_parities, l_magnitude) is expected
     )
 
 
@@ -102,18 +98,14 @@ def test_parity_conservation_helicity_prefactor(
                 ),
             ],
             NodeQuantumNumbers.parity_prefactor(parity_prefactor),
-            in_parity * (-1) ** (in_spin_mag % 2) == 1
-            and parity_prefactor == 1,
+            in_parity * (-1) ** (in_spin_mag % 2) == 1 and parity_prefactor == 1,
         )
         for in_spin_mag, in_parity, parity_prefactor in product(
             range(0, 4), [-1, 1], [-1, 1]
         )
     ],
 )
-def test_parity_conservation_helicity(
-    in_parities, out_parities, l_magnitude, expected
-):
+def test_parity_conservation_helicity(in_parities, out_parities, l_magnitude, expected):
     assert (
-        parity_conservation_helicity(in_parities, out_parities, l_magnitude)
-        is expected
+        parity_conservation_helicity(in_parities, out_parities, l_magnitude) is expected
     )

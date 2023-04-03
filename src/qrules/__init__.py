@@ -1,33 +1,23 @@
 # pylint: disable=too-many-lines
 """A rule based system that facilitates particle reaction analysis.
 
-QRules generates allowed particle transitions from a set of conservation rules
-and boundary conditions as specified by the user. The user boundary conditions
-for a particle reaction problem are for example the initial state, final state,
-and allowed interactions.
+QRules generates allowed particle transitions from a set of conservation rules and
+boundary conditions as specified by the user. The user boundary conditions for a
+particle reaction problem are for example the initial state, final state, and allowed
+interactions.
 
-The core of `qrules` computes which transitions (represented by a
-`.MutableTransition`) are allowed between a certain initial and final state.
-Internally, the system propagates the quantum numbers defined by the
-`particle` module through the `.MutableTransition`, while
-satisfying the rules define by the :mod:`.conservation_rules` module. See
+The core of `qrules` computes which transitions (represented by a `.MutableTransition`)
+are allowed between a certain initial and final state. Internally, the system propagates
+the quantum numbers defined by the `particle` module through the `.MutableTransition`,
+while satisfying the rules define by the :mod:`.conservation_rules` module. See
 :doc:`/usage/reaction` and :doc:`/usage/particle`.
 
-Finally, the `.io` module provides tools that can read and write the objects of
-this framework.
+Finally, the `.io` module provides tools that can read and write the objects of this
+framework.
 """
 
 from itertools import product
-from typing import (
-    Dict,
-    FrozenSet,
-    Iterable,
-    List,
-    Optional,
-    Sequence,
-    Set,
-    Union,
-)
+from typing import Dict, FrozenSet, Iterable, List, Optional, Sequence, Set, Union
 
 import attrs
 
@@ -64,12 +54,7 @@ from .settings import (
 )
 from .solving import NodeSettings, QNResult, Rule, validate_full_solution
 from .topology import MutableTransition, create_n_body_topology
-from .transition import (
-    EdgeSettings,
-    ProblemSet,
-    ReactionInfo,
-    StateTransitionManager,
-)
+from .transition import EdgeSettings, ProblemSet, ReactionInfo, StateTransitionManager
 
 
 def check_reaction_violations(  # pylint: disable=too-many-arguments
@@ -93,8 +78,8 @@ def check_reaction_violations(  # pylint: disable=too-many-arguments
       final_state: Shortform description of the final state w/o spin
         projections.
       mass_conservation_factor: Factor with which the width is multiplied when
-        checking for `.MassConservation`. Set to `None` in order to deactivate
-        mass conservation.
+        checking for `.MassConservation`. Set to `None` in order to deactivate mass
+        conservation.
       particle_db (Optional): Custom `.ParticleCollection` object.  Defaults to
         the `.ParticleCollection` returned by `.load_pdg`.
       max_angular_momentum: Maximum angular momentum over which to generate
@@ -103,10 +88,9 @@ def check_reaction_violations(  # pylint: disable=too-many-arguments
         :math:`LS`-couplings.
 
     Returns:
-      Set of least violating rules. The set can have multiple entries, as
-      several quantum numbers can be violated. Each entry in the frozenset
-      represents a group of rules that together violate all possible quantum
-      number configurations.
+      Set of least violating rules. The set can have multiple entries, as several
+      quantum numbers can be violated. Each entry in the frozenset represents a group of
+      rules that together violate all possible quantum number configurations.
 
     Example:
         >>> import qrules
@@ -136,11 +120,11 @@ def check_reaction_violations(  # pylint: disable=too-many-arguments
             solving_settings=MutableTransition(
                 facts.topology,
                 interactions={
-                    i: NodeSettings(conservation_rules=rules)
+                    i: NodeSettings(conservation_rules=rules)  # type: ignore[misc]
                     for i, rules in node_rules.items()
                 },
                 states={
-                    i: EdgeSettings(conservation_rules=rules)
+                    i: EdgeSettings(conservation_rules=rules)  # type: ignore[misc]
                     for i, rules in edge_rules.items()
                 },
             ),
@@ -158,47 +142,41 @@ def check_reaction_violations(  # pylint: disable=too-many-arguments
             node_rules={},
             edge_rules={
                 edge_id: pure_edge_rules
-                for edge_id in topology.incoming_edge_ids
-                | topology.outgoing_edge_ids
+                for edge_id in topology.incoming_edge_ids | topology.outgoing_edge_ids
             },
         )
 
         if edge_check_result.violated_edge_rules:
             raise ValueError(
-                "Some edges violate"
-                f" {edge_check_result.violated_edge_rules.values()}"
+                f"Some edges violate {edge_check_result.violated_edge_rules.values()}"
             )
 
     def check_edge_qn_conservation() -> Set[FrozenSet[str]]:
         """Check if edge quantum numbers are conserved.
 
-        Those rules give the same results, independent on the node and spin
-        props. Note they are also independent of the topology and hence their
-        results are always correct.
+        Those rules give the same results, independent on the node and spin props. Note
+        they are also independent of the topology and hence their results are always
+        correct.
         """
         edge_qn_conservation_rules: Set[Rule] = {
-            BaryonNumberConservation(),
-            BottomnessConservation(),
-            ChargeConservation(),
-            CharmConservation(),
-            ElectronLNConservation(),
-            MuonLNConservation(),
-            StrangenessConservation(),
-            TauLNConservation(),
+            BaryonNumberConservation(),  # type: ignore[abstract]
+            BottomnessConservation(),  # type: ignore[abstract]
+            ChargeConservation(),  # type: ignore[abstract]
+            CharmConservation(),  # type: ignore[abstract]
+            ElectronLNConservation(),  # type: ignore[abstract]
+            MuonLNConservation(),  # type: ignore[abstract]
+            StrangenessConservation(),  # type: ignore[abstract]
+            TauLNConservation(),  # type: ignore[abstract]
             isospin_conservation,
         }
         if len(initial_state) == 1 and mass_conservation_factor is not None:
-            edge_qn_conservation_rules.add(
-                MassConservation(mass_conservation_factor)
-            )
+            edge_qn_conservation_rules.add(MassConservation(mass_conservation_factor))
 
         return {
             frozenset((x,))
             for x in _check_violations(
                 initial_facts[0],
-                node_rules={
-                    i: edge_qn_conservation_rules for i in topology.nodes
-                },
+                node_rules={i: edge_qn_conservation_rules for i in topology.nodes},
                 edge_rules={},
             ).violated_node_rules[node_id]
         }
@@ -296,22 +274,21 @@ def generate_transitions(  # pylint: disable=too-many-arguments
 ) -> ReactionInfo:
     """Generate allowed transitions between an initial and final state.
 
-    Serves as a facade to the `.StateTransitionManager` (see
-    :doc:`/usage/reaction`).
+    Serves as a facade to the `.StateTransitionManager` (see :doc:`/usage/reaction`).
 
     Arguments:
         initial_state (list): A list of particle names in the initial
-            state. You can specify spin projections for these particles with a
-            `tuple`, e.g. :code:`("J/psi(1S)", [-1, 0, +1])`. If spin
-            projections are not specified, all projections are taken, so the
-            example here would be equivalent to :code:`"J/psi(1S)"`.
+            state. You can specify spin projections for these particles with a `tuple`,
+            e.g. :code:`("J/psi(1S)", [-1, 0, +1])`. If spin projections are not
+            specified, all projections are taken, so the example here would be
+            equivalent to :code:`"J/psi(1S)"`.
 
         final_state (list): Same as :code:`initial_state`, but for final state
             particles.
 
         allowed_intermediate_particles (`list`, optional): A list of particle
-            states that you want to allow as intermediate states. This helps
-            (1) filter out resonances and (2) speed up computation time.
+            states that you want to allow as intermediate states. This helps (1) filter
+            out resonances and (2) speed up computation time.
 
         allowed_interaction_types: Interaction types you want to consider. For
             instance, :code:`["s", "em"]` results in `~.InteractionType.EM` and
@@ -322,11 +299,10 @@ def generate_transitions(  # pylint: disable=too-many-arguments
             the eventual amplitude model.
 
         particle_db (`.ParticleCollection`, optional): The particles that you
-            want to be involved in the reaction. Uses `.load_pdg` by default.
-            It's better to use a subset for larger reactions, because of
-            the computation times. This argument is especially useful when you
-            want to use your own particle definitions (see
-            :doc:`/usage/particle`).
+            want to be involved in the reaction. Uses `.load_pdg` by default. It's
+            better to use a subset for larger reactions, because of the computation
+            times. This argument is especially useful when you want to use your own
+            particle definitions (see :doc:`/usage/particle`).
 
         mass_conservation_factor: Width factor that is taken into account for
             for the `.MassConservation` rule.
@@ -348,8 +324,8 @@ def generate_transitions(  # pylint: disable=too-many-arguments
             transitions. Defaults to the current value returned by
             :meth:`.settings.NumberOfThreads.get`.
 
-    An example (where, for illustrative purposes only, we specify all
-    arguments) would be:
+    An example (where, for illustrative purposes only, we specify all arguments) would
+    be:
 
     >>> import qrules
     >>> reaction = qrules.generate_transitions(
@@ -386,9 +362,7 @@ def generate_transitions(  # pylint: disable=too-many-arguments
     )
     if allowed_interaction_types is not None:
         if isinstance(allowed_interaction_types, str):
-            interaction_types = [
-                InteractionType.from_str(allowed_interaction_types)
-            ]
+            interaction_types = [InteractionType.from_str(allowed_interaction_types)]
         else:
             interaction_types = [
                 InteractionType.from_str(description)

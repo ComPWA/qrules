@@ -23,26 +23,28 @@ exclude = '''
 )/
 '''
 include = '\.pyi?$'
-line-length = 79
 preview = true
 target-version = [
+    "py310",
+    "py311",
     "py36",
     "py37",
     "py38",
     "py39",
-    "py310",
 ]
 
 [tool.isort]
+known_third_party = "THIRDPARTY,particle"
 profile = "black"
 src_paths = [
     "src",
     "tests",
 ]
-line_length = 79
-known_third_party = "THIRDPARTY,particle"
 
 [tool.nbqa.addopts]
+black = [
+    "--line-length=85",
+]
 flake8 = [
     "--extend-ignore=E402,F821",
 ]

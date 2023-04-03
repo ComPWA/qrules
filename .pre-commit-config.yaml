@@ -1,14 +1,12 @@
 ci:
-  autoupdate_commit_msg: "ci: autoupdate pre-commit hooks"
+  autoupdate_commit_msg: "MAINT: update pip constraints and pre-commit"
   autoupdate_schedule: quarterly # already done by requirements-cron.yml
   skip:
-    # local hooks
     - flake8
     - mypy
     - pylint
-    # hooks that don't work on pre-commit.ci
-    - editorconfig-checker
     - pyright
+    - taplo
 
 repos:
   - repo: meta
@@ -17,7 +15,7 @@ repos:
       - id: check-useless-excludes
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.2.0
+    rev: v4.4.0
     hooks:
       - id: check-ast
       - id: check-case-conflict
@@ -31,8 +29,7 @@ repos:
         exclude: >
           (?x)^(
             .*\.bib|
-            .*\.svg|
-            \.cspell\.json
+            .*\.svg
           )$
       - id: mixed-line-ending
       - id: name-tests-test
@@ -41,11 +38,14 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/ComPWA/repo-maintenance
-    rev: 0.0.120
+    rev: 0.0.175
     hooks:
       - id: check-dev-files
         args:
-          - --pin-requirements=biweekly
+          - --doc-apt-packages=graphviz
+          - --pin-requirements=monthly
+          - --repo-name=qrules
+          - --repo-title=QRules
       - id: fix-nbformat-version
       - id: format-setup-cfg
       - id: set-nb-cells
@@ -54,112 +54,43 @@ repos:
           - --additional-packages=IPython
           - --extras-require=doc,viz
 
-  - repo: https://github.com/psf/black
-    rev: 22.3.0
-    hooks:
-      - id: black
-
-  - repo: https://github.com/asottile/blacken-docs
-    rev: v1.12.1
-    hooks:
-      - id: blacken-docs
-
-  - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v5.9.1
-    hooks:
-      - id: cspell
-
-  - repo: https://github.com/myint/docformatter
-    rev: v1.4
-    hooks:
-      - id: docformatter
-        args:
-          - --in-place
-          - --wrap-descriptions=79
-          - --wrap-summaries=79
-
-  - repo: https://github.com/editorconfig-checker/editorconfig-checker.python
-    rev: 2.4.0
-    hooks:
-      - id: editorconfig-checker
-        exclude: >
-          (?x)^(
-            .*\.py
-          )$
-
-  - repo: https://github.com/pycqa/isort
-    rev: 5.10.1
-    hooks:
-      - id: isort
-
-  - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.31.1
-    hooks:
-      - id: markdownlint
-
   - repo: https://github.com/nbQA-dev/nbQA
-    rev: 1.3.1
+    rev: 1.6.4
     hooks:
       - id: nbqa-black
         additional_dependencies:
           - black>=22.1.0
       - id: nbqa-flake8
       - id: nbqa-isort
-
       - id: nbqa-pyupgrade
         args:
           - --py36-plus
 
-  - repo: https://github.com/kynan/nbstripout
-    rev: 0.5.0
+  - repo: https://github.com/psf/black
+    rev: 23.1.0
     hooks:
-      - id: nbstripout
-        args:
-          - --extra-keys
-          - |
-            cell.metadata.code_folding
-            cell.metadata.id
-            metadata.celltoolbar
-            metadata.colab.name
-            metadata.colab.provenance
-            metadata.interpreter
-            metadata.language_info.codemirror_mode
-            metadata.language_info.file_extension
-            metadata.language_info.mimetype
-            metadata.language_info.nbconvert_exporter
-            metadata.language_info.pygments_lexer
-            metadata.notify_time
-            metadata.toc
-            metadata.toc-autonumbering
-            metadata.toc-showcode
-            metadata.toc-showmarkdowntxt
-            metadata.toc-showtags
-            metadata.varInspector
+      - id: black
 
-  - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v2.6.2
+  - repo: https://github.com/asottile/blacken-docs
+    rev: 1.13.0
     hooks:
-      - id: prettier
+      - id: blacken-docs
 
-  - repo: https://github.com/pycqa/pydocstyle
-    rev: 6.1.1
+  - repo: https://github.com/streetsidesoftware/cspell-cli
+    rev: v6.31.0
     hooks:
-      - id: pydocstyle
+      - id: cspell
 
-  - repo: https://github.com/ComPWA/mirrors-pyright
-    rev: v1.1.238
+  - repo: https://github.com/editorconfig-checker/editorconfig-checker.python
+    rev: 2.7.1
     hooks:
-      - id: pyright
-
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v2.32.0
-    hooks:
-      - id: pyupgrade
-        args:
-          - --py36-plus
-
-  # The following tools have to be install locally, because they can also be
-  # used by code editors (e.g. linting and format-on-save).
+      - id: editorconfig-checker
+        name: editorconfig
+        alias: ec
+        exclude: >-
+          (?x)^(
+            .*\.py
+          )$
 
   - repo: local
     hooks:
@@ -170,6 +101,18 @@ repos:
         types:
           - python
 
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.33.0
+    hooks:
+      - id: markdownlint
+
+  - repo: local
+    hooks:
       - id: mypy
         name: mypy
         entry: mypy
@@ -178,6 +121,41 @@ repos:
         types:
           - python
 
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.6.1
+    hooks:
+      - id: nbstripout
+        args:
+          - --extra-keys
+          - |
+            cell.metadata.code_folding
+            cell.metadata.id
+            cell.metadata.user_expressions
+            metadata.celltoolbar
+            metadata.colab.name
+            metadata.colab.provenance
+            metadata.interpreter
+            metadata.notify_time
+            metadata.toc
+            metadata.toc-autonumbering
+            metadata.toc-showcode
+            metadata.toc-showmarkdowntxt
+            metadata.toc-showtags
+            metadata.varInspector
+            metadata.vscode
+
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.0.0-alpha.6
+    hooks:
+      - id: prettier
+
+  - repo: https://github.com/pycqa/pydocstyle
+    rev: 6.3.0
+    hooks:
+      - id: pydocstyle
+
+  - repo: local
+    hooks:
       - id: pylint
         name: pylint
         entry: pylint
@@ -188,3 +166,20 @@ repos:
         require_serial: true
         types:
           - python
+
+  - repo: https://github.com/ComPWA/mirrors-pyright
+    rev: v1.1.300
+    hooks:
+      - id: pyright
+
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.3.1
+    hooks:
+      - id: pyupgrade
+        args:
+          - --py36-plus
+
+  - repo: https://github.com/ComPWA/mirrors-taplo
+    rev: v0.8.0
+    hooks:
+      - id: taplo

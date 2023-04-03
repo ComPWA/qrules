@@ -1,4 +1,4 @@
-# pylint: disable=no-self-use, redefined-outer-name
+# pylint: disable=redefined-outer-name
 from math import factorial
 
 import pytest
@@ -67,9 +67,7 @@ def test_generate_outer_edge_permutations(
     initial_state_with_spins = _safe_set_spin_projections(
         initial_state, particle_database
     )
-    final_state_with_spins = _safe_set_spin_projections(
-        final_state, particle_database
-    )
+    final_state_with_spins = _safe_set_spin_projections(final_state, particle_database)
     list_of_permutations = list(
         _generate_outer_edge_permutations(
             three_body_decay,
@@ -204,9 +202,7 @@ def test_generate_permutations(
     ]
 
     permutation0 = permutations[0]
-    spin_permutations = _generate_spin_permutations(
-        permutation0, particle_database
-    )
+    spin_permutations = _generate_spin_permutations(permutation0, particle_database)
     assert len(spin_permutations) == 4
     assert spin_permutations[0][-1][1] == -1
     assert spin_permutations[0][0][1] == -1

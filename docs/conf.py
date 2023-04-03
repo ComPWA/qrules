@@ -1,8 +1,7 @@
 """Configuration file for the Sphinx documentation builder.
 
-This file only contains a selection of the most common options. For a full
-list see the documentation:
-https://www.sphinx-doc.org/en/master/usage/configuration.html
+This file only contains a selection of the most common options. For a full list see the
+documentation: https://www.sphinx-doc.org/en/master/usage/configuration.html
 """
 
 import os
@@ -10,12 +9,12 @@ import re
 import shutil
 import subprocess
 import sys
+from typing import Dict
 
 import requests
 
 # pyright: reportMissingImports=false
 import sphobjinv as soi
-from pkg_resources import get_distribution
 from pybtex.database import Entry
 from pybtex.plugin import register_plugin
 from pybtex.richtext import Tag, Text
@@ -32,6 +31,13 @@ from pybtex.style.template import (
     words,
 )
 
+if sys.version_info < (3, 8):
+    from importlib_metadata import PackageNotFoundError
+    from importlib_metadata import version as get_package_version
+else:
+    from importlib.metadata import PackageNotFoundError
+    from importlib.metadata import version as get_package_version
+
 # -- Project information -----------------------------------------------------
 project = "QRules"
 PACKAGE = "qrules"
@@ -39,16 +45,33 @@ REPO_NAME = "qrules"
 copyright = "2020, ComPWA"  # noqa: A001
 author = "Common Partial Wave Analysis"
 
-# https://docs.readthedocs.io/en/stable/builds.html
-BRANCH = os.environ.get("READTHEDOCS_VERSION", "stable")
-if BRANCH == "latest":
-    BRANCH = "main"
-if re.match(r"^\d+$", BRANCH):  # PR preview
-    BRANCH = "stable"
 
-if os.path.exists(f"../src/{PACKAGE}/version.py"):
-    __RELEASE = get_distribution(PACKAGE).version
-    version = ".".join(__RELEASE.split(".")[:3])
+# https://docs.readthedocs.io/en/stable/builds.html
+def get_branch_name() -> str:
+    branch_name = os.environ.get("READTHEDOCS_VERSION", "stable")
+    if branch_name == "latest":
+        return "main"
+    if re.match(r"^\d+$", branch_name):  # PR preview
+        return "stable"
+    return branch_name
+
+
+def get_execution_mode() -> str:
+    if "FORCE_EXECUTE_NB" in os.environ:
+        print("\033[93;1mWill run ALL Jupyter notebooks!\033[0m")
+        return "force"
+    if "EXECUTE_NB" in os.environ:
+        return "cache"
+    return "off"
+
+
+BRANCH = get_branch_name()
+
+try:
+    __VERSION = get_package_version(PACKAGE)
+    version = ".".join(__VERSION.split(".")[:3])
+except PackageNotFoundError:
+    pass
 
 
 # -- Fetch logo --------------------------------------------------------------
@@ -151,7 +174,7 @@ extensions = [
     "sphinx_codeautolink",
     "sphinx_comments",
     "sphinx_copybutton",
-    "sphinx_panels",
+    "sphinx_design",
     "sphinx_thebe",
     "sphinx_togglebutton",
     "sphinxcontrib.bibtex",
@@ -199,6 +222,7 @@ html_css_files = []
 if AUTODOC_INSERT_SIGNATURE_LINEBREAKS:
     html_css_files.append("linebreaks-api.css")
 html_favicon = "_static/favicon.ico"
+html_last_updated_fmt = "%-d %B %Y"
 html_show_copyright = False
 html_show_sourcelink = False
 html_show_sphinx = False
@@ -206,6 +230,45 @@ html_sourcelink_suffix = ""
 html_static_path = ["_static"]
 html_theme = "sphinx_book_theme"
 html_theme_options = {
+    "icon_links": [
+        {
+            "name": "Common Partial Wave Analysis",
+            "url": "https://compwa-org.rtfd.io",
+            "icon": "_static/favicon.ico",
+            "type": "local",
+        },
+        {
+            "name": "GitHub",
+            "url": f"https://github.com/ComPWA/{REPO_NAME}",
+            "icon": "fa-brands fa-github",
+        },
+        {
+            "name": "PyPI",
+            "url": f"https://pypi.org/project/{PACKAGE}",
+            "icon": "fa-brands fa-python",
+        },
+        {
+            "name": "Conda",
+            "url": f"https://anaconda.org/conda-forge/{PACKAGE}",
+            "icon": "https://avatars.githubusercontent.com/u/22454001?s=100",
+            "type": "url",
+        },
+        {
+            "name": "Launch on Binder",
+            "url": (
+                f"https://mybinder.org/v2/gh/ComPWA/{REPO_NAME}/{BRANCH}?filepath=docs"
+            ),
+            "icon": "https://mybinder.readthedocs.io/en/latest/_static/favicon.png",
+            "type": "url",
+        },
+        {
+            "name": "Launch on Colaboratory",
+            "url": f"https://colab.research.google.com/github/ComPWA/{REPO_NAME}/blob/{BRANCH}",
+            "icon": "https://avatars.githubusercontent.com/u/33467679?s=100",
+            "type": "url",
+        },
+    ],
+    "logo": {"text": "Quantum number conservation rules"},
     "repository_url": f"https://github.com/ComPWA/{REPO_NAME}",
     "repository_branch": BRANCH,
     "path_to_docs": "docs",
@@ -224,8 +287,7 @@ html_theme_options = {
     "show_navbar_depth": 2,
     "show_toc_level": 2,
 }
-html_title = "Quantum number conservation rules"
-panels_add_bootstrap_css = False  # wider page width with sphinx-panels
+html_title = html_theme_options["logo"]["text"]  # type: ignore[index]
 pygments_style = "sphinx"
 todo_include_todos = False
 viewcode_follow_imported_members = True
@@ -246,13 +308,7 @@ nitpick_ignore_regex = [
 
 
 # Intersphinx settings
-version_remapping = {
-    "jsonschema": {
-        "4.3.2": "4.3.1",
-        "4.3.3": "4.3.1",
-        "4.4.0": "4.3.1",
-    },
-}
+version_remapping: Dict[str, Dict[str, str]] = {}
 
 
 def get_version(package_name: str) -> str:
@@ -284,16 +340,11 @@ def get_version(package_name: str) -> str:
 intersphinx_mapping = {
     "ampform": ("https://ampform.readthedocs.io/en/stable", None),
     "attrs": (f"https://www.attrs.org/en/{get_version('attrs')}", None),
-    "compwa-org": ("https://compwa-org.readthedocs.io/en/stable", None),
-    "constraint": (
-        "https://labix.org/doc/constraint/public",
-        "constraint.inv",
-    ),
+    "compwa-org": ("https://compwa-org.readthedocs.io", None),
+    "constraint": ("https://labix.org/doc/constraint/public", "constraint.inv"),
     "graphviz": ("https://graphviz.readthedocs.io/en/stable", None),
-    "jsonschema": (
-        f"https://python-jsonschema.readthedocs.io/en/v{get_version('jsonschema')}",
-        None,
-    ),
+    "IPython": (f"https://ipython.readthedocs.io/en/{get_version('IPython')}", None),
+    "jsonschema": ("https://python-jsonschema.readthedocs.io/en/stable", None),
     "mypy": ("https://mypy.readthedocs.io/en/stable", None),
     "pwa": ("https://pwa.readthedocs.io", None),
     "python": ("https://docs.python.org/3", None),
@@ -314,29 +365,15 @@ copybutton_prompt_text = r">>> |\.\.\. "  # doctest
 
 # Settings for linkcheck
 linkcheck_anchors = False
+linkcheck_ignore = [
+    "https://doi.org/10.1002/andp.19955070504",  # 403 for onlinelibrary.wiley.com
+]
 
 # Settings for myst_nb
-execution_timeout = -1
+nb_execution_mode = get_execution_mode()
+nb_execution_show_tb = True
+nb_execution_timeout = -1
 nb_output_stderr = "remove"
-nb_render_priority = {
-    "html": (
-        "application/vnd.jupyter.widget-view+json",
-        "application/javascript",
-        "text/html",
-        "image/svg+xml",
-        "image/png",
-        "image/jpeg",
-        "text/markdown",
-        "text/latex",
-        "text/plain",
-    )
-}
-nb_render_priority["doctest"] = nb_render_priority["html"]
-
-jupyter_execute_notebooks = "off"
-if "EXECUTE_NB" in os.environ:
-    print("\033[93;1mWill run Jupyter notebooks!\033[0m")
-    jupyter_execute_notebooks = "force"
 
 # Settings for myst-parser
 myst_enable_extensions = [
@@ -346,18 +383,25 @@ myst_enable_extensions = [
     "smartquotes",
     "substitution",
 ]
-BINDER_LINK = f"https://mybinder.org/v2/gh/ComPWA/{REPO_NAME}/{BRANCH}?filepath=docs/usage"
+BINDER_LINK = (
+    f"https://mybinder.org/v2/gh/ComPWA/{REPO_NAME}/{BRANCH}?filepath=docs/usage"
+)
 myst_substitutions = {
     "branch": BRANCH,
     "run_interactive": f"""
 ```{{margin}}
 Run this notebook [on Binder]({BINDER_LINK}) or
-{{ref}}`locally on Jupyter Lab <compwa-org:develop:Jupyter Notebooks>` to
-interactively modify the parameters.
+{{ref}}`locally on Jupyter Lab <compwa-org:develop:Jupyter Notebooks>` to interactively
+modify the parameters.
 ```
 """,
 }
 myst_update_mathjax = False
+suppress_warnings = [
+    # skipping unknown output mime type: application/json
+    # https://github.com/ComPWA/qrules/runs/8132605149?check_suite_focus=true#step:5:92
+    "mystnb.unknown_mime_type",
+]
 
 # Settings for sphinx_comments
 comments_config = {
@@ -410,14 +454,12 @@ def names(children, context, role, **kwargs):  # type: ignore[no-untyped-def]
     return et_al(**kwargs)[formatted_names].format_data(context)
 
 
-class MyStyle(UnsrtStyle):
+class MyStyle(UnsrtStyle):  # pyright: ignore[reportUntypedBaseClass]
     def __init__(self) -> None:
         super().__init__(abbreviate_names=True)
 
     def format_names(self, role: Entry, as_sentence: bool = True) -> Node:
-        formatted_names = names(
-            role, sep=", ", sep2=" and ", last_sep=", and "
-        )
+        formatted_names = names(role, sep=", ", sep2=" and ", last_sep=", and ")
         if as_sentence:
             return sentence[formatted_names]
         else:

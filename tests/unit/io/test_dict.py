@@ -18,9 +18,7 @@ def test_not_implemented_errors(
         io.write(666, output_dir + "wont_work_anyway.yml")
 
 
-def test_serialization(
-    output_dir: str, particle_selection: ParticleCollection
-):
+def test_serialization(output_dir: str, particle_selection: ParticleCollection):
     io.write(particle_selection, output_dir + "particle_selection.yml")
     assert len(particle_selection) == 193
     asdict = io.asdict(particle_selection)

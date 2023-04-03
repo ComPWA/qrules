@@ -1,14 +1,9 @@
-# pylint: disable=no-self-use
 import pydot
 import pytest
 
 import qrules
 from qrules import io
-from qrules.io._dot import (
-    _collapse_graphs,
-    _get_particle_graphs,
-    _strip_projections,
-)
+from qrules.io._dot import _collapse_graphs, _get_particle_graphs, _strip_projections
 from qrules.particle import Particle, ParticleCollection
 from qrules.topology import (
     Edge,
@@ -218,7 +213,7 @@ def test_collapse_graphs(
     f_resonances = pdg.filter(lambda p: p.name in ["f(0)(980)", "f(0)(1500)"])
     intermediate_states = graph.states[edge_id]
     assert isinstance(intermediate_states, tuple)
-    assert all(map(lambda i: isinstance(i, Particle), intermediate_states))
+    assert all(isinstance(i, Particle) for i in intermediate_states)
     assert intermediate_states == f_resonances
 
 

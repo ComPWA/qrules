@@ -10,9 +10,7 @@ from qrules.conservation_rules import (
 )
 from qrules.particle import Spin
 
-_SpinRuleInputType = Tuple[
-    List[SpinEdgeInput], List[SpinEdgeInput], SpinNodeInput
-]
+_SpinRuleInputType = Tuple[List[SpinEdgeInput], List[SpinEdgeInput], SpinNodeInput]
 
 
 def __create_two_body_decay_spin_data(
@@ -52,9 +50,7 @@ def __create_two_body_decay_spin_data(
     ("rule_input", "expected"),
     [
         (
-            __create_two_body_decay_spin_data(
-                angular_momentum=Spin(ang_mom_mag, 0)
-            ),
+            __create_two_body_decay_spin_data(angular_momentum=Spin(ang_mom_mag, 0)),
             expected,
         )
         for ang_mom_mag, expected in [
@@ -113,9 +109,7 @@ def __create_two_body_decay_spin_data(
         ),
     ],
 )
-def test_spin_all_defined(
-    rule_input: _SpinRuleInputType, expected: bool
-) -> None:
+def test_spin_all_defined(rule_input: _SpinRuleInputType, expected: bool) -> None:
     assert spin_conservation(*rule_input) is expected
 
 

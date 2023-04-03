@@ -34,9 +34,7 @@ def extend_docstrings() -> None:
             continue
         function_arguments = inspect.signature(definition).parameters
         if len(function_arguments):
-            raise ValueError(
-                f"Local function {name} should not have a signature"
-            )
+            raise ValueError(f"Local function {name} should not have a signature")
         definition()
 
 
@@ -48,17 +46,19 @@ def extend_create_isobar_topologies() -> None:
         lambda t: qrules.io.asdot(t, render_resonance_id=True),
         topologies,
     )
-    images = [_graphviz_to_image(dot, indent=6) for dot in dot_renderings]
+    images = [_graphviz_to_image(dot, indent=8) for dot in dot_renderings]
     _append_to_docstring(
         create_isobar_topologies,
         f"""
 
-    .. panels::
-      :body: text-center
-      {images[0]}
+    .. grid:: 1 2 2 2
+      :gutter: 2
 
-      ---
-      {images[1]}
+      .. grid-item-card::
+        {images[0]}
+
+      .. grid-item-card::
+        {images[1]}
     """,
     )
 
@@ -73,7 +73,7 @@ def extend_create_n_body_topology() -> None:
     dot = qrules.io.asdot(topology, render_initial_state_id=True)
     _append_to_docstring(
         create_n_body_topology,
-        _graphviz_to_image(dot, indent=4),
+        _graphviz_to_image(dot, indent=6),
     )
 
 
@@ -88,13 +88,11 @@ def extend_Topology() -> None:
     )
     _append_to_docstring(
         Topology,
-        _graphviz_to_image(dot, indent=4),
+        _graphviz_to_image(dot, indent=6),
     )
 
 
-def _append_to_docstring(
-    class_type: Union[Callable, Type], appended_text: str
-) -> None:
+def _append_to_docstring(class_type: Union[Callable, Type], appended_text: str) -> None:
     assert class_type.__doc__ is not None
     class_type.__doc__ += appended_text
 
@@ -117,7 +115,7 @@ def _graphviz_to_image(  # pylint: disable=too-many-arguments
         options = {}
     global _GRAPHVIZ_COUNTER  # pylint: disable=global-statement
     output_file = f"graphviz_{_GRAPHVIZ_COUNTER}"
-    _GRAPHVIZ_COUNTER += 1
+    _GRAPHVIZ_COUNTER += 1  # pyright: ignore[reportConstantRedefinition]
     graphviz.Source(dot).render(f"{_IMAGE_DIR}/{output_file}", format=format)
     restructuredtext = "\n"
     if label:

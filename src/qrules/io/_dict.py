@@ -31,7 +31,7 @@ def _value_serializer(  # pylint: disable=unused-argument
     inst: type, field: attrs.Attribute, value: Any
 ) -> Any:
     if isinstance(value, abc.Mapping):
-        if all(map(lambda p: isinstance(p, Particle), value.values())):
+        if all(isinstance(p, Particle) for p in value.values()):
             return {k: v.name for k, v in value.items()}
         return dict(value)
     if not isinstance(inst, (ReactionInfo, State, FrozenTransition)):
@@ -52,9 +52,7 @@ def build_particle_collection(
 ) -> ParticleCollection:
     if do_validate:
         validate_particle_collection(definition)
-    return ParticleCollection(
-        build_particle(p) for p in definition["particles"]
-    )
+    return ParticleCollection(build_particle(p) for p in definition["particles"])
 
 
 def build_particle(definition: dict) -> Particle:
@@ -70,8 +68,7 @@ def build_particle(definition: dict) -> Particle:
 
 def build_reaction_info(definition: dict) -> ReactionInfo:
     transitions = [
-        build_transition(transition_def)
-        for transition_def in definition["transitions"]
+        build_transition(transition_def) for transition_def in definition["transitions"]
     ]
     return ReactionInfo(transitions, formalism=definition["formalism"])
 

@@ -1,23 +1,21 @@
 """Collection of quantum number conservation rules for particle reactions.
 
-This module is the place where the 'expert' defines the rules that verify
-quantum numbers of the reaction.
+This module is the place where the 'expert' defines the rules that verify quantum
+numbers of the reaction.
 
-A rule is a function that takes quantum numbers as input and outputs a boolean.
-There are three different types of rules:
+A rule is a function that takes quantum numbers as input and outputs a boolean. There
+are three different types of rules:
 
 1. `GraphElementRule` that work on individual graph edges or nodes.
-2. `EdgeQNConservationRule` that work on the interaction level, which use
-   ingoing edges, outgoing edges as arguments.  E.g.: `.ChargeConservation`.
-3. `ConservationRule` that work on the interaction level, which use ingoing
-   edges, outgoing edges and a interaction node as arguments. E.g:
-   `.parity_conservation`.
+2. `EdgeQNConservationRule` that work on the interaction level, which use ingoing edges,
+   outgoing edges as arguments.  E.g.: `.ChargeConservation`.
+3. `ConservationRule` that work on the interaction level, which use ingoing edges,
+   outgoing edges and a interaction node as arguments. E.g: `.parity_conservation`.
 
-The arguments can be any type of quantum number. However a rule argument
-resembling edges only accepts `~.quantum_numbers.EdgeQuantumNumbers`. Similarly
-arguments that resemble a node only accept
-`~.quantum_numbers.NodeQuantumNumbers`. The argument types do not have to be
-limited to a single quantum number, but can be a composite (see
+The arguments can be any type of quantum number. However a rule argument resembling
+edges only accepts `~.quantum_numbers.EdgeQuantumNumbers`. Similarly arguments that
+resemble a node only accept `~.quantum_numbers.NodeQuantumNumbers`. The argument types
+do not have to be limited to a single quantum number, but can be a composite (see
 `.CParityEdgeInput`).
 
 .. warning::
@@ -33,17 +31,16 @@ Generally, the conditions can be separated into two categories:
 * variable conditions
 * toplogical conditions
 
-Currently, only variable conditions are being used. Topological conditions
-could be created in the form of `~typing.Tuple` instead of `~typing.List`.
+Currently, only variable conditions are being used. Topological conditions could be
+created in the form of `~typing.Tuple` instead of `~typing.List`.
 
-For additive quantum numbers, the decorator `additive_quantum_number_rule`
-can be used to automatically generate the appropriate behavior.
+For additive quantum numbers, the decorator `additive_quantum_number_rule` can be used
+to automatically generate the appropriate behavior.
 
 
-The module is therefore strongly typed (both
-for the reader of the code and for type checking with :doc:`mypy
-<mypy:index>`). An example is `.HelicityParityEdgeInput`, which has been
-defined to provide type checks on `.parity_conservation_helicity`.
+The module is therefore strongly typed (both for the reader of the code and for type
+checking with :doc:`mypy <mypy:index>`). An example is `.HelicityParityEdgeInput`, which
+has been defined to provide type checks on `.parity_conservation_helicity`.
 
 .. seealso:: :doc:`/usage/conservation`
 """
@@ -51,6 +48,7 @@ defined to provide type checks on `.parity_conservation_helicity`.
 import sys
 from copy import deepcopy
 from functools import reduce
+from textwrap import dedent
 from typing import Any, Callable, List, Optional, Set, Tuple, Type, Union
 
 from attrs import define, field, frozen
@@ -106,15 +104,14 @@ def additive_quantum_number_rule(
 ) -> Callable[[Any], EdgeQNConservationRule]:
     r"""Class decorator for creating an additive conservation rule.
 
-    Use this decorator to create a `EdgeQNConservationRule` for a quantum number
-    to which an additive conservation rule applies:
+    Use this decorator to create a `EdgeQNConservationRule` for a quantum number to
+    which an additive conservation rule applies:
 
     .. math:: \sum q_{in} = \sum q_{out}
 
     Args:
         quantum_number: Quantum number to which you want to apply the additive
-            conservation check. An example would be
-            `.EdgeQuantumNumbers.charge`.
+            conservation check. An example would be `.EdgeQuantumNumbers.charge`.
     """
 
     def decorator(rule_class: Any) -> EdgeQNConservationRule:
@@ -127,9 +124,12 @@ def additive_quantum_number_rule(
             return sum(ingoing_edge_qns) == sum(outgoing_edge_qns)
 
         rule_class.__call__ = new_call
-        rule_class.__doc__ = (
-            f"""Decorated via `{additive_quantum_number_rule.__name__}`.\n\n"""
-            f"""Check for `~.EdgeQuantumNumbers.{quantum_number.__name__}` conservation."""
+        rule_class.__doc__ = dedent(
+            f"""
+            Decorated via `{additive_quantum_number_rule.__name__}`.
+
+            Check for `~.EdgeQuantumNumbers.{quantum_number.__name__}` conservation.
+            """
         )
         return rule_class
 
@@ -182,6 +182,8 @@ def parity_conservation(
     l_magnitude: NodeQN.l_magnitude,
 ) -> bool:
     r"""Implement :math:`P_{in} = P_{out} \cdot (-1)^L`."""
+    if any(p is None for p in [*ingoing_edge_qns, *outgoing_edge_qns]):
+        return False
     if len(ingoing_edge_qns) == 1 and len(outgoing_edge_qns) == 2:
         parity_in = reduce(lambda x, y: x * y.value, ingoing_edge_qns, 1)
         parity_out = reduce(lambda x, y: x * y.value, outgoing_edge_qns, 1)
@@ -192,12 +194,8 @@ def parity_conservation(
 @frozen
 class HelicityParityEdgeInput:
     parity: EdgeQN.parity = field(converter=EdgeQN.parity)
-    spin_magnitude: EdgeQN.spin_magnitude = field(
-        converter=EdgeQN.spin_magnitude
-    )
-    spin_projection: EdgeQN.spin_projection = field(
-        converter=EdgeQN.spin_projection
-    )
+    spin_magnitude: EdgeQN.spin_magnitude = field(converter=EdgeQN.spin_magnitude)
+    spin_projection: EdgeQN.spin_projection = field(converter=EdgeQN.spin_projection)
 
 
 def parity_conservation_helicity(
@@ -214,8 +212,8 @@ def parity_conservation_helicity(
 
     .. math:: \mathrm{parity\,prefactor} = P_1 P_2 P_3 (-1)^{S_2+S_3-S_1}
 
-    .. note:: Only the special case :math:`\lambda_1=\lambda_2=0` may
-      return False independent on the parity prefactor.
+    .. note:: Only the special case :math:`\lambda_1=\lambda_2=0` may return `False`
+        independent on the parity prefactor.
     """
     if len(ingoing_edge_qns) == 1 and len(outgoing_edge_qns) == 2:
         out_spins = [x.spin_magnitude for x in outgoing_edge_qns]
@@ -229,10 +227,7 @@ def parity_conservation_helicity(
             sum(out_spins) - ingoing_edge_qns[0].spin_magnitude
         )
 
-        if (
-            all(x.spin_projection == 0.0 for x in outgoing_edge_qns)
-            and prefactor == -1
-        ):
+        if all(x.spin_projection == 0.0 for x in outgoing_edge_qns) and prefactor == -1:
             return False
 
         return prefactor == parity_prefactor
@@ -241,13 +236,9 @@ def parity_conservation_helicity(
 
 @frozen
 class CParityEdgeInput:
-    spin_magnitude: EdgeQN.spin_magnitude = field(
-        converter=EdgeQN.spin_magnitude
-    )
+    spin_magnitude: EdgeQN.spin_magnitude = field(converter=EdgeQN.spin_magnitude)
     pid: EdgeQN.pid = field(converter=EdgeQN.pid)
-    c_parity: Optional[EdgeQN.c_parity] = field(
-        converter=EdgeQN.c_parity, default=None
-    )
+    c_parity: Optional[EdgeQN.c_parity] = field(converter=EdgeQN.c_parity, default=None)
 
 
 @frozen
@@ -276,9 +267,7 @@ def c_parity_conservation(
 
         # two particle case
         if len(part_qns) == 2:
-            if _is_particle_antiparticle_pair(
-                part_qns[0].pid, part_qns[1].pid
-            ):
+            if _is_particle_antiparticle_pair(part_qns[0].pid, part_qns[1].pid):
                 ang_mom = interaction_qns.l_magnitude
                 # if boson
                 if _is_boson(part_qns[0].spin_magnitude):
@@ -288,15 +277,11 @@ def c_parity_conservation(
                     return (-1) ** int(ang_mom + coupled_spin)
         return None
 
-    c_parity_in = _get_c_parity_multiparticle(
-        ingoing_edge_qns, interaction_node_qns
-    )
+    c_parity_in = _get_c_parity_multiparticle(ingoing_edge_qns, interaction_node_qns)
     if c_parity_in is None:
         return True
 
-    c_parity_out = _get_c_parity_multiparticle(
-        outgoing_edge_qns, interaction_node_qns
-    )
+    c_parity_out = _get_c_parity_multiparticle(outgoing_edge_qns, interaction_node_qns)
     if c_parity_out is None:
         return True
 
@@ -308,13 +293,9 @@ class GParityEdgeInput:
     isospin_magnitude: EdgeQN.isospin_magnitude = field(
         converter=EdgeQN.isospin_magnitude
     )
-    spin_magnitude: EdgeQN.spin_magnitude = field(
-        converter=EdgeQN.spin_magnitude
-    )
+    spin_magnitude: EdgeQN.spin_magnitude = field(converter=EdgeQN.spin_magnitude)
     pid: EdgeQN.pid = field(converter=EdgeQN.pid)
-    g_parity: Optional[EdgeQN.g_parity] = field(
-        converter=EdgeQN.g_parity, default=None
-    )
+    g_parity: Optional[EdgeQN.g_parity] = field(converter=EdgeQN.g_parity, default=None)
 
 
 @frozen
@@ -359,21 +340,15 @@ def g_parity_conservation(
             (couple_state[0], couple_state[1]),
         )
         single_state_g_parity = (
-            ingoing_edge_qns[0].g_parity.value
-            if ingoing_edge_qns[0].g_parity
-            else None
+            ingoing_edge_qns[0].g_parity.value if ingoing_edge_qns[0].g_parity else None
         )
 
         if not couple_state_g_parity or not single_state_g_parity:
             return True
         return couple_state_g_parity == single_state_g_parity
 
-    no_g_parity_in_part = [
-        True for x in ingoing_edge_qns if x.g_parity is None
-    ]
-    no_g_parity_out_part = [
-        True for x in outgoing_edge_qns if x.g_parity is None
-    ]
+    no_g_parity_in_part = [True for x in ingoing_edge_qns if x.g_parity is None]
+    no_g_parity_out_part = [True for x in outgoing_edge_qns if x.g_parity is None]
     # if all states have G parity defined, then just multiply them
     if not any(no_g_parity_in_part + no_g_parity_out_part):
         in_g_parity = reduce(
@@ -406,12 +381,8 @@ def g_parity_conservation(
 
 @frozen
 class IdenticalParticleSymmetryOutEdgeInput:
-    spin_magnitude: EdgeQN.spin_magnitude = field(
-        converter=EdgeQN.spin_magnitude
-    )
-    spin_projection: EdgeQN.spin_projection = field(
-        converter=EdgeQN.spin_projection
-    )
+    spin_magnitude: EdgeQN.spin_magnitude = field(converter=EdgeQN.spin_magnitude)
+    spin_projection: EdgeQN.spin_projection = field(converter=EdgeQN.spin_projection)
     pid: EdgeQN.pid = field(converter=EdgeQN.pid)
 
 
@@ -421,16 +392,15 @@ def identical_particle_symmetrization(
 ) -> bool:
     """Verifies multi particle state symmetrization for identical particles.
 
-    In case of a multi particle state with identical particles, their exchange
-    symmetry has to follow the spin statistic theorem.
+    In case of a multi particle state with identical particles, their exchange symmetry
+    has to follow the spin statistic theorem.
 
-    For bosonic systems the total exchange symmetry (parity) has to be even
-    (+1). For fermionic systems the total exchange symmetry (parity) has to be
-    odd (-1).
+    For bosonic systems the total exchange symmetry (parity) has to be even (+1). For
+    fermionic systems the total exchange symmetry (parity) has to be odd (-1).
 
-    In case of a particle decaying into N identical particles (N>1), the
-    decaying particle has to have the same parity as required by the spin
-    statistic theorem of the multi body state.
+    In case of a particle decaying into N identical particles (N>1), the decaying
+    particle has to have the same parity as required by the spin statistic theorem of
+    the multi body state.
     """
 
     def _check_particles_identical(
@@ -523,17 +493,12 @@ def _check_magnitude(
 ) -> bool:
     def couple_mags(j_1: float, j_2: float) -> List[float]:
         return [
-            x / 2.0
-            for x in range(
-                int(2 * abs(j_1 - j_2)), int(2 * (j_1 + j_2 + 1)), 2
-            )
+            x / 2.0 for x in range(int(2 * abs(j_1 - j_2)), int(2 * (j_1 + j_2 + 1)), 2)
         ]
 
     def couple_magnitudes(
         magnitudes: List[float],
-        interaction_qns: Optional[
-            Union[SpinMagnitudeNodeInput, SpinNodeInput]
-        ],
+        interaction_qns: Optional[Union[SpinMagnitudeNodeInput, SpinNodeInput]],
     ) -> Set[float]:
         if len(magnitudes) == 1:
             return set(magnitudes)
@@ -587,15 +552,11 @@ def __calculate_total_spins(
         return set(spins)
     total_spins = __create_coupled_spins(spins)
     if interaction_qns:
-        coupled_spin = _Spin(
-            interaction_qns.s_magnitude, interaction_qns.s_projection
-        )
+        coupled_spin = _Spin(interaction_qns.s_magnitude, interaction_qns.s_projection)
         if coupled_spin in total_spins:
             return __spin_couplings(
                 coupled_spin,
-                _Spin(
-                    interaction_qns.l_magnitude, interaction_qns.l_projection
-                ),
+                _Spin(interaction_qns.l_magnitude, interaction_qns.l_projection),
             )
         total_spins = set()
 
@@ -633,9 +594,7 @@ def __spin_couplings(spin1: _Spin, spin2: _Spin) -> Set[_Spin]:
         _Spin(x, sum_proj)
         for x in arange(abs(s_1 - s_2), s_1 + s_2 + 1, 1.0)
         if x >= abs(sum_proj)
-        and not _is_clebsch_gordan_coefficient_zero(
-            spin1, spin2, _Spin(x, sum_proj)
-        )
+        and not _is_clebsch_gordan_coefficient_zero(spin1, spin2, _Spin(x, sum_proj))
     }
 
 
@@ -675,45 +634,31 @@ def isospin_conservation(
     .. math::
         |I_1 - I_2| \leq I \leq |I_1 + I_2|
 
-    Also checks :math:`I_{1,z} + I_{2,z} = I_z` and if Clebsch-Gordan
-    coefficients are all 0.
+    Also checks :math:`I_{1,z} + I_{2,z} = I_z` and if Clebsch-Gordan coefficients are
+    all 0.
     """
     if not sum(x.isospin_projection for x in ingoing_isospins) == sum(
         x.isospin_projection for x in outgoing_isospins
     ):
         return False
-    if not all(
-        isospin_validity(x) for x in ingoing_isospins + outgoing_isospins
-    ):
+    if not all(isospin_validity(x) for x in ingoing_isospins + outgoing_isospins):
         return False
     return _check_spin_couplings(
-        [
-            _Spin(x.isospin_magnitude, x.isospin_projection)
-            for x in ingoing_isospins
-        ],
-        [
-            _Spin(x.isospin_magnitude, x.isospin_projection)
-            for x in outgoing_isospins
-        ],
+        [_Spin(x.isospin_magnitude, x.isospin_projection) for x in ingoing_isospins],
+        [_Spin(x.isospin_magnitude, x.isospin_projection) for x in outgoing_isospins],
         None,
     )
 
 
 @define
 class SpinEdgeInput:
-    spin_magnitude: EdgeQN.spin_magnitude = field(
-        converter=EdgeQN.spin_magnitude
-    )
-    spin_projection: EdgeQN.spin_projection = field(
-        converter=EdgeQN.spin_projection
-    )
+    spin_magnitude: EdgeQN.spin_magnitude = field(converter=EdgeQN.spin_magnitude)
+    spin_projection: EdgeQN.spin_projection = field(converter=EdgeQN.spin_projection)
 
 
 def spin_validity(spin: SpinEdgeInput) -> bool:
     r"""Check for valid spin magnitude and projection."""
-    return _check_spin_valid(
-        float(spin.spin_magnitude), float(spin.spin_projection)
-    )
+    return _check_spin_valid(float(spin.spin_magnitude), float(spin.spin_projection))
 
 
 def spin_conservation(
@@ -733,8 +678,7 @@ def spin_conservation(
     .. math::
         |L - S| \leq J \leq |L + S|
 
-    Also checks :math:`M_1 + M_2 = M` and if Clebsch-Gordan coefficients
-    are all 0.
+    Also checks :math:`M_1 + M_2 = M` and if Clebsch-Gordan coefficients are all 0.
 
     .. seealso:: /docs/usage/ls-coupling
     """
@@ -744,24 +688,17 @@ def spin_conservation(
     if (len(ingoing_spins) == 1 and len(outgoing_spins) == 2) or (
         len(ingoing_spins) == 2 and len(outgoing_spins) == 1
     ):
-
         return _check_spin_couplings(
-            [
-                _Spin(x.spin_magnitude, x.spin_projection)
-                for x in ingoing_spins
-            ],
-            [
-                _Spin(x.spin_magnitude, x.spin_projection)
-                for x in outgoing_spins
-            ],
+            [_Spin(x.spin_magnitude, x.spin_projection) for x in ingoing_spins],
+            [_Spin(x.spin_magnitude, x.spin_projection) for x in outgoing_spins],
             interaction_qns,
         )
 
     # otherwise don't use S and L and just check magnitude
     # are integral or non integral on both sides
     return (
-        sum(float(x.spin_magnitude) for x in ingoing_spins).is_integer()
-        == sum(float(x.spin_magnitude) for x in outgoing_spins).is_integer()
+        sum(float(x.spin_magnitude) for x in ingoing_spins).is_integer()  # type: ignore[union-attr]
+        == sum(float(x.spin_magnitude) for x in outgoing_spins).is_integer()  # type: ignore[union-attr]
     )
 
 
@@ -797,8 +734,8 @@ def spin_magnitude_conservation(
     # otherwise don't use S and L and just check magnitude
     # are integral or non integral on both sides
     return (
-        sum(float(x.spin_magnitude) for x in ingoing_spins).is_integer()
-        == sum(float(x.spin_magnitude) for x in outgoing_spins).is_integer()
+        sum(float(x.spin_magnitude) for x in ingoing_spins).is_integer()  # type: ignore[union-attr]
+        == sum(float(x.spin_magnitude) for x in outgoing_spins).is_integer()  # type: ignore[union-attr]
     )
 
 
@@ -809,12 +746,12 @@ def clebsch_gordan_helicity_to_canonical(
 ) -> bool:
     """Implement Clebsch-Gordan checks.
 
-    For :math:`S_1, S_2` to :math:`S` and the :math:`L,S` to :math:`J`
-    coupling based on the conversion of helicity to canonical amplitude sums.
+    For :math:`S_1, S_2` to :math:`S` and the :math:`L,S` to :math:`J` coupling based on
+    the conversion of helicity to canonical amplitude sums.
 
-    .. note:: This rule does not check that the spin magnitudes couple
-      correctly to :math:`L` and :math:`S`, as this is already performed by
-      `.spin_magnitude_conservation`.
+    .. note:: This rule does not check that the spin magnitudes couple correctly to
+        :math:`L` and :math:`S`, as this is already performed by
+        `.spin_magnitude_conservation`.
     """
     if len(ingoing_spins) == 1 and len(outgoing_spins) == 2:
         out_spin1 = _Spin(
@@ -830,31 +767,21 @@ def clebsch_gordan_helicity_to_canonical(
         if helicity_diff != interaction_qns.s_projection:
             return False
 
-        ang_mom = _Spin(
-            interaction_qns.l_magnitude, interaction_qns.l_projection
-        )
-        coupled_spin = _Spin(
-            interaction_qns.s_magnitude, interaction_qns.s_projection
-        )
+        ang_mom = _Spin(interaction_qns.l_magnitude, interaction_qns.l_projection)
+        coupled_spin = _Spin(interaction_qns.s_magnitude, interaction_qns.s_projection)
         parent_spin = ingoing_spins[0].spin_magnitude
 
         coupled_spin = _Spin(coupled_spin.magnitude, helicity_diff)
-        if not _check_spin_valid(
-            coupled_spin.magnitude, coupled_spin.projection
-        ):
+        if not _check_spin_valid(coupled_spin.magnitude, coupled_spin.projection):
             return False
         in_spin = _Spin(parent_spin, helicity_diff)
         if not _check_spin_valid(in_spin.magnitude, in_spin.projection):
             return False
 
-        if _is_clebsch_gordan_coefficient_zero(
-            out_spin1, out_spin2, coupled_spin
-        ):
+        if _is_clebsch_gordan_coefficient_zero(out_spin1, out_spin2, coupled_spin):
             return False
 
-        return not _is_clebsch_gordan_coefficient_zero(
-            ang_mom, coupled_spin, in_spin
-        )
+        return not _is_clebsch_gordan_coefficient_zero(ang_mom, coupled_spin, in_spin)
     return False
 
 
@@ -949,9 +876,7 @@ def gellmann_nishijima(edge_qns: GellMannNishijimaInput) -> bool:
     isospin_3 = 0.0
     if edge_qns.isospin_projection:
         isospin_3 = edge_qns.isospin_projection
-    if float(edge_qns.charge) != (
-        isospin_3 + 0.5 * calculate_hypercharge(edge_qns)
-    ):
+    if float(edge_qns.charge) != (isospin_3 + 0.5 * calculate_hypercharge(edge_qns)):
         return False
     return True
 
@@ -977,9 +902,9 @@ class MassConservation:
 
         :math:`M_{out} - N \cdot W_{out} < M_{in} + N \cdot W_{in}`
 
-        It makes sure that the net mass outgoing state :math:`M_{out}` is
-        smaller than the net mass of the ingoing state :math:`M_{in}`. Also the
-        width :math:`W` of the states is taken into account.
+        It makes sure that the net mass outgoing state :math:`M_{out}` is smaller than
+        the net mass of the ingoing state :math:`M_{in}`. Also the width :math:`W` of
+        the states is taken into account.
         """
         mass_in = sum(x.mass for x in ingoing_edge_qns)
         width_in = sum(x.width for x in ingoing_edge_qns if x.width)

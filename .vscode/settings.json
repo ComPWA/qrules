@@ -2,8 +2,8 @@
   "[bibtex]": {
     "editor.formatOnSave": false
   },
-  "[ipynb]": {
-    "editor.formatOnSave": false
+  "[git-commit]": {
+    "rewrap.wrappingColumn": 72
   },
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
@@ -29,19 +29,22 @@
   "coverage-gutters.showGutterCoverage": false,
   "coverage-gutters.showLineCoverage": true,
   "editor.formatOnSave": true,
-  "editor.rulers": [80],
+  "editor.rulers": [88],
   "files.watcherExclude": {
     "**/*_cache/**": true,
     "**/.eggs/**": true,
     "**/.git/**": true,
     "**/.tox/**": true
   },
+  "flake8.importStrategy": "fromEnvironment",
   "git.rebaseWhenSync": true,
   "github-actions.workflows.pinned.workflows": [
     ".github/workflows/linkcheck.yml",
     ".github/workflows/ci-tests.yml",
     ".github/workflows/ci-docs.yml"
   ],
+  "isort.check": true,
+  "isort.importStrategy": "fromEnvironment",
   "json.schemas": [
     {
       "fileMatch": ["*particle*.json"],
@@ -52,29 +55,32 @@
       "url": "https://zenodo.org/schemas/deposits/records/legacyrecord.json"
     }
   ],
+  "livePreview.defaultPreviewPath": "docs/_build/html",
+  "pylint.importStrategy": "fromEnvironment",
   "python.analysis.autoImportCompletions": false,
   "python.analysis.diagnosticMode": "workspace",
+  "python.analysis.inlayHints.pytestParameters": true,
+  "python.analysis.typeCheckingMode": "strict",
   "python.formatting.provider": "black",
   "python.linting.banditEnabled": false,
   "python.linting.enabled": true,
-  "python.linting.flake8Enabled": true,
+  "python.linting.flake8Enabled": false,
   "python.linting.mypyEnabled": true,
   "python.linting.pydocstyleEnabled": true,
   "python.linting.pylamaEnabled": false,
-  "python.linting.pylintCategorySeverity.refactor": "Information",
-  "python.linting.pylintEnabled": true,
+  "python.linting.pylintEnabled": false,
   "python.testing.pytestArgs": ["--color=no", "--no-cov"],
   "python.testing.pytestEnabled": true,
   "python.testing.unittestEnabled": false,
-  "rewrap.wrappingColumn": 79,
+  "rewrap.wrappingColumn": 88,
   "search.exclude": {
     "**/tests/**/__init__.py": true,
     "*/.pydocstyle": true,
     ".constraints/*.txt": true
   },
-  "telemetry.telemetryLevel": "off",
   "yaml.schemas": {
     "./src/qrules/particle-validation.json": ["*particle*.y*ml"],
+    "https://json.schemastore.org/github-workflow.json": "./.github/workflows/requirements.yml",
     "https://raw.githubusercontent.com/readthedocs/readthedocs.org/master/readthedocs/rtd_tests/fixtures/spec/v2/schema.yml": ".readthedocs.yml"
   }
 }

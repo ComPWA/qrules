@@ -8,7 +8,9 @@
 
 The fastest way of installing this package is through PyPI or Conda:
 
-:::{tabbed} PyPI
+::::{tab-set}
+
+:::{tab-item} PyPI
 
 ```shell
 python3 -m pip install qrules
@@ -16,7 +18,7 @@ python3 -m pip install qrules
 
 :::
 
-:::{tabbed} Conda
+:::{tab-item} Conda
 
 ```shell
 conda install -c conda-forge qrules
@@ -24,9 +26,10 @@ conda install -c conda-forge qrules
 
 :::
 
-This installs the [latest release](https://github.com/ComPWA/qrules/releases)
-that you can find on the
-[`stable`](https://github.com/ComPWA/qrules/tree/stable) branch.
+::::
+
+This installs the [latest release](https://github.com/ComPWA/qrules/releases) that you
+can find on the [`stable`](https://github.com/ComPWA/qrules/tree/stable) branch.
 
 Optionally, you can install the dependencies required for
 {doc}`visualizing topologies </usage/visualize>` with the following
@@ -36,8 +39,8 @@ Optionally, you can install the dependencies required for
 pip install qrules[viz]  # installs qrules with graphviz
 ```
 
-The latest version on the [`main`](https://github.com/ComPWA/qrules/tree/main)
-branch can be installed as follows:
+The latest version on the [`main`](https://github.com/ComPWA/qrules/tree/main) branch
+can be installed as follows:
 
 ```shell
 python3 -m pip install git+https://github.com/ComPWA/qrules@main
@@ -46,17 +49,15 @@ python3 -m pip install git+https://github.com/ComPWA/qrules@main
 ## Editable installation
 
 It is highly recommend to use the more dynamic
-{ref}`'editable installation' <compwa-org:develop:Editable installation>`. This
-allows you to:
+{ref}`'editable installation' <compwa-org:develop:Editable installation>`. This allows
+you to:
 
-- exactly
-  {ref}`pin all dependencies <compwa-org:develop:Pinning dependency versions>`
+- exactly {ref}`pin all dependencies <compwa-org:develop:Pinning dependency versions>`
   to a specific version, so that your work is **reproducible**.
 - edit the source code of the framework and
   {doc}`help improving it <compwa-org:develop>`.
 
-For this, you first need to get the source code with
-[Git](https://git-scm.com):
+For this, you first need to get the source code with [Git](https://git-scm.com):
 
 ```shell
 git clone https://github.com/ComPWA/qrules.git
@@ -67,7 +68,9 @@ Next, you install the project in editable mode with either
 [Conda](https://docs.conda.io) or [`pip`](https://pypi.org/project/pip). It's
 recommended to use Conda, because this also pins the version of Python.
 
-:::{tabbed} Conda
+::::{tab-set}
+
+:::{tab-item} Conda
 
 ```shell
 conda env create
@@ -78,16 +81,16 @@ This installs the project in a Conda environment following the definitions in
 
 :::
 
-:::{tabbed} PyPI
+:::{tab-item} PyPI
 
 1. **[Recommended]** Create a virtual environment with
    [`venv`](https://docs.python.org/3/library/venv.html) (see
    {ref}`here <compwa-org:develop:Virtual environment>`).
 
 2. Install the project as an
-   {ref}`'editable installation' <compwa-org:develop:Editable installation>`
-   with {ref}`additional packages <compwa-org:develop:Optional dependencies>`
-   for the developer and all dependencies pinned through
+   {ref}`'editable installation' <compwa-org:develop:Editable installation>` with
+   {ref}`additional packages <compwa-org:develop:Optional dependencies>` for the
+   developer and all dependencies pinned through
    [constraints files](https://pip.pypa.io/en/stable/user_guide/#constraints-files):
 
    ```shell
@@ -96,9 +99,11 @@ This installs the project in a Conda environment following the definitions in
 
 :::
 
-See {ref}`compwa-org:develop:Updating` for how to update the dependencies when
-new commits come in.
+::::
 
-That's all! Have a look at {doc}`/usage` to try out the package. You can also
-have a look at {doc}`compwa-org:develop` for tips on how to work with this
-'editable' developer setup!
+See {ref}`compwa-org:develop:Updating` for how to update the dependencies when new
+commits come in.
+
+That's all! Have a look at {doc}`/usage` to try out the package. You can also have a
+look at {doc}`compwa-org:develop` for tips on how to work with this 'editable' developer
+setup!

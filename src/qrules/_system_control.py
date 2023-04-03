@@ -21,9 +21,7 @@ from .topology import MutableTransition
 
 Strength = float
 
-GraphSettingsGroups = Dict[
-    Strength, List[Tuple[MutableTransition, GraphSettings]]
-]
+GraphSettingsGroups = Dict[Strength, List[Tuple[MutableTransition, GraphSettings]]]
 
 
 def create_edge_properties(
@@ -52,9 +50,7 @@ def create_edge_properties(
         property_map[EdgeQuantumNumbers.spin_projection] = spin_projection
     if isospin is not None:
         property_map[EdgeQuantumNumbers.isospin_magnitude] = isospin.magnitude
-        property_map[
-            EdgeQuantumNumbers.isospin_projection
-        ] = isospin.projection
+        property_map[EdgeQuantumNumbers.isospin_projection] = isospin.projection
     return property_map
 
 
@@ -86,25 +82,24 @@ def create_particle(
 ) -> ParticleWithSpin:
     """Create a Particle with spin projection from a qn dictionary.
 
-    The implementation assumes the edge properties match the attributes of a
-    particle inside the `.ParticleCollection`.
+    The implementation assumes the edge properties match the attributes of a particle
+    inside the `.ParticleCollection`.
 
     Args:
-        states: The quantum number dictionary.
-        particle_db: A `.ParticleCollection` which is used to retrieve a
-          reference `.particle` to lower the memory footprint.
+        states: The quantum number dictionary. particle_db: A `.ParticleCollection`
+            which is used to retrieve a reference `.particle` to lower the memory
+            footprint.
 
     Raises:
-        KeyError: If the edge properties do not contain the pid information or
-          no particle with the same pid is found in the `.ParticleCollection`.
+        KeyError: If the edge properties do not contain the pid information or no
+            particle with the same pid is found in the `.ParticleCollection`.
 
         ValueError: If the edge properties do not contain spin projection info.
     """
     particle = particle_db.find(int(states[EdgeQuantumNumbers.pid]))
     if EdgeQuantumNumbers.spin_projection not in states:
         raise ValueError(
-            f"{GraphEdgePropertyMap.__name__} does not contain a spin"
-            " projection"
+            f"{GraphEdgePropertyMap.__name__} does not contain a spin projection"
         )
     spin_projection = states[EdgeQuantumNumbers.spin_projection]
 
@@ -117,7 +112,7 @@ def create_interaction_properties(
     converted_solution = {k.__name__: v for k, v in qn_solution.items()}
     kw_args = {
         x.name: converted_solution[x.name]
-        for x in attrs.fields(InteractionProperties)
+        for x in attrs.fields(InteractionProperties)  # type: ignore[arg-type]
         if x.name in converted_solution
     }
 
@@ -129,15 +124,16 @@ def filter_interaction_types(
     allowed_interaction_types: List[InteractionType],
 ) -> List[InteractionType]:
     int_type_intersection = list(
-        set(allowed_interaction_types)
-        & set(valid_determined_interaction_types)
+        set(allowed_interaction_types) & set(valid_determined_interaction_types)
     )
     if int_type_intersection:
         return int_type_intersection
     logging.warning(
-        "The specified list of interaction types %s"
-        " does not intersect with the valid list of interaction types %s"
-        ".\nUsing valid list instead.",
+        (
+            "The specified list of interaction types %s"
+            " does not intersect with the valid list of interaction types %s"
+            ".\nUsing valid list instead."
+        ),
         allowed_interaction_types,
         valid_determined_interaction_types,
     )
@@ -197,9 +193,7 @@ class LeptonCheck(InteractionDeterminator):
 
 
 def remove_duplicate_solutions(
-    solutions: List[
-        "MutableTransition[ParticleWithSpin, InteractionProperties]"
-    ],
+    solutions: List["MutableTransition[ParticleWithSpin, InteractionProperties]"],
     remove_qns_list: Optional[Set[Type[NodeQuantumNumber]]] = None,
     ignore_qns_list: Optional[Set[Type[NodeQuantumNumber]]] = None,
 ) -> "List[MutableTransition[ParticleWithSpin, InteractionProperties]]":
@@ -296,16 +290,14 @@ def filter_graphs(
 ) -> List[MutableTransition]:
     r"""Implement filtering of a list of `.MutableTransition` 's.
 
-    This function can be used to select a subset of
-    `.MutableTransition` 's from a list. Only the graphs passing
-    all supplied filters will be returned.
+    This function can be used to select a subset of `.MutableTransition` 's from a list.
+    Only the graphs passing all supplied filters will be returned.
 
     Note:
         For the more advanced user, lambda functions can be used as filters.
 
     Example:
-        Selecting only the solutions, in which the :math:`\rho` decays via
-        p-wave:
+        Selecting only the solutions, in which the :math:`\rho` decays via p-wave:
 
         .. code-block:: python
 
@@ -333,8 +325,8 @@ def require_interaction_property(
 
     Closure, which can be used as a filter function in :func:`.filter_graphs`.
 
-    It selects graphs based on a requirement on the property of specific
-    interaction nodes.
+    It selects graphs based on a requirement on the property of specific interaction
+    nodes.
 
     Args:
         ingoing_particle_name (str): name of particle, used to find nodes which
@@ -347,9 +339,8 @@ def require_interaction_property(
 
     Return:
         Callable[Any, bool]:
-            - *True* if the graph has nodes with an ingoing particle of the
-              given name, and the graph fullfills the quantum number
-              requirement
+            - *True* if the graph has nodes with an ingoing particle of the given name,
+              and the graph fullfills the quantum number requirement
             - *False* otherwise
     """
 

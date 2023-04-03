@@ -1,6 +1,7 @@
-# pylint: disable=eval-used, no-self-use, redefined-outer-name
+# pylint: disable=eval-used redefined-outer-name
 # pyright: reportUnusedImport=false
 import logging
+import sys
 from copy import deepcopy
 
 import pytest
@@ -39,9 +40,7 @@ class TestParticle:
             ("tau+", True),
         ],
     )
-    def test_is_lepton(
-        self, name, is_lepton, particle_database: ParticleCollection
-    ):
+    def test_is_lepton(self, name, is_lepton, particle_database: ParticleCollection):
         assert particle_database[name].is_lepton() == is_lepton
 
     def test_exceptions(self):
@@ -128,9 +127,7 @@ class TestParticle:
         pdg = particle_database
         assert [
             particle.name
-            for particle in sorted(
-                pdg.filter(lambda p: p.name.startswith("f(0)"))
-            )
+            for particle in sorted(pdg.filter(lambda p: p.name.startswith("f(0)")))
         ] == [
             "f(0)(500)",
             "f(0)(980)",
@@ -160,12 +157,8 @@ class TestParticleCollection:
         assert from_repr == instance
 
     def test_add(self, particle_database: ParticleCollection):
-        subset_copy = particle_database.filter(
-            lambda p: p.name.startswith("omega")
-        )
-        subset_copy += particle_database.filter(
-            lambda p: p.name.startswith("pi")
-        )
+        subset_copy = particle_database.filter(lambda p: p.name.startswith("omega"))
+        subset_copy += particle_database.filter(lambda p: p.name.startswith("pi"))
         n_subset = len(subset_copy)
 
         new_particle = create_particle(
@@ -261,7 +254,11 @@ class TestParticleCollection:
             ("gama", "'gamma', 'Sigma0', 'Sigma-', 'Sigma+', 'Lambda'"),
             (
                 "omega",
-                "'omega(782)', 'omega(1420)', 'omega(3)(1670)', 'omega(1650)'",
+                (
+                    "'omega(782)', 'omega(1420)', 'omega(3)(1670)', 'omega(1650)'"
+                    if sys.version_info < (3, 7)
+                    else "'omega(782)', 'omega(3)(1670)', 'omega(1650)'"
+                ),
             ),
             ("p~~", "'p~'"),
             ("~", "'p~', 'n~'"),
@@ -285,8 +282,7 @@ class TestParticleCollection:
         with pytest.raises(
             ValueError,
             match=(
-                'Added particle "gamma_new" is equivalent to existing particle'
-                ' "gamma"'
+                'Added particle "gamma_new" is equivalent to existing particle "gamma"'
             ),
         ):
             particle_database += create_particle(gamma, name="gamma_new")
@@ -373,9 +369,7 @@ def test_create_antiparticle(
     anti_particle_name,
 ):
     template_particle = particle_database[particle_name]
-    anti_particle = create_antiparticle(
-        template_particle, new_name=anti_particle_name
-    )
+    anti_particle = create_antiparticle(template_particle, new_name=anti_particle_name)
     comparison_particle = particle_database[anti_particle_name]
 
     assert anti_particle == comparison_particle
@@ -402,9 +396,9 @@ def test_create_antiparticle_tilde(particle_database: ParticleCollection):
 def test_create_antiparticle_by_pid(particle_database: ParticleCollection):
     n_particles_with_neg_pid = 0
     for particle in particle_database:
+        # pylint: disable=cell-var-from-loop
         anti_particles_by_pid = particle_database.filter(
-            lambda p: p.pid
-            == -particle.pid  # pylint: disable=cell-var-from-loop
+            lambda p: p.pid == -particle.pid  # noqa: B023
         )
         if len(anti_particles_by_pid) != 1:
             continue
@@ -423,9 +417,7 @@ def test_create_antiparticle_by_pid(particle_database: ParticleCollection):
     "particle_name",
     ["p", "phi(1020)", "W-", "gamma"],
 )
-def test_create_particle(
-    particle_database: ParticleCollection, particle_name: str
-):
+def test_create_particle(particle_database: ParticleCollection, particle_name: str):
     template_particle = particle_database[particle_name]
     new_particle = create_particle(
         template_particle,

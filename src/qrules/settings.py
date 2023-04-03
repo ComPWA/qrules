@@ -55,15 +55,15 @@ ADDITIONAL_PARTICLES_DEFINITIONS_PATH: str = join(
 CONSERVATION_LAW_PRIORITIES: Dict[
     Union[GraphElementRule, EdgeQNConservationRule, ConservationRule], int
 ] = {
-    MassConservation: 10,
-    ElectronLNConservation: 45,
-    MuonLNConservation: 44,
-    TauLNConservation: 43,
-    BaryonNumberConservation: 90,
-    StrangenessConservation: 69,
-    CharmConservation: 70,
-    BottomnessConservation: 68,
-    ChargeConservation: 100,
+    MassConservation: 10,  # type: ignore[dict-item]
+    ElectronLNConservation: 45,  # type: ignore[dict-item]
+    MuonLNConservation: 44,  # type: ignore[dict-item]
+    TauLNConservation: 43,  # type: ignore[dict-item]
+    BaryonNumberConservation: 90,  # type: ignore[dict-item]
+    StrangenessConservation: 69,  # type: ignore[dict-item]
+    CharmConservation: 70,  # type: ignore[dict-item]
+    BottomnessConservation: 68,  # type: ignore[dict-item]
+    ChargeConservation: 100,  # type: ignore[dict-item]
     spin_conservation: 8,
     spin_magnitude_conservation: 8,
     parity_conservation: 6,
@@ -102,9 +102,14 @@ class InteractionType(Enum):
             return InteractionType.STRONG
         if description_lower.startswith("w"):
             return InteractionType.WEAK
-        raise ValueError(
-            f'Could not determine interaction type from "{description}"'
-        )
+        raise ValueError(f'Could not determine interaction type from "{description}"')
+
+
+DEFAULT_INTERACTION_TYPES = [
+    InteractionType.STRONG,
+    InteractionType.EM,
+    InteractionType.WEAK,
+]
 
 
 def create_interaction_settings(  # pylint: disable=too-many-locals,too-many-arguments
@@ -125,16 +130,12 @@ def create_interaction_settings(  # pylint: disable=too-many-locals,too-many-arg
         rule_priorities=EDGE_RULE_PRIORITIES,
         qn_domains=_create_domains(particle_db),
     )
-    formalism_node_settings = NodeSettings(
-        rule_priorities=CONSERVATION_LAW_PRIORITIES
-    )
+    formalism_node_settings = NodeSettings(rule_priorities=CONSERVATION_LAW_PRIORITIES)
 
     angular_momentum_domain = __get_ang_mom_magnitudes(
         nbody_topology, max_angular_momentum
     )
-    spin_magnitude_domain = __get_spin_magnitudes(
-        nbody_topology, max_spin_magnitude
-    )
+    spin_magnitude_domain = __get_spin_magnitudes(nbody_topology, max_spin_magnitude)
     if "helicity" in formalism:
         formalism_node_settings.conservation_rules = {
             spin_magnitude_conservation,
@@ -145,9 +146,7 @@ def create_interaction_settings(  # pylint: disable=too-many-locals,too-many-arg
             NodeQN.s_magnitude: spin_magnitude_domain,
         }
     elif formalism == "canonical":
-        formalism_node_settings.conservation_rules = {
-            spin_magnitude_conservation
-        }
+        formalism_node_settings.conservation_rules = {spin_magnitude_conservation}
         if nbody_topology:
             formalism_node_settings.conservation_rules = {
                 spin_conservation,
@@ -181,11 +180,11 @@ def create_interaction_settings(  # pylint: disable=too-many-locals,too-many-arg
     weak_node_settings = deepcopy(formalism_node_settings)
     weak_node_settings.conservation_rules.update(
         [
-            ChargeConservation(),
-            ElectronLNConservation(),
-            MuonLNConservation(),
-            TauLNConservation(),
-            BaryonNumberConservation(),
+            ChargeConservation(),  # type: ignore[abstract]
+            ElectronLNConservation(),  # type: ignore[abstract]
+            MuonLNConservation(),  # type: ignore[abstract]
+            TauLNConservation(),  # type: ignore[abstract]
+            BaryonNumberConservation(),  # type: ignore[abstract]
             identical_particle_symmetrization,
         ]
     )
@@ -200,9 +199,9 @@ def create_interaction_settings(  # pylint: disable=too-many-locals,too-many-arg
     em_node_settings = deepcopy(weak_node_settings)
     em_node_settings.conservation_rules.update(
         {
-            CharmConservation(),
-            StrangenessConservation(),
-            BottomnessConservation(),
+            CharmConservation(),  # type: ignore[abstract]
+            StrangenessConservation(),  # type: ignore[abstract]
+            BottomnessConservation(),  # type: ignore[abstract]
             parity_conservation,
             c_parity_conservation,
         }
@@ -233,17 +232,13 @@ def create_interaction_settings(  # pylint: disable=too-many-locals,too-many-arg
     return interaction_type_settings
 
 
-def __get_ang_mom_magnitudes(
-    is_nbody: bool, max_angular_momentum: int
-) -> List[float]:
+def __get_ang_mom_magnitudes(is_nbody: bool, max_angular_momentum: int) -> List[float]:
     if is_nbody:
         return [0]
     return _int_domain(0, max_angular_momentum)  # type: ignore[return-value]
 
 
-def __get_spin_magnitudes(
-    is_nbody: bool, max_spin_magnitude: float
-) -> List[float]:
+def __get_spin_magnitudes(is_nbody: bool, max_spin_magnitude: float) -> List[float]:
     if is_nbody:
         return [0]
     return _halves_domain(0, max_spin_magnitude)
@@ -266,16 +261,12 @@ def _create_domains(particle_db: ParticleCollection) -> Dict[Any, list]:
         EdgeQN.charmness: lambda p: p.charmness,
         EdgeQN.bottomness: lambda p: p.bottomness,
     }.items():
-        domains[edge_qn] = __extend_negative(
-            __positive_int_domain(particle_db, getter)
-        )
+        domains[edge_qn] = __extend_negative(__positive_int_domain(particle_db, getter))
 
     domains[EdgeQN.spin_magnitude] = __positive_halves_domain(
         particle_db, lambda p: p.spin
     )
-    domains[EdgeQN.spin_projection] = __extend_negative(
-        domains[EdgeQN.spin_magnitude]
-    )
+    domains[EdgeQN.spin_projection] = __extend_negative(domains[EdgeQN.spin_magnitude])
     domains[EdgeQN.isospin_magnitude] = __positive_halves_domain(
         particle_db,
         lambda p: 0 if p.isospin is None else p.isospin.magnitude,
@@ -326,8 +317,7 @@ def _halves_domain(start: float, stop: float) -> List[float]:
     if stop % 0.5 != 0.0:
         raise ValueError(f"Stop value {stop} needs to be multiple of 0.5")
     return [
-        int(v) if v.is_integer() else v
-        for v in arange(start, stop + 0.25, delta=0.5)
+        int(v) if v.is_integer() else v for v in arange(start, stop + 0.25, delta=0.5)
     ]
 
 
