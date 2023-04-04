@@ -19,6 +19,8 @@ from .settings import InteractionType
 from .solving import GraphEdgePropertyMap, GraphNodePropertyMap, GraphSettings
 from .topology import MutableTransition
 
+_LOGGER = logging.getLogger(__name__)
+
 Strength = float
 
 GraphSettingsGroups = Dict[Strength, List[Tuple[MutableTransition, GraphSettings]]]
@@ -128,7 +130,7 @@ def filter_interaction_types(
     )
     if int_type_intersection:
         return int_type_intersection
-    logging.warning(
+    _LOGGER.warning(
         (
             "The specified list of interaction types %s"
             " does not intersect with the valid list of interaction types %s"
@@ -201,9 +203,9 @@ def remove_duplicate_solutions(
         remove_qns_list = set()
     if ignore_qns_list is None:
         ignore_qns_list = set()
-    logging.info("removing duplicate solutions...")
-    logging.info(f"removing these qns from graphs: {remove_qns_list}")
-    logging.info(f"ignoring qns in graph comparison: {ignore_qns_list}")
+    _LOGGER.info("removing duplicate solutions...")
+    _LOGGER.info(f"removing these qns from graphs: {remove_qns_list}")
+    _LOGGER.info(f"ignoring qns in graph comparison: {ignore_qns_list}")
 
     filtered_solutions: List[
         MutableTransition[ParticleWithSpin, InteractionProperties]
@@ -221,7 +223,7 @@ def remove_duplicate_solutions(
             # if not overwrite them
             remove_counter += 1
 
-    logging.info(f"removed {remove_counter} solutions")
+    _LOGGER.info(f"removed {remove_counter} solutions")
     return filtered_solutions
 
 

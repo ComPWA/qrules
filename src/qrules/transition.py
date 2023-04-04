@@ -89,6 +89,8 @@ else:
 if TYPE_CHECKING:
     from .topology import FrozenTransition  # noqa: F401
 
+_LOGGER = logging.getLogger(__name__)
+
 
 class SolvingMode(Enum):
     """Types of modes for solving."""
@@ -395,7 +397,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
                     "Allowed interaction types must be of type[InteractionType]"
                 )
             if allowed_types not in self.interaction_type_settings:
-                logging.info(self.interaction_type_settings.keys())
+                _LOGGER.info(self.interaction_type_settings.keys())
                 raise ValueError(f"Interaction {allowed_types} not found in settings")
         allowed_interaction_types = list(allowed_interaction_types)
         if node_id is None:
@@ -513,7 +515,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             interaction_types = filter_interaction_types(
                 interaction_types, allowed_interaction_types
             )
-            logging.debug(
+            _LOGGER.debug(
                 "using %s interaction order for node: %s",
                 str(interaction_types),
                 str(node_id),
@@ -537,7 +539,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         """Check for solutions for a specific set of interaction settings."""
         results = self._find_particle_transitions(problem_sets)
         for strength, result in results.items():
-            logging.info(
+            _LOGGER.info(
                 (
                     f"Number of solutions for strength {strength} after"
                     f"QN solving: {len(result.solutions)}"
@@ -617,7 +619,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
     ) -> Dict[float, List[Tuple[QNProblemSet, QNResult]]]:
         """Find allowed transitions purely in terms of quantum number sets."""
         qn_results: Dict[float, List[Tuple[QNProblemSet, QNResult]]] = defaultdict(list)
-        logging.info(
+        _LOGGER.info(
             "Number of interaction settings groups being processed: %d",
             len(problem_sets),
         )
@@ -625,14 +627,14 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         progress_bar = tqdm(
             total=total,
             desc="Propagating quantum numbers",
-            disable=logging.getLogger().level > logging.WARNING,
+            disable=_LOGGER.level > logging.WARNING,
         )
         for strength, problems in sorted(problem_sets.items(), reverse=True):
-            logging.info(
+            _LOGGER.info(
                 f"processing interaction settings group with strength {strength}",
             )
-            logging.info(f"{len(problems)} entries in this group")
-            logging.info(f"running with {self.__number_of_threads} threads...")
+            _LOGGER.info(f"{len(problems)} entries in this group")
+            _LOGGER.info(f"running with {self.__number_of_threads} threads...")
 
             qn_problems = [x.to_qn_problem_set() for x in problems]
 

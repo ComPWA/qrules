@@ -21,6 +21,8 @@ from qrules.solving import EdgeSettings, NodeSettings, QNProblemSet, QNResult
 from qrules.topology import FrozenTransition, MutableTransition, Topology, Transition
 from qrules.transition import ProblemSet, ReactionInfo, State
 
+_LOGGER = logging.getLogger(__name__)
+
 
 def _check_booleans(
     instance: "GraphPrinter", attribute: Attribute, value: bool
@@ -289,7 +291,7 @@ def as_string(obj: Any) -> str:
     >>> as_string(10)
     'new int rendering'
     """
-    logging.warning(f"No DOT renderer implemented type {type(obj).__name__}")
+    _LOGGER.warning(f"No DOT renderer implemented type {type(obj).__name__}")
     return str(obj)
 
 
@@ -409,7 +411,7 @@ def _(obj: tuple) -> str:
             return _spin_to_str(spin)
     if all(isinstance(o, Particle) for o in obj):
         return "\n".join(map(as_string, obj))
-    logging.warning(f"No DOT render implemented for tuple of size {len(obj)}")
+    _LOGGER.warning(f"No DOT render implemented for tuple of size {len(obj)}")
     return str(obj)
 
 
