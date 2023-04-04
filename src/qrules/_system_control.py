@@ -79,8 +79,8 @@ def create_node_properties(
     return property_map
 
 
-def create_particle(
-    states: GraphEdgePropertyMap, particle_db: ParticleCollection
+def find_particle(
+    state: GraphEdgePropertyMap, particle_db: ParticleCollection
 ) -> ParticleWithSpin:
     """Create a Particle with spin projection from a qn dictionary.
 
@@ -98,14 +98,13 @@ def create_particle(
 
         ValueError: If the edge properties do not contain spin projection info.
     """
-    particle = particle_db.find(int(states[EdgeQuantumNumbers.pid]))
-    if EdgeQuantumNumbers.spin_projection not in states:
+    particle = particle_db.find(int(state[EdgeQuantumNumbers.pid]))
+    spin_projection = state.get(EdgeQuantumNumbers.spin_projection)
+    if spin_projection is None:
         raise ValueError(
             f"{GraphEdgePropertyMap.__name__} does not contain a spin projection"
         )
-    spin_projection = states[EdgeQuantumNumbers.spin_projection]
-
-    return (particle, spin_projection)
+    return particle, spin_projection
 
 
 def create_interaction_properties(

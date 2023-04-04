@@ -35,8 +35,8 @@ from ._system_control import (
     create_edge_properties,
     create_interaction_properties,
     create_node_properties,
-    create_particle,
     filter_interaction_types,
+    find_particle,
     remove_duplicate_solutions,
 )
 from .combinatorics import (
@@ -681,7 +681,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
                     for i, x in solution.interactions.items()
                 },
                 states={
-                    i: create_particle(x, self.__particles)  # type: ignore[misc]
+                    i: find_particle(x, self.__particles)  # type: ignore[misc]
                     for i, x in solution.states.items()
                 },
             )
