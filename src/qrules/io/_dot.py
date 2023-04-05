@@ -8,6 +8,7 @@ import re
 import string
 from collections import abc
 from functools import singledispatch
+from numbers import Number
 from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Union, cast
 
 import attrs
@@ -19,6 +20,8 @@ from qrules.quantum_numbers import InteractionProperties, _to_fraction
 from qrules.solving import EdgeSettings, NodeSettings, QNProblemSet, QNResult
 from qrules.topology import FrozenTransition, MutableTransition, Topology, Transition
 from qrules.transition import ProblemSet, ReactionInfo, State
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def _check_booleans(
@@ -288,7 +291,7 @@ def as_string(obj: Any) -> str:
     >>> as_string(10)
     'new int rendering'
     """
-    logging.warning(f"No DOT renderer implemented type {type(obj).__name__}")
+    _LOGGER.warning(f"No DOT renderer implemented type {type(obj).__name__}")
     return str(obj)
 
 
@@ -303,8 +306,27 @@ def _(obj: dict) -> str:
             key_repr = key.__name__
         else:
             key_repr = key
-        lines.append(f"{key_repr} = {value}")
+        if value != 0 or any(s in key_repr for s in ["magnitude", "projection"]):
+            # pylint: disable=invalid-name
+            pm = not any(s in key_repr for s in ["pid", "mass", "width", "magnitude"])
+            value_repr = __render_fraction(value, pm)
+            lines.append(f"{key_repr} = {value_repr}")
     return "\n".join(lines)
+
+
+def __render_fraction(value: Any, plusminus: bool) -> str:
+    plusminus &= isinstance(value, Number) and bool(value)
+    if isinstance(value, float):
+        if value.is_integer():
+            return str(int(value))
+        nom, denom = value.as_integer_ratio()
+        if denom == 2:
+            if plusminus:
+                return f"{nom:+}/{denom}"
+            return f"{nom}/{denom}"
+    if plusminus:
+        return f"{value:+}"
+    return str(value)
 
 
 @as_string.register(InteractionProperties)
@@ -389,7 +411,7 @@ def _(obj: tuple) -> str:
             return _spin_to_str(spin)
     if all(isinstance(o, Particle) for o in obj):
         return "\n".join(map(as_string, obj))
-    logging.warning(f"No DOT render implemented for tuple of size {len(obj)}")
+    _LOGGER.warning(f"No DOT render implemented for tuple of size {len(obj)}")
     return str(obj)
 
 
