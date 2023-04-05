@@ -229,71 +229,61 @@ class Solver(ABC):
         """
 
 
-def _merge_particle_candidates_with_solutions(
+def _insert_allowed_states(
     solutions: List[QuantumNumberSolution],
     topology: Topology,
-    allowed_quantum_numbers: Iterable[GraphEdgePropertyMap],
+    allowed_states: Iterable[GraphEdgePropertyMap],
 ) -> List[QuantumNumberSolution]:
-    merged_solutions = []
-
-    _LOGGER.debug("merging solutions with graph...")
-    intermediate_edges = topology.intermediate_edge_ids
+    _LOGGER.debug("Inserting allowed states into QN solution graphs...")
+    substituted_graphs: List[QuantumNumberSolution] = []
     for solution in solutions:
-        current_new_solutions = [solution]
-        for int_edge_id in intermediate_edges:
-            particle_edges = __get_particle_candidates_for_state(
-                solution.states[int_edge_id],
-                allowed_quantum_numbers,
-            )
-            if len(particle_edges) == 0:
-                _LOGGER.debug("Did not find any particle candidates for")
-                _LOGGER.debug("edge id: %d", int_edge_id)
-                _LOGGER.debug("edge properties:")
-                _LOGGER.debug(solution.states[int_edge_id])
-            new_solutions_temp = []
-            for current_new_solution in current_new_solutions:
-                for particle_edge in particle_edges:
-                    # a "shallow" copy of the nested dicts is needed
-                    new_edge_qns = {
-                        k: copy(v) for k, v in current_new_solution.states.items()
-                    }
-                    new_edge_qns[int_edge_id].update(particle_edge)
-                    temp_solution = attrs.evolve(
-                        current_new_solution,
-                        states=new_edge_qns,
+        current_substituted_graphs = [solution]
+        for edge_id in topology.intermediate_edge_ids:
+            incomplete_state = solution.states[edge_id]
+            candidate_states = __get_candidate_states(incomplete_state, allowed_states)
+            if len(candidate_states) == 0:
+                message = f"Did not find any QN state candidate for edge id: {edge_id}"
+                _LOGGER.debug(message)
+                _LOGGER.debug(f"State properties: {solution.states[edge_id]}")
+            graphs_with_candidates = []
+            for new_solution in current_substituted_graphs:
+                for candidate in candidate_states:
+                    # need "shallow" copy of the nested dicts
+                    new_states = {i: copy(s) for i, s in new_solution.states.items()}
+                    new_states[edge_id].update(candidate)  # keep spin_projection
+                    graph = attrs.evolve(
+                        new_solution,
+                        states=new_states,
                     )
-                    new_solutions_temp.append(temp_solution)
-            current_new_solutions = new_solutions_temp
+                    graphs_with_candidates.append(graph)
+            current_substituted_graphs = graphs_with_candidates
 
-        merged_solutions.extend(current_new_solutions)
+        substituted_graphs.extend(current_substituted_graphs)
 
-    return merged_solutions
+    return substituted_graphs
 
 
-def __get_particle_candidates_for_state(
+def __get_candidate_states(
     state: GraphEdgePropertyMap,
-    allowed_quantum_numbers: Iterable[GraphEdgePropertyMap],
+    allowed_states: Iterable[GraphEdgePropertyMap],
 ) -> List[GraphEdgePropertyMap]:
-    particle_edges = []
-
-    for particle_qns in allowed_quantum_numbers:
-        if __is_sub_mapping(state, particle_qns):
-            particle_edges.append(particle_qns)
-
-    return particle_edges
+    candidates = []
+    for candidate in allowed_states:
+        if __is_sub_mapping(state, candidate):
+            candidates.append(candidate)
+    return candidates
 
 
 def __is_sub_mapping(
-    qn_state: GraphEdgePropertyMap, reference_qn_state: GraphEdgePropertyMap
+    state: GraphEdgePropertyMap, reference_state: GraphEdgePropertyMap
 ) -> bool:
-    for qn_type, qn_value in qn_state.items():
+    for qn_type, qn_value in state.items():
         if qn_type is EdgeQuantumNumbers.spin_projection:
             continue
-        if qn_type not in reference_qn_state:
+        if qn_type not in reference_state:
             return False
-        if qn_value != reference_qn_state[qn_type]:
+        if qn_value != reference_state[qn_type]:
             return False
-
     return True
 
 
@@ -505,13 +495,13 @@ class CSPSolver(Solver):
 
         # insert particle instances
         if self.__node_rules or self.__edge_rules:
-            full_particle_solutions = _merge_particle_candidates_with_solutions(
+            selected_solutions = _insert_allowed_states(
                 solutions,
                 problem_set.topology,
                 self.__allowed_intermediate_states,
             )
         else:
-            full_particle_solutions = [
+            selected_solutions = [
                 QuantumNumberSolution(
                     topology=problem_set.topology,
                     interactions=problem_set.initial_facts.interactions,  # type: ignore[arg-type]
@@ -519,14 +509,11 @@ class CSPSolver(Solver):
                 )
             ]
 
-        if full_particle_solutions and (
-            node_not_executed_rules or edge_not_executed_rules
-        ):
-            # rerun solver on these graphs using not executed rules
-            # and combine results
+        if selected_solutions and (node_not_executed_rules or edge_not_executed_rules):
+            # rerun solver on these graphs using not executed rules and combine results
             topology = problem_set.topology
             result = QNResult()
-            for full_particle_solution in full_particle_solutions:
+            for full_particle_solution in selected_solutions:
                 interactions = full_particle_solution.interactions
                 states = full_particle_solution.states
                 interactions.update(problem_set.initial_facts.interactions)
@@ -554,7 +541,7 @@ class CSPSolver(Solver):
             return result
 
         return QNResult(
-            full_particle_solutions,
+            selected_solutions,
             _convert_non_executed_rules_to_names(node_not_executed_rules),
             _convert_violated_rules_to_names(node_not_satisfied_rules),
             _convert_non_executed_rules_to_names(edge_not_executed_rules),
