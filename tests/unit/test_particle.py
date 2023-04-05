@@ -436,6 +436,22 @@ def test_create_particle(particle_database: ParticleCollection, particle_name: s
     assert new_particle.strangeness == template_particle.strangeness
 
 
+def test_create_particle_isospin():
+    template_particle = Particle(
+        name="some particle",
+        pid=0,
+        spin=0,
+        mass=3.14,
+    )
+    new_isospin = Spin(0, 0)
+    new_particle = create_particle(
+        template_particle,
+        isospin=new_isospin,
+    )
+    assert template_particle.isospin != new_isospin
+    assert new_particle.isospin == new_isospin
+
+
 def test_get_name_root(particle_database: ParticleCollection):
     name_roots = {_get_name_root(p.name) for p in particle_database}
     assert name_roots == {
