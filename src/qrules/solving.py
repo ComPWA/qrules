@@ -52,6 +52,8 @@ if sys.version_info >= (3, 10):
 else:
     from typing_extensions import TypeAlias
 
+_LOGGER = logging.getLogger(__name__)
+
 
 @implement_pretty_repr
 @define
@@ -234,7 +236,7 @@ def _merge_particle_candidates_with_solutions(
 ) -> List[QuantumNumberSolution]:
     merged_solutions = []
 
-    logging.debug("merging solutions with graph...")
+    _LOGGER.debug("merging solutions with graph...")
     intermediate_edges = topology.intermediate_edge_ids
     for solution in solutions:
         current_new_solutions = [solution]
@@ -244,10 +246,10 @@ def _merge_particle_candidates_with_solutions(
                 allowed_quantum_numbers,
             )
             if len(particle_edges) == 0:
-                logging.debug("Did not find any particle candidates for")
-                logging.debug("edge id: %d", int_edge_id)
-                logging.debug("edge properties:")
-                logging.debug(solution.states[int_edge_id])
+                _LOGGER.debug("Did not find any particle candidates for")
+                _LOGGER.debug("edge id: %d", int_edge_id)
+                _LOGGER.debug("edge properties:")
+                _LOGGER.debug(solution.states[int_edge_id])
             new_solutions_temp = []
             for current_new_solution in current_new_solutions:
                 for particle_edge in particle_edges:
@@ -297,7 +299,7 @@ def __is_sub_mapping(
 
 def validate_full_solution(problem_set: QNProblemSet) -> QNResult:
     # pylint: disable=too-many-locals
-    logging.debug("validating graph...")
+    _LOGGER.debug("validating graph...")
 
     rule_argument_handler = RuleArgumentHandler()
 
