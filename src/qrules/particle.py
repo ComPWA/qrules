@@ -464,9 +464,7 @@ def create_particle(  # pylint: disable=too-many-arguments,too-many-locals
             if tau_lepton_number
             else template_particle.tau_lepton_number
         ),
-        isospin=(
-            template_particle.isospin if isospin is None else template_particle.isospin
-        ),
+        isospin=template_particle.isospin if isospin is None else isospin,
         parity=template_particle.parity if parity is None else Parity(parity),
         c_parity=template_particle.c_parity if c_parity is None else Parity(c_parity),
         g_parity=template_particle.g_parity if g_parity is None else Parity(g_parity),
