@@ -44,6 +44,8 @@ if TYPE_CHECKING:
     from particle import Particle as PdgDatabase
     from particle.particle import enums
 
+_LOGGER = logging.getLogger(__name__)
+
 
 def _to_float(value: SupportsFloat) -> float:
     float_value = float(value)
@@ -340,9 +342,9 @@ class ParticleCollection(abc.MutableSet):
                 ),
             )
         if value.name in self.__particles:
-            logging.warning(f'Overwriting particle with name "{value.name}"')
+            _LOGGER.warning(f'Overwriting particle with name "{value.name}"')
         if value.pid in self.__pid_to_name:
-            logging.warning(
+            _LOGGER.warning(
                 f"Particle with PID {value.pid} already exists:"
                 f' "{self.find(value.pid).name}"'
             )
