@@ -349,6 +349,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             create_edge_properties(x)
             for x in sorted(selected_particles, key=lambda p: p.name)
         ]
+        self.__intermediate_particle_filters = selected_particles.names
 
     @property
     def formalism(self) -> str:

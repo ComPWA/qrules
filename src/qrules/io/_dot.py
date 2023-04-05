@@ -8,6 +8,7 @@ import re
 import string
 from collections import abc
 from functools import singledispatch
+from numbers import Number
 from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Union, cast
 
 import attrs
@@ -303,8 +304,27 @@ def _(obj: dict) -> str:
             key_repr = key.__name__
         else:
             key_repr = key
-        lines.append(f"{key_repr} = {value}")
+        if value != 0 or any(s in key_repr for s in ["magnitude", "projection"]):
+            # pylint: disable=invalid-name
+            pm = not any(s in key_repr for s in ["pid", "mass", "width", "magnitude"])
+            value_repr = __render_fraction(value, pm)
+            lines.append(f"{key_repr} = {value_repr}")
     return "\n".join(lines)
+
+
+def __render_fraction(value: Any, plusminus: bool) -> str:
+    plusminus &= isinstance(value, Number) and bool(value)
+    if isinstance(value, float):
+        if value.is_integer():
+            return str(int(value))
+        nom, denom = value.as_integer_ratio()
+        if denom == 2:
+            if plusminus:
+                return f"{nom:+}/{denom}"
+            return f"{nom}/{denom}"
+    if plusminus:
+        return f"{value:+}"
+    return str(value)
 
 
 @as_string.register(InteractionProperties)
