@@ -452,15 +452,15 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             )
             for particle_props in self.__allowed_intermediate_states:
                 for edge_qn, qn_value in particle_props.items():
+                    if edge_qn in {
+                        EdgeQuantumNumbers.pid,
+                        EdgeQuantumNumbers.mass,
+                        EdgeQuantumNumbers.width,
+                    }:
+                        continue
                     intermediate_edge_domains[edge_qn].add(qn_value)
 
-            return {
-                k: list(v)
-                for k, v in intermediate_edge_domains.items()
-                if k is not EdgeQuantumNumbers.pid
-                and k is not EdgeQuantumNumbers.mass
-                and k is not EdgeQuantumNumbers.width
-            }
+            return {k: list(v) for k, v in intermediate_edge_domains.items()}
 
         intermediate_state_edges = topology.intermediate_edge_ids
         int_edge_domains = create_intermediate_edge_qn_domains()
