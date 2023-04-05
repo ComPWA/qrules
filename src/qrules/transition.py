@@ -436,37 +436,37 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         self, topology: Topology, initial_facts: "InitialFacts"
     ) -> List[GraphSettings]:
         # pylint: disable=too-many-locals
+        weak_edge_settings, _ = self.interaction_type_settings[InteractionType.WEAK]
+
         def create_intermediate_edge_qn_domains() -> Dict:
+            if self.__intermediate_particle_filters is None:
+                return weak_edge_settings.qn_domains
+
             # if a list of intermediate states is given by user,
             # built a domain based on these states
-            if self.__intermediate_particle_filters is not None:
-                intermediate_edge_domains: Dict[Type[EdgeQuantumNumber], Set] = (
-                    defaultdict(set)
-                )
-                intermediate_edge_domains[EdgeQuantumNumbers.spin_projection].update(
-                    self.interaction_type_settings[InteractionType.WEAK][0].qn_domains[
-                        EdgeQuantumNumbers.spin_projection
-                    ]
-                )
-                for particle_props in self.__allowed_intermediate_states:
-                    for edge_qn, qn_value in particle_props.items():
-                        intermediate_edge_domains[edge_qn].add(qn_value)
+            intermediate_edge_domains: Dict[Type[EdgeQuantumNumber], Set] = defaultdict(
+                set
+            )
+            intermediate_edge_domains[EdgeQuantumNumbers.spin_projection].update(
+                weak_edge_settings.qn_domains[EdgeQuantumNumbers.spin_projection]
+            )
+            for particle_props in self.__allowed_intermediate_states:
+                for edge_qn, qn_value in particle_props.items():
+                    intermediate_edge_domains[edge_qn].add(qn_value)
 
-                return {
-                    k: list(v)
-                    for k, v in intermediate_edge_domains.items()
-                    if k is not EdgeQuantumNumbers.pid
-                    and k is not EdgeQuantumNumbers.mass
-                    and k is not EdgeQuantumNumbers.width
-                }
-
-            return self.interaction_type_settings[InteractionType.WEAK][0].qn_domains
+            return {
+                k: list(v)
+                for k, v in intermediate_edge_domains.items()
+                if k is not EdgeQuantumNumbers.pid
+                and k is not EdgeQuantumNumbers.mass
+                and k is not EdgeQuantumNumbers.width
+            }
 
         intermediate_state_edges = topology.intermediate_edge_ids
         int_edge_domains = create_intermediate_edge_qn_domains()
 
         def create_edge_settings(edge_id: int) -> EdgeSettings:
-            settings = copy(self.interaction_type_settings[InteractionType.WEAK][0])
+            settings = copy(weak_edge_settings)
             if edge_id in intermediate_state_edges:
                 settings.qn_domains = int_edge_domains
             else:
