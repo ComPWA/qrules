@@ -94,13 +94,11 @@ class TestKinematicRepresentation:
         assert representation.final_state == [["gamma", "pi0"]]
 
     def test_from_topology(self, three_body_decay: Topology):
-        pi0 = ("pi0", [0])
-        gamma = ("gamma", [-1, 1])
         states = {
-            -1: ("J/psi", [-1, +1]),
-            0: pi0,
-            1: pi0,
-            2: gamma,
+            -1: "J/psi",
+            0: "pi0",
+            1: "pi0",
+            2: "gamma",
         }
         kinematic_representation1 = _get_kinematic_representation(
             three_body_decay, states
@@ -116,22 +114,22 @@ class TestKinematicRepresentation:
 
         kinematic_representation2 = _get_kinematic_representation(
             topology=three_body_decay,
-            initial_facts={
-                -1: ("J/psi", [-1, +1]),
-                0: pi0,
-                1: gamma,
-                2: pi0,
+            particle_names={
+                -1: "J/psi",
+                0: "pi0",
+                1: "gamma",
+                2: "pi0",
             },
         )
         assert kinematic_representation1 == kinematic_representation2
 
         kinematic_representation3 = _get_kinematic_representation(
             topology=three_body_decay,
-            initial_facts={
-                -1: ("J/psi", [-1, +1]),
-                0: pi0,
-                1: gamma,
-                2: gamma,
+            particle_names={
+                -1: "J/psi",
+                0: "pi0",
+                1: "gamma",
+                2: "gamma",
             },
         )
         assert kinematic_representation2 != kinematic_representation3

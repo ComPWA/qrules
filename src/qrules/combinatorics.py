@@ -25,7 +25,7 @@ from typing import (
     Union,
 )
 
-from qrules.particle import Particle, ParticleCollection, ParticleWithSpin
+from qrules.particle import ParticleCollection, ParticleWithSpin
 from qrules.quantum_numbers import InteractionProperties, arange
 from qrules.topology import MutableTransition, Topology, get_originating_node_list
 
@@ -43,22 +43,22 @@ InitialFacts: TypeAlias = "MutableTransition[ParticleWithSpin, InteractionProper
 class _KinematicRepresentation:
     def __init__(
         self,
-        final_state: Optional[Union[Sequence[List[Any]], List[Any]]] = None,
-        initial_state: Optional[Union[Sequence[List[Any]], List[Any]]] = None,
+        final_state: Optional[Union[List[List[str]], List[str]]] = None,
+        initial_state: Optional[Union[List[List[str]], List[str]]] = None,
     ) -> None:
-        self.__initial_state: Optional[List[List[Any]]] = None
-        self.__final_state: Optional[List[List[Any]]] = None
+        self.__initial_state: Optional[List[List[str]]] = None
+        self.__final_state: Optional[List[List[str]]] = None
         if initial_state is not None:
-            self.__initial_state = self.__import(initial_state)
+            self.__initial_state = _sort_nested(ensure_nested_list(initial_state))
         if final_state is not None:
-            self.__final_state = self.__import(final_state)
+            self.__final_state = _sort_nested(ensure_nested_list(final_state))
 
     @property
-    def initial_state(self) -> Optional[List[List[Any]]]:
+    def initial_state(self) -> Optional[List[List[str]]]:
         return self.__initial_state
 
     @property
-    def final_state(self) -> Optional[List[List[Any]]]:
+    def final_state(self) -> Optional[List[List[str]]]:
         return self.__final_state
 
     def __eq__(self, other: object) -> bool:
@@ -92,8 +92,8 @@ class _KinematicRepresentation:
         """
 
         def is_sublist(
-            sub_representation: Optional[List[List[Any]]],
-            main_representation: Optional[List[List[Any]]],
+            sub_representation: Optional[List[List[str]]],
+            main_representation: Optional[List[List[str]]],
         ) -> bool:
             if main_representation is None:
                 if sub_representation is None:
@@ -121,41 +121,23 @@ class _KinematicRepresentation:
             f"Cannot compare {type(self).__name__} with {type(other).__name__}"
         )
 
-    def __import(
-        self, nested_list: Union[Sequence[Sequence[Any]], Sequence[Any]]
-    ) -> List[List[Any]]:
-        return self.__sort(self.__prepare(nested_list))
 
-    def __prepare(
-        self, nested_list: Union[Sequence[Sequence[Any]], Sequence[Any]]
-    ) -> List[List[Any]]:
-        if len(nested_list) == 0 or not isinstance(nested_list[0], list):
-            nested_list = [nested_list]
-        return [
-            [self.__extract_particle_name(item) for item in sub_list]
-            for sub_list in nested_list
-        ]
+def _sort_nested(nested_list: List[List[str]]) -> List[List[str]]:
+    return sorted(sorted(sub_list) for sub_list in nested_list)
 
-    @staticmethod
-    def __sort(nested_list: List[List[Any]]) -> List[List[Any]]:
-        return sorted(sorted(sub_list) for sub_list in nested_list)
 
-    @staticmethod
-    def __extract_particle_name(item: object) -> str:
-        if isinstance(item, str):
-            return item
-        if isinstance(item, (tuple, list)) and isinstance(item[0], str):
-            return item[0]
-        if isinstance(item, Particle):
-            return item.name
-        if isinstance(item, dict) and "Name" in item:
-            return str(item["Name"])
-        raise ValueError(f"Cannot extract particle name from {type(item).__name__}")
+def ensure_nested_list(
+    nested_list: Union[List[str], List[List[str]]]
+) -> List[List[str]]:
+    if any(not isinstance(item, list) for item in nested_list):
+        nested_list = [nested_list]  # type: ignore[assignment]
+    if any(not isinstance(i, str) for lst in nested_list for i in lst):
+        raise ValueError("Not all grouping items are particle names")
+    return nested_list  # type: ignore[return-value]
 
 
 def _get_kinematic_representation(
-    topology: Topology,
-    initial_facts: Mapping[int, StateWithSpins],
+    topology: Topology, particle_names: Mapping[int, str]
 ) -> _KinematicRepresentation:
     r"""Group final or initial states by node, sorted by length of the group.
 
@@ -192,22 +174,17 @@ def _get_kinematic_representation(
 
     and are therefore kinematically identical. The nested lists are sorted (by `list`
     length and element content) for comparisons.
-
-    Note: more precisely, the states represented here by a `str` only also have a list
-    of allowed spin projections, for instance, :code:`("J/psi", [-1, +1])`. Note that a
-    `tuple` is also sortable.
     """
 
-    def get_state_groupings(
-        edge_per_node_getter: Callable[[int], Iterable[int]]
-    ) -> List[Iterable[int]]:
-        return [edge_per_node_getter(i) for i in topology.nodes]
+    def get_state_groupings(get_edge: Callable[[int], Set[int]]) -> List[List[int]]:
+        return [sorted(get_edge(i)) for i in topology.nodes]
 
     def fill_groupings(
-        grouping_with_ids: Iterable[Iterable[int]],
-    ) -> List[List[StateWithSpins]]:
+        edge_id_groupings: Iterable[Iterable[int]],
+    ) -> List[List[str]]:
         return [
-            [initial_facts[edge_id] for edge_id in group] for group in grouping_with_ids
+            [particle_names[edge_id] for edge_id in group]
+            for group in edge_id_groupings
         ]
 
     initial_state_edge_groups = fill_groupings(
@@ -302,7 +279,8 @@ def _generate_kinematic_permutations(
         initial_state_with_projections,
         final_state_with_projections,
     ):
-        kinematic_representation = _get_kinematic_representation(topology, permutation)
+        states = {i: state[0] for i, state in permutation.items()}
+        kinematic_representation = _get_kinematic_representation(topology, states)
         if kinematic_representation in kinematic_representations:
             continue
         if not is_allowed_grouping(kinematic_representation):

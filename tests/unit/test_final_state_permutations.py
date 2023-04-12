@@ -24,7 +24,7 @@ def test_create_problem_sets(final_state_description: str):
     for problem_set in problem_sets.values():
         for problem in problem_set:
             problem_final_state = [
-                problem.initial_facts.edge_props[i][0].name for i in range(3)
+                problem.initial_facts.states[i][0].name for i in range(3)
             ]
             assert problem_final_state == input_final_state
 
