@@ -5,10 +5,10 @@ interactions. This module provides tools to permutate, modify or extract these e
 node properties.
 """
 
+import itertools
 import sys
 from collections import OrderedDict
 from copy import deepcopy
-from itertools import permutations
 from typing import (
     Any,
     Callable,
@@ -318,8 +318,8 @@ def _generate_outer_edge_permutations(
 ) -> Generator[Dict[int, StateWithSpins], None, None]:
     initial_state_ids = list(topology.incoming_edge_ids)
     final_state_ids = list(topology.outgoing_edge_ids)
-    for initial_state_permutation in permutations(initial_state):
-        for final_state_permutation in permutations(final_state):
+    for initial_state_permutation in itertools.permutations(initial_state):
+        for final_state_permutation in itertools.permutations(final_state):
             yield dict(
                 zip(
                     initial_state_ids + final_state_ids,
@@ -460,7 +460,7 @@ def _external_edge_identical_particle_combinatorics(
     }
     # now for each identical particle group perform all permutations
     for edge_group in identical_particle_groups.values():
-        combinations = permutations(edge_group)
+        combinations = itertools.permutations(edge_group)
         graph_combinations = set()
         ext_edge_combinations = []
         ref_node_origin = get_originating_node_list(graph.topology, edge_group)
