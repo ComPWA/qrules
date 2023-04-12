@@ -51,6 +51,7 @@ from .combinatorics import (
     create_initial_facts,
     ensure_nested_list,
     match_external_edges,
+    permutate_topology_kinematically,
 )
 from .particle import (
     Particle,
@@ -411,28 +412,20 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             self.__allowed_interaction_types[node_id] = allowed_interaction_types
 
     def create_problem_sets(self) -> Dict[float, List[ProblemSet]]:
-        problem_sets = []
-        for topology in self.topologies:
+        problem_sets = [
+            ProblemSet(permutation, initial_facts, settings)
             for initial_facts in create_initial_facts(
-                topology=topology,
-                particle_db=self.__particles,
-                initial_state=self.initial_state,
-                final_state=self.final_state,
-                final_state_groupings=self.final_state_groupings,
-            ):
-                problem_sets.extend(
-                    [
-                        ProblemSet(
-                            topology=topology,
-                            initial_facts=initial_facts,
-                            solving_settings=x,
-                        )
-                        for x in self.__determine_graph_settings(
-                            topology, initial_facts
-                        )
-                    ]
-                )
-        # create groups of settings ordered by "probability"
+                self.initial_state, self.final_state, self.__particles
+            )
+            for topology in self.topologies
+            for permutation in permutate_topology_kinematically(
+                topology,
+                self.initial_state,
+                self.final_state,
+                self.final_state_groupings,
+            )
+            for settings in self.__determine_graph_settings(permutation, initial_facts)
+        ]
         return _group_by_strength(problem_sets)
 
     def __determine_graph_settings(

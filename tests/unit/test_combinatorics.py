@@ -1,18 +1,16 @@
 # pylint: disable=redefined-outer-name
-from math import factorial
+from typing import List
 
 import pytest
 
 from qrules.combinatorics import (
     _generate_kinematic_permutations,
-    _generate_outer_edge_permutations,
-    _generate_spin_permutations,
     _get_kinematic_representation,
     _KinematicRepresentation,
-    _safe_set_spin_projections,
+    _permutate_outer_edges,
     create_initial_facts,
+    permutate_topology_kinematically,
 )
-from qrules.particle import ParticleCollection
 from qrules.topology import Topology, create_isobar_topologies
 
 
@@ -21,6 +19,66 @@ def three_body_decay() -> Topology:
     topologies = create_isobar_topologies(3)
     topology = next(iter(topologies))
     return topology
+
+
+def test_create_initial_facts(particle_database):
+    initial_facts = create_initial_facts(
+        initial_state=[("J/psi(1S)", [-1, +1])],
+        final_state=["gamma", "pi0", "pi0"],
+        particle_db=particle_database,
+    )
+    assert len(initial_facts) == 4
+
+    for fact in initial_facts:
+        edge_ids = sorted(fact.edge_props)
+        assert edge_ids == [-1, 0, 1, 2]
+        particle_names = [fact.edge_props[i][0].name for i in edge_ids]
+        assert particle_names == ["J/psi(1S)", "gamma", "pi0", "pi0"]
+        _, initial_polarization = fact.edge_props[-1]
+        assert initial_polarization in {-1, +1}
+
+
+def test_generate_kinematic_permutations_groupings(three_body_decay: Topology):
+    topology = three_body_decay
+    particle_names = {
+        -1: "J/psi(1S)",
+        0: "gamma",
+        1: "pi0",
+        2: "pi0",
+    }
+    allowed_kinematic_groupings = [_KinematicRepresentation(["pi0", "pi0"])]
+    permutations = _generate_kinematic_permutations(
+        topology, particle_names, allowed_kinematic_groupings
+    )
+    assert len(permutations) == 1
+
+    permutations = _generate_kinematic_permutations(topology, particle_names)
+    assert len(permutations) == 2
+    assert permutations[0].get_originating_final_state_edge_ids(1) == {1, 2}
+    assert permutations[1].get_originating_final_state_edge_ids(1) == {0, 2}
+
+
+@pytest.mark.parametrize(
+    ("n_permutations", "decay_type"),
+    [
+        (3, "two_to_three_decay"),
+        (3, "three_body_decay"),
+    ],
+)
+def test_permutate_outer_edges(
+    n_permutations: int,
+    decay_type: str,
+    three_body_decay: Topology,
+    two_to_three_decay: Topology,
+):
+    if decay_type == "two_to_three_decay":
+        topology = two_to_three_decay
+    elif decay_type == "three_body_decay":
+        topology = three_body_decay
+    else:
+        raise NotImplementedError(decay_type)
+    permutations = _permutate_outer_edges(topology)
+    assert len(permutations) == n_permutations
 
 
 @pytest.mark.parametrize(
@@ -32,53 +90,55 @@ def three_body_decay() -> Topology:
         ["gamma", "pi0"],
         [["gamma", "pi0"]],
         [[["gamma", "pi0"]]],
+        None,
     ],
 )
-def test_initialize_graph(
+def test_permutate_topology_kinematically(
     final_state_groupings,
     three_body_decay: Topology,
-    particle_database: ParticleCollection,
 ):
-    initial_facts = create_initial_facts(
-        three_body_decay,
+    permutations = permutate_topology_kinematically(
+        topology=three_body_decay,
         initial_state=[("J/psi(1S)", [-1, +1])],
         final_state=["gamma", "pi0", "pi0"],
-        particle_db=particle_database,
         final_state_groupings=final_state_groupings,
     )
-    assert len(initial_facts) == 4
+    if final_state_groupings is None:
+        assert len(permutations) == 2
+    else:
+        assert len(permutations) == 1
 
 
 @pytest.mark.parametrize(
-    ("initial_state", "final_state"),
+    ("n_permutations", "initial_state", "final_state"),
     [
-        (["J/psi(1S)"], ["gamma", "pi0", "pi0"]),
-        (["J/psi(1S)"], ["K+", "K-", "pi+", "pi-"]),
-        (["e+", "e-"], ["gamma", "pi-", "pi+"]),
-        (["e+", "e-"], ["K+", "K-", "pi+", "pi-"]),
+        (2, ["J/psi(1S)"], ["gamma", "pi0", "pi0"]),
+        (3, ["J/psi(1S)"], ["gamma", "pi-", "pi+"]),
+        (2, ["e+", "e-"], ["gamma", "pi0", "pi0"]),
+        (3, ["e+", "e-"], ["gamma", "pi-", "pi+"]),
     ],
 )
-def test_generate_outer_edge_permutations(
-    initial_state,
-    final_state,
+def test_generate_kinematic_permutations(
+    n_permutations: int,
+    initial_state: List[str],
+    final_state: List[str],
     three_body_decay: Topology,
-    particle_database: ParticleCollection,
+    two_to_three_decay: Topology,
 ):
-    initial_state_with_spins = _safe_set_spin_projections(
-        initial_state, particle_database
-    )
-    final_state_with_spins = _safe_set_spin_projections(final_state, particle_database)
-    list_of_permutations = list(
-        _generate_outer_edge_permutations(
-            three_body_decay,
-            initial_state_with_spins,
-            final_state_with_spins,
+    if len(initial_state) == 1:
+        topology = three_body_decay
+    elif len(initial_state) == 2:
+        topology = two_to_three_decay
+    else:
+        raise NotImplementedError
+    particle_names = dict(
+        zip(
+            sorted(topology.incoming_edge_ids) + sorted(topology.outgoing_edge_ids),
+            list(initial_state) + list(final_state),
         )
     )
-    n_permutations_final_state = factorial(len(final_state))
-    n_permutations_initial_state = factorial(len(initial_state))
-    n_permutations = n_permutations_final_state * n_permutations_initial_state
-    assert len(list_of_permutations) == n_permutations
+    permutations = _generate_kinematic_permutations(topology, particle_names)
+    assert len(permutations) == n_permutations
 
 
 class TestKinematicRepresentation:
@@ -161,50 +221,3 @@ class TestKinematicRepresentation:
             match=r"Comparison representation needs to be a list of lists",
         ):
             assert ["should be nested list"] in kinematic_representation
-
-
-def test_generate_permutations(
-    three_body_decay: Topology, particle_database: ParticleCollection
-):
-    permutations = _generate_kinematic_permutations(
-        three_body_decay,
-        initial_state=[("J/psi(1S)", [-1, +1])],
-        final_state=["gamma", "pi0", "pi0"],
-        particle_db=particle_database,
-        allowed_kinematic_groupings=[_KinematicRepresentation(["pi0", "pi0"])],
-    )
-    assert len(permutations) == 1
-
-    permutations = _generate_kinematic_permutations(
-        three_body_decay,
-        initial_state=[("J/psi(1S)", [-1, +1])],
-        final_state=["gamma", "pi0", "pi0"],
-        particle_db=particle_database,
-    )
-    assert len(permutations) == 2
-    graph0_final_state_node1 = [
-        permutations[0][edge_id]
-        for edge_id in three_body_decay.get_originating_final_state_edge_ids(1)
-    ]
-    graph1_final_state_node1 = [
-        permutations[1][edge_id]
-        for edge_id in three_body_decay.get_originating_final_state_edge_ids(1)
-    ]
-    assert graph0_final_state_node1 == [
-        ("pi0", [0]),
-        ("pi0", [0]),
-    ]
-    assert graph1_final_state_node1 == [
-        ("gamma", [-1, 1]),
-        ("pi0", [0]),
-    ]
-
-    permutation0 = permutations[0]
-    spin_permutations = _generate_spin_permutations(permutation0, particle_database)
-    assert len(spin_permutations) == 4
-    assert spin_permutations[0][-1][1] == -1
-    assert spin_permutations[0][0][1] == -1
-    assert spin_permutations[1][-1][1] == -1
-    assert spin_permutations[1][0][1] == +1
-    assert spin_permutations[2][-1][1] == +1
-    assert spin_permutations[3][-1][1] == +1
