@@ -325,11 +325,11 @@ def _safe_set_spin_projections(
         if isinstance(state, str):
             particle_name = state
             particle = particle_db[state]
-            spin_projections = list(arange(-particle.spin, particle.spin + 1, 1.0))
+            spin_projections = set(arange(-particle.spin, particle.spin + 1, 1.0))
             if particle.mass == 0.0:
                 if 0.0 in spin_projections:
-                    del spin_projections[spin_projections.index(0.0)]
-            state = (particle_name, spin_projections)
+                    spin_projections.remove(0.0)
+            state = (particle_name, sorted(spin_projections))
         return state
 
     return [safe_set_spin_projections(state, particle_db) for state in list_of_states]
