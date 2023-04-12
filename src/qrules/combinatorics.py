@@ -27,11 +27,9 @@ from typing import (
 from attrs import field, frozen
 
 from qrules._implementers import implement_pretty_repr
-from qrules.particle import Particle, ParticleCollection
-
-from .particle import ParticleWithSpin
-from .quantum_numbers import InteractionProperties, arange
-from .topology import StateTransitionGraph, Topology, get_originating_node_list
+from qrules.particle import Particle, ParticleCollection, ParticleWithSpin
+from qrules.quantum_numbers import InteractionProperties, arange
+from qrules.topology import StateTransitionGraph, Topology, get_originating_node_list
 
 StateWithSpins = Tuple[str, Sequence[float]]
 StateDefinition = Union[str, StateWithSpins]
