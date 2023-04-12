@@ -49,6 +49,7 @@ from .combinatorics import (
     InitialFacts,
     StateDefinition,
     create_initial_facts,
+    ensure_nested_list,
     match_external_edges,
 )
 from .particle import (
@@ -273,8 +274,8 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         if particle_db is not None:
             self.__particles = particle_db
         self.reaction_mode = str(solving_mode)
-        self.initial_state = initial_state
-        self.final_state = final_state
+        self.initial_state = list(initial_state)
+        self.final_state = list(final_state)
         self.interaction_type_settings = interaction_type_settings
 
         self.interaction_determinators: List[InteractionDeterminator] = [
@@ -367,7 +368,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         if len(fs_group) > 0:
             if self.final_state_groupings is None:
                 self.final_state_groupings = []
-            nested_list = _safe_wrap_list(fs_group)
+            nested_list = ensure_nested_list(fs_group)
             self.final_state_groupings.append(nested_list)
 
     @overload
@@ -680,16 +681,6 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
                 not_executed_edge_rules=qn_result.not_executed_edge_rules,
             ),
         )
-
-
-def _safe_wrap_list(nested_list: Union[List[str], List[List[str]]]) -> List[List[str]]:
-    if all(isinstance(i, list) for i in nested_list):
-        return nested_list  # type: ignore[return-value]
-    if all(isinstance(i, str) for i in nested_list):
-        return [nested_list]  # type: ignore[list-item]
-    raise TypeError(
-        f"Input final state grouping {nested_list} is not a list of lists of strings"
-    )
 
 
 def _filter_by_name_pattern(
