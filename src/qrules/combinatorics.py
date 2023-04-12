@@ -380,18 +380,6 @@ def _generate_spin_permutations(
     return initial_facts_permutations
 
 
-def __get_initial_state_edge_ids(
-    graph: "MutableTransition[ParticleWithSpin, InteractionProperties]",
-) -> Iterable[int]:
-    return graph.topology.incoming_edge_ids
-
-
-def __get_final_state_edge_ids(
-    graph: "MutableTransition[ParticleWithSpin, InteractionProperties]",
-) -> Iterable[int]:
-    return graph.topology.outgoing_edge_ids
-
-
 def match_external_edges(
     graphs: "List[MutableTransition[ParticleWithSpin, InteractionProperties]]",
 ) -> None:
@@ -438,6 +426,18 @@ def _match_external_edge_ids(  # pylint: disable=too-many-locals
         swappings = _calculate_swappings(edge_ids_mapping)
         for edge_id1, edge_id2 in swappings.items():
             graph.swap_edges(edge_id1, edge_id2)
+
+
+def __get_initial_state_edge_ids(
+    graph: "MutableTransition[ParticleWithSpin, InteractionProperties]",
+) -> Iterable[int]:
+    return graph.topology.incoming_edge_ids
+
+
+def __get_final_state_edge_ids(
+    graph: "MutableTransition[ParticleWithSpin, InteractionProperties]",
+) -> Iterable[int]:
+    return graph.topology.outgoing_edge_ids
 
 
 def perform_external_edge_identical_particle_combinatorics(
