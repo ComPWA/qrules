@@ -25,11 +25,9 @@ from typing import (
     Union,
 )
 
-from qrules.particle import Particle, ParticleCollection
-
-from .particle import ParticleWithSpin
-from .quantum_numbers import InteractionProperties, arange
-from .topology import MutableTransition, Topology, get_originating_node_list
+from qrules.particle import Particle, ParticleCollection, ParticleWithSpin
+from qrules.quantum_numbers import InteractionProperties, arange
+from qrules.topology import MutableTransition, Topology, get_originating_node_list
 
 if sys.version_info >= (3, 10):
     from typing import TypeAlias
