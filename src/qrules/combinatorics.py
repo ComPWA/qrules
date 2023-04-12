@@ -13,14 +13,12 @@ from typing import (
     Any,
     Callable,
     Dict,
-    Generator,
     Iterable,
     List,
     Mapping,
     Optional,
     Sequence,
     Set,
-    Sized,
     Tuple,
     Union,
 )
@@ -199,137 +197,54 @@ def _get_kinematic_representation(
     )
 
 
-def create_initial_facts(  # pylint: disable=too-many-locals
+def create_initial_facts(
     topology: Topology,
-    particle_db: ParticleCollection,
     initial_state: Sequence[StateDefinition],
     final_state: Sequence[StateDefinition],
-    final_state_groupings: Optional[
-        Union[List[List[List[str]]], List[List[str]], List[str]]
-    ] = None,
+    particle_db: ParticleCollection,
 ) -> List[InitialFacts]:
-    def embed_in_list(some_list: List[Any]) -> List[List[Any]]:
-        if not isinstance(some_list[0], list):
-            return [some_list]
-        return some_list
-
-    allowed_kinematic_groupings = None
-    if final_state_groupings is not None:
-        final_state_groupings = embed_in_list(final_state_groupings)
-        final_state_groupings = embed_in_list(final_state_groupings)
-        allowed_kinematic_groupings = [
-            _KinematicRepresentation(final_state=grouping)
-            for grouping in final_state_groupings
-        ]
-
-    kinematic_permutation_graphs = _generate_kinematic_permutations(
-        topology=topology,
-        particle_db=particle_db,
-        initial_state=initial_state,
-        final_state=final_state,
-        allowed_kinematic_groupings=allowed_kinematic_groupings,
+    states = __create_states_with_spin_projections(
+        list(topology.incoming_edge_ids) + list(topology.outgoing_edge_ids),
+        list(initial_state) + list(final_state),
+        particle_db,
     )
-    edge_initial_facts: List[InitialFacts] = []
-    for kinematic_permutation in kinematic_permutation_graphs:
-        spin_permutations = _generate_spin_permutations(
-            kinematic_permutation, particle_db
-        )
-        edge_initial_facts.extend(
-            [MutableTransition(topology, states=x) for x in spin_permutations]  # type: ignore[arg-type]
-        )
-    return edge_initial_facts
+    spin_states = __generate_spin_combinations(states, particle_db)
+    return [MutableTransition(topology, state) for state in spin_states]  # type: ignore[arg-type]
 
 
-def _generate_kinematic_permutations(
-    topology: Topology,
+def __create_states_with_spin_projections(
+    edge_ids: Sequence[int],
+    state_definitions: Sequence[StateDefinition],
     particle_db: ParticleCollection,
-    initial_state: Sequence[StateDefinition],
-    final_state: Sequence[StateDefinition],
-    allowed_kinematic_groupings: Optional[List[_KinematicRepresentation]] = None,
-) -> List[Dict[int, StateWithSpins]]:
-    def assert_number_of_states(state_definitions: Sized, edge_ids: Sized) -> None:
-        if len(state_definitions) != len(edge_ids):
-            raise ValueError(
-                "Number of state definitions is not same as number of edge"
-                f" IDs:(len({state_definitions}) != len({edge_ids})"
-            )
-
-    assert_number_of_states(initial_state, topology.incoming_edge_ids)
-    assert_number_of_states(final_state, topology.outgoing_edge_ids)
-
-    def is_allowed_grouping(
-        kinematic_representation: _KinematicRepresentation,
-    ) -> bool:
-        if allowed_kinematic_groupings is None:
-            return True
-        for allowed_kinematic_grouping in allowed_kinematic_groupings:
-            if allowed_kinematic_grouping in kinematic_representation:
-                return True
-        return False
-
-    initial_state_with_projections = _safe_set_spin_projections(
-        initial_state, particle_db
-    )
-    final_state_with_projections = _safe_set_spin_projections(final_state, particle_db)
-
-    initial_facts_combinations: List[Dict[int, StateWithSpins]] = []
-    kinematic_representations: List[_KinematicRepresentation] = []
-    for permutation in _generate_outer_edge_permutations(
-        topology,
-        initial_state_with_projections,
-        final_state_with_projections,
-    ):
-        states = {i: state[0] for i, state in permutation.items()}
-        kinematic_representation = _get_kinematic_representation(topology, states)
-        if kinematic_representation in kinematic_representations:
-            continue
-        if not is_allowed_grouping(kinematic_representation):
-            continue
-        kinematic_representations.append(kinematic_representation)
-        initial_facts_combinations.append(permutation)
-
-    return initial_facts_combinations
+) -> Dict[int, StateWithSpins]:
+    if len(edge_ids) != len(state_definitions):
+        raise ValueError(
+            "Number of state definitions is not same as number of edge IDs"
+        )
+    states = __safe_set_spin_projections(state_definitions, particle_db)
+    return dict(zip(edge_ids, states))
 
 
-def _safe_set_spin_projections(
-    list_of_states: Sequence[StateDefinition],
+def __safe_set_spin_projections(
+    state_definitions: Sequence[StateDefinition],
     particle_db: ParticleCollection,
 ) -> Sequence[StateWithSpins]:
-    def safe_set_spin_projections(
-        state: StateDefinition, particle_db: ParticleCollection
-    ) -> StateWithSpins:
+    def fill_spin_projections(state: StateDefinition) -> StateWithSpins:
         if isinstance(state, str):
             particle_name = state
-            particle = particle_db[state]
+            particle = particle_db[particle_name]
             spin_projections = set(arange(-particle.spin, particle.spin + 1, 1.0))
             if particle.mass == 0.0:
                 if 0.0 in spin_projections:
                     spin_projections.remove(0.0)
-            state = (particle_name, sorted(spin_projections))
+            return particle_name, sorted(spin_projections)
         return state
 
-    return [safe_set_spin_projections(state, particle_db) for state in list_of_states]
+    return [fill_spin_projections(state) for state in state_definitions]
 
 
-def _generate_outer_edge_permutations(
-    topology: Topology,
-    initial_state: Sequence[StateWithSpins],
-    final_state: Sequence[StateWithSpins],
-) -> Generator[Dict[int, StateWithSpins], None, None]:
-    initial_state_ids = list(topology.incoming_edge_ids)
-    final_state_ids = list(topology.outgoing_edge_ids)
-    for initial_state_permutation in itertools.permutations(initial_state):
-        for final_state_permutation in itertools.permutations(final_state):
-            yield dict(
-                zip(
-                    initial_state_ids + final_state_ids,
-                    initial_state_permutation + final_state_permutation,
-                )
-            )
-
-
-def _generate_spin_permutations(
-    initial_facts: Dict[int, StateWithSpins],
+def __generate_spin_combinations(
+    states_with_spin_projections: Dict[int, StateWithSpins],
     particle_db: ParticleCollection,
 ) -> List[Dict[int, ParticleWithSpin]]:
     def populate_edge_with_spin_projections(
@@ -347,7 +262,7 @@ def _generate_spin_permutations(
         return new_permutations
 
     initial_facts_permutations: List[Dict[int, ParticleWithSpin]] = [{}]
-    for edge_id, state in initial_facts.items():
+    for edge_id, state in states_with_spin_projections.items():
         temp_permutations = initial_facts_permutations
         initial_facts_permutations = []
         for temp_permutation in temp_permutations:
@@ -356,6 +271,92 @@ def _generate_spin_permutations(
             )
 
     return initial_facts_permutations
+
+
+def permutate_topology_kinematically(
+    topology: Topology,
+    initial_state: List[StateDefinition],
+    final_state: List[StateDefinition],
+    final_state_groupings: Optional[
+        Union[List[List[List[str]]], List[List[str]], List[str]]
+    ] = None,
+) -> List[Topology]:
+    def strip_spin(state: StateDefinition) -> str:
+        if isinstance(state, tuple):
+            return state[0]
+        return state
+
+    edge_ids = sorted(topology.incoming_edge_ids) + sorted(topology.outgoing_edge_ids)
+    states = initial_state + final_state
+    return _generate_kinematic_permutations(
+        topology,
+        particle_names={i: strip_spin(s) for i, s in zip(edge_ids, states)},
+        allowed_kinematic_groupings=__get_kinematic_groupings(final_state_groupings),
+    )
+
+
+def _generate_kinematic_permutations(
+    topology: Topology,
+    particle_names: Dict[int, str],
+    allowed_kinematic_groupings: Optional[List[_KinematicRepresentation]] = None,
+) -> List[Topology]:
+    def is_allowed_grouping(kinematic_representation: _KinematicRepresentation) -> bool:
+        if allowed_kinematic_groupings is None:
+            return True
+        for allowed_kinematic_grouping in allowed_kinematic_groupings:
+            if allowed_kinematic_grouping in kinematic_representation:
+                return True
+        return False
+
+    permuted_topologies: List[Topology] = []
+    kinematic_representations: List[_KinematicRepresentation] = []
+    for permutation in _permutate_outer_edges(topology):
+        kinematic_representation = _get_kinematic_representation(
+            permutation, particle_names
+        )
+        if kinematic_representation in kinematic_representations:
+            continue
+        if not is_allowed_grouping(kinematic_representation):
+            continue
+        kinematic_representations.append(kinematic_representation)
+        permuted_topologies.append(permutation)
+    return permuted_topologies
+
+
+def _permutate_outer_edges(topology: Topology) -> List[Topology]:
+    initial_state_ids = sorted(topology.incoming_edge_ids)
+    final_state_ids = sorted(topology.outgoing_edge_ids)
+    topologies = set()
+    for initial_state_permutation in itertools.permutations(initial_state_ids):
+        for final_state_permutation in itertools.permutations(final_state_ids):
+            permutation = zip(
+                initial_state_ids + final_state_ids,
+                initial_state_permutation + final_state_permutation,
+            )
+            new_topology = topology.relabel_edges(dict(permutation))
+            topologies.add(new_topology)
+    return sorted(topologies)
+
+
+def __get_kinematic_groupings(
+    final_state_groupings: Union[
+        List[List[List[str]]],
+        List[List[str]],
+        List[str],
+        None,
+    ]
+) -> Optional[List[_KinematicRepresentation]]:
+    if final_state_groupings is None:
+        return None
+
+    def embed_in_list(some_list: List[Any]) -> List[List[Any]]:
+        if not isinstance(some_list[0], list):
+            return [some_list]
+        return some_list
+
+    final_state_groupings = embed_in_list(final_state_groupings)
+    final_state_groupings = embed_in_list(final_state_groupings)
+    return [_KinematicRepresentation(grouping) for grouping in final_state_groupings]
 
 
 def match_external_edges(
