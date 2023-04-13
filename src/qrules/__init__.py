@@ -211,8 +211,8 @@ def check_reaction_violations(  # pylint: disable=too-many-arguments
     for ls_combi in ls_combinations:
         for facts_combination in initial_facts:
             new_facts = attrs.evolve(
-                facts_combination,
-                interactions={node_id: ls_combi},
+                facts_combination,  # type: ignore[arg-type]
+                interactions={node_id: ls_combi},  # type: ignore[dict-item]
             )
             initial_facts_list.append(new_facts)
 

@@ -117,7 +117,7 @@ def create_interaction_properties(
         if x.name in converted_solution
     }
 
-    return attrs.evolve(InteractionProperties(), **kw_args)
+    return attrs.evolve(InteractionProperties(), **kw_args)  # type: ignore[arg-type]
 
 
 def filter_interaction_types(
@@ -237,7 +237,7 @@ def _remove_qns_from_graph(  # pylint: disable=too-many-branches
             interactions, **{x.__name__: None for x in qn_list}
         )
 
-    return attrs.evolve(graph, interactions=new_interactions)
+    return attrs.evolve(graph, interactions=new_interactions)  # type: ignore[arg-type]
 
 
 def _check_equal_ignoring_qns(

@@ -251,10 +251,7 @@ def _insert_allowed_states(
                     # need "shallow" copy of the nested dicts
                     new_states = {i: copy(s) for i, s in new_solution.states.items()}
                     new_states[edge_id].update(candidate)  # keep spin_projection
-                    graph = attrs.evolve(
-                        new_solution,
-                        states=new_states,
-                    )
+                    graph = attrs.evolve(new_solution, states=new_states)  # type: ignore[arg-type]
                     graphs_with_candidates.append(graph)
             current_substituted_graphs = graphs_with_candidates
 
