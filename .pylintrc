@@ -14,6 +14,7 @@ ignore-patterns=
 
 [MESSAGES CONTROL]
 disable=
+  abstract-class-instantiated,  # doesn't work well with Generic
   duplicate-code, # https://github.com/PyCQA/pylint/issues/214
   invalid-unary-operand-type, # conflicts with attrs.field
   line-too-long,    # automatically fixed with black
