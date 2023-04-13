@@ -117,7 +117,7 @@ def create_interaction_properties(
         if x.name in converted_solution
     }
 
-    return attrs.evolve(InteractionProperties(), **kw_args)
+    return attrs.evolve(InteractionProperties(), **kw_args)  # type: ignore[arg-type]
 
 
 def filter_interaction_types(
