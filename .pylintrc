@@ -4,35 +4,35 @@
 
 [BASIC]
 good-names-rgxs=
-    ^[p]$,
+  ^[p]$,
 
 [MASTER]
 ignore=
-    conf.py,
+  conf.py,
 ignore-patterns=
-    .*\.pyi
+  .*\.pyi
 
 [MESSAGES CONTROL]
 disable=
-    duplicate-code, # https://github.com/PyCQA/pylint/issues/214
-    invalid-unary-operand-type, # conflicts with attrs.field
-    line-too-long,    # automatically fixed with black
-    logging-fstring-interpolation,
-    missing-class-docstring,    # pydocstyle
-    missing-function-docstring, # pydocstyle
-    missing-module-docstring,   # pydocstyle
-    no-member, # conflicts with attrs.field
-    no-name-in-module,  # already checked by mypy
-    not-a-mapping, # conflicts with attrs.field
-    not-an-iterable, # conflicts with attrs.field
-    not-callable, # conflicts with attrs.field
-    redefined-builtin, # flake8-built
-    too-few-public-methods, # data containers (attrs) and interface classes
-    unspecified-encoding, # http://pylint.pycqa.org/en/latest/whatsnew/2.10.html
-    unsubscriptable-object, # conflicts with attrs.field
-    unsupported-assignment-operation, # conflicts with attrs.field
-    unsupported-membership-test, # conflicts with attrs.field
-    unused-import, # https://www.flake8rules.com/rules/F401
+  duplicate-code, # https://github.com/PyCQA/pylint/issues/214
+  invalid-unary-operand-type, # conflicts with attrs.field
+  line-too-long,    # automatically fixed with black
+  logging-fstring-interpolation,
+  missing-class-docstring,    # pydocstyle
+  missing-function-docstring, # pydocstyle
+  missing-module-docstring,   # pydocstyle
+  no-member, # conflicts with attrs.field
+  no-name-in-module,  # already checked by mypy
+  not-a-mapping, # conflicts with attrs.field
+  not-an-iterable, # conflicts with attrs.field
+  not-callable, # conflicts with attrs.field
+  redefined-builtin, # flake8-built
+  too-few-public-methods, # data containers (attrs) and interface classes
+  unspecified-encoding, # http://pylint.pycqa.org/en/latest/whatsnew/2.10.html
+  unsubscriptable-object, # conflicts with attrs.field
+  unsupported-assignment-operation, # conflicts with attrs.field
+  unsupported-membership-test, # conflicts with attrs.field
+  unused-import, # https://www.flake8rules.com/rules/F401
 
 [SIMILARITIES]
 ignore-imports=yes # https://stackoverflow.com/a/30007053
