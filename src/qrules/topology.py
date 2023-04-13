@@ -58,6 +58,8 @@ else:
 if TYPE_CHECKING:
     from IPython.lib.pretty import PrettyPrinter
 
+_LOGGER = logging.getLogger(__name__)
+
 
 class _Comparable(Protocol):
     @abstractmethod
@@ -595,7 +597,7 @@ class SimpleStateTransitionTopologyBuilder:
         if number_of_final_edges < 1:
             raise ValueError("number_of_final_edges has to be larger than 0")
 
-        logging.info("building topology graphs...")
+        _LOGGER.info("building topology graphs...")
         # result list
         graph_tuple_list: List[Tuple[MutableTopology, List[int]]] = []
         # create seed graph
@@ -618,7 +620,7 @@ class SimpleStateTransitionTopologyBuilder:
 
                 extendable_graph_list.extend(self._extend_graph(active_graph))
 
-        logging.info("finished building topology graphs...")
+        _LOGGER.info("finished building topology graphs...")
         # strip the current open end edges list from the result graph tuples
         topologies = []
         for graph_tuple in graph_tuple_list:

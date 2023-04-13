@@ -43,6 +43,8 @@ if TYPE_CHECKING:
     from particle import Particle as PdgDatabase
     from particle.particle import enums
 
+_LOGGER = logging.getLogger(__name__)
+
 
 def _to_float(value: SupportsFloat) -> float:
     float_value = float(value)
@@ -337,9 +339,9 @@ class ParticleCollection(abc.MutableSet):
                 ),
             )
         if value.name in self.__particles:
-            logging.warning(f'Overwriting particle with name "{value.name}"')
+            _LOGGER.warning(f'Overwriting particle with name "{value.name}"')
         if value.pid in self.__pid_to_name:
-            logging.warning(
+            _LOGGER.warning(
                 f"Particle with PID {value.pid} already exists:"
                 f' "{self.find(value.pid).name}"'
             )
@@ -459,9 +461,7 @@ def create_particle(  # pylint: disable=too-many-arguments,too-many-locals
             if tau_lepton_number
             else template_particle.tau_lepton_number
         ),
-        isospin=(
-            template_particle.isospin if isospin is None else template_particle.isospin
-        ),
+        isospin=template_particle.isospin if isospin is None else isospin,
         parity=template_particle.parity if parity is None else Parity(parity),
         c_parity=template_particle.c_parity if c_parity is None else Parity(c_parity),
         g_parity=template_particle.g_parity if g_parity is None else Parity(g_parity),

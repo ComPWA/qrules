@@ -35,8 +35,8 @@ from ._system_control import (
     create_edge_properties,
     create_interaction_properties,
     create_node_properties,
-    create_particle,
     filter_interaction_types,
+    find_particle,
     remove_duplicate_solutions,
 )
 from .combinatorics import (
@@ -88,6 +88,8 @@ else:
     from typing_extensions import TypeAlias
 if TYPE_CHECKING:
     from .topology import FrozenTransition  # noqa: F401
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class SolvingMode(Enum):
@@ -349,6 +351,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             create_edge_properties(x)
             for x in sorted(selected_particles, key=lambda p: p.name)
         ]
+        self.__intermediate_particle_filters = selected_particles.names
 
     @property
     def formalism(self) -> str:
@@ -394,7 +397,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
                     "Allowed interaction types must be of type[InteractionType]"
                 )
             if allowed_types not in self.interaction_type_settings:
-                logging.info(self.interaction_type_settings.keys())
+                _LOGGER.info(self.interaction_type_settings.keys())
                 raise ValueError(f"Interaction {allowed_types} not found in settings")
         allowed_interaction_types = list(allowed_interaction_types)
         if node_id is None:
@@ -433,37 +436,37 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         self, topology: Topology, initial_facts: "InitialFacts"
     ) -> List[GraphSettings]:
         # pylint: disable=too-many-locals
+        weak_edge_settings, _ = self.interaction_type_settings[InteractionType.WEAK]
+
         def create_intermediate_edge_qn_domains() -> Dict:
+            if self.__intermediate_particle_filters is None:
+                return weak_edge_settings.qn_domains
+
             # if a list of intermediate states is given by user,
             # built a domain based on these states
-            if self.__intermediate_particle_filters is not None:
-                intermediate_edge_domains: Dict[Type[EdgeQuantumNumber], Set] = (
-                    defaultdict(set)
-                )
-                intermediate_edge_domains[EdgeQuantumNumbers.spin_projection].update(
-                    self.interaction_type_settings[InteractionType.WEAK][0].qn_domains[
-                        EdgeQuantumNumbers.spin_projection
-                    ]
-                )
-                for particle_props in self.__allowed_intermediate_states:
-                    for edge_qn, qn_value in particle_props.items():
-                        intermediate_edge_domains[edge_qn].add(qn_value)
+            intermediate_edge_domains: Dict[Type[EdgeQuantumNumber], Set] = defaultdict(
+                set
+            )
+            intermediate_edge_domains[EdgeQuantumNumbers.spin_projection].update(
+                weak_edge_settings.qn_domains[EdgeQuantumNumbers.spin_projection]
+            )
+            for particle_props in self.__allowed_intermediate_states:
+                for edge_qn, qn_value in particle_props.items():
+                    if edge_qn in {
+                        EdgeQuantumNumbers.pid,
+                        EdgeQuantumNumbers.mass,
+                        EdgeQuantumNumbers.width,
+                    }:
+                        continue
+                    intermediate_edge_domains[edge_qn].add(qn_value)
 
-                return {
-                    k: list(v)
-                    for k, v in intermediate_edge_domains.items()
-                    if k is not EdgeQuantumNumbers.pid
-                    and k is not EdgeQuantumNumbers.mass
-                    and k is not EdgeQuantumNumbers.width
-                }
-
-            return self.interaction_type_settings[InteractionType.WEAK][0].qn_domains
+            return {k: list(v) for k, v in intermediate_edge_domains.items()}
 
         intermediate_state_edges = topology.intermediate_edge_ids
         int_edge_domains = create_intermediate_edge_qn_domains()
 
         def create_edge_settings(edge_id: int) -> EdgeSettings:
-            settings = copy(self.interaction_type_settings[InteractionType.WEAK][0])
+            settings = copy(weak_edge_settings)
             if edge_id in intermediate_state_edges:
                 settings.qn_domains = int_edge_domains
             else:
@@ -512,7 +515,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             interaction_types = filter_interaction_types(
                 interaction_types, allowed_interaction_types
             )
-            logging.debug(
+            _LOGGER.debug(
                 "using %s interaction order for node: %s",
                 str(interaction_types),
                 str(node_id),
@@ -536,7 +539,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         """Check for solutions for a specific set of interaction settings."""
         results = self._find_particle_transitions(problem_sets)
         for strength, result in results.items():
-            logging.info(
+            _LOGGER.info(
                 (
                     f"Number of solutions for strength {strength} after"
                     f"QN solving: {len(result.solutions)}"
@@ -616,7 +619,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
     ) -> Dict[float, List[Tuple[QNProblemSet, QNResult]]]:
         """Find allowed transitions purely in terms of quantum number sets."""
         qn_results: Dict[float, List[Tuple[QNProblemSet, QNResult]]] = defaultdict(list)
-        logging.info(
+        _LOGGER.info(
             "Number of interaction settings groups being processed: %d",
             len(problem_sets),
         )
@@ -624,14 +627,14 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         progress_bar = tqdm(
             total=total,
             desc="Propagating quantum numbers",
-            disable=logging.getLogger().level > logging.WARNING,
+            disable=_LOGGER.level > logging.WARNING,
         )
         for strength, problems in sorted(problem_sets.items(), reverse=True):
-            logging.info(
+            _LOGGER.info(
                 f"processing interaction settings group with strength {strength}",
             )
-            logging.info(f"{len(problems)} entries in this group")
-            logging.info(f"running with {self.__number_of_threads} threads...")
+            _LOGGER.info(f"{len(problems)} entries in this group")
+            _LOGGER.info(f"running with {self.__number_of_threads} threads...")
 
             qn_problems = [x.to_qn_problem_set() for x in problems]
 
@@ -678,7 +681,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
                     for i, x in solution.interactions.items()
                 },
                 states={
-                    i: create_particle(x, self.__particles)  # type: ignore[misc]
+                    i: find_particle(x, self.__particles)  # type: ignore[misc]
                     for i, x in solution.states.items()
                 },
             )

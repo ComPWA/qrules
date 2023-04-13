@@ -19,6 +19,8 @@ from .settings import InteractionType
 from .solving import GraphEdgePropertyMap, GraphNodePropertyMap, GraphSettings
 from .topology import MutableTransition
 
+_LOGGER = logging.getLogger(__name__)
+
 Strength = float
 
 GraphSettingsGroups = Dict[Strength, List[Tuple[MutableTransition, GraphSettings]]]
@@ -77,8 +79,8 @@ def create_node_properties(
     return property_map
 
 
-def create_particle(
-    states: GraphEdgePropertyMap, particle_db: ParticleCollection
+def find_particle(
+    state: GraphEdgePropertyMap, particle_db: ParticleCollection
 ) -> ParticleWithSpin:
     """Create a Particle with spin projection from a qn dictionary.
 
@@ -96,14 +98,13 @@ def create_particle(
 
         ValueError: If the edge properties do not contain spin projection info.
     """
-    particle = particle_db.find(int(states[EdgeQuantumNumbers.pid]))
-    if EdgeQuantumNumbers.spin_projection not in states:
+    particle = particle_db.find(int(state[EdgeQuantumNumbers.pid]))
+    spin_projection = state.get(EdgeQuantumNumbers.spin_projection)
+    if spin_projection is None:
         raise ValueError(
             f"{GraphEdgePropertyMap.__name__} does not contain a spin projection"
         )
-    spin_projection = states[EdgeQuantumNumbers.spin_projection]
-
-    return (particle, spin_projection)
+    return particle, spin_projection
 
 
 def create_interaction_properties(
@@ -128,7 +129,7 @@ def filter_interaction_types(
     )
     if int_type_intersection:
         return int_type_intersection
-    logging.warning(
+    _LOGGER.warning(
         (
             "The specified list of interaction types %s"
             " does not intersect with the valid list of interaction types %s"
@@ -201,9 +202,9 @@ def remove_duplicate_solutions(
         remove_qns_list = set()
     if ignore_qns_list is None:
         ignore_qns_list = set()
-    logging.info("removing duplicate solutions...")
-    logging.info(f"removing these qns from graphs: {remove_qns_list}")
-    logging.info(f"ignoring qns in graph comparison: {ignore_qns_list}")
+    _LOGGER.info("removing duplicate solutions...")
+    _LOGGER.info(f"removing these qns from graphs: {remove_qns_list}")
+    _LOGGER.info(f"ignoring qns in graph comparison: {ignore_qns_list}")
 
     filtered_solutions: List[
         MutableTransition[ParticleWithSpin, InteractionProperties]
@@ -221,7 +222,7 @@ def remove_duplicate_solutions(
             # if not overwrite them
             remove_counter += 1
 
-    logging.info(f"removed {remove_counter} solutions")
+    _LOGGER.info(f"removed {remove_counter} solutions")
     return filtered_solutions
 
 
