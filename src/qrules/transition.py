@@ -49,7 +49,9 @@ from .combinatorics import (
     InitialFacts,
     StateDefinition,
     create_initial_facts,
+    ensure_nested_list,
     match_external_edges,
+    permutate_topology_kinematically,
 )
 from .particle import (
     Particle,
@@ -273,8 +275,8 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         if particle_db is not None:
             self.__particles = particle_db
         self.reaction_mode = str(solving_mode)
-        self.initial_state = initial_state
-        self.final_state = final_state
+        self.initial_state = list(initial_state)
+        self.final_state = list(final_state)
         self.interaction_type_settings = interaction_type_settings
 
         self.interaction_determinators: List[InteractionDeterminator] = [
@@ -367,7 +369,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         if len(fs_group) > 0:
             if self.final_state_groupings is None:
                 self.final_state_groupings = []
-            nested_list = _safe_wrap_list(fs_group)
+            nested_list = ensure_nested_list(fs_group)
             self.final_state_groupings.append(nested_list)
 
     @overload
@@ -410,28 +412,20 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             self.__allowed_interaction_types[node_id] = allowed_interaction_types
 
     def create_problem_sets(self) -> Dict[float, List[ProblemSet]]:
-        problem_sets = []
-        for topology in self.topologies:
+        problem_sets = [
+            ProblemSet(permutation, initial_facts, settings)
             for initial_facts in create_initial_facts(
-                topology=topology,
-                particle_db=self.__particles,
-                initial_state=self.initial_state,
-                final_state=self.final_state,
-                final_state_groupings=self.final_state_groupings,
-            ):
-                problem_sets.extend(
-                    [
-                        ProblemSet(
-                            topology=topology,
-                            initial_facts=initial_facts,
-                            solving_settings=x,
-                        )
-                        for x in self.__determine_graph_settings(
-                            topology, initial_facts
-                        )
-                    ]
-                )
-        # create groups of settings ordered by "probability"
+                self.initial_state, self.final_state, self.__particles
+            )
+            for topology in self.topologies
+            for permutation in permutate_topology_kinematically(
+                topology,
+                self.initial_state,
+                self.final_state,
+                self.final_state_groupings,
+            )
+            for settings in self.__determine_graph_settings(permutation, initial_facts)
+        ]
         return _group_by_strength(problem_sets)
 
     def __determine_graph_settings(
@@ -680,16 +674,6 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
                 not_executed_edge_rules=qn_result.not_executed_edge_rules,
             ),
         )
-
-
-def _safe_wrap_list(nested_list: Union[List[str], List[List[str]]]) -> List[List[str]]:
-    if all(isinstance(i, list) for i in nested_list):
-        return nested_list  # type: ignore[return-value]
-    if all(isinstance(i, str) for i in nested_list):
-        return [nested_list]  # type: ignore[list-item]
-    raise TypeError(
-        f"Input final state grouping {nested_list} is not a list of lists of strings"
-    )
 
 
 def _filter_by_name_pattern(
