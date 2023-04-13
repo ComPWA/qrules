@@ -188,10 +188,7 @@ def check_reaction_violations(  # pylint: disable=too-many-arguments
     node_id = next(iter(topology.nodes))
 
     initial_facts = create_initial_facts(
-        topology=topology,
-        particle_db=particle_db,
-        initial_state=initial_state,
-        final_state=final_state,
+        topology, initial_state, final_state, particle_db
     )
 
     check_pure_edge_rules()

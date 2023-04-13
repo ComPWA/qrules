@@ -6,6 +6,7 @@ from _pytest.fixtures import SubRequest
 
 import qrules
 from qrules import ReactionInfo
+from qrules.topology import Edge, Topology
 
 logging.basicConfig(level=logging.ERROR)
 
@@ -20,3 +21,30 @@ def reaction(request: SubRequest) -> ReactionInfo:
         allowed_interaction_types="strong",
         formalism=formalism,
     )
+
+
+@pytest.fixture(scope="session")
+def two_to_three_decay() -> Topology:
+    r"""Create a dummy `Topology`.
+
+    Has the following shape:
+
+    .. code-block::
+
+        e-1 -- (N0) -- e3 -- (N1) -- e4 -- (N2) -- e2
+              /               \             \
+            e-2                e0            e1
+    """
+    topology = Topology(
+        nodes={0, 1, 2},
+        edges={
+            -2: Edge(None, 0),
+            -1: Edge(None, 0),
+            0: Edge(1, None),
+            1: Edge(2, None),
+            2: Edge(2, None),
+            3: Edge(0, 1),
+            4: Edge(1, 2),
+        },
+    )
+    return topology
