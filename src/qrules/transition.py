@@ -177,7 +177,7 @@ class _SolutionContainer:
 
 
 if sys.version_info >= (3, 7):
-    attrs.resolve_types(_SolutionContainer, globals(), locals())
+    attrs.resolve_types(_SolutionContainer, globals(), locals())  # type: ignore[type-var]
 
 
 @implement_pretty_repr
@@ -209,7 +209,7 @@ class ProblemSet:
         )
 
 
-attrs.resolve_types(ProblemSet, globals(), locals())
+attrs.resolve_types(ProblemSet, globals(), locals())  # type: ignore[type-var]
 
 
 def _group_by_strength(
