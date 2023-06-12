@@ -41,7 +41,7 @@ docutils==0.19
 execnet==1.9.0
 executing==1.2.0
 fastjsonschema==2.17.1
-filelock==3.12.0
+filelock==3.12.1
 flake8==6.0.0 ; python_version >= "3.8.0"
 flake8-blind-except==0.2.1 ; python_version >= "3.8.0"
 flake8-bugbear==23.6.5 ; python_version >= "3.8.0"
@@ -116,12 +116,12 @@ overrides==7.3.1
 packaging==23.1
 pandocfilters==1.5.0
 parso==0.8.3
-particle==0.22.0
+particle==0.22.1
 pathspec==0.11.1
 pep8-naming==0.13.3 ; python_version >= "3.8.0"
 pexpect==4.8.0
 pickleshare==0.7.5
-platformdirs==3.5.1
+platformdirs==3.5.3
 pluggy==1.0.0
 pre-commit==3.3.2
 prometheus-client==0.17.0
@@ -133,7 +133,7 @@ pybtex==0.24.0
 pybtex-docutils==1.0.2
 pycodestyle==2.10.0
 pycparser==2.21
-pydantic==1.10.8
+pydantic==1.10.9
 pydata-sphinx-theme==0.13.3
 pydocstyle==6.3.0
 pydot==1.4.2
@@ -143,7 +143,7 @@ pylint==2.17.4
 pyparsing==3.0.9
 pyproject-api==1.5.1
 pyrsistent==0.19.3
-pytest==7.3.1
+pytest==7.3.2
 pytest-cov==4.1.0
 pytest-profiling==1.7.0
 pytest-xdist==3.3.1
@@ -179,7 +179,7 @@ sphinxcontrib-jsmath==1.0.1
 sphinxcontrib-qthelp==1.0.3
 sphinxcontrib-serializinghtml==1.1.5
 sphobjinv==2.3.1
-sqlalchemy==2.0.15
+sqlalchemy==2.0.16
 stack-data==0.6.2
 tabulate==0.9.0
 terminado==0.17.1
@@ -197,12 +197,12 @@ types-setuptools==67.8.0.0
 types-urllib3==1.26.25.13
 typing-extensions==4.6.3
 uri-template==1.2.0
-urllib3==2.0.2
+urllib3==2.0.3
 virtualenv==20.23.0
 wcwidth==0.2.6
 webcolors==1.13
 webencodings==0.5.1
-websocket-client==1.5.2
+websocket-client==1.5.3
 wheel==0.40.0
 widgetsnbextension==4.0.7
 wrapt==1.15.0
