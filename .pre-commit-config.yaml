@@ -38,7 +38,7 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/ComPWA/repo-maintenance
-    rev: 0.0.179
+    rev: 0.0.182
     hooks:
       - id: check-dev-files
         args:
@@ -72,7 +72,7 @@ repos:
       - id: black
 
   - repo: https://github.com/asottile/blacken-docs
-    rev: 1.13.0
+    rev: 1.14.0
     hooks:
       - id: blacken-docs
 
@@ -82,7 +82,7 @@ repos:
       - id: cspell
 
   - repo: https://github.com/editorconfig-checker/editorconfig-checker.python
-    rev: 2.7.1
+    rev: 2.7.2
     hooks:
       - id: editorconfig-checker
         name: editorconfig
@@ -107,7 +107,7 @@ repos:
       - id: isort
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.34.0
+    rev: v0.35.0
     hooks:
       - id: markdownlint
 
@@ -128,6 +128,7 @@ repos:
         args:
           - --extra-keys
           - |
+            cell.attachments
             cell.metadata.code_folding
             cell.metadata.id
             cell.metadata.user_expressions
@@ -168,12 +169,12 @@ repos:
           - python
 
   - repo: https://github.com/ComPWA/mirrors-pyright
-    rev: v1.1.307
+    rev: v1.1.315
     hooks:
       - id: pyright
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.4.0
+    rev: v3.7.0
     hooks:
       - id: pyupgrade
         args:
