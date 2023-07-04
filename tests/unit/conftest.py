@@ -35,7 +35,7 @@ def two_to_three_decay() -> Topology:
               /               \             \
             e-2                e0            e1
     """
-    topology = Topology(
+    return Topology(
         nodes={0, 1, 2},
         edges={
             -2: Edge(None, 0),
@@ -47,4 +47,3 @@ def two_to_three_decay() -> Topology:
             4: Edge(1, 2),
         },
     )
-    return topology

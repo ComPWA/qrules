@@ -18,8 +18,7 @@ from attrs.converters import default_if_none
 from qrules.particle import Particle, ParticleWithSpin, Spin
 from qrules.quantum_numbers import InteractionProperties, _to_fraction
 from qrules.solving import EdgeSettings, NodeSettings, QNProblemSet, QNResult
-from qrules.topology import (FrozenTransition, MutableTransition, Topology,
-                             Transition)
+from qrules.topology import FrozenTransition, MutableTransition, Topology, Transition
 from qrules.transition import ProblemSet, ReactionInfo, State
 
 _LOGGER = logging.getLogger(__name__)
@@ -30,9 +29,11 @@ def _check_booleans(
 ) -> None:
     # pylint: disable=unused-argument
     if instance.strip_spin and instance.collapse_graphs:
-        raise ValueError("Cannot both strip spin and collapse graphs")
+        msg = "Cannot both strip spin and collapse graphs"
+        raise ValueError(msg)
     if instance.collapse_graphs and instance.render_node:
-        raise ValueError("Collapsed graphs cannot be rendered with node properties")
+        msg = "Collapsed graphs cannot be rendered with node properties"
+        raise ValueError(msg)
 
 
 def _create_default_figure_style(style: Optional[Dict[str, Any]]) -> Dict[str, Any]:
@@ -89,7 +90,8 @@ class GraphPrinter:
             return self._render_multiple_transitions(obj)
         if isinstance(obj, (ProblemSet, QNProblemSet, Topology, Transition)):
             return self._render_transition(obj)
-        raise NotImplementedError(f"No DOT rendering for type {type(obj).__name__}")
+        msg = f"No DOT rendering for type {type(obj).__name__}"
+        raise NotImplementedError(msg)
 
     def _render_multiple_transitions(self, obj: Iterable) -> List[str]:
         if self.collapse_graphs:
@@ -125,7 +127,8 @@ class GraphPrinter:
             rendered_graph = obj
             topology = obj
         else:
-            raise NotImplementedError(f"Cannot render {type(obj).__name__} as dot")
+            msg = f"Cannot render {type(obj).__name__} as dot"
+            raise NotImplementedError(msg)
         for edge_id in topology.incoming_edge_ids | topology.outgoing_edge_ids:
             if edge_id in topology.incoming_edge_ids:
                 render = self.render_initial_state_id
@@ -377,7 +380,8 @@ def _(settings: Union[EdgeSettings, NodeSettings]) -> str:
 def __extract_priority(description: str) -> int:
     matches = re.match(r".* \- ([0-9]+)$", description)
     if matches is None:
-        raise ValueError(f"{description} does not contain a priority number")
+        msg = f"{description} does not contain a priority number"
+        raise ValueError(msg)
     priority = matches[1]
     return int(priority)
 
@@ -463,8 +467,9 @@ def __to_particle(state: Any) -> Particle:
         return state.particle
     if isinstance(state, tuple) and len(state) == 2:
         return state[0]
+    msg = f"Cannot extract a particle from type {type(state).__name__}"
     raise NotImplementedError(
-        f"Cannot extract a particle from type {type(state).__name__}"
+        msg
     )
 
 

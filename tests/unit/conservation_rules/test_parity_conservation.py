@@ -2,9 +2,11 @@ from itertools import product
 
 import pytest
 
-from qrules.conservation_rules import (HelicityParityEdgeInput,
-                                       parity_conservation,
-                                       parity_conservation_helicity)
+from qrules.conservation_rules import (
+    HelicityParityEdgeInput,
+    parity_conservation,
+    parity_conservation_helicity,
+)
 from qrules.quantum_numbers import NodeQuantumNumbers, Parity
 
 

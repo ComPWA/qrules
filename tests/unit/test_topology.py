@@ -6,11 +6,16 @@ import pytest
 from attrs.exceptions import FrozenInstanceError
 from IPython.lib.pretty import pretty
 
-from qrules.topology import (Edge, FrozenDict, InteractionNode,  # noqa: F401
-                             MutableTopology,
-                             SimpleStateTransitionTopologyBuilder, Topology,
-                             create_isobar_topologies, create_n_body_topology,
-                             get_originating_node_list)
+from qrules.topology import (
+    Edge,
+    InteractionNode,
+    MutableTopology,
+    SimpleStateTransitionTopologyBuilder,
+    Topology,
+    create_isobar_topologies,
+    create_n_body_topology,
+    get_originating_node_list,
+)
 
 
 class TestEdge:

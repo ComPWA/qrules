@@ -13,28 +13,34 @@ from enum import Enum, auto
 from os.path import dirname, join, realpath
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
-from qrules.conservation_rules import (BaryonNumberConservation,
-                                       BottomnessConservation,
-                                       ChargeConservation, CharmConservation,
-                                       ConservationRule,
-                                       EdgeQNConservationRule,
-                                       ElectronLNConservation,
-                                       GraphElementRule, MassConservation,
-                                       MuonLNConservation,
-                                       StrangenessConservation,
-                                       TauLNConservation,
-                                       c_parity_conservation,
-                                       clebsch_gordan_helicity_to_canonical,
-                                       g_parity_conservation,
-                                       gellmann_nishijima,
-                                       helicity_conservation,
-                                       identical_particle_symmetrization,
-                                       isospin_conservation, isospin_validity,
-                                       ls_spin_validity, parity_conservation,
-                                       parity_conservation_helicity,
-                                       spin_conservation,
-                                       spin_magnitude_conservation,
-                                       spin_validity)
+from qrules.conservation_rules import (
+    BaryonNumberConservation,
+    BottomnessConservation,
+    ChargeConservation,
+    CharmConservation,
+    ConservationRule,
+    EdgeQNConservationRule,
+    ElectronLNConservation,
+    GraphElementRule,
+    MassConservation,
+    MuonLNConservation,
+    StrangenessConservation,
+    TauLNConservation,
+    c_parity_conservation,
+    clebsch_gordan_helicity_to_canonical,
+    g_parity_conservation,
+    gellmann_nishijima,
+    helicity_conservation,
+    identical_particle_symmetrization,
+    isospin_conservation,
+    isospin_validity,
+    ls_spin_validity,
+    parity_conservation,
+    parity_conservation_helicity,
+    spin_conservation,
+    spin_magnitude_conservation,
+    spin_validity,
+)
 from qrules.particle import Particle, ParticleCollection
 from qrules.quantum_numbers import EdgeQuantumNumbers as EdgeQN
 from qrules.quantum_numbers import NodeQuantumNumbers as NodeQN
@@ -96,7 +102,8 @@ class InteractionType(Enum):
             return InteractionType.STRONG
         if description_lower.startswith("w"):
             return InteractionType.WEAK
-        raise ValueError(f'Could not determine interaction type from "{description}"')
+        msg = f'Could not determine interaction type from "{description}"'
+        raise ValueError(msg)
 
 
 DEFAULT_INTERACTION_TYPES = [
@@ -284,9 +291,9 @@ class NumberOfThreads:
     def set(cls, n_cores: Optional[int]) -> None:  # noqa: A003
         """Set the number of threads; use `None` for all available cores."""
         if n_cores is not None and not isinstance(n_cores, int):
+            msg = "Can only set the number of cores to an integer or to None (meaning all available cores)"
             raise TypeError(
-                "Can only set the number of cores to an integer or to None"
-                " (meaning all available cores)"
+                msg
             )
         cls.__n_cores = n_cores
 
@@ -307,9 +314,11 @@ def __positive_int_domain(
 
 def _halves_domain(start: float, stop: float) -> List[float]:
     if start % 0.5 != 0.0:
-        raise ValueError(f"Start value {start} needs to be multiple of 0.5")
+        msg = f"Start value {start} needs to be multiple of 0.5"
+        raise ValueError(msg)
     if stop % 0.5 != 0.0:
-        raise ValueError(f"Stop value {stop} needs to be multiple of 0.5")
+        msg = f"Stop value {stop} needs to be multiple of 0.5"
+        raise ValueError(msg)
     return [
         int(v) if v.is_integer() else v for v in arange(start, stop + 0.25, delta=0.5)
     ]

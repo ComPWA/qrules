@@ -8,9 +8,15 @@ import pytest
 from attrs.exceptions import FrozenInstanceError
 from IPython.lib.pretty import pretty
 
-from qrules.particle import (Particle, ParticleCollection, Spin,
-                             _get_name_root, create_antiparticle,
-                             create_particle)
+from qrules.particle import (
+    Particle,
+    ParticleCollection,
+    Spin,
+    _get_name_root,
+    create_antiparticle,
+    create_particle,
+)
+
 # For eval tests
 from qrules.quantum_numbers import Parity  # noqa: F401
 
@@ -49,9 +55,9 @@ class TestParticle:
         )
         with pytest.raises(FrozenInstanceError):
             test_state.charge = 1  # type: ignore[misc]
-        with pytest.raises(ValueError, match=r"Fails Gell-Mann–Nishijima"):
+        with pytest.raises(ValueError, match=r"Fails Gell-Mann-Nishijima"):
             Particle(
-                name="Fails Gell-Mann–Nishijima formula",
+                name="Fails Gell-Mann-Nishijima formula",
                 pid=666,
                 mass=0.0,
                 spin=1,

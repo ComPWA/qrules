@@ -2,10 +2,14 @@ from typing import List, Tuple
 
 import pytest
 
-from qrules.conservation_rules import (IsoSpinEdgeInput, SpinEdgeInput,
-                                       SpinNodeInput,
-                                       clebsch_gordan_helicity_to_canonical,
-                                       isospin_conservation, spin_conservation)
+from qrules.conservation_rules import (
+    IsoSpinEdgeInput,
+    SpinEdgeInput,
+    SpinNodeInput,
+    clebsch_gordan_helicity_to_canonical,
+    isospin_conservation,
+    spin_conservation,
+)
 from qrules.particle import Spin
 
 from .test_spin import __create_two_body_decay_spin_data

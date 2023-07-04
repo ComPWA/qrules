@@ -25,14 +25,15 @@ def asdict(instance: object) -> dict:
         return _dict.from_particle_collection(instance)
     if attrs.has(type(instance)):
         return _dict.from_attrs_decorated(instance)
+    msg = f"No conversion to dict available for class {type(instance).__name__}"
     raise NotImplementedError(
-        f"No conversion to dict available for class {type(instance).__name__}"
+        msg
     )
 
 
 def fromdict(definition: dict) -> object:
     keys = set(definition.keys())
-    if __REQUIRED_PARTICLE_FIELDS <= keys:
+    if keys >= __REQUIRED_PARTICLE_FIELDS:
         return _dict.build_particle(definition)
     if keys == {"particles"}:
         return _dict.build_particle_collection(definition)
@@ -42,7 +43,8 @@ def fromdict(definition: dict) -> object:
         return _dict.build_transition(definition)
     if keys == __REQUIRED_TOPOLOGY_FIELDS:
         return _dict.build_topology(definition)
-    raise NotImplementedError(f"Could not determine type from keys {keys}")
+    msg = f"Could not determine type from keys {keys}"
+    raise NotImplementedError(msg)
 
 
 __REQUIRED_PARTICLE_FIELDS = {
@@ -129,7 +131,8 @@ def load(filename: str) -> object:
         if file_extension in ["yaml", "yml"]:
             definition = yaml.load(stream, Loader=yaml.SafeLoader)
             return fromdict(definition)
-    raise NotImplementedError(f'No loader defined for file type "{file_extension}"')
+    msg = f'No loader defined for file type "{file_extension}"'
+    raise NotImplementedError(msg)
 
 
 class _IncreasedIndent(yaml.Dumper):
@@ -167,16 +170,17 @@ def write(instance: object, filename: str) -> None:
             with open(filename, "w") as stream:
                 stream.write(output_str)
             return
-    raise NotImplementedError(f'No writer defined for file type "{file_extension}"')
+    msg = f'No writer defined for file type "{file_extension}"'
+    raise NotImplementedError(msg)
 
 
 def _get_file_extension(filename: str) -> str:
     path = Path(filename)
     extension = path.suffix.lower()
     if not extension:
-        raise ValueError(f'No file extension in file name "{filename}"')
-    extension = extension[1:]
-    return extension
+        msg = f'No file extension in file name "{filename}"'
+        raise ValueError(msg)
+    return extension[1:]
 
 
 class JSONSetEncoder(json.JSONEncoder):

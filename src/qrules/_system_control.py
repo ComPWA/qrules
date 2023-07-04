@@ -7,9 +7,14 @@ from typing import Callable, Dict, Iterable, List, Optional, Set, Tuple, Type
 import attrs
 
 from .particle import Particle, ParticleCollection, ParticleWithSpin
-from .quantum_numbers import (EdgeQuantumNumber, EdgeQuantumNumbers,
-                              InteractionProperties, NodeQuantumNumber,
-                              NodeQuantumNumbers, Parity)
+from .quantum_numbers import (
+    EdgeQuantumNumber,
+    EdgeQuantumNumbers,
+    InteractionProperties,
+    NodeQuantumNumber,
+    NodeQuantumNumbers,
+    Parity,
+)
 from .settings import InteractionType
 from .solving import GraphEdgePropertyMap, GraphNodePropertyMap, GraphSettings
 from .topology import MutableTransition
@@ -66,10 +71,9 @@ def create_node_properties(
         if qn_name in node_qn_mapping:
             property_map[node_qn_mapping[qn_name]] = value
         else:
+            msg = f"Missmatch between InteractionProperties and NodeQuantumNumbers. NodeQuantumNumbers does not define {qn_name}"
             raise TypeError(
-                "Missmatch between InteractionProperties and"
-                " NodeQuantumNumbers. NodeQuantumNumbers does not define"
-                f" {qn_name}"
+                msg
             )
     return property_map
 
@@ -96,8 +100,9 @@ def find_particle(
     particle = particle_db.find(int(state[EdgeQuantumNumbers.pid]))
     spin_projection = state.get(EdgeQuantumNumbers.spin_projection)
     if spin_projection is None:
+        msg = f"{GraphEdgePropertyMap.__name__} does not contain a spin projection"
         raise ValueError(
-            f"{GraphEdgePropertyMap.__name__} does not contain a spin projection"
+            msg
         )
     return particle, spin_projection
 
@@ -242,18 +247,18 @@ def _check_equal_ignoring_qns(
 ) -> Optional[MutableTransition]:
     """Define equal operator for graphs, ignoring certain quantum numbers."""
     if not isinstance(ref_graph, MutableTransition):
-        raise TypeError("Reference graph has to be of type MutableTransition")
+        msg = "Reference graph has to be of type MutableTransition"
+        raise TypeError(msg)
     found_graph = None
     interaction_comparator = NodePropertyComparator(ignored_qn_list)
     for graph in solutions:
-        if isinstance(graph, MutableTransition):
-            if graph.compare(
-                ref_graph,
-                state_comparator=lambda e1, e2: e1 == e2,
-                interaction_comparator=interaction_comparator,
-            ):
-                found_graph = graph
-                break
+        if isinstance(graph, MutableTransition) and graph.compare(
+            ref_graph,
+            state_comparator=lambda e1, e2: e1 == e2,
+            interaction_comparator=interaction_comparator,
+        ):
+            found_graph = graph
+            break
     return found_graph
 
 

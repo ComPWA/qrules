@@ -7,8 +7,19 @@ from collections import defaultdict
 from copy import copy, deepcopy
 from enum import Enum, auto
 from multiprocessing import Pool
-from typing import (TYPE_CHECKING, Dict, Iterable, List, Optional, Sequence,
-                    Set, Tuple, Type, Union, overload)
+from typing import (
+    TYPE_CHECKING,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    Type,
+    Union,
+    overload,
+)
 
 import attrs
 from attrs import define, field, frozen
@@ -17,33 +28,68 @@ from tqdm.auto import tqdm
 
 from qrules._implementers import implement_pretty_repr
 
-from ._system_control import (GammaCheck, InteractionDeterminator, LeptonCheck,
-                              create_edge_properties,
-                              create_interaction_properties,
-                              create_node_properties, filter_interaction_types,
-                              find_particle, remove_duplicate_solutions)
-from .combinatorics import (InitialFacts, StateDefinition,
-                            create_initial_facts, ensure_nested_list,
-                            match_external_edges,
-                            permutate_topology_kinematically)
-from .particle import (Particle, ParticleCollection, ParticleWithSpin,
-                       _to_float, load_pdg)
-from .quantum_numbers import (EdgeQuantumNumber, EdgeQuantumNumbers,
-                              InteractionProperties, NodeQuantumNumber,
-                              NodeQuantumNumbers)
-from .settings import (DEFAULT_INTERACTION_TYPES, InteractionType,
-                       NumberOfThreads, create_interaction_settings)
-from .solving import (CSPSolver, EdgeSettings, GraphEdgePropertyMap,
-                      GraphSettings, NodeSettings, QNProblemSet, QNResult)
-from .topology import (FrozenDict, MutableTransition, Topology,
-                       create_isobar_topologies, create_n_body_topology)
+from ._system_control import (
+    GammaCheck,
+    InteractionDeterminator,
+    LeptonCheck,
+    create_edge_properties,
+    create_interaction_properties,
+    create_node_properties,
+    filter_interaction_types,
+    find_particle,
+    remove_duplicate_solutions,
+)
+from .combinatorics import (
+    InitialFacts,
+    StateDefinition,
+    create_initial_facts,
+    ensure_nested_list,
+    match_external_edges,
+    permutate_topology_kinematically,
+)
+from .particle import (
+    Particle,
+    ParticleCollection,
+    ParticleWithSpin,
+    _to_float,
+    load_pdg,
+)
+from .quantum_numbers import (
+    EdgeQuantumNumber,
+    EdgeQuantumNumbers,
+    InteractionProperties,
+    NodeQuantumNumber,
+    NodeQuantumNumbers,
+)
+from .settings import (
+    DEFAULT_INTERACTION_TYPES,
+    InteractionType,
+    NumberOfThreads,
+    create_interaction_settings,
+)
+from .solving import (
+    CSPSolver,
+    EdgeSettings,
+    GraphEdgePropertyMap,
+    GraphSettings,
+    NodeSettings,
+    QNProblemSet,
+    QNResult,
+)
+from .topology import (
+    FrozenDict,
+    MutableTransition,
+    Topology,
+    create_isobar_topologies,
+    create_n_body_topology,
+)
 
 if sys.version_info >= (3, 10):
     from typing import TypeAlias
 else:
     from typing_extensions import TypeAlias
 if TYPE_CHECKING:
-    from .topology import FrozenTransition  # noqa: F401
+    from .topology import FrozenTransition
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -111,10 +157,10 @@ class _SolutionContainer:
             self.execution_info.violated_node_rules
             or self.execution_info.violated_edge_rules
         ):
+            msg = f"Invalid {type(self).__name__}! Found {len(self.solutions)} solutions, but also violated rules."
             raise ValueError(
                 (
-                    f"Invalid {type(self).__name__}! Found"
-                    f" {len(self.solutions)} solutions, but also violated rules."
+                    msg
                 ),
                 self.execution_info.violated_node_rules,
                 self.execution_info.violated_edge_rules,
@@ -130,8 +176,7 @@ class _SolutionContainer:
             self.execution_info.extend(other.execution_info, intersect_violations)
 
 
-if sys.version_info >= (3, 7):
-    attrs.resolve_types(_SolutionContainer, globals(), locals())  # type: ignore[type-var]
+attrs.resolve_types(_SolutionContainer, globals(), locals())  # type: ignore[type-var]
 
 
 @implement_pretty_repr
@@ -194,9 +239,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         final_state: Sequence[StateDefinition],
         particle_db: Optional[ParticleCollection] = None,
         allowed_intermediate_particles: Optional[List[str]] = None,
-        interaction_type_settings: Dict[
-            InteractionType, Tuple[EdgeSettings, NodeSettings]
-        ] = None,  # type: ignore[assignment]
+        interaction_type_settings: Optional[Dict[InteractionType, Tuple[EdgeSettings, NodeSettings]]] = None,  # type: ignore[assignment]
         formalism: str = "helicity",
         topology_building: str = "isobar",
         solving_mode: SolvingMode = SolvingMode.FAST,
@@ -217,9 +260,9 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             "canonical",
         ]
         if formalism not in allowed_formalisms:
+            msg = f'Formalism "{formalism}" not implemented. Use one of {allowed_formalisms} instead.'
             raise NotImplementedError(
-                f'Formalism "{formalism}" not implemented.'
-                f" Use one of {allowed_formalisms} instead."
+                msg
             )
         self.__formalism = str(formalism)
         self.__particles = ParticleCollection()
@@ -298,9 +341,9 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             # pylint: disable=cell-var-from-loop
             matches = _filter_by_name_pattern(self.__particles, pattern, regex)
             if len(matches) == 0:
+                msg = f'Could not find any matches for allowed intermediate particle pattern "{pattern}"'
                 raise LookupError(
-                    "Could not find any matches for allowed intermediate"
-                    f' particle pattern "{pattern}"'
+                    msg
                 )
             selected_particles.update(matches)
         self.__allowed_intermediate_states = [
@@ -317,7 +360,8 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         self, fs_group: Union[List[str], List[List[str]]]
     ) -> None:
         if not isinstance(fs_group, list):
-            raise ValueError("The final state grouping has to be of type list.")
+            msg = "The final state grouping has to be of type list."
+            raise ValueError(msg)
         if len(fs_group) > 0:
             if self.final_state_groupings is None:
                 self.final_state_groupings = []
@@ -349,12 +393,14 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         # verify order
         for allowed_types in allowed_interaction_types:
             if not isinstance(allowed_types, InteractionType):
+                msg = "Allowed interaction types must be of type[InteractionType]"
                 raise TypeError(
-                    "Allowed interaction types must be of type[InteractionType]"
+                    msg
                 )
             if allowed_types not in self.interaction_type_settings:
                 _LOGGER.info(self.interaction_type_settings.keys())
-                raise ValueError(f"Interaction {allowed_types} not found in settings")
+                msg = f"Interaction {allowed_types} not found in settings"
+                raise ValueError(msg)
         allowed_interaction_types = list(allowed_interaction_types)
         if node_id is None:
             self.__allowed_interaction_types = allowed_interaction_types
@@ -534,7 +580,8 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
                 + ", ".join(not_executed_rules)
             )
         if not final_solutions:
-            raise ValueError("No solutions were found")
+            msg = "No solutions were found"
+            raise ValueError(msg)
 
         match_external_edges(final_solutions)
         final_solutions = [

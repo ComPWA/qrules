@@ -6,18 +6,32 @@ annotations of the rules.
 """
 
 import inspect
-from typing import (Any, Callable, Dict, Generic, List, Optional, Sequence,
-                    Set, Tuple, Type, TypeVar, Union)
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generic,
+    List,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+)
 
 import attrs
 
-from .conservation_rules import (ConservationRule, EdgeQNConservationRule,
-                                 GraphElementRule)
+from .conservation_rules import (
+    ConservationRule,
+    EdgeQNConservationRule,
+    GraphElementRule,
+)
 from .quantum_numbers import EdgeQuantumNumber, NodeQuantumNumber, Parity
 
 Scalar = Union[int, float]
 
-# InteractionRule = Union[EdgeQNConservationRule, ConservationRule]
 Rule = Union[GraphElementRule, EdgeQNConservationRule, ConservationRule]
 
 _ElementType = TypeVar("_ElementType")  # pylint: disable=invalid-name
@@ -78,7 +92,8 @@ def _direct_qn_check(
 def _sequence_input_check(func: Callable) -> Callable[[Sequence], bool]:
     def wrapper(states_list: Sequence[Any]) -> bool:
         if not isinstance(states_list, (list, tuple)):
-            raise TypeError("Rule evaluated with invalid argument type...")
+            msg = "Rule evaluated with invalid argument type..."
+            raise TypeError(msg)
 
         return all(func(x) for x in states_list)
 
@@ -153,7 +168,8 @@ class _CompositeArgumentCreator:
 def _sequence_arg_builder(func: Callable) -> Callable[[Sequence], List[Any]]:
     def wrapper(states_list: Sequence[Any]) -> List[Any]:
         if not isinstance(states_list, (list, tuple)):
-            raise TypeError("Rule evaluated with invalid argument type...")
+            msg = "Rule evaluated with invalid argument type..."
+            raise TypeError(msg)
 
         return [func(x) for x in states_list if x]
 
@@ -226,9 +242,9 @@ class RuleArgumentHandler:
                 elif _is_node_quantum_number(qn_type):
                     arg_builder = _ValueExtractor[NodeQuantumNumber](qn_type)
                 else:
+                    msg = f"Quantum number type {qn_type} is not supported. Has to be of type Edge/NodeQuantumNumber."
                     raise TypeError(
-                        f"Quantum number type {qn_type} is not supported."
-                        " Has to be of type Edge/NodeQuantumNumber."
+                        msg
                     )
 
             if is_list:
@@ -246,12 +262,13 @@ class RuleArgumentHandler:
             rule_annotations = []
             rule_func_signature = inspect.signature(rule)
             if not rule_func_signature.return_annotation:
-                raise TypeError(f"missing return type annotation for rule {str(rule)}")
+                msg = f"missing return type annotation for rule {rule!s}"
+                raise TypeError(msg)
             for par in rule_func_signature.parameters.values():
                 if not par.annotation:
+                    msg = f"missing type annotations for argument {par.name} of rule {rule!s}"
                     raise TypeError(
-                        f"missing type annotations for argument {par.name}"
-                        f" of rule {str(rule)}"
+                        msg
                     )
                 rule_annotations.append(par.annotation)
 
@@ -259,7 +276,8 @@ class RuleArgumentHandler:
             try:
                 self.__verify(rule_annotations)
             except TypeError as exception:
-                raise TypeError(f"rule {str(rule)}: {str(exception)}") from exception
+                msg = f"rule {rule!s}: {exception!s}"
+                raise TypeError(msg) from exception
 
             # then create requirements check function and add to dict
             self.__rule_to_requirements_check[rule] = self.__create_requirements_check(
@@ -283,7 +301,8 @@ def get_required_qns(
     rule_annotations = []
     for par in inspect.signature(rule).parameters.values():
         if not par.annotation:
-            raise TypeError(f"missing type annotations for rule {str(rule)}")
+            msg = f"missing type annotations for rule {rule!s}"
+            raise TypeError(msg)
         rule_annotations.append(par.annotation)
 
     required_edge_qns: Set[Type[EdgeQuantumNumber]] = set()

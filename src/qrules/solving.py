@@ -14,21 +14,37 @@ import sys
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from copy import copy
-from typing import (Any, Callable, Dict, Generic, Iterable, List, Optional,
-                    Set, Tuple, Type, TypeVar, Union)
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generic,
+    Iterable,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+)
 
 import attrs
 from attrs import define, field, frozen
-from constraint import (BacktrackingSolver, Constraint, Problem, Unassigned,
-                        Variable)
+from constraint import BacktrackingSolver, Constraint, Problem, Unassigned, Variable
 
 from qrules._implementers import implement_pretty_repr
 
-from .argument_handling import (GraphEdgePropertyMap, GraphElementRule,
-                                GraphNodePropertyMap, Rule,
-                                RuleArgumentHandler, Scalar, get_required_qns)
-from .quantum_numbers import (EdgeQuantumNumber, EdgeQuantumNumbers,
-                              NodeQuantumNumber)
+from .argument_handling import (
+    GraphEdgePropertyMap,
+    GraphElementRule,
+    GraphNodePropertyMap,
+    Rule,
+    RuleArgumentHandler,
+    Scalar,
+    get_required_qns,
+)
+from .quantum_numbers import EdgeQuantumNumber, EdgeQuantumNumbers, NodeQuantumNumber
 from .topology import MutableTransition, Topology
 
 if sys.version_info >= (3, 10):
@@ -163,10 +179,10 @@ class QNResult:
 
     def __attrs_post_init__(self) -> None:
         if self.solutions and (self.violated_node_rules or self.violated_edge_rules):
+            msg = f"Invalid {type(self).__name__}! Found {len(self.solutions)} solutions, but also violated rules."
             raise ValueError(
                 (
-                    f"Invalid {type(self).__name__}! Found"
-                    f" {len(self.solutions)} solutions, but also violated rules."
+                    msg
                 ),
                 self.violated_node_rules,
                 self.violated_edge_rules,
@@ -819,7 +835,8 @@ class _GraphElementConstraint(
         scoresheet: Callable[[bool], None],
     ) -> None:
         if not callable(rule):
-            raise TypeError("rule argument has to be a callable")
+            msg = "rule argument has to be a callable"
+            raise TypeError(msg)
         self.__rule = rule
         (
             self.__check_rule_requirements,
@@ -939,7 +956,8 @@ class _ConservationRuleConstraintWrapper(
         score_callback: Callable[[bool], None],
     ) -> None:
         if not callable(rule):
-            raise TypeError("rule argument has to be a callable")
+            msg = "rule argument has to be a callable"
+            raise TypeError(msg)
         self.__rule = rule
         (
             self.__check_rule_requirements,
@@ -1067,8 +1085,7 @@ class _ConservationRuleConstraintWrapper(
             elif qn_type in self.__node_qns:
                 self.__node_qns[qn_type] = value  # type: ignore[index]
             else:
+                msg = f"The variable with name {qn_type.__name__} and a graph element index of {index} does not appear in the variable mapping"
                 raise ValueError(
-                    f"The variable with name {qn_type.__name__} and a graph"
-                    f" element index of {index} does not appear in the"
-                    " variable mapping"
+                    msg
                 )

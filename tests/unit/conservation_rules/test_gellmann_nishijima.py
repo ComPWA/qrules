@@ -2,8 +2,7 @@ from itertools import product
 
 import pytest
 
-from qrules.conservation_rules import (GellMannNishijimaInput,
-                                       gellmann_nishijima)
+from qrules.conservation_rules import GellMannNishijimaInput, gellmann_nishijima
 
 
 @pytest.mark.parametrize(

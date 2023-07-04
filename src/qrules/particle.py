@@ -16,8 +16,19 @@ from collections import abc
 from difflib import get_close_matches
 from functools import total_ordering
 from math import copysign
-from typing import (TYPE_CHECKING, Any, Callable, Dict, Iterable, Iterator,
-                    List, Optional, SupportsFloat, Tuple, Union)
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    SupportsFloat,
+    Tuple,
+    Union,
+)
 
 import attrs
 from attrs import field, frozen
@@ -52,23 +63,24 @@ class Spin:
 
     def __attrs_post_init__(self) -> None:
         if self.magnitude % 0.5 != 0.0:
+            msg = f"Spin magnitude {self.magnitude} has to be a multitude of 0.5"
             raise ValueError(
-                f"Spin magnitude {self.magnitude} has to be a multitude of 0.5"
+                msg
             )
         if abs(self.projection) > self.magnitude:
             if self.magnitude < 0.0:
+                msg = f"Spin magnitude has to be positive, but is {self.magnitude}"
                 raise ValueError(
-                    f"Spin magnitude has to be positive, but is {self.magnitude}"
+                    msg
                 )
+            msg = f"Absolute value of spin projection cannot be larger than its magnitude:\n abs({self.projection}) > {self.magnitude}"
             raise ValueError(
-                "Absolute value of spin projection cannot be larger than its "
-                "magnitude:\n"
-                f" abs({self.projection}) > {self.magnitude}"
+                msg
             )
         if not (self.projection - self.magnitude).is_integer():
+            msg = f"{type(self).__name__}{self.magnitude, self.projection}: (projection - magnitude) should be integer"
             raise ValueError(
-                f"{type(self).__name__}{(self.magnitude, self.projection)}:"
-                " (projection - magnitude) should be integer"
+                msg
             )
 
     def __eq__(self, other: object) -> bool:
@@ -167,17 +179,9 @@ class Particle:  # pylint: disable=too-many-instance-attributes
                 tau_lepton_number=self.tau_lepton_number,
             )
         ):
+            msg = f"Cannot construct particle {self.name}, because its quantum numbers don't agree with the Gell-Mann-Nishijima formula:\n  Q[{self.charge}] != Iz[{self.isospin.projection if self.isospin else 0}] + 1/2 (B[{self.baryon_number}] +  S[{self.strangeness}] +  C[{self.charmness}] + B'[{self.bottomness}] + T[{self.strangeness}])"
             raise ValueError(
-                f"Cannot construct particle {self.name}, because its quantum"
-                " numbers don't agree with the Gell-Mann–Nishijima formula:\n"
-                f"  Q[{self.charge}] != "
-                f"Iz[{self.isospin.projection if self.isospin else 0}] + 1/2 "
-                f"(B[{self.baryon_number}] + "
-                f" S[{self.strangeness}] + "
-                f" C[{self.charmness}] +"
-                f" B'[{self.bottomness}] +"
-                f" T[{self.strangeness}]"
-                ")"
+                msg
             )
 
     def __gt__(self, other: Any) -> bool:
@@ -193,8 +197,9 @@ class Particle:  # pylint: disable=too-many-instance-attributes
                 )
 
             return sorting_key(self) > sorting_key(other)
+        msg = f"Cannot compare {type(self).__name__} with {type(other).__name__}"
         raise NotImplementedError(
-            f"Cannot compare {type(self).__name__} with {type(other).__name__}"
+            msg
         )
 
     def __neg__(self) -> "Particle":
@@ -231,8 +236,7 @@ def _get_name_root(name: str) -> str:
     """Strip a string (particularly the `.Particle.name`) of specifications."""
     name_root = name
     name_root = re.sub(r"\(.+\)", "", name_root)
-    name_root = re.sub(r"[\*\+\-~\d']", "", name_root)
-    return name_root
+    return re.sub(r"[\*\+\-~\d']", "", name_root)
 
 
 ParticleWithSpin = Tuple[Particle, float]
@@ -254,13 +258,15 @@ class ParticleCollection(abc.MutableSet):
             return instance in self.__particles.values()
         if isinstance(instance, int):
             return instance in self.__pid_to_name
-        raise NotImplementedError(f"Cannot search for type {type(instance).__name__}")
+        msg = f"Cannot search for type {type(instance).__name__}"
+        raise NotImplementedError(msg)
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, abc.Iterable):
             return set(self) == set(other)
+        msg = f"Cannot compare {type(self).__name__} with  {type(self).__name__}"
         raise NotImplementedError(
-            f"Cannot compare {type(self).__name__} with  {type(self).__name__}"
+            msg
         )
 
     def __getitem__(self, particle_name: str) -> Particle:
@@ -294,7 +300,8 @@ class ParticleCollection(abc.MutableSet):
         elif isinstance(other, ParticleCollection):
             self.update(other)
         else:
-            raise NotImplementedError(f"Cannot add {type(other).__name__}")
+            msg = f"Cannot add {type(other).__name__}"
+            raise NotImplementedError(msg)
         return self
 
     def __repr__(self) -> str:
@@ -321,10 +328,10 @@ class ParticleCollection(abc.MutableSet):
         if value in self.__particles.values():
             equivalent_particles = {p for p in self if p == value}
             equivalent_particle = next(iter(equivalent_particles))
+            msg = f'Added particle "{value.name}" is equivalent to existing particle "{equivalent_particle.name}"'
             raise ValueError(
                 (
-                    f'Added particle "{value.name}" is equivalent to '
-                    f'existing particle "{equivalent_particle.name}"'
+                    msg
                 ),
             )
         if value.name in self.__particles:
@@ -344,8 +351,9 @@ class ParticleCollection(abc.MutableSet):
         elif isinstance(value, str):
             particle_name = value
         else:
+            msg = f"Cannot discard something of type {type(value).__name__}"
             raise NotImplementedError(
-                f"Cannot discard something of type {type(value).__name__}"
+                msg
             )
         del self.__pid_to_name[self[particle_name].pid]
         del self.__particles[particle_name]
@@ -357,11 +365,13 @@ class ParticleCollection(abc.MutableSet):
             return self.__getitem__(particle_name)  # pylint: disable=C2801
         if isinstance(search_term, int):
             if search_term not in self.__pid_to_name:
-                raise KeyError(f"No particle with PID {search_term}")
+                msg = f"No particle with PID {search_term}"
+                raise KeyError(msg)
             particle_name = self.__pid_to_name[search_term]
             return self.__getitem__(particle_name)  # pylint: disable=C2801
+        msg = f"Cannot search for a search term of type {type(search_term)}"
         raise NotImplementedError(
-            f"Cannot search for a search term of type {type(search_term)}"
+            msg
         )
 
     def filter(  # noqa: A003
@@ -386,9 +396,9 @@ class ParticleCollection(abc.MutableSet):
 
     def update(self, other: Iterable[Particle]) -> None:
         if not isinstance(other, abc.Iterable):
+            msg = f"Cannot update {type(self).__name__} from non-iterable class {type(self).__name__}"
             raise TypeError(
-                f"Cannot update {type(self).__name__} from "
-                f"non-iterable class {type(self).__name__}"
+                msg
             )
         for particle in other:
             self.add(particle)
@@ -537,7 +547,8 @@ def __convert_pdg_instance(pdg_particle: "PdgDatabase") -> Particle:
         return float(value) / 1e3  # https://github.com/ComPWA/qrules/issues/14
 
     if pdg_particle.charge is None:
-        raise ValueError(f"PDG instance has no charge:\n{pdg_particle}")
+        msg = f"PDG instance has no charge:\n{pdg_particle}"
+        raise ValueError(msg)
     quark_numbers = __compute_quark_numbers(pdg_particle)
     lepton_numbers = __compute_lepton_numbers(pdg_particle)
     if pdg_particle.pdgid.is_lepton:  # convention: C(fermion)=+1
@@ -622,7 +633,8 @@ def __create_isospin(pdg_particle: "PdgDatabase") -> Optional[Spin]:
 
 def __isospin_projection_from_pdg(pdg_particle: "PdgDatabase") -> float:
     if pdg_particle.charge is None:
-        raise ValueError(f"PDG instance has no charge:\n{pdg_particle}")
+        msg = f"PDG instance has no charge:\n{pdg_particle}"
+        raise ValueError(msg)
     if "qq" in pdg_particle.quarks.lower():
         strangeness, charmness, bottomness, topness = __compute_quark_numbers(
             pdg_particle
@@ -639,7 +651,8 @@ def __isospin_projection_from_pdg(pdg_particle: "PdgDatabase") -> float:
             projection -= quark_content.count("U") + quark_content.count("d")
             projection *= 0.5
     if pdg_particle.I is not None and not (pdg_particle.I - projection).is_integer():
-        raise ValueError(f"Cannot have isospin {(pdg_particle.I, projection)}")
+        msg = f"Cannot have isospin {pdg_particle.I, projection}"
+        raise ValueError(msg)
     return projection
 
 

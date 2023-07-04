@@ -3,19 +3,21 @@ from typing import List
 
 import pytest
 
-from qrules.combinatorics import (_generate_kinematic_permutations,
-                                  _get_kinematic_representation,
-                                  _KinematicRepresentation,
-                                  _permutate_outer_edges, create_initial_facts,
-                                  permutate_topology_kinematically)
+from qrules.combinatorics import (
+    _generate_kinematic_permutations,
+    _get_kinematic_representation,
+    _KinematicRepresentation,
+    _permutate_outer_edges,
+    create_initial_facts,
+    permutate_topology_kinematically,
+)
 from qrules.topology import Topology, create_isobar_topologies
 
 
 @pytest.fixture(scope="session")
 def three_body_decay() -> Topology:
     topologies = create_isobar_topologies(3)
-    topology = next(iter(topologies))
-    return topology
+    return next(iter(topologies))
 
 
 def test_create_initial_facts(three_body_decay, particle_database):

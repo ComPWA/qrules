@@ -7,15 +7,24 @@ import attrs
 import pytest
 
 from qrules import InteractionType, ProblemSet, StateTransitionManager
-from qrules._system_control import (create_edge_properties, filter_graphs,
-                                    remove_duplicate_solutions,
-                                    require_interaction_property)
+from qrules._system_control import (
+    create_edge_properties,
+    filter_graphs,
+    remove_duplicate_solutions,
+    require_interaction_property,
+)
 from qrules.combinatorics import (
-    ParticleWithSpin, _create_edge_id_particle_mapping, match_external_edges,
-    perform_external_edge_identical_particle_combinatorics)
+    ParticleWithSpin,
+    _create_edge_id_particle_mapping,
+    match_external_edges,
+    perform_external_edge_identical_particle_combinatorics,
+)
 from qrules.particle import Particle
-from qrules.quantum_numbers import (EdgeQuantumNumbers, InteractionProperties,
-                                    NodeQuantumNumbers)
+from qrules.quantum_numbers import (
+    EdgeQuantumNumbers,
+    InteractionProperties,
+    NodeQuantumNumbers,
+)
 from qrules.topology import Edge, MutableTransition, Topology
 
 
@@ -208,8 +217,7 @@ def make_ls_test_graph(angular_momentum_magnitude, coupled_spin_magnitude, parti
         )
     }
     states: Dict[int, ParticleWithSpin] = {-1: (particle, 0)}
-    graph = MutableTransition(topology, states, interactions)  # type: ignore[arg-type,var-annotated]
-    return graph
+    return MutableTransition(topology, states, interactions)  # type: ignore[arg-type,var-annotated]
 
 
 def make_ls_test_graph_scrambled(
@@ -226,8 +234,7 @@ def make_ls_test_graph_scrambled(
         )
     }
     states: Dict[int, ParticleWithSpin] = {-1: (particle, 0)}
-    graph = MutableTransition(topology, states, interactions)  # type: ignore[arg-type,var-annotated]
-    return graph
+    return MutableTransition(topology, states, interactions)  # type: ignore[arg-type,var-annotated]
 
 
 class TestSolutionFilter:

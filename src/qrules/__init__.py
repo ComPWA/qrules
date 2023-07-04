@@ -17,33 +17,44 @@ framework.
 """
 
 from itertools import product
-from typing import (Dict, FrozenSet, Iterable, List, Optional, Sequence, Set,
-                    Union)
+from typing import Dict, FrozenSet, Iterable, List, Optional, Sequence, Set, Union
 
 import attrs
 
 from . import io
 from .combinatorics import InitialFacts, StateDefinition, create_initial_facts
-from .conservation_rules import (BaryonNumberConservation,
-                                 BottomnessConservation, ChargeConservation,
-                                 CharmConservation, ElectronLNConservation,
-                                 GraphElementRule, MassConservation,
-                                 MuonLNConservation, StrangenessConservation,
-                                 TauLNConservation, c_parity_conservation,
-                                 clebsch_gordan_helicity_to_canonical,
-                                 g_parity_conservation, gellmann_nishijima,
-                                 identical_particle_symmetrization,
-                                 isospin_conservation, isospin_validity,
-                                 parity_conservation,
-                                 spin_magnitude_conservation)
+from .conservation_rules import (
+    BaryonNumberConservation,
+    BottomnessConservation,
+    ChargeConservation,
+    CharmConservation,
+    ElectronLNConservation,
+    GraphElementRule,
+    MassConservation,
+    MuonLNConservation,
+    StrangenessConservation,
+    TauLNConservation,
+    c_parity_conservation,
+    clebsch_gordan_helicity_to_canonical,
+    g_parity_conservation,
+    gellmann_nishijima,
+    identical_particle_symmetrization,
+    isospin_conservation,
+    isospin_validity,
+    parity_conservation,
+    spin_magnitude_conservation,
+)
 from .particle import ParticleCollection, load_pdg
 from .quantum_numbers import InteractionProperties
-from .settings import (ADDITIONAL_PARTICLES_DEFINITIONS_PATH, InteractionType,
-                       _halves_domain, _int_domain)
+from .settings import (
+    ADDITIONAL_PARTICLES_DEFINITIONS_PATH,
+    InteractionType,
+    _halves_domain,
+    _int_domain,
+)
 from .solving import NodeSettings, QNResult, Rule, validate_full_solution
 from .topology import MutableTransition, create_n_body_topology
-from .transition import (EdgeSettings, ProblemSet, ReactionInfo,
-                         StateTransitionManager)
+from .transition import EdgeSettings, ProblemSet, ReactionInfo, StateTransitionManager
 
 
 def check_reaction_violations(  # pylint: disable=too-many-arguments
@@ -136,8 +147,9 @@ def check_reaction_violations(  # pylint: disable=too-many-arguments
         )
 
         if edge_check_result.violated_edge_rules:
+            msg = f"Some edges violate {edge_check_result.violated_edge_rules.values()}"
             raise ValueError(
-                f"Some edges violate {edge_check_result.violated_edge_rules.values()}"
+                msg
             )
 
     def check_edge_qn_conservation() -> Set[FrozenSet[str]]:

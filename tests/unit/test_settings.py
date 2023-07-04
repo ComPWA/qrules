@@ -2,8 +2,13 @@ import pytest
 
 from qrules.particle import ParticleCollection
 from qrules.quantum_numbers import EdgeQuantumNumbers as EdgeQN
-from qrules.settings import (InteractionType, _create_domains, _halves_domain,
-                             _int_domain, create_interaction_settings)
+from qrules.settings import (
+    InteractionType,
+    _create_domains,
+    _halves_domain,
+    _int_domain,
+    create_interaction_settings,
+)
 
 
 class TestInteractionType:

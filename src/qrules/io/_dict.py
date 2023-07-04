@@ -98,7 +98,7 @@ def build_state(definition: Any) -> State:
         particle = build_particle(definition["particle"])
         spin_projection = float(definition["spin_projection"])
         return State(particle, spin_projection)
-    raise NotImplementedError()
+    raise NotImplementedError
 
 
 def build_topology(definition: dict) -> Topology:
