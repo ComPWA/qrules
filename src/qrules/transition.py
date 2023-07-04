@@ -162,7 +162,7 @@ class _SolutionContainer:
                 " but also violated rules."
             )
             raise ValueError(
-                (msg),
+                msg,
                 self.execution_info.violated_node_rules,
                 self.execution_info.violated_edge_rules,
             )

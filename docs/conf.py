@@ -90,7 +90,6 @@ with contextlib.suppress(requests.exceptions.ConnectionError):
         url="https://raw.githubusercontent.com/ComPWA/ComPWA/04e5199/doc/images/logo.svg",
         output_path=LOGO_PATH,
     )
-
 if os.path.exists(LOGO_PATH):
     html_logo = LOGO_PATH
 
