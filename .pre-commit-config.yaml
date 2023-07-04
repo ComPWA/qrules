@@ -61,7 +61,6 @@ repos:
       - id: nbqa-pyupgrade
         args:
           - --py36-plus
-
       - id: nbqa-ruff
         args:
           - --fix
