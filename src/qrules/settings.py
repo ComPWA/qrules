@@ -113,7 +113,7 @@ DEFAULT_INTERACTION_TYPES = [
 ]
 
 
-def create_interaction_settings(  # pylint: disable=too-many-locals,too-many-arguments
+def create_interaction_settings(
     formalism: str,
     particle_db: ParticleCollection,
     nbody_topology: bool = False,

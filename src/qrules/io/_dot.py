@@ -27,7 +27,6 @@ _LOGGER = logging.getLogger(__name__)
 def _check_booleans(
     instance: "GraphPrinter", attribute: Attribute, value: bool
 ) -> None:
-    # pylint: disable=unused-argument
     if instance.strip_spin and instance.collapse_graphs:
         msg = "Cannot both strip spin and collapse graphs"
         raise ValueError(msg)
@@ -113,7 +112,6 @@ class GraphPrinter:
         obj: Union[ProblemSet, QNProblemSet, Topology, Transition],
         prefix: str = "",
     ) -> List[str]:
-        # pylint: disable=too-many-branches,too-many-locals,too-many-statements
         lines: List[str] = []
         if isinstance(obj, tuple) and len(obj) == 2:
             topology: Topology = obj[0]
@@ -311,7 +309,6 @@ def _(obj: dict) -> str:
         else:
             key_repr = key
         if value != 0 or any(s in key_repr for s in ["magnitude", "projection"]):
-            # pylint: disable=invalid-name
             pm = not any(s in key_repr for s in ["pid", "mass", "width", "magnitude"])
             value_repr = __render_fraction(value, pm)
             lines.append(f"{key_repr} = {value_repr}")

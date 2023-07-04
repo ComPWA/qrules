@@ -1,4 +1,3 @@
-# pylint: disable=protected-access
 import sys
 from copy import deepcopy
 from typing import Dict, List
@@ -353,7 +352,6 @@ def _create_graph(
     ],
 )
 def test_edge_swap(particle_database, initial_state, final_state):
-    # pylint: disable=too-many-locals
     stm = StateTransitionManager(
         initial_state,
         final_state,

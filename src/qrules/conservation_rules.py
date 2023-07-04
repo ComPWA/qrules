@@ -116,7 +116,6 @@ def additive_quantum_number_rule(
 
     def decorator(rule_class: Any) -> EdgeQNConservationRule:
         def new_call(
-            # pylint: disable=unused-argument
             self: Type[EdgeQNConservationRule],
             ingoing_edge_qns: List[quantum_number],  # type: ignore[valid-type]
             outgoing_edge_qns: List[quantum_number],  # type: ignore[valid-type]
@@ -798,7 +797,6 @@ def helicity_conservation(
 
 @frozen
 class GellMannNishijimaInput:
-    # pylint: disable=too-many-instance-attributes
     charge: EdgeQN.charge = field(converter=EdgeQN.charge)
     isospin_projection: Optional[EdgeQN.isospin_projection] = field(
         converter=optional(EdgeQN.isospin_projection), default=None

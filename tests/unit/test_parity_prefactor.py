@@ -57,7 +57,6 @@ def test_parity_prefactor(
     related_component_names: Tuple[str, str],
     relative_parity_prefactor: float,
 ) -> None:
-    # pylint: disable=unused-argument
     stm = StateTransitionManager(
         test_input.initial_state,
         test_input.final_state,

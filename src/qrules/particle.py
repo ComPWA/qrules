@@ -1,4 +1,3 @@
-# pylint: disable=import-outside-toplevel
 """A collection of particle info containers.
 
 The :mod:`.particle` module is the starting point of `qrules`. Its main interface is the
@@ -122,7 +121,7 @@ def _to_spin(value: Union[Spin, Tuple[float, float]]) -> Spin:
 
 @total_ordering
 @frozen(kw_only=True, order=False, repr=True)
-class Particle:  # pylint: disable=too-many-instance-attributes
+class Particle:
     """Immutable container of data defining a physical particle.
 
     A `Particle` is defined by the minimum set of the quantum numbers that every
@@ -360,13 +359,13 @@ class ParticleCollection(abc.MutableSet):
         """Search for a particle by either name (`str`) or PID (`int`)."""
         if isinstance(search_term, str):
             particle_name = search_term
-            return self.__getitem__(particle_name)  # pylint: disable=C2801
+            return self.__getitem__(particle_name)
         if isinstance(search_term, int):
             if search_term not in self.__pid_to_name:
                 msg = f"No particle with PID {search_term}"
                 raise KeyError(msg)
             particle_name = self.__pid_to_name[search_term]
-            return self.__getitem__(particle_name)  # pylint: disable=C2801
+            return self.__getitem__(particle_name)
         msg = f"Cannot search for a search term of type {type(search_term)}"
         raise NotImplementedError(msg)
 
@@ -405,7 +404,7 @@ class ParticleCollection(abc.MutableSet):
         return [p.name for p in sorted(self)]
 
 
-def create_particle(  # pylint: disable=too-many-arguments,too-many-locals
+def create_particle(
     template_particle: Particle,
     name: Optional[str] = None,
     latex: Optional[str] = None,

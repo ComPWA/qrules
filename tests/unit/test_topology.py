@@ -1,5 +1,3 @@
-# pylint: disable=eval-used redefined-outer-name too-many-arguments
-# pyright: reportUnusedImport=false
 import typing
 
 import pytest
@@ -8,7 +6,7 @@ from IPython.lib.pretty import pretty
 
 from qrules.topology import (
     Edge,
-    FrozenDict,  # noqa: F401
+    FrozenDict,  # noqa: F401  # pyright: ignore[reportUnusedImport]
     InteractionNode,
     MutableTopology,
     SimpleStateTransitionTopologyBuilder,

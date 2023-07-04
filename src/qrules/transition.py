@@ -229,7 +229,7 @@ def _group_by_strength(
     return strength_sorted_problem_sets
 
 
-class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
+class StateTransitionManager:
     """Main handler for decay topologies.
 
     .. seealso:: :doc:`/usage/reaction` and `.generate_transitions`
@@ -341,7 +341,6 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             name_patterns = [name_patterns]
         selected_particles = ParticleCollection()
         for pattern in name_patterns:
-            # pylint: disable=cell-var-from-loop
             matches = _filter_by_name_pattern(self.__particles, pattern, regex)
             if len(matches) == 0:
                 msg = (
@@ -431,7 +430,6 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
     def __determine_graph_settings(  # noqa: C901
         self, topology: Topology, initial_facts: "InitialFacts"
     ) -> List[GraphSettings]:
-        # pylint: disable=too-many-locals
         weak_edge_settings, _ = self.interaction_type_settings[InteractionType.WEAK]
 
         def create_intermediate_edge_qn_domains() -> Dict:

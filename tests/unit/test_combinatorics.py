@@ -1,4 +1,3 @@
-# pylint: disable=redefined-outer-name
 from typing import List
 
 import pytest
@@ -199,9 +198,7 @@ class TestKinematicRepresentation:
             initial_state=[["J/psi"]],
             final_state=[["gamma", "pi0"], ["gamma", "pi0", "pi0"]],
         )
-        constructed_from_repr = eval(  # pylint: disable=eval-used
-            str(kinematic_representation)
-        )
+        constructed_from_repr = eval(str(kinematic_representation))
         assert constructed_from_repr == kinematic_representation
 
     def test_in_operator(self):

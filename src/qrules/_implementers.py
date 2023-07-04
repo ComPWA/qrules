@@ -36,6 +36,5 @@ def implement_pretty_repr(
             p.breakable()
             p.text(")")
 
-    # pylint: disable=protected-access
     decorated_class._repr_pretty_ = repr_pretty  # type: ignore[attr-defined]
     return decorated_class  # type: ignore[return-value]

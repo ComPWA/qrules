@@ -365,7 +365,7 @@ def match_external_edges(
     _match_external_edge_ids(graphs, ref_graph_id, __get_initial_state_edge_ids)
 
 
-def _match_external_edge_ids(  # pylint: disable=too-many-locals
+def _match_external_edge_ids(
     graphs: "List[MutableTransition[ParticleWithSpin, InteractionProperties]]",
     ref_graph_id: int,
     external_edge_getter_function: "Callable[[MutableTransition], Iterable[int]]",
@@ -440,7 +440,6 @@ def _external_edge_identical_particle_combinatorics(
     graph: "MutableTransition[ParticleWithSpin, InteractionProperties]",
     external_edge_getter_function: Callable[[MutableTransition], Iterable[int]],
 ) -> List[MutableTransition]:
-    # pylint: disable=too-many-locals
     new_graphs = [graph]
     edge_particle_mapping = _create_edge_id_particle_mapping(
         graph, external_edge_getter_function(graph)

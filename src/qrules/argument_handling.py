@@ -34,7 +34,7 @@ Scalar = Union[int, float]
 
 Rule = Union[GraphElementRule, EdgeQNConservationRule, ConservationRule]
 
-_ElementType = TypeVar("_ElementType")  # pylint: disable=invalid-name
+_ElementType = TypeVar("_ElementType")
 
 GraphElementPropertyMap = Dict[Type[_ElementType], Scalar]
 GraphEdgePropertyMap = GraphElementPropertyMap[EdgeQuantumNumber]
@@ -52,7 +52,6 @@ def _is_optional(field_type: Optional[type]) -> bool:
 
 def _is_sequence_type(input_type: type) -> bool:
     origin = getattr(input_type, "__origin__", None)
-    # pylint: disable=unhashable-member
     return origin in {list, tuple, List, Tuple}
 
 

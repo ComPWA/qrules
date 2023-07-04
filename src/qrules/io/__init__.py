@@ -1,4 +1,3 @@
-# pylint: disable=too-many-return-statements
 """Serialization module for the `qrules`.
 
 The `.io` module provides tools to export or import objects from `qrules` to and from
@@ -20,7 +19,6 @@ from . import _dict, _dot
 
 
 def asdict(instance: object) -> dict:
-    # pylint: disable=protected-access
     if isinstance(instance, ParticleCollection):
         return _dict.from_particle_collection(instance)
     if attrs.has(type(instance)):
@@ -134,7 +132,6 @@ def load(filename: str) -> object:
 
 
 class _IncreasedIndent(yaml.Dumper):
-    # pylint: disable=too-many-ancestors
     def increase_indent(self, flow: bool = False, indentless: bool = False) -> None:
         return super().increase_indent(flow, False)
 

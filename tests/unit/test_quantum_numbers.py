@@ -1,4 +1,3 @@
-# pylint: disable=eval-used
 import typing
 from copy import deepcopy
 

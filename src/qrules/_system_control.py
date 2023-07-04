@@ -225,7 +225,7 @@ def remove_duplicate_solutions(
     return filtered_solutions
 
 
-def _remove_qns_from_graph(  # pylint: disable=too-many-branches
+def _remove_qns_from_graph(
     graph: "MutableTransition[ParticleWithSpin, InteractionProperties]",
     qn_list: Set[Type[NodeQuantumNumber]],
 ) -> "MutableTransition[ParticleWithSpin, InteractionProperties]":

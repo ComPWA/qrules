@@ -1,4 +1,3 @@
-# pylint: disable=too-many-lines
 """Functions to solve a particle reaction problem.
 
 This module is responsible for solving a particle reaction problem stated by a
@@ -286,7 +285,6 @@ def __is_sub_mapping(
 
 
 def validate_full_solution(problem_set: QNProblemSet) -> QNResult:  # noqa: C901
-    # pylint: disable=too-many-locals
     _LOGGER.debug("validating graph...")
 
     rule_argument_handler = RuleArgumentHandler()
@@ -450,7 +448,6 @@ class CSPSolver(Solver):
     wrapper class serves as an adapter.
     """
 
-    # pylint: disable=too-many-instance-attributes
     def __init__(self, allowed_intermediate_states: Iterable[GraphEdgePropertyMap]):
         self.__variables: Set[Union[_EdgeVariableInfo, _NodeVariableInfo]] = set()
         self.__var_string_to_data: Dict[
@@ -467,7 +464,6 @@ class CSPSolver(Solver):
         self.__scoresheet = Scoresheet()
 
     def find_solutions(self, problem_set: QNProblemSet) -> QNResult:  # noqa: C901
-        # pylint: disable=too-many-locals
         self.__initialize_constraints(problem_set)
         solutions = self.__problem.getSolutions()
 
@@ -563,8 +559,6 @@ class CSPSolver(Solver):
         role for this conservation law. Hence variables are also created within this
         method.
         """
-        # pylint: disable=too-many-locals
-
         self.__clear()
 
         def get_rules_by_priority(
@@ -812,9 +806,7 @@ class Scoresheet:
         return self.__rule_passes
 
 
-_QNType = TypeVar(  # pylint: disable=invalid-name
-    "_QNType", EdgeQuantumNumber, NodeQuantumNumber
-)
+_QNType = TypeVar("_QNType", EdgeQuantumNumber, NodeQuantumNumber)
 
 
 class _GraphElementConstraint(
@@ -826,7 +818,6 @@ class _GraphElementConstraint(
     interface.
     """
 
-    # pylint: disable=too-many-arguments
     def __init__(
         self,
         rule: GraphElementRule,
@@ -948,7 +939,6 @@ class _ConservationRuleConstraintWrapper(
     interface.
     """
 
-    # pylint: disable=too-many-instance-attributes
     def __init__(
         self,
         rule: Rule,

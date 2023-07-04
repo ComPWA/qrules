@@ -1,4 +1,3 @@
-# pylint: disable=too-many-lines
 """A rule based system that facilitates particle reaction analysis.
 
 QRules generates allowed particle transitions from a set of conservation rules and
@@ -57,7 +56,7 @@ from .topology import MutableTransition, create_n_body_topology
 from .transition import EdgeSettings, ProblemSet, ReactionInfo, StateTransitionManager
 
 
-def check_reaction_violations(  # pylint: disable=too-many-arguments  # noqa: C901
+def check_reaction_violations(  # noqa: C901
     initial_state: Union[StateDefinition, Sequence[StateDefinition]],
     final_state: Sequence[StateDefinition],
     mass_conservation_factor: Optional[float] = 3.0,
@@ -102,7 +101,6 @@ def check_reaction_violations(  # pylint: disable=too-many-arguments  # noqa: C9
 
     .. seealso:: :ref:`usage:Check allowed reactions`
     """
-    # pylint: disable=too-many-locals
     if not isinstance(initial_state, (list, tuple)):
         initial_state = [initial_state]  # type: ignore[list-item]
 
@@ -255,7 +253,7 @@ def check_reaction_violations(  # pylint: disable=too-many-arguments  # noqa: C9
     return violations
 
 
-def generate_transitions(  # pylint: disable=too-many-arguments
+def generate_transitions(
     initial_state: Union[StateDefinition, Sequence[StateDefinition]],
     final_state: Sequence[StateDefinition],
     allowed_intermediate_particles: Optional[List[str]] = None,

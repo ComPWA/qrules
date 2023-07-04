@@ -63,7 +63,7 @@ def _to_fraction(value: Union[float, int], render_plus: bool = False) -> str:
 
 
 @frozen(init=False)
-class EdgeQuantumNumbers:  # pylint: disable=too-many-instance-attributes
+class EdgeQuantumNumbers:
     """Definition of quantum numbers for edges.
 
     This class defines the types that are used in the :mod:`.conservation_rules`, for

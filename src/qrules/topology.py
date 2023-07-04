@@ -1,4 +1,3 @@
-# pylint: disable=too-many-lines
 """Functionality for `Topology` and `Transition` instances.
 
 .. rubric:: Main interfaces
@@ -72,9 +71,7 @@ VT = TypeVar("VT")
 
 
 @total_ordering
-class FrozenDict(  # pylint: disable=too-many-ancestors
-    abc.Hashable, abc.Mapping, Generic[KT, VT]
-):
+class FrozenDict(abc.Hashable, abc.Mapping, Generic[KT, VT]):
     """An **immutable** and **hashable** version of a `dict`.
 
     `FrozenDict` makes it possible to make classes hashable if they are decorated with
@@ -799,7 +796,6 @@ def _attach_node_to_edges(
     return (temp_graph, new_open_end_lines)
 
 
-# pylint: disable=invalid-name
 EdgeType = TypeVar("EdgeType")
 NodeType = TypeVar("NodeType")
 NewEdgeType = TypeVar("NewEdgeType")
@@ -904,7 +900,6 @@ class FrozenTransition(Transition, Generic[EdgeType, NodeType]):
 
     def convert(self, state_converter=None, interaction_converter=None):  # type: ignore[no-untyped-def]
         """Cast the edge and/or node properties to another type."""
-        # pylint: disable=unnecessary-lambda
         if state_converter is None:
             state_converter = _identity_function
         if interaction_converter is None:
