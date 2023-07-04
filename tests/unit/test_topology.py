@@ -8,6 +8,7 @@ from IPython.lib.pretty import pretty
 
 from qrules.topology import (
     Edge,
+    FrozenDict,  # noqa: F401
     InteractionNode,
     MutableTopology,
     SimpleStateTransitionTopologyBuilder,

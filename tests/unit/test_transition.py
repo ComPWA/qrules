@@ -8,8 +8,12 @@ from IPython.lib.pretty import pretty
 from qrules.particle import Parity, Particle, ParticleCollection, Spin  # noqa: F401
 from qrules.quantum_numbers import InteractionProperties  # noqa: F401
 from qrules.settings import InteractionType
-from qrules.topology import (
+from qrules.topology import (  # noqa: F401
+    Edge,
+    FrozenDict,
     FrozenTransition,
+    MutableTransition,
+    Topology,
 )
 from qrules.transition import ReactionInfo, State, StateTransitionManager
 
