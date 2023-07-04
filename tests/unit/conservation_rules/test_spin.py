@@ -2,12 +2,9 @@ from typing import List, Optional, Tuple
 
 import pytest
 
-from qrules.conservation_rules import (
-    SpinEdgeInput,
-    SpinNodeInput,
-    spin_conservation,
-    spin_magnitude_conservation,
-)
+from qrules.conservation_rules import (SpinEdgeInput, SpinNodeInput,
+                                       spin_conservation,
+                                       spin_magnitude_conservation)
 from qrules.particle import Spin
 
 _SpinRuleInputType = Tuple[List[SpinEdgeInput], List[SpinEdgeInput], SpinNodeInput]

@@ -9,23 +9,13 @@ import itertools
 import sys
 from collections import OrderedDict
 from copy import deepcopy
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Mapping,
-    Optional,
-    Sequence,
-    Set,
-    Tuple,
-    Union,
-)
+from typing import (Any, Callable, Dict, Iterable, List, Mapping, Optional,
+                    Sequence, Set, Tuple, Union)
 
 from qrules.particle import ParticleCollection, ParticleWithSpin
 from qrules.quantum_numbers import InteractionProperties, arange
-from qrules.topology import MutableTransition, Topology, get_originating_node_list
+from qrules.topology import (MutableTransition, Topology,
+                             get_originating_node_list)
 
 if sys.version_info >= (3, 10):
     from typing import TypeAlias

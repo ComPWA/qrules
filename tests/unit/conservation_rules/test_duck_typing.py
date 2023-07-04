@@ -12,11 +12,8 @@ import attrs
 
 from qrules import conservation_rules
 from qrules.particle import Particle
-from qrules.quantum_numbers import (
-    EdgeQuantumNumbers,
-    InteractionProperties,
-    NodeQuantumNumbers,
-)
+from qrules.quantum_numbers import (EdgeQuantumNumbers, InteractionProperties,
+                                    NodeQuantumNumbers)
 
 RULE_INPUT_CLASSES = {
     getattr(conservation_rules, name)

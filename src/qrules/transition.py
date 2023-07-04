@@ -7,19 +7,8 @@ from collections import defaultdict
 from copy import copy, deepcopy
 from enum import Enum, auto
 from multiprocessing import Pool
-from typing import (
-    TYPE_CHECKING,
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    Sequence,
-    Set,
-    Tuple,
-    Type,
-    Union,
-    overload,
-)
+from typing import (TYPE_CHECKING, Dict, Iterable, List, Optional, Sequence,
+                    Set, Tuple, Type, Union, overload)
 
 import attrs
 from attrs import define, field, frozen
@@ -28,61 +17,26 @@ from tqdm.auto import tqdm
 
 from qrules._implementers import implement_pretty_repr
 
-from ._system_control import (
-    GammaCheck,
-    InteractionDeterminator,
-    LeptonCheck,
-    create_edge_properties,
-    create_interaction_properties,
-    create_node_properties,
-    filter_interaction_types,
-    find_particle,
-    remove_duplicate_solutions,
-)
-from .combinatorics import (
-    InitialFacts,
-    StateDefinition,
-    create_initial_facts,
-    ensure_nested_list,
-    match_external_edges,
-    permutate_topology_kinematically,
-)
-from .particle import (
-    Particle,
-    ParticleCollection,
-    ParticleWithSpin,
-    _to_float,
-    load_pdg,
-)
-from .quantum_numbers import (
-    EdgeQuantumNumber,
-    EdgeQuantumNumbers,
-    InteractionProperties,
-    NodeQuantumNumber,
-    NodeQuantumNumbers,
-)
-from .settings import (
-    DEFAULT_INTERACTION_TYPES,
-    InteractionType,
-    NumberOfThreads,
-    create_interaction_settings,
-)
-from .solving import (
-    CSPSolver,
-    EdgeSettings,
-    GraphEdgePropertyMap,
-    GraphSettings,
-    NodeSettings,
-    QNProblemSet,
-    QNResult,
-)
-from .topology import (
-    FrozenDict,
-    MutableTransition,
-    Topology,
-    create_isobar_topologies,
-    create_n_body_topology,
-)
+from ._system_control import (GammaCheck, InteractionDeterminator, LeptonCheck,
+                              create_edge_properties,
+                              create_interaction_properties,
+                              create_node_properties, filter_interaction_types,
+                              find_particle, remove_duplicate_solutions)
+from .combinatorics import (InitialFacts, StateDefinition,
+                            create_initial_facts, ensure_nested_list,
+                            match_external_edges,
+                            permutate_topology_kinematically)
+from .particle import (Particle, ParticleCollection, ParticleWithSpin,
+                       _to_float, load_pdg)
+from .quantum_numbers import (EdgeQuantumNumber, EdgeQuantumNumbers,
+                              InteractionProperties, NodeQuantumNumber,
+                              NodeQuantumNumbers)
+from .settings import (DEFAULT_INTERACTION_TYPES, InteractionType,
+                       NumberOfThreads, create_interaction_settings)
+from .solving import (CSPSolver, EdgeSettings, GraphEdgePropertyMap,
+                      GraphSettings, NodeSettings, QNProblemSet, QNResult)
+from .topology import (FrozenDict, MutableTransition, Topology,
+                       create_isobar_topologies, create_n_body_topology)
 
 if sys.version_info >= (3, 10):
     from typing import TypeAlias

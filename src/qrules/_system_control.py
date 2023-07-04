@@ -7,14 +7,9 @@ from typing import Callable, Dict, Iterable, List, Optional, Set, Tuple, Type
 import attrs
 
 from .particle import Particle, ParticleCollection, ParticleWithSpin
-from .quantum_numbers import (
-    EdgeQuantumNumber,
-    EdgeQuantumNumbers,
-    InteractionProperties,
-    NodeQuantumNumber,
-    NodeQuantumNumbers,
-    Parity,
-)
+from .quantum_numbers import (EdgeQuantumNumber, EdgeQuantumNumbers,
+                              InteractionProperties, NodeQuantumNumber,
+                              NodeQuantumNumbers, Parity)
 from .settings import InteractionType
 from .solving import GraphEdgePropertyMap, GraphNodePropertyMap, GraphSettings
 from .topology import MutableTransition

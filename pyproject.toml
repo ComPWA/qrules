@@ -33,18 +33,206 @@ target-version = [
     "py39",
 ]
 
-[tool.isort]
-known_third_party = "THIRDPARTY,particle"
-profile = "black"
-src_paths = [
-    "src",
-    "tests",
-]
-
 [tool.nbqa.addopts]
 black = [
     "--line-length=85",
 ]
-flake8 = [
-    "--extend-ignore=E402,F821",
+ruff = [
+    "--extend-ignore=B018",
+    "--extend-ignore=C90",
+    "--extend-ignore=D",
+    "--extend-ignore=N806",
+    "--extend-ignore=N816",
+    "--extend-ignore=PLR09",
+    "--extend-ignore=PLR2004",
+    "--extend-ignore=PLW0602",
+    "--extend-ignore=PLW0603",
+    "--line-length=85",
 ]
+
+[tool.mypy]
+disallow_incomplete_defs = true
+disallow_untyped_defs = true
+exclude = "_build"
+show_error_codes = true
+warn_unused_configs = true
+
+[[tool.mypy.overrides]]
+module = ["tests.*"]
+check_untyped_defs = true
+disallow_incomplete_defs = false
+disallow_untyped_defs = false
+
+[[tool.mypy.overrides]]
+module = ["typings.*"]
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = ["IPython.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["constraint.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["jsonschema.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["particle.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["pybtex.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["pydot.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["sphinx.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["sphobjinv.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["tqdm.*"]
+ignore_missing_imports = true
+
+[tool.pyright]
+exclude = [
+    "**/.git",
+    "**/.ipynb_checkpoints",
+    "**/.mypy_cache",
+    "**/.pytest_cache",
+    "**/.tox",
+    "**/__pycache__",
+    "**/_build",
+]
+reportGeneralTypeIssues = false
+reportIncompatibleMethodOverride = false
+reportMissingParameterType = false
+reportMissingTypeArgument = false
+reportMissingTypeStubs = false
+reportOverlappingOverload = false
+reportPrivateImportUsage = false
+reportPrivateUsage = false
+reportUnboundVariable = false
+reportUnknownArgumentType = false
+reportUnknownLambdaType = false
+reportUnknownMemberType = false
+reportUnknownParameterType = false
+reportUnknownVariableType = false
+reportUnnecessaryComparison = false
+reportUnnecessaryContains = false
+reportUnnecessaryIsInstance = false
+reportUntypedFunctionDecorator = false
+reportUnusedClass = true
+reportUnusedFunction = true
+reportUnusedImport = true
+reportUnusedVariable = true
+typeCheckingMode = "strict"
+
+[tool.coverage.run]
+branch = true
+source = ["src"]
+
+[tool.pytest.ini_options]
+addopts = """
+--color=yes
+--doctest-continue-on-failure
+--doctest-modules
+--durations=3
+--ignore=docs/abbreviate_signature.py
+--ignore=docs/conf.py"""
+filterwarnings = [
+    "error",
+    "ignore:Passing a schema to Validator.iter_errors is deprecated.*:DeprecationWarning",
+    "ignore:unclosed .*:ResourceWarning",
+]
+norecursedirs = ["_build"]
+markers = ["slow: marks tests as slow (deselect with '-m \"not slow\"')"]
+testpaths = [
+    "docs",
+    "src",
+    "tests",
+]
+
+[tool.ruff]
+extend-select = [
+    "A",
+    "B",
+    "BLE",
+    "C4",
+    "C90",
+    "D",
+    "EM",
+    "ERA",
+    "I",
+    "ICN",
+    "INP",
+    "ISC",
+    "N",
+    "NPY",
+    "PGH",
+    "PIE",
+    "PL",
+    "Q",
+    "RET",
+    "RSE",
+    "RUF",
+    "S",
+    "SIM",
+    "T20",
+    "TCH",
+    "TID",
+    "TRY",
+    "UP",
+    "YTT",
+]
+ignore = [
+    "D101",
+    "D102",
+    "D103",
+    "D105",
+    "D107",
+    "D203",
+    "D213",
+    "D407",
+    "D416",
+    "E501",
+    "SIM108",
+]
+show-fixes = true
+target-version = "py37"
+task-tags = ["cspell"]
+src = [
+    "src",
+    "tests",
+]
+extend-exclude = ["typings"]
+
+[tool.ruff.per-file-ignores]
+"docs/*" = [
+    "E402",
+    "INP001",
+    "S101",
+    "S113",
+    "T201",
+]
+"setup.py" = ["D100"]
+"tests/*" = [
+    "D",
+    "INP001",
+    "PGH001",
+    "PLR0913",
+    "PLR2004",
+    "S101",
+]
+
+[tool.ruff.pydocstyle]
+convention = "google"

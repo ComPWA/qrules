@@ -2,11 +2,8 @@ from itertools import product
 
 import pytest
 
-from qrules.conservation_rules import (
-    CParityEdgeInput,
-    CParityNodeInput,
-    c_parity_conservation,
-)
+from qrules.conservation_rules import (CParityEdgeInput, CParityNodeInput,
+                                       c_parity_conservation)
 from qrules.quantum_numbers import Parity
 
 

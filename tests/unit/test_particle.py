@@ -8,15 +8,9 @@ import pytest
 from attrs.exceptions import FrozenInstanceError
 from IPython.lib.pretty import pretty
 
-from qrules.particle import (
-    Particle,
-    ParticleCollection,
-    Spin,
-    _get_name_root,
-    create_antiparticle,
-    create_particle,
-)
-
+from qrules.particle import (Particle, ParticleCollection, Spin,
+                             _get_name_root, create_antiparticle,
+                             create_particle)
 # For eval tests
 from qrules.quantum_numbers import Parity  # noqa: F401
 

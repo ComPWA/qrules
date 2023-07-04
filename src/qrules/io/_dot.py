@@ -18,7 +18,8 @@ from attrs.converters import default_if_none
 from qrules.particle import Particle, ParticleWithSpin, Spin
 from qrules.quantum_numbers import InteractionProperties, _to_fraction
 from qrules.solving import EdgeSettings, NodeSettings, QNProblemSet, QNResult
-from qrules.topology import FrozenTransition, MutableTransition, Topology, Transition
+from qrules.topology import (FrozenTransition, MutableTransition, Topology,
+                             Transition)
 from qrules.transition import ProblemSet, ReactionInfo, State
 
 _LOGGER = logging.getLogger(__name__)

@@ -6,28 +6,13 @@ annotations of the rules.
 """
 
 import inspect
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Generic,
-    List,
-    Optional,
-    Sequence,
-    Set,
-    Tuple,
-    Type,
-    TypeVar,
-    Union,
-)
+from typing import (Any, Callable, Dict, Generic, List, Optional, Sequence,
+                    Set, Tuple, Type, TypeVar, Union)
 
 import attrs
 
-from .conservation_rules import (
-    ConservationRule,
-    EdgeQNConservationRule,
-    GraphElementRule,
-)
+from .conservation_rules import (ConservationRule, EdgeQNConservationRule,
+                                 GraphElementRule)
 from .quantum_numbers import EdgeQuantumNumber, NodeQuantumNumber, Parity
 
 Scalar = Union[int, float]

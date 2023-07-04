@@ -36,11 +36,8 @@
     "**/.git/**": true,
     "**/.tox/**": true
   },
-  "flake8.importStrategy": "fromEnvironment",
   "git.rebaseWhenSync": true,
   "github-actions.workflows.pinned.workflows": [".github/workflows/ci.yml"],
-  "isort.check": true,
-  "isort.importStrategy": "fromEnvironment",
   "json.schemas": [
     {
       "fileMatch": ["*particle*.json"],
@@ -52,9 +49,7 @@
     }
   ],
   "livePreview.defaultPreviewPath": "docs/_build/html",
-  "pylint.importStrategy": "fromEnvironment",
   "python.analysis.autoImportCompletions": false,
-  "python.analysis.diagnosticMode": "workspace",
   "python.analysis.inlayHints.pytestParameters": true,
   "python.analysis.typeCheckingMode": "strict",
   "python.formatting.provider": "black",
@@ -62,13 +57,15 @@
   "python.linting.enabled": true,
   "python.linting.flake8Enabled": false,
   "python.linting.mypyEnabled": true,
-  "python.linting.pydocstyleEnabled": true,
+  "python.linting.pydocstyleEnabled": false,
   "python.linting.pylamaEnabled": false,
   "python.linting.pylintEnabled": false,
   "python.testing.pytestArgs": ["--color=no", "--no-cov"],
   "python.testing.pytestEnabled": true,
   "python.testing.unittestEnabled": false,
   "rewrap.wrappingColumn": 88,
+  "ruff.enable": true,
+  "ruff.organizeImports": true,
   "search.exclude": {
     "**/tests/**/__init__.py": true,
     "*/.pydocstyle": true,

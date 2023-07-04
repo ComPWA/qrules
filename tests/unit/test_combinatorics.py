@@ -3,14 +3,11 @@ from typing import List
 
 import pytest
 
-from qrules.combinatorics import (
-    _generate_kinematic_permutations,
-    _get_kinematic_representation,
-    _KinematicRepresentation,
-    _permutate_outer_edges,
-    create_initial_facts,
-    permutate_topology_kinematically,
-)
+from qrules.combinatorics import (_generate_kinematic_permutations,
+                                  _get_kinematic_representation,
+                                  _KinematicRepresentation,
+                                  _permutate_outer_edges, create_initial_facts,
+                                  permutate_topology_kinematically)
 from qrules.topology import Topology, create_isobar_topologies
 
 

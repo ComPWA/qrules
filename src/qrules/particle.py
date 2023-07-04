@@ -16,19 +16,8 @@ from collections import abc
 from difflib import get_close_matches
 from functools import total_ordering
 from math import copysign
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    Iterator,
-    List,
-    Optional,
-    SupportsFloat,
-    Tuple,
-    Union,
-)
+from typing import (TYPE_CHECKING, Any, Callable, Dict, Iterable, Iterator,
+                    List, Optional, SupportsFloat, Tuple, Union)
 
 import attrs
 from attrs import field, frozen

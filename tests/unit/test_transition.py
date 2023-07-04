@@ -5,16 +5,12 @@ from copy import deepcopy
 import pytest
 from IPython.lib.pretty import pretty
 
-from qrules.particle import Parity, Particle, ParticleCollection, Spin  # noqa: F401
+from qrules.particle import (Parity, Particle,  # noqa: F401
+                             ParticleCollection, Spin)
 from qrules.quantum_numbers import InteractionProperties  # noqa: F401
 from qrules.settings import InteractionType
-from qrules.topology import (  # noqa: F401
-    Edge,
-    FrozenDict,
-    FrozenTransition,
-    MutableTransition,
-    Topology,
-)
+from qrules.topology import (Edge, FrozenDict, FrozenTransition,  # noqa: F401
+                             MutableTransition, Topology)
 from qrules.transition import ReactionInfo, State, StateTransitionManager
 
 

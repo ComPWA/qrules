@@ -22,27 +22,10 @@ import sys
 from abc import ABC, abstractmethod
 from collections import abc
 from functools import total_ordering
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Dict,
-    FrozenSet,
-    Generic,
-    ItemsView,
-    Iterable,
-    Iterator,
-    KeysView,
-    List,
-    Mapping,
-    Optional,
-    Sequence,
-    Set,
-    Tuple,
-    TypeVar,
-    ValuesView,
-    overload,
-)
+from typing import (TYPE_CHECKING, Any, Callable, Dict, FrozenSet, Generic,
+                    ItemsView, Iterable, Iterator, KeysView, List, Mapping,
+                    Optional, Sequence, Set, Tuple, TypeVar, ValuesView,
+                    overload)
 
 import attrs
 from attrs import define, field, frozen

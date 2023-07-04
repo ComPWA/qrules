@@ -1,9 +1,7 @@
 import pytest
 
-from qrules.conservation_rules import (
-    IdenticalParticleSymmetryOutEdgeInput,
-    identical_particle_symmetrization,
-)
+from qrules.conservation_rules import (IdenticalParticleSymmetryOutEdgeInput,
+                                       identical_particle_symmetrization)
 from qrules.quantum_numbers import Parity
 
 

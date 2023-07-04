@@ -14,37 +14,21 @@ import sys
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from copy import copy
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Generic,
-    Iterable,
-    List,
-    Optional,
-    Set,
-    Tuple,
-    Type,
-    TypeVar,
-    Union,
-)
+from typing import (Any, Callable, Dict, Generic, Iterable, List, Optional,
+                    Set, Tuple, Type, TypeVar, Union)
 
 import attrs
 from attrs import define, field, frozen
-from constraint import BacktrackingSolver, Constraint, Problem, Unassigned, Variable
+from constraint import (BacktrackingSolver, Constraint, Problem, Unassigned,
+                        Variable)
 
 from qrules._implementers import implement_pretty_repr
 
-from .argument_handling import (
-    GraphEdgePropertyMap,
-    GraphElementRule,
-    GraphNodePropertyMap,
-    Rule,
-    RuleArgumentHandler,
-    Scalar,
-    get_required_qns,
-)
-from .quantum_numbers import EdgeQuantumNumber, EdgeQuantumNumbers, NodeQuantumNumber
+from .argument_handling import (GraphEdgePropertyMap, GraphElementRule,
+                                GraphNodePropertyMap, Rule,
+                                RuleArgumentHandler, Scalar, get_required_qns)
+from .quantum_numbers import (EdgeQuantumNumber, EdgeQuantumNumbers,
+                              NodeQuantumNumber)
 from .topology import MutableTransition, Topology
 
 if sys.version_info >= (3, 10):

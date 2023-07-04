@@ -4,12 +4,8 @@ import pytest
 
 from qrules import io
 from qrules.particle import Particle, ParticleCollection
-from qrules.topology import (
-    FrozenTransition,
-    Topology,
-    create_isobar_topologies,
-    create_n_body_topology,
-)
+from qrules.topology import (FrozenTransition, Topology,
+                             create_isobar_topologies, create_n_body_topology)
 from qrules.transition import ReactionInfo
 
 
