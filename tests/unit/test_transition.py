@@ -10,7 +10,7 @@ from qrules.quantum_numbers import InteractionProperties  # noqa: F401
 from qrules.settings import InteractionType
 from qrules.topology import (
     FrozenTransition,
-    )
+)
 from qrules.transition import ReactionInfo, State, StateTransitionManager
 
 

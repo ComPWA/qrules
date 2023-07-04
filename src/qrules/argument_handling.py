@@ -242,10 +242,11 @@ class RuleArgumentHandler:
                 elif _is_node_quantum_number(qn_type):
                     arg_builder = _ValueExtractor[NodeQuantumNumber](qn_type)
                 else:
-                    msg = f"Quantum number type {qn_type} is not supported. Has to be of type Edge/NodeQuantumNumber."
-                    raise TypeError(
-                        msg
+                    msg = (
+                        f"Quantum number type {qn_type} is not supported. Has to be of"
+                        " type Edge/NodeQuantumNumber."
                     )
+                    raise TypeError(msg)
 
             if is_list:
                 arg_builder = _sequence_arg_builder(arg_builder)
@@ -266,10 +267,11 @@ class RuleArgumentHandler:
                 raise TypeError(msg)
             for par in rule_func_signature.parameters.values():
                 if not par.annotation:
-                    msg = f"missing type annotations for argument {par.name} of rule {rule!s}"
-                    raise TypeError(
-                        msg
+                    msg = (
+                        f"missing type annotations for argument {par.name} of rule"
+                        f" {rule!s}"
                     )
+                    raise TypeError(msg)
                 rule_annotations.append(par.annotation)
 
             # check type annotations are legal

@@ -632,7 +632,9 @@ def isospin_conservation(
     Also checks :math:`I_{1,z} + I_{2,z} = I_z` and if Clebsch-Gordan coefficients are
     all 0.
     """
-    if sum(x.isospin_projection for x in ingoing_isospins) != sum(x.isospin_projection for x in outgoing_isospins):
+    if sum(x.isospin_projection for x in ingoing_isospins) != sum(
+        x.isospin_projection for x in outgoing_isospins
+    ):
         return False
     if not all(isospin_validity(x) for x in ingoing_isospins + outgoing_isospins):
         return False

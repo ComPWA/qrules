@@ -468,9 +468,7 @@ def __to_particle(state: Any) -> Particle:
     if isinstance(state, tuple) and len(state) == 2:
         return state[0]
     msg = f"Cannot extract a particle from type {type(state).__name__}"
-    raise NotImplementedError(
-        msg
-    )
+    raise NotImplementedError(msg)
 
 
 def _collapse_graphs(

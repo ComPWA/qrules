@@ -17,9 +17,7 @@ def implement_pretty_repr(
     """Implement a pretty :code:`repr` in a class decorated by `attrs`."""
     if not attrs.has(decorated_class):
         msg = "Can only implement a pretty repr for a class created with attrs"
-        raise TypeError(
-            msg
-        )
+        raise TypeError(msg)
 
     def repr_pretty(self: Any, p: "PrettyPrinter", cycle: bool) -> None:
         class_name = type(self).__name__

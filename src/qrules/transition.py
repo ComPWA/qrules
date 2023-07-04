@@ -157,11 +157,12 @@ class _SolutionContainer:
             self.execution_info.violated_node_rules
             or self.execution_info.violated_edge_rules
         ):
-            msg = f"Invalid {type(self).__name__}! Found {len(self.solutions)} solutions, but also violated rules."
+            msg = (
+                f"Invalid {type(self).__name__}! Found {len(self.solutions)} solutions,"
+                " but also violated rules."
+            )
             raise ValueError(
-                (
-                    msg
-                ),
+                (msg),
                 self.execution_info.violated_node_rules,
                 self.execution_info.violated_edge_rules,
             )
@@ -260,10 +261,11 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             "canonical",
         ]
         if formalism not in allowed_formalisms:
-            msg = f'Formalism "{formalism}" not implemented. Use one of {allowed_formalisms} instead.'
-            raise NotImplementedError(
-                msg
+            msg = (
+                f'Formalism "{formalism}" not implemented. Use one of'
+                f" {allowed_formalisms} instead."
             )
+            raise NotImplementedError(msg)
         self.__formalism = str(formalism)
         self.__particles = ParticleCollection()
         if particle_db is not None:
@@ -341,10 +343,11 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             # pylint: disable=cell-var-from-loop
             matches = _filter_by_name_pattern(self.__particles, pattern, regex)
             if len(matches) == 0:
-                msg = f'Could not find any matches for allowed intermediate particle pattern "{pattern}"'
-                raise LookupError(
-                    msg
+                msg = (
+                    "Could not find any matches for allowed intermediate particle"
+                    f' pattern "{pattern}"'
                 )
+                raise LookupError(msg)
             selected_particles.update(matches)
         self.__allowed_intermediate_states = [
             create_edge_properties(x)
@@ -394,9 +397,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         for allowed_types in allowed_interaction_types:
             if not isinstance(allowed_types, InteractionType):
                 msg = "Allowed interaction types must be of type[InteractionType]"
-                raise TypeError(
-                    msg
-                )
+                raise TypeError(msg)
             if allowed_types not in self.interaction_type_settings:
                 _LOGGER.info(self.interaction_type_settings.keys())
                 msg = f"Interaction {allowed_types} not found in settings"

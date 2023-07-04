@@ -129,10 +129,11 @@ class FrozenDict(  # pylint: disable=too-many-ancestors
             sorted_other = _convert_mapping_to_sorted_tuple(other)
             return sorted_self > sorted_other
 
-        msg = f"Can only compare {type(self).__name__} with a mapping, not with {type(other).__name__}"
-        raise NotImplementedError(
-            msg
+        msg = (
+            f"Can only compare {type(self).__name__} with a mapping, not with"
+            f" {type(other).__name__}"
         )
+        raise NotImplementedError(msg)
 
     def __hash__(self) -> int:
         return self.__hash
@@ -289,14 +290,13 @@ class Topology:
             connected_nodes = edge.get_connected_nodes()
             if not connected_nodes:
                 msg = f"Edge nr. {edge_id} is not connected to any other node ({edge})"
-                raise ValueError(
-                    msg
-                )
+                raise ValueError(msg)
             if not connected_nodes <= self.nodes:
-                msg = f"{edge} (ID: {edge_id}) has non-existing node IDs.\nAvailable node IDs: {self.nodes}"
-                raise ValueError(
-                    msg
+                msg = (
+                    f"{edge} (ID: {edge_id}) has non-existing node IDs.\nAvailable node"
+                    f" IDs: {self.nodes}"
                 )
+                raise ValueError(msg)
         self.__check_isolated_nodes()
 
     def __check_isolated_nodes(self) -> None:
@@ -496,10 +496,11 @@ class MutableTopology:
                 msg = f"Edge nr. {edge_id} does not exist"
                 raise ValueError(msg)
             if self.edges[edge_id].ending_node_id is not None:
-                msg = f"Edge nr. {edge_id} is already ingoing to node {self.edges[edge_id].ending_node_id}"
-                raise ValueError(
-                    msg
+                msg = (
+                    f"Edge nr. {edge_id} is already ingoing to node"
+                    f" {self.edges[edge_id].ending_node_id}"
                 )
+                raise ValueError(msg)
 
         # update the newly connected edges
         for edge_id in ingoing_edge_ids:
@@ -518,10 +519,11 @@ class MutableTopology:
                 msg = f"Edge nr. {edge_id} does not exist"
                 raise ValueError(msg)
             if self.edges[edge_id].originating_node_id is not None:
-                msg = f"Edge nr. {edge_id} is already outgoing from node {self.edges[edge_id].originating_node_id}"
-                raise ValueError(
-                    msg
+                msg = (
+                    f"Edge nr. {edge_id} is already outgoing from node"
+                    f" {self.edges[edge_id].originating_node_id}"
                 )
+                raise ValueError(msg)
 
         # update the edges
         for edge_id in outgoing_edge_ids:
@@ -985,10 +987,11 @@ def _assert_all_defined(items: Iterable, properties: Iterable) -> None:
     existing = set(items)
     defined = set(properties)
     if existing & defined != existing:
-        msg = f"Some items have no property assigned to them. Available items: {existing}, items with property: {defined}"
-        raise ValueError(
-            msg
+        msg = (
+            "Some items have no property assigned to them. Available items:"
+            f" {existing}, items with property: {defined}"
         )
+        raise ValueError(msg)
 
 
 # pyright: reportUnusedFunction=false
@@ -997,7 +1000,8 @@ def _assert_not_overdefined(items: Iterable, properties: Iterable) -> None:
     defined = set(properties)
     over_defined = defined - existing
     if over_defined:
-        msg = f"Properties have been defined for items that don't exist. Available items: {existing}, over-defined: {over_defined}"
-        raise ValueError(
-            msg
+        msg = (
+            "Properties have been defined for items that don't exist. Available items:"
+            f" {existing}, over-defined: {over_defined}"
         )
+        raise ValueError(msg)

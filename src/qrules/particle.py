@@ -64,24 +64,22 @@ class Spin:
     def __attrs_post_init__(self) -> None:
         if self.magnitude % 0.5 != 0.0:
             msg = f"Spin magnitude {self.magnitude} has to be a multitude of 0.5"
-            raise ValueError(
-                msg
-            )
+            raise ValueError(msg)
         if abs(self.projection) > self.magnitude:
             if self.magnitude < 0.0:
                 msg = f"Spin magnitude has to be positive, but is {self.magnitude}"
-                raise ValueError(
-                    msg
-                )
-            msg = f"Absolute value of spin projection cannot be larger than its magnitude:\n abs({self.projection}) > {self.magnitude}"
-            raise ValueError(
-                msg
+                raise ValueError(msg)
+            msg = (
+                "Absolute value of spin projection cannot be larger than its"
+                f" magnitude:\n abs({self.projection}) > {self.magnitude}"
             )
+            raise ValueError(msg)
         if not (self.projection - self.magnitude).is_integer():
-            msg = f"{type(self).__name__}{self.magnitude, self.projection}: (projection - magnitude) should be integer"
-            raise ValueError(
-                msg
+            msg = (
+                f"{type(self).__name__}{self.magnitude, self.projection}: (projection -"
+                " magnitude) should be integer"
             )
+            raise ValueError(msg)
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Spin):
@@ -179,10 +177,15 @@ class Particle:  # pylint: disable=too-many-instance-attributes
                 tau_lepton_number=self.tau_lepton_number,
             )
         ):
-            msg = f"Cannot construct particle {self.name}, because its quantum numbers don't agree with the Gell-Mann-Nishijima formula:\n  Q[{self.charge}] != Iz[{self.isospin.projection if self.isospin else 0}] + 1/2 (B[{self.baryon_number}] +  S[{self.strangeness}] +  C[{self.charmness}] + B'[{self.bottomness}] + T[{self.strangeness}])"
-            raise ValueError(
-                msg
+            msg = (
+                f"Cannot construct particle {self.name}, because its quantum numbers"
+                " don't agree with the Gell-Mann-Nishijima formula:\n "
+                f" Q[{self.charge}] !="
+                f" Iz[{self.isospin.projection if self.isospin else 0}] + 1/2"
+                f" (B[{self.baryon_number}] +  S[{self.strangeness}] + "
+                f" C[{self.charmness}] + B'[{self.bottomness}] + T[{self.strangeness}])"
             )
+            raise ValueError(msg)
 
     def __gt__(self, other: Any) -> bool:
         if isinstance(other, Particle):
@@ -198,9 +201,7 @@ class Particle:  # pylint: disable=too-many-instance-attributes
 
             return sorting_key(self) > sorting_key(other)
         msg = f"Cannot compare {type(self).__name__} with {type(other).__name__}"
-        raise NotImplementedError(
-            msg
-        )
+        raise NotImplementedError(msg)
 
     def __neg__(self) -> "Particle":
         return create_antiparticle(self)
@@ -265,9 +266,7 @@ class ParticleCollection(abc.MutableSet):
         if isinstance(other, abc.Iterable):
             return set(self) == set(other)
         msg = f"Cannot compare {type(self).__name__} with  {type(self).__name__}"
-        raise NotImplementedError(
-            msg
-        )
+        raise NotImplementedError(msg)
 
     def __getitem__(self, particle_name: str) -> Particle:
         if particle_name in self.__particles:
@@ -328,11 +327,12 @@ class ParticleCollection(abc.MutableSet):
         if value in self.__particles.values():
             equivalent_particles = {p for p in self if p == value}
             equivalent_particle = next(iter(equivalent_particles))
-            msg = f'Added particle "{value.name}" is equivalent to existing particle "{equivalent_particle.name}"'
+            msg = (
+                f'Added particle "{value.name}" is equivalent to existing particle'
+                f' "{equivalent_particle.name}"'
+            )
             raise ValueError(
-                (
-                    msg
-                ),
+                (msg),
             )
         if value.name in self.__particles:
             _LOGGER.warning(f'Overwriting particle with name "{value.name}"')
@@ -352,9 +352,7 @@ class ParticleCollection(abc.MutableSet):
             particle_name = value
         else:
             msg = f"Cannot discard something of type {type(value).__name__}"
-            raise NotImplementedError(
-                msg
-            )
+            raise NotImplementedError(msg)
         del self.__pid_to_name[self[particle_name].pid]
         del self.__particles[particle_name]
 
@@ -370,9 +368,7 @@ class ParticleCollection(abc.MutableSet):
             particle_name = self.__pid_to_name[search_term]
             return self.__getitem__(particle_name)  # pylint: disable=C2801
         msg = f"Cannot search for a search term of type {type(search_term)}"
-        raise NotImplementedError(
-            msg
-        )
+        raise NotImplementedError(msg)
 
     def filter(  # noqa: A003
         self, function: Callable[[Particle], bool]
@@ -396,10 +392,11 @@ class ParticleCollection(abc.MutableSet):
 
     def update(self, other: Iterable[Particle]) -> None:
         if not isinstance(other, abc.Iterable):
-            msg = f"Cannot update {type(self).__name__} from non-iterable class {type(self).__name__}"
-            raise TypeError(
-                msg
+            msg = (
+                f"Cannot update {type(self).__name__} from non-iterable class"
+                f" {type(self).__name__}"
             )
+            raise TypeError(msg)
         for particle in other:
             self.add(particle)
 

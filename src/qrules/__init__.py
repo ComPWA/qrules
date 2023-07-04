@@ -148,9 +148,7 @@ def check_reaction_violations(  # pylint: disable=too-many-arguments
 
         if edge_check_result.violated_edge_rules:
             msg = f"Some edges violate {edge_check_result.violated_edge_rules.values()}"
-            raise ValueError(
-                msg
-            )
+            raise ValueError(msg)
 
     def check_edge_qn_conservation() -> Set[FrozenSet[str]]:
         """Check if edge quantum numbers are conserved.

@@ -20,10 +20,11 @@ from qrules._implementers import implement_pretty_repr
 
 def _check_plus_minus(_: Any, __: attrs.Attribute, value: Any) -> None:
     if not isinstance(value, int):
-        msg = f"Input for {Parity.__name__} has to be of type {int.__name__}, not {type(value).__name__}"
-        raise TypeError(
-            msg
+        msg = (
+            f"Input for {Parity.__name__} has to be of type {int.__name__}, not"
+            f" {type(value).__name__}"
         )
+        raise TypeError(msg)
     if value not in [-1, +1]:
         msg = f"Parity can only be +1 or -1, not {value}"
         raise ValueError(msg)

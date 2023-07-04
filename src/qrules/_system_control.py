@@ -71,10 +71,11 @@ def create_node_properties(
         if qn_name in node_qn_mapping:
             property_map[node_qn_mapping[qn_name]] = value
         else:
-            msg = f"Missmatch between InteractionProperties and NodeQuantumNumbers. NodeQuantumNumbers does not define {qn_name}"
-            raise TypeError(
-                msg
+            msg = (
+                "Missmatch between InteractionProperties and NodeQuantumNumbers."
+                f" NodeQuantumNumbers does not define {qn_name}"
             )
+            raise TypeError(msg)
     return property_map
 
 
@@ -101,9 +102,7 @@ def find_particle(
     spin_projection = state.get(EdgeQuantumNumbers.spin_projection)
     if spin_projection is None:
         msg = f"{GraphEdgePropertyMap.__name__} does not contain a spin projection"
-        raise ValueError(
-            msg
-        )
+        raise ValueError(msg)
     return particle, spin_projection
 
 

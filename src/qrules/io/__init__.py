@@ -26,9 +26,7 @@ def asdict(instance: object) -> dict:
     if attrs.has(type(instance)):
         return _dict.from_attrs_decorated(instance)
     msg = f"No conversion to dict available for class {type(instance).__name__}"
-    raise NotImplementedError(
-        msg
-    )
+    raise NotImplementedError(msg)
 
 
 def fromdict(definition: dict) -> object:

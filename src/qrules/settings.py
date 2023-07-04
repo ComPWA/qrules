@@ -291,10 +291,11 @@ class NumberOfThreads:
     def set(cls, n_cores: Optional[int]) -> None:  # noqa: A003
         """Set the number of threads; use `None` for all available cores."""
         if n_cores is not None and not isinstance(n_cores, int):
-            msg = "Can only set the number of cores to an integer or to None (meaning all available cores)"
-            raise TypeError(
-                msg
+            msg = (
+                "Can only set the number of cores to an integer or to None (meaning all"
+                " available cores)"
             )
+            raise TypeError(msg)
         cls.__n_cores = n_cores
 
 

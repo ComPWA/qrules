@@ -179,11 +179,12 @@ class QNResult:
 
     def __attrs_post_init__(self) -> None:
         if self.solutions and (self.violated_node_rules or self.violated_edge_rules):
-            msg = f"Invalid {type(self).__name__}! Found {len(self.solutions)} solutions, but also violated rules."
+            msg = (
+                f"Invalid {type(self).__name__}! Found {len(self.solutions)} solutions,"
+                " but also violated rules."
+            )
             raise ValueError(
-                (
-                    msg
-                ),
+                (msg),
                 self.violated_node_rules,
                 self.violated_edge_rules,
             )
@@ -1085,7 +1086,8 @@ class _ConservationRuleConstraintWrapper(
             elif qn_type in self.__node_qns:
                 self.__node_qns[qn_type] = value  # type: ignore[index]
             else:
-                msg = f"The variable with name {qn_type.__name__} and a graph element index of {index} does not appear in the variable mapping"
-                raise ValueError(
-                    msg
+                msg = (
+                    f"The variable with name {qn_type.__name__} and a graph element"
+                    f" index of {index} does not appear in the variable mapping"
                 )
+                raise ValueError(msg)

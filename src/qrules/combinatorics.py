@@ -66,9 +66,7 @@ class _KinematicRepresentation:
                 and self.final_state == other.final_state
             )
         msg = f"Cannot compare {type(self).__name__} with {type(other).__name__}"
-        raise ValueError(
-            msg
-        )
+        raise ValueError(msg)
 
     def __repr__(self) -> str:
         return (
@@ -110,14 +108,10 @@ class _KinematicRepresentation:
             for item in other:
                 if not isinstance(item, list):
                     msg = "Comparison representation needs to be a list of lists"
-                    raise ValueError(
-                        msg
-                    )
+                    raise ValueError(msg)
             return is_sublist(other, self.final_state)
         msg = f"Cannot compare {type(self).__name__} with {type(other).__name__}"
-        raise ValueError(
-            msg
-        )
+        raise ValueError(msg)
 
 
 def _sort_nested(nested_list: List[List[str]]) -> List[List[str]]:
@@ -220,9 +214,7 @@ def __create_states_with_spin_projections(
 ) -> Dict[int, StateWithSpins]:
     if len(edge_ids) != len(state_definitions):
         msg = "Number of state definitions is not same as number of edge IDs"
-        raise ValueError(
-            msg
-        )
+        raise ValueError(msg)
     states = __safe_set_spin_projections(state_definitions, particle_db)
     return dict(zip(edge_ids, states))
 
@@ -402,9 +394,7 @@ def _match_external_edge_ids(  # pylint: disable=too-many-locals
                         break
         if len(ref_mapping_copy) != 0:
             msg = "Unable to match graphs, due to inherent graph structure mismatch"
-            raise ValueError(
-                msg
-            )
+            raise ValueError(msg)
         swappings = _calculate_swappings(edge_ids_mapping)
         for edge_id1, edge_id2 in swappings.items():
             graph.swap_edges(edge_id1, edge_id2)
