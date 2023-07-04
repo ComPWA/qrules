@@ -1,4 +1,5 @@
 import logging
+import sys
 from copy import deepcopy
 
 import pytest
@@ -124,19 +125,28 @@ class TestParticle:
         pim = particle_database.find(-211)
         assert pip == -pim
 
-    def test_total_ordering(self, particle_database: ParticleCollection):
         pdg = particle_database
-        assert [
+        f0_mesons = [
             particle.name
             for particle in sorted(pdg.filter(lambda p: p.name.startswith("f(0)")))
-        ] == [
-            "f(0)(500)",
-            "f(0)(980)",
-            "f(0)(1370)",
-            "f(0)(1500)",
-            "f(0)(1710)",
-            "f(0)(2020)",
         ]
+        if sys.version_info > (3, 7):
+            assert f0_mesons == [
+                "f(0)(500)",
+                "f(0)(980)",
+                "f(0)(1370)",
+                "f(0)(1500)",
+                "f(0)(1710)",
+                "f(0)(2020)",
+            ]
+        else:
+            assert f0_mesons == [
+                "f(0)(500)",
+                "f(0)(980)",
+                "f(0)(1370)",
+                "f(0)(1500)",
+                "f(0)(1710)",
+            ]
 
 
 class TestParticleCollection:
@@ -214,9 +224,15 @@ class TestParticleCollection:
 
     def test_filter(self, particle_database: ParticleCollection):
         search_result = particle_database.filter(lambda p: "f(0)" in p.name)
-        assert len(search_result) == 6
+        if sys.version_info > (3, 7):
+            assert len(search_result) == 6
+        else:
+            assert len(search_result) == 5
         f0_1500_from_subset = search_result["f(0)(1500)"]
-        assert f0_1500_from_subset.mass == 1.522
+        if sys.version_info > (3, 7):
+            assert f0_1500_from_subset.mass == 1.522
+        else:
+            assert f0_1500_from_subset.mass == 1.506
         assert f0_1500_from_subset is particle_database["f(0)(1500)"]
         assert f0_1500_from_subset is not particle_database["f(0)(980)"]
 
