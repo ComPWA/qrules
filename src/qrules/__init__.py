@@ -57,7 +57,7 @@ from .topology import MutableTransition, create_n_body_topology
 from .transition import EdgeSettings, ProblemSet, ReactionInfo, StateTransitionManager
 
 
-def check_reaction_violations(  # pylint: disable=too-many-arguments
+def check_reaction_violations(  # pylint: disable=too-many-arguments  # noqa: C901
     initial_state: Union[StateDefinition, Sequence[StateDefinition]],
     final_state: Sequence[StateDefinition],
     mass_conservation_factor: Optional[float] = 3.0,
@@ -378,6 +378,12 @@ def load_default_particles() -> ParticleCollection:
     """
     particle_db = load_pdg()
     additional_particles = io.load(ADDITIONAL_PARTICLES_DEFINITIONS_PATH)
-    assert isinstance(additional_particles, ParticleCollection)
+    if not isinstance(additional_particles, ParticleCollection):
+        msg = (
+            f"Object loaded from {ADDITIONAL_PARTICLES_DEFINITIONS_PATH} is not a"
+            f" {ParticleCollection.__name__}, but a"
+            f" {type(additional_particles).__name__}"
+        )
+        raise TypeError(msg)
     particle_db.update(additional_particles)
     return particle_db

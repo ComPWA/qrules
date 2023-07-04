@@ -108,7 +108,7 @@ class GraphPrinter:
             lines += self._render_transition(graph, prefix=f"T{i}_")
         return lines
 
-    def _render_transition(
+    def _render_transition(  # noqa: C901, PLR0912, PLR0915
         self,
         obj: Union[ProblemSet, QNProblemSet, Topology, Transition],
         prefix: str = "",

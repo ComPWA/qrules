@@ -115,7 +115,7 @@ subprocess.call(
             "--separate",
         ]
     ),
-    shell=True,
+    shell=True,  # noqa: S602
 )
 
 # -- Convert sphinx object inventory -----------------------------------------
@@ -429,12 +429,11 @@ def et_al(children, data, sep="", sep2=None, last_sep=None):  # type: ignore[no-
     parts = [part for part in _format_list(children, data) if part]
     if len(parts) <= 1:
         return Text(*parts)
-    elif len(parts) == 2:
+    if len(parts) == 2:
         return Text(sep2).join(parts)
-    elif len(parts) == 3:
+    if len(parts) == 3:
         return Text(last_sep).join([Text(sep).join(parts[:-1]), parts[-1]])
-    else:
-        return Text(parts[0], Tag("em", " et al"))
+    return Text(parts[0], Tag("em", " et al"))
 
 
 @node
@@ -444,7 +443,7 @@ def names(children, context, role, **kwargs):  # type: ignore[no-untyped-def]
     try:
         persons = context["entry"].persons[role]
     except KeyError:
-        raise FieldIsMissing(role, context["entry"])
+        raise FieldIsMissing(role, context["entry"]) from None
 
     style = context["style"]
     formatted_names = [
@@ -461,8 +460,7 @@ class MyStyle(UnsrtStyle):  # pyright: ignore[reportUntypedBaseClass]
         formatted_names = names(role, sep=", ", sep2=" and ", last_sep=", and ")
         if as_sentence:
             return sentence[formatted_names]
-        else:
-            return formatted_names
+        return formatted_names
 
     def format_url(self, e: Entry) -> Node:
         return words[

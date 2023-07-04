@@ -264,7 +264,7 @@ def c_parity_conservation(
             return reduce(lambda x, y: x * y, c_parities_part, 1)
 
         # two particle case
-        if len(part_qns) == 2:
+        if len(part_qns) == 2:  # noqa: SIM102
             if _is_particle_antiparticle_pair(part_qns[0].pid, part_qns[1].pid):
                 ang_mom = interaction_qns.l_magnitude
                 # if boson
@@ -302,7 +302,7 @@ class GParityNodeInput:
     s_magnitude: NodeQN.s_magnitude = field(converter=NodeQN.s_magnitude)
 
 
-def g_parity_conservation(
+def g_parity_conservation(  # noqa: C901
     ingoing_edge_qns: List[GParityEdgeInput],
     outgoing_edge_qns: List[GParityEdgeInput],
     interaction_qns: GParityNodeInput,
@@ -448,9 +448,10 @@ def _is_clebsch_gordan_coefficient_zero(
     j_2 = spin2.magnitude
     proj = spin_coupled.projection
     mag = spin_coupled.magnitude
-    if (j_1 == j_2 and m_1 == m_2) or (m_1 == 0.0 and m_2 == 0.0):
-        if abs(mag - j_1 - j_2) % 2 == 1:
-            return True
+    if ((j_1 == j_2 and m_1 == m_2) or (m_1 == 0.0 and m_2 == 0.0)) and abs(
+        mag - j_1 - j_2
+    ) % 2 == 1:
+        return True
     if j_1 == mag and m_1 == -proj and abs(j_2 - j_1 - mag) % 2 == 1:
         return True
     if j_2 == mag and m_2 == -proj and abs(j_1 - j_2 - mag) % 2 == 1:

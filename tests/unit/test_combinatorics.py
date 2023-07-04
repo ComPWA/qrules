@@ -217,7 +217,7 @@ class TestKinematicRepresentation:
         with pytest.raises(ValueError, match=r"Cannot compare "):
             assert float() in kinematic_representation
         with pytest.raises(
-            ValueError,
+            TypeError,
             match=r"Comparison representation needs to be a list of lists",
         ):
             assert ["should be nested list"] in kinematic_representation

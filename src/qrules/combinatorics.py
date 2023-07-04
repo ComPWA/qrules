@@ -108,7 +108,7 @@ class _KinematicRepresentation:
             for item in other:
                 if not isinstance(item, list):
                     msg = "Comparison representation needs to be a list of lists"
-                    raise ValueError(msg)
+                    raise TypeError(msg)
             return is_sublist(other, self.final_state)
         msg = f"Cannot compare {type(self).__name__} with {type(other).__name__}"
         raise ValueError(msg)

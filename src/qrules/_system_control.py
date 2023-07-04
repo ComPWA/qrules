@@ -79,7 +79,7 @@ def create_node_properties(
     return property_map
 
 
-def find_particle(
+def find_particle(  # noqa: D417
     state: GraphEdgePropertyMap, particle_db: ParticleCollection
 ) -> ParticleWithSpin:
     """Create a Particle with spin projection from a qn dictionary.

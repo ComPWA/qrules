@@ -235,7 +235,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
     .. seealso:: :doc:`/usage/reaction` and `.generate_transitions`
     """
 
-    def __init__(  # pylint: disable=too-many-arguments, too-many-branches, too-many-locals
+    def __init__(  # noqa: C901, PLR0912
         self,
         initial_state: Sequence[StateDefinition],
         final_state: Sequence[StateDefinition],
@@ -365,7 +365,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
     ) -> None:
         if not isinstance(fs_group, list):
             msg = "The final state grouping has to be of type list."
-            raise ValueError(msg)
+            raise TypeError(msg)
         if len(fs_group) > 0:
             if self.final_state_groupings is None:
                 self.final_state_groupings = []
@@ -428,7 +428,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         ]
         return _group_by_strength(problem_sets)
 
-    def __determine_graph_settings(
+    def __determine_graph_settings(  # noqa: C901
         self, topology: Topology, initial_facts: "InitialFacts"
     ) -> List[GraphSettings]:
         # pylint: disable=too-many-locals
@@ -529,15 +529,17 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
 
         return graph_settings
 
-    def find_solutions(
+    def find_solutions(  # noqa: C901
         self, problem_sets: Dict[float, List[ProblemSet]]
     ) -> "ReactionInfo":
         """Check for solutions for a specific set of interaction settings."""
         results = self._find_particle_transitions(problem_sets)
         for strength, result in results.items():
             _LOGGER.info(
-                f"Number of solutions for strength {strength} after"
-                f"QN solving: {len(result.solutions)}",
+                (
+                    f"Number of solutions for strength {strength} after"
+                    f"QN solving: {len(result.solutions)}"
+                ),
             )
 
         final_result = _SolutionContainer()

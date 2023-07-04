@@ -285,7 +285,7 @@ def __is_sub_mapping(
     return True
 
 
-def validate_full_solution(problem_set: QNProblemSet) -> QNResult:
+def validate_full_solution(problem_set: QNProblemSet) -> QNResult:  # noqa: C901
     # pylint: disable=too-many-locals
     _LOGGER.debug("validating graph...")
 
@@ -466,7 +466,7 @@ class CSPSolver(Solver):
         self.__allowed_intermediate_states = tuple(allowed_intermediate_states)
         self.__scoresheet = Scoresheet()
 
-    def find_solutions(self, problem_set: QNProblemSet) -> QNResult:
+    def find_solutions(self, problem_set: QNProblemSet) -> QNResult:  # noqa: C901
         # pylint: disable=too-many-locals
         self.__initialize_constraints(problem_set)
         solutions = self.__problem.getSolutions()

@@ -34,7 +34,7 @@ def _value_serializer(  # pylint: disable=unused-argument
         if all(isinstance(p, Particle) for p in value.values()):
             return {k: v.name for k, v in value.items()}
         return dict(value)
-    if not isinstance(inst, (ReactionInfo, State, FrozenTransition)):
+    if not isinstance(inst, (ReactionInfo, State, FrozenTransition)):  # noqa: SIM102
         if isinstance(value, Particle):
             return value.name
     if isinstance(value, Parity):
