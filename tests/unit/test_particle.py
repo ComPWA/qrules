@@ -1,7 +1,6 @@
 # pylint: disable=eval-used redefined-outer-name
 # pyright: reportUnusedImport=false
 import logging
-import sys
 from copy import deepcopy
 
 import pytest
@@ -136,6 +135,7 @@ class TestParticle:
             "f(0)(1370)",
             "f(0)(1500)",
             "f(0)(1710)",
+            "f(0)(2020)",
         ]
 
 
@@ -214,9 +214,9 @@ class TestParticleCollection:
 
     def test_filter(self, particle_database: ParticleCollection):
         search_result = particle_database.filter(lambda p: "f(0)" in p.name)
+        assert len(search_result) == 6
         f0_1500_from_subset = search_result["f(0)(1500)"]
-        assert len(search_result) == 5
-        assert f0_1500_from_subset.mass == 1.506
+        assert f0_1500_from_subset.mass == 1.522
         assert f0_1500_from_subset is particle_database["f(0)(1500)"]
         assert f0_1500_from_subset is not particle_database["f(0)(980)"]
 
@@ -256,11 +256,7 @@ class TestParticleCollection:
             ("gama", "'gamma', 'Sigma0', 'Sigma-', 'Sigma+', 'Lambda'"),
             (
                 "omega",
-                (
-                    "'omega(782)', 'omega(1420)', 'omega(3)(1670)', 'omega(1650)'"
-                    if sys.version_info < (3, 7)
-                    else "'omega(782)', 'omega(3)(1670)', 'omega(1650)'"
-                ),
+                "'omega(782)', 'omega(1420)', 'omega(3)(1670)', 'omega(1650)'",
             ),
             ("p~~", "'p~'"),
             ("~", "'p~', 'n~'"),

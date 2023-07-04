@@ -175,8 +175,8 @@ def test_external_edge_initialization(
             1.0,
             {
                 EdgeQuantumNumbers.pid: 225,
-                EdgeQuantumNumbers.mass: 1.2755,
-                EdgeQuantumNumbers.width: 0.18669999999999998,
+                EdgeQuantumNumbers.mass: 1.2754,
+                EdgeQuantumNumbers.width: 0.1866,
                 EdgeQuantumNumbers.spin_magnitude: 2.0,
                 EdgeQuantumNumbers.spin_projection: 1.0,
                 EdgeQuantumNumbers.charge: 0,
