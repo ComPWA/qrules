@@ -109,7 +109,7 @@ platformdirs==3.8.0
 pluggy==1.2.0
 pre-commit==3.3.3
 prometheus-client==0.17.0
-prompt-toolkit==3.0.38
+prompt-toolkit==3.0.39
 psutil==5.9.5
 ptyprocess==0.7.0
 pure-eval==0.2.2
