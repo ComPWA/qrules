@@ -177,7 +177,8 @@ class _SolutionContainer:
             self.execution_info.extend(other.execution_info, intersect_violations)
 
 
-attrs.resolve_types(_SolutionContainer, globals(), locals())  # type: ignore[type-var]
+if sys.version_info >= (3, 7):
+    attrs.resolve_types(_SolutionContainer, globals(), locals())  # type: ignore[type-var]
 
 
 @implement_pretty_repr
@@ -535,10 +536,8 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         results = self._find_particle_transitions(problem_sets)
         for strength, result in results.items():
             _LOGGER.info(
-                (
-                    f"Number of solutions for strength {strength} after"
-                    f"QN solving: {len(result.solutions)}"
-                ),
+                f"Number of solutions for strength {strength} after"
+                f"QN solving: {len(result.solutions)}",
             )
 
         final_result = _SolutionContainer()
