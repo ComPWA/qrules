@@ -237,6 +237,7 @@ task-tags = ["cspell"]
     "PLR0913",
     "PLR2004",
     "S101",
+    "S307",
 ]
 
 [tool.ruff.pydocstyle]
