@@ -148,7 +148,7 @@ repos:
           - --py36-plus
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.0.276
+    rev: v0.0.277
     hooks:
       - id: ruff
         args:

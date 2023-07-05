@@ -72,7 +72,7 @@ jupyter-server-ydoc==0.8.0
 jupyter-ydoc==0.2.4
 jupyterlab==3.6.5
 jupyterlab-code-formatter==2.2.1
-jupyterlab-myst==2.0.0 ; python_version >= "3.7.0"
+jupyterlab-myst==2.0.1 ; python_version >= "3.7.0"
 jupyterlab-pygments==0.2.2
 jupyterlab-server==2.23.0
 jupyterlab-widgets==3.0.8
@@ -135,7 +135,7 @@ pyzmq==25.1.0
 requests==2.31.0
 rfc3339-validator==0.1.4
 rfc3986-validator==0.1.1
-ruff==0.0.276 ; python_version >= "3.7.0"
+ruff==0.0.277 ; python_version >= "3.7.0"
 send2trash==1.8.2
 six==1.16.0
 sniffio==1.3.0
