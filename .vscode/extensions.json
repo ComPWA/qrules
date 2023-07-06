@@ -11,6 +11,7 @@
     "github.vscode-github-actions",
     "github.vscode-pull-request-github",
     "joaompinto.vscode-graphviz",
+    "ms-python.mypy-type-checker",
     "ms-python.python",
     "ms-python.vscode-pylance",
     "ms-vscode.live-server",
