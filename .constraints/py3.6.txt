@@ -140,7 +140,7 @@ sphinxcontrib-jsmath==1.0.1
 sphinxcontrib-qthelp==1.0.3
 sphinxcontrib-serializinghtml==1.1.5
 sphobjinv==2.3.1
-sqlalchemy==1.4.48
+sqlalchemy==1.4.49
 terminado==0.12.1
 testpath==0.6.0
 toml==0.10.2
