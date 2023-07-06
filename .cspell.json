@@ -202,7 +202,6 @@
     "mathbb",
     "mypy",
     "nishijima",
-    "pydocstyle",
     "pydot",
     "pyplot",
     "pytest",
