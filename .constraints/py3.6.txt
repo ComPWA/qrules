@@ -145,7 +145,7 @@ testpath==0.6.0
 toml==0.10.2
 tomli==1.2.3
 tornado==6.1
-tox==3.28.0 ; python_version < "3.8.0"
+tox==3.28.0
 tqdm==4.64.1
 traitlets==4.3.3
 typed-ast==1.5.5
