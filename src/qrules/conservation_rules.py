@@ -116,7 +116,6 @@ def additive_quantum_number_rule(
 
     def decorator(rule_class: Any) -> EdgeQNConservationRule:
         def new_call(
-            # pylint: disable=unused-argument
             self: Type[EdgeQNConservationRule],
             ingoing_edge_qns: List[quantum_number],  # type: ignore[valid-type]
             outgoing_edge_qns: List[quantum_number],  # type: ignore[valid-type]
@@ -264,7 +263,7 @@ def c_parity_conservation(
             return reduce(lambda x, y: x * y, c_parities_part, 1)
 
         # two particle case
-        if len(part_qns) == 2:
+        if len(part_qns) == 2:  # noqa: SIM102
             if _is_particle_antiparticle_pair(part_qns[0].pid, part_qns[1].pid):
                 ang_mom = interaction_qns.l_magnitude
                 # if boson
@@ -302,7 +301,7 @@ class GParityNodeInput:
     s_magnitude: NodeQN.s_magnitude = field(converter=NodeQN.s_magnitude)
 
 
-def g_parity_conservation(
+def g_parity_conservation(  # noqa: C901
     ingoing_edge_qns: List[GParityEdgeInput],
     outgoing_edge_qns: List[GParityEdgeInput],
     interaction_qns: GParityNodeInput,
@@ -417,19 +416,18 @@ def identical_particle_symmetrization(
                 return False
         return True
 
-    if len(ingoing_parities) == 1:
-        if _check_particles_identical(outgoing_edge_qns):
-            if _is_boson(outgoing_edge_qns[0].spin_magnitude):
-                # we have a boson, check if parity of mother is even
-                parity = ingoing_parities[0]
-                if parity == -1:
-                    # if its odd then return False
-                    return False
-            else:
-                # its fermion
-                parity = ingoing_parities[0]
-                if parity == 1:
-                    return False
+    if len(ingoing_parities) == 1 and _check_particles_identical(outgoing_edge_qns):
+        if _is_boson(outgoing_edge_qns[0].spin_magnitude):
+            # we have a boson, check if parity of mother is even
+            parity = ingoing_parities[0]
+            if parity == -1:
+                # if its odd then return False
+                return False
+        else:
+            # its fermion
+            parity = ingoing_parities[0]
+            if parity == 1:
+                return False
 
     return True
 
@@ -449,15 +447,14 @@ def _is_clebsch_gordan_coefficient_zero(
     j_2 = spin2.magnitude
     proj = spin_coupled.projection
     mag = spin_coupled.magnitude
-    if (j_1 == j_2 and m_1 == m_2) or (m_1 == 0.0 and m_2 == 0.0):
-        if abs(mag - j_1 - j_2) % 2 == 1:
-            return True
-    if j_1 == mag and m_1 == -proj:
-        if abs(j_2 - j_1 - mag) % 2 == 1:
-            return True
-    if j_2 == mag and m_2 == -proj:
-        if abs(j_1 - j_2 - mag) % 2 == 1:
-            return True
+    if ((j_1 == j_2 and m_1 == m_2) or (m_1 == 0.0 and m_2 == 0.0)) and abs(
+        mag - j_1 - j_2
+    ) % 2 == 1:
+        return True
+    if j_1 == mag and m_1 == -proj and abs(j_2 - j_1 - mag) % 2 == 1:
+        return True
+    if j_2 == mag and m_2 == -proj and abs(j_1 - j_2 - mag) % 2 == 1:
+        return True
     return False
 
 
@@ -635,7 +632,7 @@ def isospin_conservation(
     Also checks :math:`I_{1,z} + I_{2,z} = I_z` and if Clebsch-Gordan coefficients are
     all 0.
     """
-    if not sum(x.isospin_projection for x in ingoing_isospins) == sum(
+    if sum(x.isospin_projection for x in ingoing_isospins) != sum(
         x.isospin_projection for x in outgoing_isospins
     ):
         return False
@@ -800,7 +797,6 @@ def helicity_conservation(
 
 @frozen
 class GellMannNishijimaInput:
-    # pylint: disable=too-many-instance-attributes
     charge: EdgeQN.charge = field(converter=EdgeQN.charge)
     isospin_projection: Optional[EdgeQN.isospin_projection] = field(
         converter=optional(EdgeQN.isospin_projection), default=None
@@ -832,9 +828,9 @@ class GellMannNishijimaInput:
 
 
 def gellmann_nishijima(edge_qns: GellMannNishijimaInput) -> bool:
-    r"""Check the Gell-Mann–Nishijima formula.
+    r"""Check the Gell-Mann-Nishijima formula.
 
-    `Gell-Mann–Nishijima formula
+    `Gell-Mann-Nishijima formula
     <https://en.wikipedia.org/wiki/Gell-Mann%E2%80%93Nishijima_formula>`_:
 
     .. math::

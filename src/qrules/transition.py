@@ -89,7 +89,7 @@ if sys.version_info >= (3, 10):
 else:
     from typing_extensions import TypeAlias
 if TYPE_CHECKING:
-    from .topology import FrozenTransition  # noqa: F401
+    from .topology import FrozenTransition
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -157,11 +157,12 @@ class _SolutionContainer:
             self.execution_info.violated_node_rules
             or self.execution_info.violated_edge_rules
         ):
+            msg = (
+                f"Invalid {type(self).__name__}! Found {len(self.solutions)} solutions,"
+                " but also violated rules."
+            )
             raise ValueError(
-                (
-                    f"Invalid {type(self).__name__}! Found"
-                    f" {len(self.solutions)} solutions, but also violated rules."
-                ),
+                msg,
                 self.execution_info.violated_node_rules,
                 self.execution_info.violated_edge_rules,
             )
@@ -228,21 +229,19 @@ def _group_by_strength(
     return strength_sorted_problem_sets
 
 
-class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
+class StateTransitionManager:
     """Main handler for decay topologies.
 
     .. seealso:: :doc:`/usage/reaction` and `.generate_transitions`
     """
 
-    def __init__(  # pylint: disable=too-many-arguments, too-many-branches, too-many-locals
+    def __init__(  # noqa: C901, PLR0912
         self,
         initial_state: Sequence[StateDefinition],
         final_state: Sequence[StateDefinition],
         particle_db: Optional[ParticleCollection] = None,
         allowed_intermediate_particles: Optional[List[str]] = None,
-        interaction_type_settings: Dict[
-            InteractionType, Tuple[EdgeSettings, NodeSettings]
-        ] = None,  # type: ignore[assignment]
+        interaction_type_settings: Optional[Dict[InteractionType, Tuple[EdgeSettings, NodeSettings]]] = None,  # type: ignore[assignment]
         formalism: str = "helicity",
         topology_building: str = "isobar",
         solving_mode: SolvingMode = SolvingMode.FAST,
@@ -263,10 +262,11 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             "canonical",
         ]
         if formalism not in allowed_formalisms:
-            raise NotImplementedError(
-                f'Formalism "{formalism}" not implemented.'
-                f" Use one of {allowed_formalisms} instead."
+            msg = (
+                f'Formalism "{formalism}" not implemented. Use one of'
+                f" {allowed_formalisms} instead."
             )
+            raise NotImplementedError(msg)
         self.__formalism = str(formalism)
         self.__particles = ParticleCollection()
         if particle_db is not None:
@@ -341,13 +341,13 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             name_patterns = [name_patterns]
         selected_particles = ParticleCollection()
         for pattern in name_patterns:
-            # pylint: disable=cell-var-from-loop
             matches = _filter_by_name_pattern(self.__particles, pattern, regex)
             if len(matches) == 0:
-                raise LookupError(
-                    "Could not find any matches for allowed intermediate"
-                    f' particle pattern "{pattern}"'
+                msg = (
+                    "Could not find any matches for allowed intermediate particle"
+                    f' pattern "{pattern}"'
                 )
+                raise LookupError(msg)
             selected_particles.update(matches)
         self.__allowed_intermediate_states = [
             create_edge_properties(x)
@@ -363,7 +363,8 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         self, fs_group: Union[List[str], List[List[str]]]
     ) -> None:
         if not isinstance(fs_group, list):
-            raise ValueError("The final state grouping has to be of type list.")
+            msg = "The final state grouping has to be of type list."
+            raise TypeError(msg)
         if len(fs_group) > 0:
             if self.final_state_groupings is None:
                 self.final_state_groupings = []
@@ -395,12 +396,12 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         # verify order
         for allowed_types in allowed_interaction_types:
             if not isinstance(allowed_types, InteractionType):
-                raise TypeError(
-                    "Allowed interaction types must be of type[InteractionType]"
-                )
+                msg = "Allowed interaction types must be of type[InteractionType]"
+                raise TypeError(msg)
             if allowed_types not in self.interaction_type_settings:
                 _LOGGER.info(self.interaction_type_settings.keys())
-                raise ValueError(f"Interaction {allowed_types} not found in settings")
+                msg = f"Interaction {allowed_types} not found in settings"
+                raise ValueError(msg)
         allowed_interaction_types = list(allowed_interaction_types)
         if node_id is None:
             self.__allowed_interaction_types = allowed_interaction_types
@@ -426,10 +427,9 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         ]
         return _group_by_strength(problem_sets)
 
-    def __determine_graph_settings(
+    def __determine_graph_settings(  # noqa: C901
         self, topology: Topology, initial_facts: "InitialFacts"
     ) -> List[GraphSettings]:
-        # pylint: disable=too-many-locals
         weak_edge_settings, _ = self.interaction_type_settings[InteractionType.WEAK]
 
         def create_intermediate_edge_qn_domains() -> Dict:
@@ -527,7 +527,7 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
 
         return graph_settings
 
-    def find_solutions(
+    def find_solutions(  # noqa: C901
         self, problem_sets: Dict[float, List[ProblemSet]]
     ) -> "ReactionInfo":
         """Check for solutions for a specific set of interaction settings."""
@@ -580,7 +580,8 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
                 + ", ".join(not_executed_rules)
             )
         if not final_solutions:
-            raise ValueError("No solutions were found")
+            msg = "No solutions were found"
+            raise ValueError(msg)
 
         match_external_edges(final_solutions)
         final_solutions = [

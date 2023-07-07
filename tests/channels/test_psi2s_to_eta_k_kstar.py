@@ -1,4 +1,3 @@
-# pylint: disable=redefined-outer-name
 """Test for https://github.com/ComPWA/qrules/issues/165."""
 
 import pytest

@@ -1,4 +1,3 @@
-# pylint: disable=too-many-lines
 """Functionality for `Topology` and `Transition` instances.
 
 .. rubric:: Main interfaces
@@ -72,9 +71,7 @@ VT = TypeVar("VT")
 
 
 @total_ordering
-class FrozenDict(  # pylint: disable=too-many-ancestors
-    abc.Hashable, abc.Mapping, Generic[KT, VT]
-):
+class FrozenDict(abc.Hashable, abc.Mapping, Generic[KT, VT]):
     """An **immutable** and **hashable** version of a `dict`.
 
     `FrozenDict` makes it possible to make classes hashable if they are decorated with
@@ -129,10 +126,11 @@ class FrozenDict(  # pylint: disable=too-many-ancestors
             sorted_other = _convert_mapping_to_sorted_tuple(other)
             return sorted_self > sorted_other
 
-        raise NotImplementedError(
-            f"Can only compare {type(self).__name__} with a mapping,"
-            f" not with {type(other).__name__}"
+        msg = (
+            f"Can only compare {type(self).__name__} with a mapping, not with"
+            f" {type(other).__name__}"
         )
+        raise NotImplementedError(msg)
 
     def __hash__(self) -> int:
         return self.__hash
@@ -194,7 +192,6 @@ def _to_topology_edges(inst: Mapping[int, Edge]) -> FrozenDict[int, Edge]:
 @implement_pretty_repr
 @frozen(order=True)
 class Topology:
-    # noqa: D416
     """Directed Feynman-like graph without edge or node properties.
 
     A `Topology` is **directed** in the sense that its edges are ingoing and outgoing to
@@ -269,14 +266,17 @@ class Topology:
         inter = sorted(set(self.edges) - set(incoming) - set(outgoing))
         expected = list(range(-len(incoming), 0))
         if sorted(incoming) != expected:
-            raise ValueError(f"Incoming edge IDs should be {expected}, not {incoming}.")
+            msg = f"Incoming edge IDs should be {expected}, not {incoming}."
+            raise ValueError(msg)
         n_out = len(outgoing)
         expected = list(range(0, n_out))
         if sorted(outgoing) != expected:
-            raise ValueError(f"Outgoing edge IDs should be {expected}, not {outgoing}.")
+            msg = f"Outgoing edge IDs should be {expected}, not {outgoing}."
+            raise ValueError(msg)
         expected = list(range(n_out, n_out + len(inter)))
         if sorted(inter) != expected:
-            raise ValueError(f"Intermediate edge IDs should be {expected}.")
+            msg = f"Intermediate edge IDs should be {expected}."
+            raise ValueError(msg)
         object.__setattr__(self, "incoming_edge_ids", frozenset(incoming))
         object.__setattr__(self, "outgoing_edge_ids", frozenset(outgoing))
         object.__setattr__(self, "intermediate_edge_ids", frozenset(inter))
@@ -286,14 +286,14 @@ class Topology:
         for edge_id, edge in self.edges.items():
             connected_nodes = edge.get_connected_nodes()
             if not connected_nodes:
-                raise ValueError(
-                    f"Edge nr. {edge_id} is not connected to any other node ({edge})"
-                )
+                msg = f"Edge nr. {edge_id} is not connected to any other node ({edge})"
+                raise ValueError(msg)
             if not connected_nodes <= self.nodes:
-                raise ValueError(
-                    f"{edge} (ID: {edge_id}) has non-existing node IDs.\n"
-                    f"Available node IDs: {self.nodes}"
+                msg = (
+                    f"{edge} (ID: {edge_id}) has non-existing node IDs.\nAvailable node"
+                    f" IDs: {self.nodes}"
                 )
+                raise ValueError(msg)
         self.__check_isolated_nodes()
 
     def __check_isolated_nodes(self) -> None:
@@ -302,7 +302,8 @@ class Topology:
         for node_id in self.nodes:
             surrounding_nodes = self.__get_surrounding_nodes(node_id)
             if not surrounding_nodes:
-                raise ValueError(f"Node {node_id} is not connected to any other node")
+                msg = f"Node {node_id} is not connected to any other node"
+                raise ValueError(msg)
 
     def __get_surrounding_nodes(self, node_id: int) -> Set[int]:
         surrounding_nodes = set()
@@ -455,7 +456,8 @@ class MutableTopology:
             ValueError: if :code:`node_id` already exists in `nodes`.
         """
         if node_id in self.nodes:
-            raise ValueError(f"Node nr. {node_id} already exists")
+            msg = f"Node nr. {node_id} already exists"
+            raise ValueError(msg)
         self.nodes.add(node_id)
 
     def add_edges(self, edge_ids: Iterable[int]) -> None:
@@ -466,7 +468,8 @@ class MutableTopology:
         """
         for edge_id in edge_ids:
             if edge_id in self.edges:
-                raise ValueError(f"Edge nr. {edge_id} already exists")
+                msg = f"Edge nr. {edge_id} already exists"
+                raise ValueError(msg)
             self.edges[edge_id] = Edge()
 
     def attach_edges_to_node_ingoing(
@@ -487,12 +490,14 @@ class MutableTopology:
         # first check if the ingoing edges are all available
         for edge_id in ingoing_edge_ids:
             if edge_id not in self.edges:
-                raise ValueError(f"Edge nr. {edge_id} does not exist")
+                msg = f"Edge nr. {edge_id} does not exist"
+                raise ValueError(msg)
             if self.edges[edge_id].ending_node_id is not None:
-                raise ValueError(
-                    f"Edge nr. {edge_id} is already ingoing to"
-                    f" node {self.edges[edge_id].ending_node_id}"
+                msg = (
+                    f"Edge nr. {edge_id} is already ingoing to node"
+                    f" {self.edges[edge_id].ending_node_id}"
                 )
+                raise ValueError(msg)
 
         # update the newly connected edges
         for edge_id in ingoing_edge_ids:
@@ -508,12 +513,14 @@ class MutableTopology:
         # first check if the ingoing edges are all available
         for edge_id in outgoing_edge_ids:
             if edge_id not in self.edges:
-                raise ValueError(f"Edge nr. {edge_id} does not exist")
+                msg = f"Edge nr. {edge_id} does not exist"
+                raise ValueError(msg)
             if self.edges[edge_id].originating_node_id is not None:
-                raise ValueError(
-                    f"Edge nr. {edge_id} is already outgoing from"
-                    f" node {self.edges[edge_id].originating_node_id}"
+                msg = (
+                    f"Edge nr. {edge_id} is already outgoing from node"
+                    f" {self.edges[edge_id].originating_node_id}"
                 )
+                raise ValueError(msg)
 
         # update the edges
         for edge_id in outgoing_edge_ids:
@@ -570,9 +577,11 @@ class InteractionNode:
 
     def __attrs_post_init__(self) -> None:
         if self.number_of_ingoing_edges < 1:
-            raise ValueError("Number of incoming edges has to be larger than 0")
+            msg = "Number of incoming edges has to be larger than 0"
+            raise ValueError(msg)
         if self.number_of_outgoing_edges < 1:
-            raise ValueError("Number of outgoing edges has to be larger than 0")
+            msg = "Number of outgoing edges has to be larger than 0"
+            raise ValueError(msg)
 
 
 class SimpleStateTransitionTopologyBuilder:
@@ -584,7 +593,8 @@ class SimpleStateTransitionTopologyBuilder:
 
     def __init__(self, interaction_node_set: Iterable[InteractionNode]) -> None:
         if not isinstance(interaction_node_set, list):
-            raise TypeError("interaction_node_set must be a list")
+            msg = "interaction_node_set must be a list"
+            raise TypeError(msg)
         self.interaction_node_set: List[InteractionNode] = list(interaction_node_set)
 
     def build(
@@ -593,9 +603,11 @@ class SimpleStateTransitionTopologyBuilder:
         number_of_initial_edges = int(number_of_initial_edges)
         number_of_final_edges = int(number_of_final_edges)
         if number_of_initial_edges < 1:
-            raise ValueError("number_of_initial_edges has to be larger than 0")
+            msg = "number_of_initial_edges has to be larger than 0"
+            raise ValueError(msg)
         if number_of_final_edges < 1:
-            raise ValueError("number_of_final_edges has to be larger than 0")
+            msg = "number_of_final_edges has to be larger than 0"
+            raise ValueError(msg)
 
         _LOGGER.info("building topology graphs...")
         # result list
@@ -688,7 +700,8 @@ def create_isobar_topologies(
         True
     """
     if number_of_final_states < 2:
-        raise ValueError("At least two final states required for an isobar decay")
+        msg = "At least two final states required for an isobar decay"
+        raise ValueError(msg)
     builder = SimpleStateTransitionTopologyBuilder([InteractionNode(1, 2)])
     topologies = builder.build(
         number_of_initial_edges=1,
@@ -741,11 +754,12 @@ def create_n_body_topology(
     )
     decay_name = f"{n_in} to {n_out}"
     if len(topologies) == 0:
-        raise ValueError(f"Could not create n-body decay for {decay_name}")
+        msg = f"Could not create n-body decay for {decay_name}"
+        raise ValueError(msg)
     if len(topologies) > 1:
-        raise RuntimeError(f"Several n-body decays for {decay_name}")
-    topology = next(iter(topologies))
-    return topology
+        msg = f"Several n-body decays for {decay_name}"
+        raise RuntimeError(msg)
+    return next(iter(topologies))
 
 
 def _attach_node_to_edges(
@@ -782,7 +796,6 @@ def _attach_node_to_edges(
     return (temp_graph, new_open_end_lines)
 
 
-# pylint: disable=invalid-name
 EdgeType = TypeVar("EdgeType")
 NodeType = TypeVar("NodeType")
 NewEdgeType = TypeVar("NewEdgeType")
@@ -887,7 +900,6 @@ class FrozenTransition(Transition, Generic[EdgeType, NodeType]):
 
     def convert(self, state_converter=None, interaction_converter=None):  # type: ignore[no-untyped-def]
         """Cast the edge and/or node properties to another type."""
-        # pylint: disable=unnecessary-lambda
         if state_converter is None:
             state_converter = _identity_function
         if interaction_converter is None:
@@ -970,10 +982,11 @@ def _assert_all_defined(items: Iterable, properties: Iterable) -> None:
     existing = set(items)
     defined = set(properties)
     if existing & defined != existing:
-        raise ValueError(
-            "Some items have no property assigned to them."
-            f" Available items: {existing}, items with property: {defined}"
+        msg = (
+            "Some items have no property assigned to them. Available items:"
+            f" {existing}, items with property: {defined}"
         )
+        raise ValueError(msg)
 
 
 # pyright: reportUnusedFunction=false
@@ -982,7 +995,8 @@ def _assert_not_overdefined(items: Iterable, properties: Iterable) -> None:
     defined = set(properties)
     over_defined = defined - existing
     if over_defined:
-        raise ValueError(
-            "Properties have been defined for items that don't exist."
-            f" Available items: {existing}, over-defined: {over_defined}"
+        msg = (
+            "Properties have been defined for items that don't exist. Available items:"
+            f" {existing}, over-defined: {over_defined}"
         )
+        raise ValueError(msg)

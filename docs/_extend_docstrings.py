@@ -1,10 +1,8 @@
-# flake8: noqa
-# pylint: disable=import-error,import-outside-toplevel,invalid-name,protected-access
-# pyright: reportMissingImports=false
 """Extend docstrings of the API.
 
 This small script is used by ``conf.py`` to dynamically modify docstrings.
 """
+# pyright: reportMissingImports=false
 
 import inspect
 import logging
@@ -34,7 +32,8 @@ def extend_docstrings() -> None:
             continue
         function_arguments = inspect.signature(definition).parameters
         if len(function_arguments):
-            raise ValueError(f"Local function {name} should not have a signature")
+            msg = f"Local function {name} should not have a signature"
+            raise ValueError(msg)
         definition()
 
 
@@ -42,10 +41,7 @@ def extend_create_isobar_topologies() -> None:
     from qrules.topology import create_isobar_topologies
 
     topologies = qrules.topology.create_isobar_topologies(4)
-    dot_renderings = map(
-        lambda t: qrules.io.asdot(t, render_resonance_id=True),
-        topologies,
-    )
+    dot_renderings = (qrules.io.asdot(t, render_resonance_id=True) for t in topologies)
     images = [_graphviz_to_image(dot, indent=8) for dot in dot_renderings]
     _append_to_docstring(
         create_isobar_topologies,
@@ -77,7 +73,7 @@ def extend_create_n_body_topology() -> None:
     )
 
 
-def extend_Topology() -> None:
+def extend_Topology() -> None:  # noqa: N802
     from qrules.topology import Topology, create_isobar_topologies
 
     topologies = create_isobar_topologies(number_of_final_states=3)
@@ -101,10 +97,10 @@ _GRAPHVIZ_COUNTER = 0
 _IMAGE_DIR = "_images"
 
 
-def _graphviz_to_image(  # pylint: disable=too-many-arguments
+def _graphviz_to_image(
     dot: str,
     options: Optional[Dict[str, str]] = None,
-    format: str = "svg",
+    format: str = "svg",  # noqa: A002
     indent: int = 0,
     caption: str = "",
     label: str = "",
@@ -113,7 +109,7 @@ def _graphviz_to_image(  # pylint: disable=too-many-arguments
 
     if options is None:
         options = {}
-    global _GRAPHVIZ_COUNTER  # pylint: disable=global-statement
+    global _GRAPHVIZ_COUNTER  # noqa: PLW0603
     output_file = f"graphviz_{_GRAPHVIZ_COUNTER}"
     _GRAPHVIZ_COUNTER += 1  # pyright: ignore[reportConstantRedefinition]
     graphviz.Source(dot).render(f"{_IMAGE_DIR}/{output_file}", format=format)

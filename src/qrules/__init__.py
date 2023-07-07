@@ -1,4 +1,3 @@
-# pylint: disable=too-many-lines
 """A rule based system that facilitates particle reaction analysis.
 
 QRules generates allowed particle transitions from a set of conservation rules and
@@ -57,7 +56,7 @@ from .topology import MutableTransition, create_n_body_topology
 from .transition import EdgeSettings, ProblemSet, ReactionInfo, StateTransitionManager
 
 
-def check_reaction_violations(  # pylint: disable=too-many-arguments
+def check_reaction_violations(  # noqa: C901
     initial_state: Union[StateDefinition, Sequence[StateDefinition]],
     final_state: Sequence[StateDefinition],
     mass_conservation_factor: Optional[float] = 3.0,
@@ -102,7 +101,6 @@ def check_reaction_violations(  # pylint: disable=too-many-arguments
 
     .. seealso:: :ref:`usage:Check allowed reactions`
     """
-    # pylint: disable=too-many-locals
     if not isinstance(initial_state, (list, tuple)):
         initial_state = [initial_state]  # type: ignore[list-item]
 
@@ -147,9 +145,8 @@ def check_reaction_violations(  # pylint: disable=too-many-arguments
         )
 
         if edge_check_result.violated_edge_rules:
-            raise ValueError(
-                f"Some edges violate {edge_check_result.violated_edge_rules.values()}"
-            )
+            msg = f"Some edges violate {edge_check_result.violated_edge_rules.values()}"
+            raise ValueError(msg)
 
     def check_edge_qn_conservation() -> Set[FrozenSet[str]]:
         """Check if edge quantum numbers are conserved.
@@ -256,7 +253,7 @@ def check_reaction_violations(  # pylint: disable=too-many-arguments
     return violations
 
 
-def generate_transitions(  # pylint: disable=too-many-arguments
+def generate_transitions(
     initial_state: Union[StateDefinition, Sequence[StateDefinition]],
     final_state: Sequence[StateDefinition],
     allowed_intermediate_particles: Optional[List[str]] = None,
@@ -379,6 +376,12 @@ def load_default_particles() -> ParticleCollection:
     """
     particle_db = load_pdg()
     additional_particles = io.load(ADDITIONAL_PARTICLES_DEFINITIONS_PATH)
-    assert isinstance(additional_particles, ParticleCollection)
+    if not isinstance(additional_particles, ParticleCollection):
+        msg = (
+            f"Object loaded from {ADDITIONAL_PARTICLES_DEFINITIONS_PATH} is not a"
+            f" {ParticleCollection.__name__}, but a"
+            f" {type(additional_particles).__name__}"
+        )
+        raise TypeError(msg)
     particle_db.update(additional_particles)
     return particle_db

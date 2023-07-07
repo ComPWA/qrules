@@ -13,9 +13,9 @@ def test_resonances():
     stm.set_allowed_intermediate_particles([r"Delta..(?!9)", r"^K", r"^L"], regex=True)
     problem_sets = stm.create_problem_sets()
     reaction = stm.find_solutions(problem_sets)
-    resonances = reaction.get_intermediate_particles().names
+    sorted_resonances = sorted(reaction.get_intermediate_particles().names)
     # https://lc2pkpi-polarimetry.docs.cern.ch/amplitude-model.html#resonances-and-ls-scheme
-    assert resonances == [
+    expected = {
         "Delta(1232)++",
         "Delta(1600)++",
         "Delta(1620)++",
@@ -32,4 +32,6 @@ def test_resonances():
         "Lambda(1810)",
         "Lambda(1800)",
         "Lambda(1890)",
-    ]
+    }
+    sorted_expected = sorted(expected)
+    assert sorted_resonances == sorted_expected

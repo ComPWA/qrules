@@ -1,4 +1,3 @@
-# pylint: disable=import-outside-toplevel
 """Serialization from and to a `dict`."""
 
 import json
@@ -27,14 +26,12 @@ def from_attrs_decorated(inst: Any) -> dict:
     )
 
 
-def _value_serializer(  # pylint: disable=unused-argument
-    inst: type, field: attrs.Attribute, value: Any
-) -> Any:
+def _value_serializer(inst: type, field: attrs.Attribute, value: Any) -> Any:
     if isinstance(value, abc.Mapping):
         if all(isinstance(p, Particle) for p in value.values()):
             return {k: v.name for k, v in value.items()}
         return dict(value)
-    if not isinstance(inst, (ReactionInfo, State, FrozenTransition)):
+    if not isinstance(inst, (ReactionInfo, State, FrozenTransition)):  # noqa: SIM102
         if isinstance(value, Particle):
             return value.name
     if isinstance(value, Parity):
@@ -98,7 +95,7 @@ def build_state(definition: Any) -> State:
         particle = build_particle(definition["particle"])
         spin_projection = float(definition["spin_projection"])
         return State(particle, spin_projection)
-    raise NotImplementedError()
+    raise NotImplementedError
 
 
 def build_topology(definition: dict) -> Topology:

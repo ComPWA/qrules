@@ -1,8 +1,7 @@
-# pylint: disable=eval-used redefined-outer-name
-# pyright: reportUnusedImport=false
 import logging
 import sys
 from copy import deepcopy
+from typing import List, Union
 
 import pytest
 from attrs.exceptions import FrozenInstanceError
@@ -18,7 +17,14 @@ from qrules.particle import (
 )
 
 # For eval tests
-from qrules.quantum_numbers import Parity  # noqa: F401
+from qrules.quantum_numbers import (
+    Parity,  # noqa: F401 # pyright: ignore[reportUnusedImport]
+)
+
+if sys.version_info < (3, 8):
+    from importlib_metadata import version
+else:
+    from importlib.metadata import version
 
 
 class TestParticle:
@@ -55,9 +61,11 @@ class TestParticle:
         )
         with pytest.raises(FrozenInstanceError):
             test_state.charge = 1  # type: ignore[misc]
-        with pytest.raises(ValueError, match=r"Fails Gell-Mann–Nishijima"):
+        with pytest.raises(
+            ValueError, match=r"Fails Gell-Mann–Nishijima"  # noqa: RUF001
+        ):
             Particle(
-                name="Fails Gell-Mann–Nishijima formula",
+                name="Fails Gell-Mann–Nishijima formula",  # noqa: RUF001
                 pid=666,
                 mass=0.0,
                 spin=1,
@@ -118,23 +126,36 @@ class TestParticle:
         pdg = particle_database
         assert pdg[name1] > pdg[name2]
 
-    def test_neg(self, particle_database: ParticleCollection):
+    def test_neg(
+        self, particle_database: ParticleCollection, skh_particle_version: str
+    ):
         pip = particle_database.find(211)
         pim = particle_database.find(-211)
         assert pip == -pim
 
-    def test_total_ordering(self, particle_database: ParticleCollection):
         pdg = particle_database
-        assert [
+        f0_mesons = sorted(
             particle.name
             for particle in sorted(pdg.filter(lambda p: p.name.startswith("f(0)")))
-        ] == [
+        )
+        expected = {
             "f(0)(500)",
             "f(0)(980)",
             "f(0)(1370)",
             "f(0)(1500)",
             "f(0)(1710)",
-        ]
+        }
+        if skh_particle_version > "0.22":
+            expected.add("f(0)(2020)")
+        sorted_expected = sorted(expected)
+        assert f0_mesons == sorted_expected
+
+
+def _get_omega_mesons() -> List[str]:
+    scikit_hep_particle_version = ".".join(version("particle").split(".")[:2])
+    if scikit_hep_particle_version in {"0.21", "0.22"}:
+        return ["omega(782)", "omega(3)(1670)", "omega(1650)"]
+    return ["omega(782)", "omega(1420)", "omega(3)(1670)", "omega(1650)"]
 
 
 class TestParticleCollection:
@@ -210,11 +231,19 @@ class TestParticleCollection:
         with pytest.raises(NotImplementedError):
             pions.discard(111)  # type: ignore[arg-type]
 
-    def test_filter(self, particle_database: ParticleCollection):
+    def test_filter(
+        self, particle_database: ParticleCollection, skh_particle_version: str
+    ):
         search_result = particle_database.filter(lambda p: "f(0)" in p.name)
+        if skh_particle_version < "0.23":
+            assert len(search_result) == 5
+        else:
+            assert len(search_result) == 6
         f0_1500_from_subset = search_result["f(0)(1500)"]
-        assert len(search_result) == 5
-        assert f0_1500_from_subset.mass == 1.506
+        if skh_particle_version < "0.23":
+            assert f0_1500_from_subset.mass == 1.506
+        else:
+            assert f0_1500_from_subset.mass == 1.522
         assert f0_1500_from_subset is particle_database["f(0)(1500)"]
         assert f0_1500_from_subset is not particle_database["f(0)(980)"]
 
@@ -229,12 +258,19 @@ class TestParticleCollection:
             and p.spin == 2
             and p.strangeness == 1
         )
-        assert filtered_result.names == [
-            "K(2)(1820)0",
+        sorted_result = sorted(filtered_result.names)
+        expected = {
             "K(2)(1820)+",
-            "K(2)*(1980)0",
-            "K(2)*(1980)+",
-        ]
+            "K(2)(1820)0",
+        }
+        if skh_particle_version > "0.15":
+            additional_particles = {
+                "K(2)*(1980)+",
+                "K(2)*(1980)0",
+            }
+            expected.update(additional_particles)
+        sorted_expected = sorted(expected)
+        assert sorted_result == sorted_expected
 
     def test_find(self, particle_database: ParticleCollection):
         f2_1950 = particle_database.find(9050225)
@@ -250,32 +286,30 @@ class TestParticleCollection:
             (666, None),
             ("non-existing", None),
             # cspell:disable
-            ("gamm", "'gamma'"),
-            ("gama", "'gamma', 'Sigma0', 'Sigma-', 'Sigma+', 'Lambda'"),
-            (
-                "omega",
-                (
-                    "'omega(782)', 'omega(1420)', 'omega(3)(1670)', 'omega(1650)'"
-                    if sys.version_info < (3, 7)
-                    else "'omega(782)', 'omega(3)(1670)', 'omega(1650)'"
-                ),
-            ),
-            ("p~~", "'p~'"),
-            ("~", "'p~', 'n~'"),
-            ("lambda", "'Lambda', 'Lambda~', 'Lambda(c)+', 'Lambda(b)0'"),
+            ("gamm", "gamma"),
+            ("gama", ["gamma", "Sigma0", "Sigma-", "Sigma+", "Lambda"]),
+            ("omega", _get_omega_mesons()),
+            ("p~~", "p~"),
+            ("~", ["p~", "n~"]),
+            ("lambda", ["Lambda", "Lambda~", "Lambda(c)+", "Lambda(b)0"]),
             # cspell:enable
         ],
     )
     def test_find_fail(
-        self, particle_database: ParticleCollection, search_term, expected
+        self,
+        particle_database: ParticleCollection,
+        search_term,
+        expected: Union[List[str], str],
     ):
         with pytest.raises(LookupError) as exception:
             particle_database.find(search_term)
         if expected is not None:
             message = str(exception.value.args[0])
-            message = message.strip("?")
-            message = message.strip("]")
-            assert message.endswith(expected)
+            list_str = message.strip("?")
+            *_, list_str = list_str.split("Did you mean ")
+            *_, list_str = list_str.split("one of these? ")
+            found_particles = eval(list_str)
+            assert found_particles == expected
 
     def test_exceptions(self, particle_database: ParticleCollection):
         gamma = particle_database["gamma"]
@@ -356,7 +390,7 @@ class TestSpin:
         )
         regex_pattern = f"({regex_pattern})"
         with pytest.raises(ValueError, match=regex_pattern):
-            print(Spin(magnitude, projection))
+            print(Spin(magnitude, projection))  # noqa: T201
 
 
 @pytest.mark.parametrize(
@@ -375,13 +409,16 @@ def test_create_antiparticle(
     assert anti_particle == comparison_particle
 
 
-def test_create_antiparticle_tilde(particle_database: ParticleCollection):
+def test_create_antiparticle_tilde(
+    particle_database: ParticleCollection, skh_particle_version: str
+):
     anti_particles = particle_database.filter(lambda p: "~" in p.name)
-    assert len(anti_particles) in {
-        165,  # particle==0.13
-        172,  # particle==0.14, 0.15
-        175,  # particle==0.16
-    }
+    if skh_particle_version < "0.14":
+        assert len(anti_particles) == 165
+    elif skh_particle_version < "0.16":
+        assert len(anti_particles) == 172
+    else:
+        assert len(anti_particles) == 175
     for anti_particle in anti_particles:
         particle_name = anti_particle.name.replace("~", "")
         if "+" in particle_name:
@@ -389,14 +426,14 @@ def test_create_antiparticle_tilde(particle_database: ParticleCollection):
         elif "-" in particle_name:
             particle_name = particle_name.replace("-", "+")
         created_particle = create_antiparticle(anti_particle, particle_name)
-
         assert created_particle == particle_database[particle_name]
 
 
-def test_create_antiparticle_by_pid(particle_database: ParticleCollection):
+def test_create_antiparticle_by_pid(
+    particle_database: ParticleCollection, skh_particle_version: str
+):
     n_particles_with_neg_pid = 0
     for particle in particle_database:
-        # pylint: disable=cell-var-from-loop
         anti_particles_by_pid = particle_database.filter(
             lambda p: p.pid == -particle.pid  # noqa: B023
         )
@@ -406,11 +443,12 @@ def test_create_antiparticle_by_pid(particle_database: ParticleCollection):
         anti_particle = next(iter(anti_particles_by_pid))
         particle_from_anti = -anti_particle
         assert particle == particle_from_anti
-    assert n_particles_with_neg_pid in [
-        428,  # particle==0.13
-        442,  # particle==0.14,0.15
-        454,  # particle==0.16
-    ]
+    if skh_particle_version < "0.14":
+        assert n_particles_with_neg_pid == 428
+    elif skh_particle_version < "0.16":
+        assert n_particles_with_neg_pid == 442
+    else:
+        assert n_particles_with_neg_pid == 454
 
 
 @pytest.mark.parametrize(

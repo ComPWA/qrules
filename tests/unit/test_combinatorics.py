@@ -1,4 +1,3 @@
-# pylint: disable=redefined-outer-name
 from typing import List
 
 import pytest
@@ -17,8 +16,7 @@ from qrules.topology import Topology, create_isobar_topologies
 @pytest.fixture(scope="session")
 def three_body_decay() -> Topology:
     topologies = create_isobar_topologies(3)
-    topology = next(iter(topologies))
-    return topology
+    return next(iter(topologies))
 
 
 def test_create_initial_facts(three_body_decay, particle_database):
@@ -200,9 +198,7 @@ class TestKinematicRepresentation:
             initial_state=[["J/psi"]],
             final_state=[["gamma", "pi0"], ["gamma", "pi0", "pi0"]],
         )
-        constructed_from_repr = eval(  # pylint: disable=eval-used
-            str(kinematic_representation)
-        )
+        constructed_from_repr = eval(str(kinematic_representation))
         assert constructed_from_repr == kinematic_representation
 
     def test_in_operator(self):
@@ -218,7 +214,7 @@ class TestKinematicRepresentation:
         with pytest.raises(ValueError, match=r"Cannot compare "):
             assert float() in kinematic_representation
         with pytest.raises(
-            ValueError,
+            TypeError,
             match=r"Comparison representation needs to be a list of lists",
         ):
             assert ["should be nested list"] in kinematic_representation

@@ -102,7 +102,8 @@ class InteractionType(Enum):
             return InteractionType.STRONG
         if description_lower.startswith("w"):
             return InteractionType.WEAK
-        raise ValueError(f'Could not determine interaction type from "{description}"')
+        msg = f'Could not determine interaction type from "{description}"'
+        raise ValueError(msg)
 
 
 DEFAULT_INTERACTION_TYPES = [
@@ -112,7 +113,7 @@ DEFAULT_INTERACTION_TYPES = [
 ]
 
 
-def create_interaction_settings(  # pylint: disable=too-many-locals,too-many-arguments
+def create_interaction_settings(
     formalism: str,
     particle_db: ParticleCollection,
     nbody_topology: bool = False,
@@ -290,10 +291,11 @@ class NumberOfThreads:
     def set(cls, n_cores: Optional[int]) -> None:  # noqa: A003
         """Set the number of threads; use `None` for all available cores."""
         if n_cores is not None and not isinstance(n_cores, int):
-            raise TypeError(
-                "Can only set the number of cores to an integer or to None"
-                " (meaning all available cores)"
+            msg = (
+                "Can only set the number of cores to an integer or to None (meaning all"
+                " available cores)"
             )
+            raise TypeError(msg)
         cls.__n_cores = n_cores
 
 
@@ -313,9 +315,11 @@ def __positive_int_domain(
 
 def _halves_domain(start: float, stop: float) -> List[float]:
     if start % 0.5 != 0.0:
-        raise ValueError(f"Start value {start} needs to be multiple of 0.5")
+        msg = f"Start value {start} needs to be multiple of 0.5"
+        raise ValueError(msg)
     if stop % 0.5 != 0.0:
-        raise ValueError(f"Stop value {stop} needs to be multiple of 0.5")
+        msg = f"Stop value {stop} needs to be multiple of 0.5"
+        raise ValueError(msg)
     return [
         int(v) if v.is_integer() else v for v in arange(start, stop + 0.25, delta=0.5)
     ]

@@ -4,6 +4,7 @@ This file only contains a selection of the most common options. For a full list 
 documentation: https://www.sphinx-doc.org/en/master/usage/configuration.html
 """
 
+import contextlib
 import os
 import re
 import shutil
@@ -84,20 +85,18 @@ def fetch_logo(url: str, output_path: str) -> None:
 
 
 LOGO_PATH = "_static/logo.svg"
-try:
+with contextlib.suppress(requests.exceptions.ConnectionError):
     fetch_logo(
         url="https://raw.githubusercontent.com/ComPWA/ComPWA/04e5199/doc/images/logo.svg",
         output_path=LOGO_PATH,
     )
-except requests.exceptions.ConnectionError:
-    pass
 if os.path.exists(LOGO_PATH):
     html_logo = LOGO_PATH
 
 # -- Generate API ------------------------------------------------------------
 sys.path.insert(0, os.path.abspath("."))
-from _extend_docstrings import extend_docstrings  # noqa: E402
-from _relink_references import relink_references  # noqa: E402
+from _extend_docstrings import extend_docstrings
+from _relink_references import relink_references
 
 extend_docstrings()
 relink_references()
@@ -116,7 +115,7 @@ subprocess.call(
             "--separate",
         ]
     ),
-    shell=True,
+    shell=True,  # noqa: S602
 )
 
 # -- Convert sphinx object inventory -----------------------------------------
@@ -430,12 +429,11 @@ def et_al(children, data, sep="", sep2=None, last_sep=None):  # type: ignore[no-
     parts = [part for part in _format_list(children, data) if part]
     if len(parts) <= 1:
         return Text(*parts)
-    elif len(parts) == 2:
+    if len(parts) == 2:
         return Text(sep2).join(parts)
-    elif len(parts) == 3:
+    if len(parts) == 3:
         return Text(last_sep).join([Text(sep).join(parts[:-1]), parts[-1]])
-    else:
-        return Text(parts[0], Tag("em", " et al"))
+    return Text(parts[0], Tag("em", " et al"))
 
 
 @node
@@ -445,7 +443,7 @@ def names(children, context, role, **kwargs):  # type: ignore[no-untyped-def]
     try:
         persons = context["entry"].persons[role]
     except KeyError:
-        raise FieldIsMissing(role, context["entry"])
+        raise FieldIsMissing(role, context["entry"]) from None
 
     style = context["style"]
     formatted_names = [
@@ -462,8 +460,7 @@ class MyStyle(UnsrtStyle):  # pyright: ignore[reportUntypedBaseClass]
         formatted_names = names(role, sep=", ", sep2=" and ", last_sep=", and ")
         if as_sentence:
             return sentence[formatted_names]
-        else:
-            return formatted_names
+        return formatted_names
 
     def format_url(self, e: Entry) -> Node:
         return words[
