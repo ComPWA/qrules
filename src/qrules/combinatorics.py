@@ -67,9 +67,10 @@ class _KinematicRepresentation:
                 self.initial_state == other.initial_state
                 and self.final_state == other.final_state
             )
-        raise ValueError(
+        msg = (
             f"Cannot compare {self.__class__.__name__} with {other.__class__.__name__}"
         )
+        raise ValueError(msg)
 
     def __repr__(self) -> str:
         return (
@@ -101,10 +102,7 @@ class _KinematicRepresentation:
                 return False
             if sub_representation is None:
                 return True
-            for group in sub_representation:
-                if group not in main_representation:
-                    return False
-            return True
+            return all(group in main_representation for group in sub_representation)
 
         if isinstance(other, _KinematicRepresentation):
             return is_sublist(other.initial_state, self.initial_state) and is_sublist(
@@ -113,13 +111,13 @@ class _KinematicRepresentation:
         if isinstance(other, list):
             for item in other:
                 if not isinstance(item, list):
-                    raise ValueError(
-                        "Comparison representation needs to be a list of lists"
-                    )
+                    msg = "Comparison representation needs to be a list of lists"
+                    raise TypeError(msg)
             return is_sublist(other, self.final_state)
-        raise ValueError(
+        msg = (
             f"Cannot compare {self.__class__.__name__} with {other.__class__.__name__}"
         )
+        raise ValueError(msg)
 
 
 def _sort_nested(nested_list: List[List[str]]) -> List[List[str]]:
@@ -132,7 +130,8 @@ def ensure_nested_list(
     if any(not isinstance(item, list) for item in nested_list):
         nested_list = [nested_list]  # type: ignore[assignment]
     if any(not isinstance(i, str) for lst in nested_list for i in lst):
-        raise ValueError("Not all grouping items are particle names")
+        msg = "Not all grouping items are particle names"
+        raise ValueError(msg)
     return nested_list  # type: ignore[return-value]
 
 
@@ -222,9 +221,8 @@ def __create_states_with_spin_projections(
     particle_db: ParticleCollection,
 ) -> Dict[int, StateWithSpins]:
     if len(edge_ids) != len(state_definitions):
-        raise ValueError(
-            "Number of state definitions is not same as number of edge IDs"
-        )
+        msg = "Number of state definitions is not same as number of edge IDs"
+        raise ValueError(msg)
     states = __safe_set_spin_projections(state_definitions, particle_db)
     return dict(zip(edge_ids, states))
 
@@ -238,9 +236,8 @@ def __safe_set_spin_projections(
             particle_name = state
             particle = particle_db[particle_name]
             spin_projections = set(arange(-particle.spin, particle.spin + 1, 1.0))
-            if particle.mass == 0.0:
-                if 0.0 in spin_projections:
-                    spin_projections.remove(0.0)
+            if particle.mass == 0.0 and 0.0 in spin_projections:
+                spin_projections.remove(0.0)
             return particle_name, sorted(spin_projections)
         return state
 
@@ -367,7 +364,8 @@ def match_external_edges(
     graphs: List[StateTransitionGraph[ParticleWithSpin]],
 ) -> None:
     if not isinstance(graphs, list):
-        raise TypeError("graphs argument is not of type list")
+        msg = "graphs argument is not of type list"
+        raise TypeError(msg)
     if not graphs:
         return
     ref_graph_id = 0
@@ -375,7 +373,7 @@ def match_external_edges(
     _match_external_edge_ids(graphs, ref_graph_id, __get_initial_state_edge_ids)
 
 
-def _match_external_edge_ids(  # pylint: disable=too-many-locals
+def _match_external_edge_ids(
     graphs: List[StateTransitionGraph[ParticleWithSpin]],
     ref_graph_id: int,
     external_edge_getter_function: Callable[[StateTransitionGraph], Iterable[int]],
@@ -403,9 +401,8 @@ def _match_external_edge_ids(  # pylint: disable=too-many-locals
                         del ref_mapping_copy[key_2]
                         break
         if len(ref_mapping_copy) != 0:
-            raise ValueError(
-                "Unable to match graphs, due to inherent graph structure mismatch"
-            )
+            msg = "Unable to match graphs, due to inherent graph structure mismatch"
+            raise ValueError(msg)
         swappings = _calculate_swappings(edge_ids_mapping)
         for edge_id1, edge_id2 in swappings.items():
             graph.swap_edges(edge_id1, edge_id2)
@@ -432,9 +429,8 @@ def perform_external_edge_identical_particle_combinatorics(
     particles, which do not enter or exit the same node allow for combinatorics!
     """
     if not isinstance(graph, StateTransitionGraph):
-        raise TypeError(
-            f"graph argument is not of type {StateTransitionGraph.__class__}"
-        )
+        msg = f"graph argument is not of type {StateTransitionGraph.__class__}"
+        raise TypeError(msg)
     temp_new_graphs = _external_edge_identical_particle_combinatorics(
         graph, __get_final_state_edge_ids
     )
@@ -452,7 +448,6 @@ def _external_edge_identical_particle_combinatorics(
     graph: StateTransitionGraph[ParticleWithSpin],
     external_edge_getter_function: Callable[[StateTransitionGraph], Iterable[int]],
 ) -> List[StateTransitionGraph]:
-    # pylint: disable=too-many-locals
     new_graphs = [graph]
     edge_particle_mapping = _create_edge_id_particle_mapping(
         graph, external_edge_getter_function(graph)

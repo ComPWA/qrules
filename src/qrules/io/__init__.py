@@ -1,4 +1,3 @@
-# pylint: disable=too-many-return-statements
 """Serialization module for the `qrules`.
 
 The `.io` module provides tools to export or import objects from `qrules` to and from
@@ -28,7 +27,6 @@ from . import _dict, _dot
 
 
 def asdict(instance: object) -> dict:
-    # pylint: disable=protected-access
     if isinstance(instance, Particle):
         return _dict.from_particle(instance)
     if isinstance(instance, ParticleCollection):
@@ -47,14 +45,13 @@ def asdict(instance: object) -> dict:
         return _dict.from_stg(instance)
     if isinstance(instance, Topology):
         return _dict.from_topology(instance)
-    raise NotImplementedError(
-        f"No conversion for dict available for class {instance.__class__.__name__}"
-    )
+    msg = f"No conversion for dict available for class {instance.__class__.__name__}"
+    raise NotImplementedError(msg)
 
 
-def fromdict(definition: dict) -> object:
+def fromdict(definition: dict) -> object:  # noqa: PLR0911
     keys = set(definition.keys())
-    if __REQUIRED_PARTICLE_FIELDS <= keys:
+    if keys >= __REQUIRED_PARTICLE_FIELDS:
         return _dict.build_particle(definition)
     if keys == {"particles"}:
         return _dict.build_particle_collection(definition)
@@ -68,10 +65,10 @@ def fromdict(definition: dict) -> object:
         return _dict.build_stg(definition)
     if keys == __REQUIRED_TOPOLOGY_FIELDS:
         return _dict.build_topology(definition)
-    raise NotImplementedError(f"Could not determine type from keys {keys}")
+    msg = f"Could not determine type from keys {keys}"
+    raise NotImplementedError(msg)
 
 
-# pylint: disable=line-too-long
 __REQUIRED_PARTICLE_FIELDS = {
     field.name for field in attrs.fields(Particle) if field.default == attrs.NOTHING  # type: ignore[arg-type]
 }
@@ -165,9 +162,8 @@ def asdot(
             node_style=node_style,
         )
         return _dot.insert_graphviz_styling(dot, graphviz_attrs=figure_style)
-    raise NotImplementedError(
-        f"Cannot convert a {instance.__class__.__name__} to DOT language"
-    )
+    msg = f"Cannot convert a {instance.__class__.__name__} to DOT language"
+    raise NotImplementedError(msg)
 
 
 def load(filename: str) -> object:
@@ -179,11 +175,11 @@ def load(filename: str) -> object:
         if file_extension in ["yaml", "yml"]:
             definition = yaml.load(stream, Loader=yaml.SafeLoader)
             return fromdict(definition)
-    raise NotImplementedError(f'No loader defined for file type "{file_extension}"')
+    msg = f'No loader defined for file type "{file_extension}"'
+    raise NotImplementedError(msg)
 
 
 class _IncreasedIndent(yaml.Dumper):
-    # pylint: disable=too-many-ancestors
     def increase_indent(self, flow: bool = False, indentless: bool = False) -> None:
         return super().increase_indent(flow, False)
 
@@ -217,16 +213,17 @@ def write(instance: object, filename: str) -> None:
             with open(filename, "w") as stream:
                 stream.write(output_str)
             return
-    raise NotImplementedError(f'No writer defined for file type "{file_extension}"')
+    msg = f'No writer defined for file type "{file_extension}"'
+    raise NotImplementedError(msg)
 
 
 def _get_file_extension(filename: str) -> str:
     path = Path(filename)
     extension = path.suffix.lower()
     if not extension:
-        raise ValueError(f'No file extension in file name "{filename}"')
-    extension = extension[1:]
-    return extension
+        msg = f'No file extension in file name "{filename}"'
+        raise ValueError(msg)
+    return extension[1:]
 
 
 class JSONSetEncoder(json.JSONEncoder):

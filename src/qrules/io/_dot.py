@@ -125,7 +125,7 @@ def __create_graphviz_assignments(graphviz_attrs: Dict[str, Any]) -> List[str]:
 
 
 @embed_dot
-def graph_list_to_dot(
+def graph_list_to_dot(  # noqa: C901
     graphs: Iterable[StateTransitionGraph],
     *,
     render_node: bool,
@@ -138,10 +138,12 @@ def graph_list_to_dot(
     node_style: Dict[str, Any],
 ) -> str:
     if strip_spin and collapse_graphs:
-        raise ValueError("Cannot both strip spin and collapse graphs")
+        msg = "Cannot both strip spin and collapse graphs"
+        raise ValueError(msg)
     if collapse_graphs:
         if render_node:
-            raise ValueError("Collapsed graphs cannot be rendered with node properties")
+            msg = "Collapsed graphs cannot be rendered with node properties"
+            raise ValueError(msg)
         graphs = _collapse_graphs(graphs)
     elif strip_spin:
         if render_node:
@@ -194,7 +196,7 @@ def graph_to_dot(
     )
 
 
-def __graph_to_dot_content(  # pylint: disable=too-many-branches,too-many-locals,too-many-statements
+def __graph_to_dot_content(  # noqa: C901, PLR0912, PLR0915
     graph: Union[
         ProblemSet,
         StateTransition,
@@ -223,7 +225,7 @@ def __graph_to_dot_content(  # pylint: disable=too-many-branches,too-many-locals
             StateTransitionGraph,
             Topology,
         ] = graph[1]
-    elif isinstance(graph, ProblemSet):
+    elif isinstance(graph, ProblemSet):  # noqa: SIM114
         rendered_graph = graph
         topology = graph.topology
     elif isinstance(graph, (StateTransition, StateTransitionGraph)):
@@ -233,7 +235,8 @@ def __graph_to_dot_content(  # pylint: disable=too-many-branches,too-many-locals
         rendered_graph = graph
         topology = graph
     else:
-        raise NotImplementedError(f"Cannot render {graph.__class__.__name__} as dot")
+        msg = f"Cannot render {graph.__class__.__name__} as dot"
+        raise NotImplementedError(msg)
     top = topology.incoming_edge_ids
     outs = topology.outgoing_edge_ids
     for edge_id in top | outs:
@@ -285,17 +288,16 @@ def __graph_to_dot_content(  # pylint: disable=too-many-branches,too-many-locals
                 label=node_label,
                 graphviz_attrs=node_style,
             )
-    if isinstance(graph, Topology):
-        if len(topology.nodes) > 1:
-            for node_id in topology.nodes:
-                node_label = ""
-                if render_node:
-                    node_label = f"({node_id})"
-                dot += _create_graphviz_node(
-                    name=f"{prefix}node{node_id}",
-                    label=node_label,
-                    graphviz_attrs=node_style,
-                )
+    if isinstance(graph, Topology) and len(topology.nodes) > 1:
+        for node_id in topology.nodes:
+            node_label = ""
+            if render_node:
+                node_label = f"({node_id})"
+            dot += _create_graphviz_node(
+                name=f"{prefix}node{node_id}",
+                label=node_label,
+                graphviz_attrs=node_style,
+            )
     return dot
 
 
@@ -347,7 +349,8 @@ def __get_edge_label(
         if render_edge_id:
             return str(edge_id)
         return ""
-    raise NotImplementedError(f"Cannot render {graph.__class__.__name__} as dot")
+    msg = f"Cannot render {graph.__class__.__name__} as dot"
+    raise NotImplementedError(msg)
 
 
 def ___render_edge_with_id(
@@ -437,7 +440,8 @@ def __render_settings(settings: Union[EdgeSettings, NodeSettings]) -> str:
 def __extract_priority(description: str) -> int:
     matches = re.match(r".* \- ([0-9]+)$", description)
     if matches is None:
-        raise ValueError(f"{description} does not contain a priority number")
+        msg = f"{description} does not contain a priority number"
+        raise ValueError(msg)
     priority = matches[1]
     return int(priority)
 
@@ -463,13 +467,12 @@ def _get_particle_graphs(
             continue
         stripped_graph = _strip_projections(transition)
         inventory.append(stripped_graph)
-    inventory = sorted(
+    return sorted(
         inventory,
         key=lambda g: [
             g.get_edge_props(i).mass for i in g.topology.intermediate_edge_ids
         ],
     )
-    return inventory
 
 
 def _strip_projections(
@@ -496,7 +499,7 @@ def _strip_projections(
     )
 
 
-def _collapse_graphs(
+def _collapse_graphs(  # noqa: C901
     graphs: Iterable[StateTransitionGraph[ParticleWithSpin]],
 ) -> List[StateTransitionGraph[ParticleCollection]]:
     def merge_into(
@@ -507,7 +510,8 @@ def _collapse_graphs(
             graph.topology.intermediate_edge_ids
             != merged_graph.topology.intermediate_edge_ids
         ):
-            raise ValueError("Cannot merge graphs that don't have the same edge IDs")
+            msg = "Cannot merge graphs that don't have the same edge IDs"
+            raise ValueError(msg)
         for i in graph.topology.edges:
             particle = graph.get_edge_props(i)
             other_particles = merged_graph.get_edge_props(i)

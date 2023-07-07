@@ -1,14 +1,12 @@
-# pylint: disable=eval-used redefined-outer-name too-many-arguments
-# pyright: reportUnusedImport=false
 import typing
 
 import pytest
 from attrs.exceptions import FrozenInstanceError
 from IPython.lib.pretty import pretty
 
-from qrules.topology import (  # noqa: F401
+from qrules.topology import (
     Edge,
-    FrozenDict,
+    FrozenDict,  # noqa: F401  # pyright: ignore[reportUnusedImport]
     InteractionNode,
     SimpleStateTransitionTopologyBuilder,
     Topology,

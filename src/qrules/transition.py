@@ -1,4 +1,3 @@
-# pylint: disable=too-many-lines
 """Find allowed transitions between an initial and final state."""
 
 import logging
@@ -161,11 +160,16 @@ class _SolutionContainer:
             self.execution_info.violated_node_rules
             or self.execution_info.violated_edge_rules
         ):
+            (
+                f"Invalid {type(self).__name__}! Found {len(self.solutions)} solutions,"
+                " but also violated rules."
+            )
+            msg = (
+                f"Invalid {self.__class__.__name__}! Found"
+                f" {len(self.solutions)} solutions, but also violated rules."
+            )
             raise ValueError(
-                (
-                    f"Invalid {self.__class__.__name__}! Found"
-                    f" {len(self.solutions)} solutions, but also violated rules."
-                ),
+                msg,
                 self.execution_info.violated_node_rules,
                 self.execution_info.violated_edge_rules,
             )
@@ -231,21 +235,19 @@ def _group_by_strength(
     return strength_sorted_problem_sets
 
 
-class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
+class StateTransitionManager:
     """Main handler for decay topologies.
 
     .. seealso:: :doc:`/usage/reaction` and `.generate_transitions`
     """
 
-    def __init__(  # pylint: disable=too-many-arguments, too-many-branches, too-many-locals
+    def __init__(  # noqa: C901, PLR0912
         self,
         initial_state: Sequence[StateDefinition],
         final_state: Sequence[StateDefinition],
         particle_db: Optional[ParticleCollection] = None,
         allowed_intermediate_particles: Optional[List[str]] = None,
-        interaction_type_settings: Dict[
-            InteractionType, Tuple[EdgeSettings, NodeSettings]
-        ] = None,  # type: ignore[assignment]
+        interaction_type_settings: Optional[Dict[InteractionType, Tuple[EdgeSettings, NodeSettings]]] = None,  # type: ignore[assignment]
         formalism: str = "helicity",
         topology_building: str = "isobar",
         solving_mode: SolvingMode = SolvingMode.FAST,
@@ -266,10 +268,11 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             "canonical",
         ]
         if formalism not in allowed_formalisms:
-            raise NotImplementedError(
-                f'Formalism "{formalism}" not implemented.'
-                f" Use one of {allowed_formalisms} instead."
+            msg = (
+                f'Formalism "{formalism}" not implemented. Use one of'
+                f" {allowed_formalisms} instead."
             )
+            raise NotImplementedError(msg)
         self.__formalism = str(formalism)
         self.__particles = ParticleCollection()
         if particle_db is not None:
@@ -344,13 +347,13 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
             name_patterns = [name_patterns]
         selected_particles = ParticleCollection()
         for pattern in name_patterns:
-            # pylint: disable=cell-var-from-loop
             matches = _filter_by_name_pattern(self.__particles, pattern, regex)
             if len(matches) == 0:
-                raise LookupError(
-                    "Could not find any matches for allowed intermediate"
-                    f' particle pattern "{pattern}"'
+                msg = (
+                    "Could not find any matches for allowed intermediate particle"
+                    f' pattern "{pattern}"'
                 )
+                raise LookupError(msg)
             selected_particles.update(matches)
         self.__allowed_intermediate_states = [
             create_edge_properties(x)
@@ -365,7 +368,8 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         self, fs_group: Union[List[str], List[List[str]]]
     ) -> None:
         if not isinstance(fs_group, list):
-            raise ValueError("The final state grouping has to be of type list.")
+            msg = "The final state grouping has to be of type list."
+            raise TypeError(msg)
         if len(fs_group) > 0:
             if self.final_state_groupings is None:
                 self.final_state_groupings = []
@@ -397,12 +401,12 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         # verify order
         for allowed_types in allowed_interaction_types:
             if not isinstance(allowed_types, InteractionType):
-                raise TypeError(
-                    "Allowed interaction types must be of type[InteractionType]"
-                )
+                msg = "Allowed interaction types must be of type[InteractionType]"
+                raise TypeError(msg)
             if allowed_types not in self.interaction_type_settings:
                 _LOGGER.info(self.interaction_type_settings.keys())
-                raise ValueError(f"Interaction {allowed_types} not found in settings")
+                msg = f"Interaction {allowed_types} not found in settings"
+                raise ValueError(msg)
         allowed_interaction_types = list(allowed_interaction_types)
         if node_id is None:
             self.__allowed_interaction_types = allowed_interaction_types
@@ -428,10 +432,9 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
         ]
         return _group_by_strength(problem_sets)
 
-    def __determine_graph_settings(
+    def __determine_graph_settings(  # noqa: C901
         self, topology: Topology, initial_facts: InitialFacts
     ) -> List[GraphSettings]:
-        # pylint: disable=too-many-locals
         weak_edge_settings, _ = self.interaction_type_settings[InteractionType.WEAK]
 
         def create_intermediate_edge_qn_domains() -> Dict:
@@ -528,11 +531,10 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
 
         return graph_settings
 
-    def find_solutions(  # pylint: disable=too-many-branches
+    def find_solutions(  # noqa: C901, PLR0912
         self,
         problem_sets: Dict[float, List[ProblemSet]],
     ) -> "ReactionInfo":
-        # pylint: disable=too-many-locals
         """Check for solutions for a specific set of interaction settings."""
         results: Dict[float, _SolutionContainer] = {}
         _LOGGER.info(
@@ -629,7 +631,8 @@ class StateTransitionManager:  # pylint: disable=too-many-instance-attributes
                 + ", ".join(not_executed_rules)
             )
         if not final_solutions:
-            raise ValueError("No solutions were found")
+            msg = "No solutions were found"
+            raise ValueError(msg)
 
         match_external_edges(final_solutions)
         final_solutions = [
@@ -790,17 +793,19 @@ def _assert_defined(items: Collection, properties: Mapping) -> None:
     existing = set(items)
     defined = set(properties)
     if existing & defined != existing:
-        raise ValueError(
-            "Some items have no property assigned to them."
-            f" Available items: {existing}, items with property: {defined}"
+        msg = (
+            "Some items have no property assigned to them. Available items:"
+            f" {existing}, items with property: {defined}"
         )
+        raise ValueError(msg)
 
 
 def _to_sorted_tuple(
     iterable: Iterable[StateTransition],
 ) -> Tuple[StateTransition, ...]:
     if any(not isinstance(t, StateTransition) for t in iterable):
-        raise TypeError(f"Not all instances are of type {StateTransition.__name__}")
+        msg = f"Not all instances are of type {StateTransition.__name__}"
+        raise TypeError(msg)
     return tuple(sorted(iterable))
 
 
@@ -815,14 +820,16 @@ class StateTransitionCollection(abc.Sequence):
 
     def __attrs_post_init__(self) -> None:
         if len(self.transitions) == 0:
-            raise ValueError(f"At least one {StateTransition.__name__} required")
+            msg = f"At least one {StateTransition.__name__} required"
+            raise ValueError(msg)
         some_transition = next(iter(self.transitions))
         topology = some_transition.topology
         if any(t.topology != topology for t in self.transitions):
-            raise TypeError(
-                f"Not all {StateTransition.__name__} items have the same"
-                f" underlying topology. Expecting: {topology}"
+            msg = (
+                f"Not all {StateTransition.__name__} items have the same underlying"
+                f" topology. Expecting: {topology}"
             )
+            raise TypeError(msg)
         object.__setattr__(self, "topology", topology)
         object.__setattr__(
             self,
@@ -904,9 +911,8 @@ def _to_tuple(
     iterable: Iterable[StateTransitionCollection],
 ) -> Tuple[StateTransitionCollection, ...]:
     if any(not isinstance(t, StateTransitionCollection) for t in iterable):
-        raise TypeError(
-            f"Not all instances are of type {StateTransitionCollection.__name__}"
-        )
+        msg = f"Not all instances are of type {StateTransitionCollection.__name__}"
+        raise TypeError(msg)
     return tuple(iterable)
 
 
@@ -924,9 +930,8 @@ class ReactionInfo:
 
     def __attrs_post_init__(self) -> None:
         if len(self.transition_groups) == 0:
-            raise ValueError(
-                f"At least one {StateTransitionCollection.__name__} required"
-            )
+            msg = f"At least one {StateTransitionCollection.__name__} required"
+            raise ValueError(msg)
         transitions: List[StateTransition] = []
         for grouping in self.transition_groups:
             transitions.extend(sorted(grouping))
@@ -943,9 +948,10 @@ class ReactionInfo:
                 if own_grouping != other_grouping:
                     return False
             return True
-        raise NotImplementedError(
-            f"Cannot compare {self.__class__.__name__} with  {other.__class__.__name__}"
+        msg = (
+            f"Cannot compare {self.__class__.__name__} with {other.__class__.__name__}"
         )
+        raise NotImplementedError(msg)
 
     def _repr_pretty_(self, p: "PrettyPrinter", cycle: bool) -> None:
         class_name = type(self).__name__

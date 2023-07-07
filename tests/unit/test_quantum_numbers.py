@@ -1,4 +1,3 @@
-# pylint: disable=eval-used
 import typing
 from copy import deepcopy
 
@@ -26,7 +25,7 @@ class TestParity:
         assert pos >= neg
         assert pos >= 0
         assert neg <= 0
-        assert 0 < pos
+        assert pos > 0
 
     def test_hash(self):
         neg = Parity(-1)

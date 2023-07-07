@@ -1,9 +1,13 @@
+from typing import TYPE_CHECKING
+
 import pytest
 
 import qrules
 from qrules.combinatorics import _create_edge_id_particle_mapping
-from qrules.particle import ParticleWithSpin
-from qrules.topology import StateTransitionGraph
+
+if TYPE_CHECKING:
+    from qrules.particle import ParticleWithSpin
+    from qrules.topology import StateTransitionGraph
 
 
 @pytest.mark.parametrize(

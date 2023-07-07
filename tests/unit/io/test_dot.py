@@ -230,7 +230,8 @@ def test_get_particle_graphs(
         ].get_edge_props(edge_id)
 
 
-def test_strip_projections():
+def test_strip_projections(skh_particle_version: str):
+    assert skh_particle_version is not None  # skips test if particle version too low
     resonance = "Sigma(1670)~-"
     reaction = qrules.generate_transitions(
         initial_state=[("J/psi(1S)", [+1])],

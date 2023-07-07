@@ -71,15 +71,15 @@ def create_node_properties(
         if qn_name in node_qn_mapping:
             property_map[node_qn_mapping[qn_name]] = value
         else:
-            raise TypeError(
-                "Missmatch between InteractionProperties and"
-                " NodeQuantumNumbers. NodeQuantumNumbers does not define"
-                f" {qn_name}"
+            msg = (
+                "Missmatch between InteractionProperties and NodeQuantumNumbers."
+                f" NodeQuantumNumbers does not define {qn_name}"
             )
+            raise TypeError(msg)
     return property_map
 
 
-def find_particle(
+def find_particle(  # noqa: D417
     state: GraphEdgePropertyMap, particle_db: ParticleCollection
 ) -> ParticleWithSpin:
     """Create a Particle with spin projection from a qn dictionary.
@@ -101,9 +101,8 @@ def find_particle(
     particle = particle_db.find(int(state[EdgeQuantumNumbers.pid]))
     spin_projection = state.get(EdgeQuantumNumbers.spin_projection)
     if spin_projection is None:
-        raise ValueError(
-            f"{GraphEdgePropertyMap.__name__} does not contain a spin projection"
-        )
+        msg = f"{GraphEdgePropertyMap.__name__} does not contain a spin projection"
+        raise ValueError(msg)
     return particle, spin_projection
 
 
@@ -224,7 +223,7 @@ def remove_duplicate_solutions(
     return filtered_solutions
 
 
-def _remove_qns_from_graph(  # pylint: disable=too-many-branches
+def _remove_qns_from_graph(
     graph: StateTransitionGraph[ParticleWithSpin],
     qn_list: Set[Type[NodeQuantumNumber]],
 ) -> StateTransitionGraph[ParticleWithSpin]:
@@ -245,18 +244,18 @@ def _check_equal_ignoring_qns(
 ) -> Optional[StateTransitionGraph]:
     """Define equal operator for graphs, ignoring certain quantum numbers."""
     if not isinstance(ref_graph, StateTransitionGraph):
-        raise TypeError("Reference graph has to be of type StateTransitionGraph")
+        msg = "Reference graph has to be of type StateTransitionGraph"
+        raise TypeError(msg)
     found_graph = None
     node_comparator = NodePropertyComparator(ignored_qn_list)
     for graph in solutions:
-        if isinstance(graph, StateTransitionGraph):
-            if graph.compare(
-                ref_graph,
-                edge_comparator=lambda e1, e2: e1 == e2,
-                node_comparator=node_comparator,
-            ):
-                found_graph = graph
-                break
+        if isinstance(graph, StateTransitionGraph) and graph.compare(
+            ref_graph,
+            edge_comparator=lambda e1, e2: e1 == e2,
+            node_comparator=node_comparator,
+        ):
+            found_graph = graph
+            break
     return found_graph
 
 

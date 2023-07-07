@@ -16,9 +16,8 @@ def implement_pretty_repr(
 ) -> Type[_DecoratedClass]:
     """Implement a pretty :code:`repr` in a class decorated by `attrs`."""
     if not attrs.has(decorated_class):
-        raise TypeError(
-            "Can only implement a pretty repr for a class created with attrs"
-        )
+        msg = "Can only implement a pretty repr for a class created with attrs"
+        raise TypeError(msg)
 
     def repr_pretty(self: Any, p: "PrettyPrinter", cycle: bool) -> None:
         class_name = type(self).__name__
@@ -37,6 +36,5 @@ def implement_pretty_repr(
             p.breakable()
             p.text(")")
 
-    # pylint: disable=protected-access
     decorated_class._repr_pretty_ = repr_pretty  # type: ignore[attr-defined]
     return decorated_class  # type: ignore[return-value]

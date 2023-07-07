@@ -1,7 +1,6 @@
-# pylint: disable=protected-access
 import sys
 from copy import deepcopy
-from typing import List
+from typing import List, Tuple
 
 import pytest
 
@@ -25,6 +24,11 @@ from qrules.quantum_numbers import (
     NodeQuantumNumbers,
 )
 from qrules.topology import Edge, StateTransitionGraph, Topology
+
+if sys.version_info < (3, 8):
+    from importlib_metadata import version
+else:
+    from importlib.metadata import version
 
 
 @pytest.mark.parametrize(
@@ -114,6 +118,26 @@ def test_external_edge_initialization(
         assert len(list(problem_sets.values())[0]) == result_graph_count
 
 
+def get_pi0_width() -> float:
+    if version("particle") < "0.16":
+        return 7.73e-09
+    return 7.81e-09
+
+
+def __get_d_pos() -> Tuple[float, float]:
+    if version("particle") < "0.16":
+        return 1.86965, 6.33e-13
+    if version("particle") < "0.21":
+        return 1.86966, 6.33e-13
+    return 1.86966, 6.37e-13
+
+
+def __get_f2_1270_pos() -> Tuple[float, float]:
+    if version("particle") < "0.23":
+        return 1.2755, 0.18669999999999998
+    return 1.2754, 0.1866
+
+
 @pytest.mark.parametrize(
     ("particle_name", "spin_projection", "expected_properties"),
     [
@@ -123,7 +147,7 @@ def test_external_edge_initialization(
             {
                 EdgeQuantumNumbers.pid: 111,
                 EdgeQuantumNumbers.mass: 0.1349768,
-                EdgeQuantumNumbers.width: 7.81e-09,
+                EdgeQuantumNumbers.width: get_pi0_width(),
                 EdgeQuantumNumbers.spin_magnitude: 0.0,
                 EdgeQuantumNumbers.spin_projection: 0,
                 EdgeQuantumNumbers.charge: 0,
@@ -147,10 +171,8 @@ def test_external_edge_initialization(
             0,
             {
                 EdgeQuantumNumbers.pid: 411,
-                EdgeQuantumNumbers.mass: 1.86966,
-                EdgeQuantumNumbers.width: (
-                    6.33e-13 if sys.version_info < (3, 7) else 6.37e-13
-                ),
+                EdgeQuantumNumbers.mass: __get_d_pos()[0],
+                EdgeQuantumNumbers.width: __get_d_pos()[1],
                 EdgeQuantumNumbers.spin_magnitude: 0.0,
                 EdgeQuantumNumbers.spin_projection: 0,
                 EdgeQuantumNumbers.charge: 1,
@@ -174,8 +196,8 @@ def test_external_edge_initialization(
             1.0,
             {
                 EdgeQuantumNumbers.pid: 225,
-                EdgeQuantumNumbers.mass: 1.2755,
-                EdgeQuantumNumbers.width: 0.18669999999999998,
+                EdgeQuantumNumbers.mass: __get_f2_1270_pos()[0],
+                EdgeQuantumNumbers.width: __get_f2_1270_pos()[1],
                 EdgeQuantumNumbers.spin_magnitude: 2.0,
                 EdgeQuantumNumbers.spin_projection: 1.0,
                 EdgeQuantumNumbers.charge: 0,
@@ -197,15 +219,19 @@ def test_external_edge_initialization(
     ],
 )
 def test_create_edge_properties(
-    particle_name, spin_projection, expected_properties, particle_database
+    particle_name,
+    spin_projection,
+    expected_properties,
+    particle_database,
+    skh_particle_version: str,
 ):
     particle = particle_database[particle_name]
-
     assert create_edge_properties(particle, spin_projection) == expected_properties
+    assert skh_particle_version is not None  # dummy for skip tests
 
 
 def make_ls_test_graph(angular_momentum_magnitude, coupled_spin_magnitude, particle):
-    graph = StateTransitionGraph[ParticleWithSpin](
+    return StateTransitionGraph[ParticleWithSpin](
         topology=Topology(
             nodes={0},
             edges={0: Edge(None, 0)},
@@ -218,13 +244,12 @@ def make_ls_test_graph(angular_momentum_magnitude, coupled_spin_magnitude, parti
         },
         edge_props={0: (particle, 0)},
     )
-    return graph
 
 
 def make_ls_test_graph_scrambled(
     angular_momentum_magnitude, coupled_spin_magnitude, particle
 ):
-    graph = StateTransitionGraph[ParticleWithSpin](
+    return StateTransitionGraph[ParticleWithSpin](
         topology=Topology(
             nodes={0},
             edges={0: Edge(None, 0)},
@@ -237,7 +262,6 @@ def make_ls_test_graph_scrambled(
         },
         edge_props={0: (particle, 0)},
     )
-    return graph
 
 
 class TestSolutionFilter:
@@ -355,7 +379,6 @@ def _create_graph(
     ],
 )
 def test_edge_swap(particle_database, initial_state, final_state):
-    # pylint: disable=too-many-locals
     stm = StateTransitionManager(
         initial_state,
         final_state,

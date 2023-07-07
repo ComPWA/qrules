@@ -1,4 +1,3 @@
-# pylint: disable=too-many-lines
 """Functions to solve a particle reaction problem.
 
 This module is responsible for solving a particle reaction problem stated by a
@@ -183,11 +182,12 @@ class QNResult:
 
     def __attrs_post_init__(self) -> None:
         if self.solutions and (self.violated_node_rules or self.violated_edge_rules):
+            msg = (
+                f"Invalid {self.__class__.__name__}! Found"
+                f" {len(self.solutions)} solutions, but also violated rules."
+            )
             raise ValueError(
-                (
-                    f"Invalid {self.__class__.__name__}! Found"
-                    f" {len(self.solutions)} solutions, but also violated rules."
-                ),
+                msg,
                 self.violated_node_rules,
                 self.violated_edge_rules,
             )
@@ -295,8 +295,7 @@ def __is_sub_mapping(
     return True
 
 
-def validate_full_solution(problem_set: QNProblemSet) -> QNResult:
-    # pylint: disable=too-many-locals
+def validate_full_solution(problem_set: QNProblemSet) -> QNResult:  # noqa: C901
     _LOGGER.debug("validating graph...")
 
     rule_argument_handler = RuleArgumentHandler()
@@ -458,7 +457,6 @@ class CSPSolver(Solver):
     wrapper class serves as an adapter.
     """
 
-    # pylint: disable=too-many-instance-attributes
     def __init__(self, allowed_intermediate_particles: List[GraphEdgePropertyMap]):
         self.__variables: Set[Union[_EdgeVariableInfo, _NodeVariableInfo]] = set()
         self.__var_string_to_data: Dict[
@@ -474,8 +472,7 @@ class CSPSolver(Solver):
         self.__allowed_intermediate_particles = allowed_intermediate_particles
         self.__scoresheet = Scoresheet()
 
-    def find_solutions(self, problem_set: QNProblemSet) -> QNResult:
-        # pylint: disable=too-many-locals
+    def find_solutions(self, problem_set: QNProblemSet) -> QNResult:  # noqa: C901
         self.__initialize_constraints(problem_set)
         solutions = self.__problem.getSolutions()
 
@@ -571,8 +568,6 @@ class CSPSolver(Solver):
         role for this conservation law. Hence variables are also created within this
         method.
         """
-        # pylint: disable=too-many-locals
-
         self.__clear()
 
         def get_rules_by_priority(
@@ -820,9 +815,7 @@ class Scoresheet:
         return self.__rule_passes
 
 
-_QNType = TypeVar(  # pylint: disable=invalid-name
-    "_QNType", EdgeQuantumNumber, NodeQuantumNumber
-)
+_QNType = TypeVar("_QNType", EdgeQuantumNumber, NodeQuantumNumber)
 
 
 class _GraphElementConstraint(
@@ -834,7 +827,6 @@ class _GraphElementConstraint(
     interface.
     """
 
-    # pylint: disable=too-many-arguments
     def __init__(
         self,
         rule: GraphElementRule,
@@ -844,7 +836,8 @@ class _GraphElementConstraint(
         scoresheet: Callable[[bool], None],
     ) -> None:
         if not callable(rule):
-            raise TypeError("rule argument has to be a callable")
+            msg = "rule argument has to be a callable"
+            raise TypeError(msg)
         self.__rule = rule
         (
             self.__check_rule_requirements,
@@ -955,7 +948,6 @@ class _ConservationRuleConstraintWrapper(
     interface.
     """
 
-    # pylint: disable=too-many-instance-attributes
     def __init__(
         self,
         rule: Rule,
@@ -964,7 +956,8 @@ class _ConservationRuleConstraintWrapper(
         score_callback: Callable[[bool], None],
     ) -> None:
         if not callable(rule):
-            raise TypeError("rule argument has to be a callable")
+            msg = "rule argument has to be a callable"
+            raise TypeError(msg)
         self.__rule = rule
         (
             self.__check_rule_requirements,
@@ -1092,8 +1085,8 @@ class _ConservationRuleConstraintWrapper(
             elif qn_type in self.__node_qns:
                 self.__node_qns[qn_type] = value  # type: ignore[index]
             else:
-                raise ValueError(
-                    f"The variable with name {qn_type.__name__} and a graph"
-                    f" element index of {index} does not appear in the"
-                    " variable mapping"
+                msg = (
+                    f"The variable with name {qn_type.__name__} and a graph element"
+                    f" index of {index} does not appear in the variable mapping"
                 )
+                raise ValueError(msg)

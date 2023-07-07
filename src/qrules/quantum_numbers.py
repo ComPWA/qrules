@@ -20,12 +20,14 @@ from qrules._implementers import implement_pretty_repr
 
 def _check_plus_minus(_: Any, __: attrs.Attribute, value: Any) -> None:
     if not isinstance(value, int):
-        raise TypeError(
-            f"Input for {Parity.__name__} has to be of type {int.__name__},"
-            f" not {type(value).__name__}"
+        msg = (
+            f"Input for {Parity.__name__} has to be of type {int.__name__}, not"
+            f" {type(value).__name__}"
         )
+        raise TypeError(msg)
     if value not in [-1, +1]:
-        raise ValueError(f"Parity can only be +1 or -1, not {value}")
+        msg = f"Parity can only be +1 or -1, not {value}"
+        raise ValueError(msg)
 
 
 @total_ordering
@@ -61,7 +63,7 @@ def _to_fraction(value: Union[float, int], render_plus: bool = False) -> str:
 
 
 @frozen(init=False)
-class EdgeQuantumNumbers:  # pylint: disable=too-many-instance-attributes
+class EdgeQuantumNumbers:
     """Definition of quantum numbers for edges.
 
     This class defines the types that are used in the :mod:`.conservation_rules`, for

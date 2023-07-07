@@ -1,4 +1,3 @@
-# pylint: disable=import-outside-toplevel
 """Serialization from and to a `dict`."""
 
 import json
@@ -65,9 +64,7 @@ def from_topology(topology: Topology) -> dict:
     )
 
 
-def _value_serializer(  # pylint: disable=unused-argument
-    inst: type, field: attrs.Attribute, value: Any
-) -> Any:
+def _value_serializer(inst: type, field: attrs.Attribute, value: Any) -> Any:
     if isinstance(value, abc.Mapping):
         if all(isinstance(p, Particle) for p in value.values()):
             return {k: v.name for k, v in value.items()}

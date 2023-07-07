@@ -1,5 +1,4 @@
 # pyright: reportUnusedImport=false
-# pylint: disable=eval-used
 from operator import itemgetter
 from typing import List
 
@@ -21,9 +20,9 @@ from qrules.topology import (  # noqa: F401
     StateTransitionGraph,
     Topology,
 )
-from qrules.transition import State  # noqa: F401
 from qrules.transition import (
     ReactionInfo,
+    State,
     StateTransition,
     StateTransitionCollection,
     StateTransitionManager,
