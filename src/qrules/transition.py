@@ -584,7 +584,7 @@ class StateTransitionManager:
             warnings.warn(msg, category=RuntimeWarning, stacklevel=1)
         if not final_solutions:
             msg = "No solutions were found"
-            raise ValueError(msg)
+            raise RuntimeError(msg, execution_info)
 
         match_external_edges(final_solutions)
         final_solutions = [
