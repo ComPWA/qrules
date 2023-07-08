@@ -281,6 +281,10 @@ class StateTransitionManager:
             LeptonCheck(),
             GammaCheck(),
         ]
+        """Checks that are executed over selected conservation rules.
+
+        .. seealso:: {ref}`usage/reaction:Select interaction types`
+        """
         self.final_state_groupings: Optional[List[List[List[str]]]] = None
         self.__allowed_interaction_types: Union[
             List[InteractionType],
