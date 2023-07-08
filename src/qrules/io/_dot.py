@@ -387,9 +387,9 @@ def _(settings: Union[EdgeSettings, NodeSettings]) -> str:
     return output
 
 
-def __get_priority(rule: Any, rule_priorities: Dict[Any, int]) -> Optional[int]:
+def __get_priority(rule: Any, rule_priorities: Dict[Any, int]) -> Union[int, str]:
     rule_type = __get_type(rule)
-    return rule_priorities[rule_type]
+    return rule_priorities.get(rule_type, "NA")
 
 
 def __render_rule(rule: Rule) -> str:
@@ -402,13 +402,12 @@ def __get_type(rule: Rule) -> Type[Rule]:
     return type(rule)
 
 
-def __extract_priority(description: str) -> int:
-    matches = re.match(r".* \- ([0-9]+)$", description)
+def __extract_priority(description: str) -> str:
+    matches = re.match(r".* \- ([0-9]+|NA)$", description)
     if matches is None:
         msg = f"{description} does not contain a priority number"
         raise ValueError(msg)
-    priority = matches[1]
-    return int(priority)
+    return matches[1]
 
 
 @as_string.register(Particle)
