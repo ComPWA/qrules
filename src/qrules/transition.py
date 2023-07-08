@@ -3,6 +3,7 @@
 import logging
 import re
 import sys
+import warnings
 from collections import defaultdict
 from copy import copy, deepcopy
 from enum import Enum, auto
@@ -562,10 +563,11 @@ class StateTransitionManager:
             for rules in execution_info.violated_node_rules.values():
                 violated_rules |= rules
             if violated_rules:
-                raise RuntimeError(
+                msg = (
                     "There were violated conservation rules: "
-                    + ", ".join(violated_rules)
+                    f" {', '.join(violated_rules)}"
                 )
+                warnings.warn(msg, category=RuntimeWarning, stacklevel=1)
         if (
             final_result.execution_info.not_executed_edge_rules
             or final_result.execution_info.not_executed_node_rules
@@ -575,10 +577,11 @@ class StateTransitionManager:
                 not_executed_rules |= rules
             for rules in execution_info.not_executed_node_rules.values():
                 not_executed_rules |= rules
-            raise RuntimeWarning(
-                "There are conservation rules that were not executed: "
-                + ", ".join(not_executed_rules)
+            msg = (
+                "There are conservation rules that were not executed:"
+                f" {', '.join(not_executed_rules)}"
             )
+            warnings.warn(msg, category=RuntimeWarning, stacklevel=1)
         if not final_solutions:
             msg = "No solutions were found"
             raise ValueError(msg)
