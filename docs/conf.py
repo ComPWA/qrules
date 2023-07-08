@@ -297,7 +297,6 @@ primary_domain = "py"
 nitpicky = True  # warn if cross-references are missing
 nitpick_ignore_regex = [
     (r"py:(class|obj)", "json.encoder.JSONEncoder"),
-    (r"py:(class|obj)", r"qrules\._system_control\..*"),
     (r"py:(class|obj)", r"(qrules\.topology\.)?EdgeType"),
     (r"py:(class|obj)", r"(qrules\.topology\.)?KT"),
     (r"py:(class|obj)", r"(qrules\.topology\.)?NewEdgeType"),
