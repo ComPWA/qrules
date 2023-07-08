@@ -383,16 +383,15 @@ myst_enable_extensions = [
     "smartquotes",
     "substitution",
 ]
-BINDER_LINK = (
-    f"https://mybinder.org/v2/gh/ComPWA/{REPO_NAME}/{BRANCH}?filepath=docs/usage"
-)
+myst_heading_anchors = 2
 myst_substitutions = {
     "branch": BRANCH,
     "run_interactive": f"""
 ```{{margin}}
-Run this notebook [on Binder]({BINDER_LINK}) or
-{{ref}}`locally on Jupyter Lab <compwa-org:develop:Jupyter Notebooks>` to interactively
-modify the parameters.
+Run this notebook
+[on Binder](https://mybinder.org/v2/gh/ComPWA/{REPO_NAME}/{BRANCH}?filepath=docs/usage)
+or {{ref}}`locally on Jupyter Lab <compwa-org:develop:Jupyter Notebooks>` to
+interactively modify the parameters.
 ```
 """,
 }
