@@ -89,7 +89,7 @@ def find_particle(  # noqa: D417
 
     Args:
         states: The quantum number dictionary. particle_db: A `.ParticleCollection`
-            which is used to retrieve a reference `.particle` to lower the memory
+            which is used to retrieve a reference :code:`state` to lower the memory
             footprint.
 
     Raises:
@@ -329,13 +329,13 @@ def require_interaction_property(
     nodes.
 
     Args:
-        ingoing_particle_name (str): name of particle, used to find nodes which
-            have a particle with this name as "ingoing"
+        ingoing_particle_name: name of particle, used to find nodes which have a
+            particle with this name as "ingoing"
 
-        interaction_qn ([Type[NodeQuantumNumber]]): interaction quantum number
+        interaction_qn: interaction quantum number
 
-        allowed_values (list): list of allowed values, that the interaction
-            quantum number may take
+        allowed_values: list of allowed values, that the interaction quantum number may
+            take
 
     Return:
         Callable[Any, bool]:

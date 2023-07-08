@@ -29,17 +29,6 @@ from tqdm.auto import tqdm
 
 from qrules._implementers import implement_pretty_repr
 
-from ._system_control import (
-    GammaCheck,
-    InteractionDeterminator,
-    LeptonCheck,
-    create_edge_properties,
-    create_interaction_properties,
-    create_node_properties,
-    filter_interaction_types,
-    find_particle,
-    remove_duplicate_solutions,
-)
 from .combinatorics import (
     InitialFacts,
     StateDefinition,
@@ -76,6 +65,17 @@ from .solving import (
     NodeSettings,
     QNProblemSet,
     QNResult,
+)
+from .system_control import (
+    GammaCheck,
+    InteractionDeterminator,
+    LeptonCheck,
+    create_edge_properties,
+    create_interaction_properties,
+    create_node_properties,
+    filter_interaction_types,
+    find_particle,
+    remove_duplicate_solutions,
 )
 from .topology import (
     FrozenDict,
@@ -281,6 +281,10 @@ class StateTransitionManager:
             LeptonCheck(),
             GammaCheck(),
         ]
+        """Checks that are executed over selected conservation rules.
+
+        .. seealso:: {ref}`usage/reaction:Select interaction types`
+        """
         self.final_state_groupings: Optional[List[List[List[str]]]] = None
         self.__allowed_interaction_types: Union[
             List[InteractionType],
