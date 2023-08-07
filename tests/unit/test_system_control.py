@@ -116,7 +116,7 @@ def test_external_edge_initialization(
 
     problem_sets = stm.create_problem_sets()
     if problem_sets.values():
-        assert len(list(problem_sets.values())[0]) == result_graph_count
+        assert len(next(iter(problem_sets.values()))) == result_graph_count
 
 
 def get_pi0_width() -> float:

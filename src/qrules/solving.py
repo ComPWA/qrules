@@ -856,7 +856,7 @@ class _GraphElementConstraint(
         scheme edge_id(delimiter)qn_name. This method creates a dict linking the var
         name to a list that consists of the particle list index and the qn name.
         """
-        self.__qns.update(list(fixed_variables.values())[0])
+        self.__qns.update(next(iter(fixed_variables.values())))
         for element_id, qn_type in variables:
             self.__var_string_to_data[_create_variable_string(element_id, qn_type)] = (
                 qn_type

@@ -129,11 +129,9 @@ def filter_interaction_types(
     if int_type_intersection:
         return int_type_intersection
     _LOGGER.warning(
-        (
-            "The specified list of interaction types %s"
-            " does not intersect with the valid list of interaction types %s"
-            ".\nUsing valid list instead."
-        ),
+        "The specified list of interaction types %s"
+        " does not intersect with the valid list of interaction types %s"
+        ".\nUsing valid list instead.",
         allowed_interaction_types,
         valid_determined_interaction_types,
     )

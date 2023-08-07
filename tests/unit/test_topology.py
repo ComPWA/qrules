@@ -192,7 +192,7 @@ class TestTopology:
     def test_repr_and_eq(self, repr_method, two_to_three_decay: Topology):
         topology = eval(repr_method(two_to_three_decay))
         assert topology == two_to_three_decay
-        assert topology != float()
+        assert topology != 0.0
 
     def test_getters(self, two_to_three_decay: Topology):
         topology = two_to_three_decay  # shorter name

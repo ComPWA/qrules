@@ -24,6 +24,7 @@ vscode:
     - github.vscode-github-actions
     - github.vscode-pull-request-github
     - joaompinto.vscode-graphviz
+    - ms-python.black-formatter
     - ms-python.mypy-type-checker
     - ms-python.python
     - ms-python.vscode-pylance
