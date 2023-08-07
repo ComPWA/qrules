@@ -11,7 +11,7 @@ def reduce_violated_rules(
     reduced_violations: Set[Union[str, FrozenSet[str]]] = set()
     for rule_group in violated_rules:
         if len(rule_group) == 1:
-            reduced_violations.add(tuple(rule_group)[0])
+            reduced_violations.add(next(iter(rule_group)))
         else:
             reduced_violations.add(rule_group)
 

@@ -212,7 +212,7 @@ class TestKinematicRepresentation:
         assert [["J/psi"]] not in kinematic_representation
         assert [["gamma", "pi0"]] in kinematic_representation
         with pytest.raises(ValueError, match=r"Cannot compare "):
-            assert float() in kinematic_representation
+            assert 0.0 in kinematic_representation
         with pytest.raises(
             TypeError,
             match=r"Comparison representation needs to be a list of lists",
