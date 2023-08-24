@@ -38,4 +38,5 @@ keywords:
   - partial wave analysis
 license: GPL-3.0-or-later
 repository-code: https://github.com/ComPWA/qrules
+type: software
 url: https://qrules.readthedocs.io
