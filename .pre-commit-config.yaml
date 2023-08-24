@@ -2,6 +2,7 @@ ci:
   autoupdate_commit_msg: "MAINT: update pip constraints and pre-commit"
   autoupdate_schedule: quarterly # already done by requirements-cron.yml
   skip:
+    - check-jsonschema
     - mypy
     - pyright
     - taplo
@@ -36,7 +37,7 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/ComPWA/repo-maintenance
-    rev: 0.0.196
+    rev: 0.0.197
     hooks:
       - id: check-dev-files
         args:
