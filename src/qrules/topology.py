@@ -269,7 +269,7 @@ class Topology:
             msg = f"Incoming edge IDs should be {expected}, not {incoming}."
             raise ValueError(msg)
         n_out = len(outgoing)
-        expected = list(range(0, n_out))
+        expected = list(range(n_out))
         if sorted(outgoing) != expected:
             msg = f"Outgoing edge IDs should be {expected}, not {outgoing}."
             raise ValueError(msg)

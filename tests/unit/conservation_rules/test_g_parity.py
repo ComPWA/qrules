@@ -88,7 +88,7 @@ def test_g_parity_all_defined(rule_input, expected):
             ),
             (-1) ** (l_magnitude + isospin) == g_parity,
         )
-        for g_parity, isospin, l_magnitude in product([-1, 1], [0, 1], range(0, 5))
+        for g_parity, isospin, l_magnitude in product([-1, 1], [0, 1], range(5))
     ],
 )
 def test_g_parity_multiparticle_boson(rule_input, expected):
