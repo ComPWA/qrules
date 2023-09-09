@@ -62,8 +62,7 @@ _LOGGER = logging.getLogger(__name__)
 
 class _Comparable(Protocol):
     @abstractmethod
-    def __lt__(self, other: Any) -> bool:
-        ...
+    def __lt__(self, other: Any) -> bool: ...
 
 
 KT = TypeVar("KT", bound=_Comparable)
@@ -269,7 +268,7 @@ class Topology:
             msg = f"Incoming edge IDs should be {expected}, not {incoming}."
             raise ValueError(msg)
         n_out = len(outgoing)
-        expected = list(range(0, n_out))
+        expected = list(range(n_out))
         if sorted(outgoing) != expected:
             msg = f"Outgoing edge IDs should be {expected}, not {outgoing}."
             raise ValueError(msg)
@@ -875,28 +874,24 @@ class FrozenTransition(Transition, Generic[EdgeType, NodeType]):
         return MutableTransition(self.topology, self.states, self.interactions)
 
     @overload
-    def convert(self) -> "FrozenTransition[EdgeType, NodeType]":
-        ...
+    def convert(self) -> "FrozenTransition[EdgeType, NodeType]": ...
 
     @overload
     def convert(
         self, state_converter: Callable[[EdgeType], NewEdgeType]
-    ) -> "FrozenTransition[NewEdgeType, NodeType]":
-        ...
+    ) -> "FrozenTransition[NewEdgeType, NodeType]": ...
 
     @overload
     def convert(
         self, *, interaction_converter: Callable[[NodeType], NewNodeType]
-    ) -> "FrozenTransition[EdgeType, NewNodeType]":
-        ...
+    ) -> "FrozenTransition[EdgeType, NewNodeType]": ...
 
     @overload
     def convert(
         self,
         state_converter: Callable[[EdgeType], NewEdgeType],
         interaction_converter: Callable[[NodeType], NewNodeType],
-    ) -> "FrozenTransition[NewEdgeType, NewNodeType]":
-        ...
+    ) -> "FrozenTransition[NewEdgeType, NewNodeType]": ...
 
     def convert(self, state_converter=None, interaction_converter=None):  # type: ignore[no-untyped-def]
         """Cast the edge and/or node properties to another type."""

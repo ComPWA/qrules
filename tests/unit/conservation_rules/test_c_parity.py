@@ -59,7 +59,7 @@ def test_c_parity_all_defined(rule_input, expected):
             ),
             (-1) ** l_magnitude == c_parity,
         )
-        for c_parity, l_magnitude in product([-1, 1], range(0, 5))
+        for c_parity, l_magnitude in product([-1, 1], range(5))
     ],
 )
 def test_c_parity_multiparticle_boson(rule_input, expected):
@@ -84,9 +84,7 @@ def test_c_parity_multiparticle_boson(rule_input, expected):
             ),
             (s_magnitude + l_magnitude) % 2 == abs(c_parity - 1) / 2,
         )
-        for c_parity, s_magnitude, l_magnitude in product(
-            [-1, 1], range(0, 5), range(0, 5)
-        )
+        for c_parity, s_magnitude, l_magnitude in product([-1, 1], range(5), range(5))
     ],
 )
 def test_c_parity_multiparticle_fermion(rule_input, expected):

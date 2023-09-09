@@ -75,15 +75,13 @@ def _is_particle_antiparticle_pair(pid1: int, pid2: int) -> bool:
 
 
 class GraphElementRule(Protocol):
-    def __call__(self, __qns: Any) -> bool:
-        ...
+    def __call__(self, __qns: Any) -> bool: ...
 
 
 class EdgeQNConservationRule(Protocol):
     def __call__(
         self, __ingoing_edge_qns: List[Any], __outgoing_edge_qns: List[Any]
-    ) -> bool:
-        ...
+    ) -> bool: ...
 
 
 class ConservationRule(Protocol):
@@ -92,8 +90,7 @@ class ConservationRule(Protocol):
         __ingoing_edge_qns: List[Any],
         __outgoing_edge_qns: List[Any],
         __node_qns: Any,
-    ) -> bool:
-        ...
+    ) -> bool: ...
 
 
 # Note a generic would be more fitting here. However the type annotations of

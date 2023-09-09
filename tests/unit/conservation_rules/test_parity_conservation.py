@@ -24,9 +24,7 @@ from qrules.quantum_numbers import NodeQuantumNumbers, Parity
             NodeQuantumNumbers.l_magnitude(l_magnitude),
             parity_in == parity_out1 * (-1) ** (l_magnitude),
         )
-        for parity_in, parity_out1, l_magnitude in product(
-            [-1, 1], [-1, 1], range(0, 5)
-        )
+        for parity_in, parity_out1, l_magnitude in product([-1, 1], [-1, 1], range(5))
     ],
 )
 def test_parity_conservation(in_parities, out_parities, l_magnitude, expected):
@@ -60,7 +58,7 @@ def test_parity_conservation(in_parities, out_parities, l_magnitude, expected):
             in_parity * out_parity1 * out_parity2 * (-1) ** (in_spin_mag % 2) == 1,
         )
         for in_spin_mag, in_parity, out_parity1, out_parity2 in product(
-            range(0, 4), [-1, 1], [-1, 1], [-1, 1]
+            range(4), [-1, 1], [-1, 1], [-1, 1]
         )
     ],
 )
@@ -99,7 +97,7 @@ def test_parity_conservation_helicity_prefactor(
             in_parity * (-1) ** (in_spin_mag % 2) == 1 and parity_prefactor == 1,
         )
         for in_spin_mag, in_parity, parity_prefactor in product(
-            range(0, 4), [-1, 1], [-1, 1]
+            range(4), [-1, 1], [-1, 1]
         )
     ],
 )
