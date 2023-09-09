@@ -379,12 +379,10 @@ class StateTransitionManager:
     @overload
     def get_allowed_interaction_types(
         self,
-    ) -> Union[List[InteractionType], Dict[int, List[InteractionType]]]:
-        ...
+    ) -> Union[List[InteractionType], Dict[int, List[InteractionType]]]: ...
 
     @overload
-    def get_allowed_interaction_types(self, node_id: int) -> List[InteractionType]:
-        ...
+    def get_allowed_interaction_types(self, node_id: int) -> List[InteractionType]: ...
 
     def get_allowed_interaction_types(self, node_id=None):  # type: ignore[no-untyped-def]
         if node_id is None:
