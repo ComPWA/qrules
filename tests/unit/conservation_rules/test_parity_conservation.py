@@ -24,9 +24,7 @@ from qrules.quantum_numbers import NodeQuantumNumbers, Parity
             NodeQuantumNumbers.l_magnitude(l_magnitude),
             parity_in == parity_out1 * (-1) ** (l_magnitude),
         )
-        for parity_in, parity_out1, l_magnitude in product(
-            [-1, 1], [-1, 1], range(5)
-        )
+        for parity_in, parity_out1, l_magnitude in product([-1, 1], [-1, 1], range(5))
     ],
 )
 def test_parity_conservation(in_parities, out_parities, l_magnitude, expected):
