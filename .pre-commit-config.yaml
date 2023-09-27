@@ -45,6 +45,7 @@ repos:
           - --pin-requirements=monthly
           - --repo-name=qrules
           - --repo-title=QRules
+      - id: colab-toc-visible
       - id: fix-nbformat-version
       - id: format-setup-cfg
       - id: set-nb-cells
