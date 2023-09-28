@@ -144,7 +144,7 @@ referencing==0.30.2
 requests==2.31.0
 rfc3339-validator==0.1.4
 rfc3986-validator==0.1.1
-rope==1.9.0
+rope==1.10.0
 rpds-py==0.10.3
 ruff==0.0.291 ; python_version >= "3.7.0"
 send2trash==1.8.2
