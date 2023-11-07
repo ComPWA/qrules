@@ -213,12 +213,13 @@ class Particle:
         )
 
     def _repr_pretty_(self, p: "PrettyPrinter", cycle: bool) -> None:
-        class_name = type(self).__name__
+        typ = type(self)
+        class_name = typ.__name__
         if cycle:
             p.text(f"{class_name}(...)")
         else:
             with p.group(indent=2, open=f"{class_name}("):
-                for attribute in attrs.fields(type(self)):
+                for attribute in attrs.fields(type(self)):  # type: ignore[misc]
                     value = getattr(self, attribute.name)
                     if value != attribute.default:
                         p.breakable()
