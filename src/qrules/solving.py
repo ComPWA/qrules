@@ -6,7 +6,6 @@ numbers (for example belonging to an intermediate state) and validate the decay
 processes with the rules formulated by the :mod:`.conservation_rules` module.
 """
 
-
 import inspect
 import logging
 import sys
