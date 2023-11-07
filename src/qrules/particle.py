@@ -213,8 +213,7 @@ class Particle:
         )
 
     def _repr_pretty_(self, p: "PrettyPrinter", cycle: bool) -> None:
-        typ = type(self)
-        class_name = typ.__name__
+        class_name = type(self).__name__
         if cycle:
             p.text(f"{class_name}(...)")
         else:
