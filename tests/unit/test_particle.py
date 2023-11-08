@@ -381,13 +381,11 @@ class TestSpin:
         [(0.3, 0.3), (1.0, 0.5), (0.5, 0.0), (-0.5, 0.5)],
     )
     def test_exceptions(self, magnitude, projection):
-        regex_pattern = "|".join(
-            [
-                r"Spin magnitude \d\.\d has to be a multitude of \d\.[05]",
-                r"\(projection - magnitude\) should be integer",
-                r"Spin magnitude has to be positive",
-            ]
-        )
+        regex_pattern = "|".join([
+            r"Spin magnitude \d\.\d has to be a multitude of \d\.[05]",
+            r"\(projection - magnitude\) should be integer",
+            r"Spin magnitude has to be positive",
+        ])
         regex_pattern = f"({regex_pattern})"
         with pytest.raises(ValueError, match=regex_pattern):
             print(Spin(magnitude, projection))  # noqa: T201

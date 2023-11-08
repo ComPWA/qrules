@@ -156,12 +156,10 @@ class _CompositeArgumentCreator:
         self,
         props: GraphElementPropertyMap,
     ) -> Any:
-        return self.__class_type(
-            **{
-                arg_name: extractor(props)  # type: ignore[operator]
-                for arg_name, extractor in self.__extractors.items()
-            }
-        )
+        return self.__class_type(**{
+            arg_name: extractor(props)  # type: ignore[operator]
+            for arg_name, extractor in self.__extractors.items()
+        })
 
 
 def _sequence_arg_builder(func: Callable) -> Callable[[Sequence], List[Any]]:

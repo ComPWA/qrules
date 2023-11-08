@@ -103,18 +103,16 @@ relink_references()
 
 shutil.rmtree("api", ignore_errors=True)
 subprocess.call(
-    " ".join(
-        [
-            "sphinx-apidoc",
-            f"../src/{PACKAGE}/",
-            f"../src/{PACKAGE}/version.py",
-            "-o api/",
-            "--force",
-            "--no-toc",
-            "--templatedir _templates",
-            "--separate",
-        ]
-    ),
+    " ".join([
+        "sphinx-apidoc",
+        f"../src/{PACKAGE}/",
+        f"../src/{PACKAGE}/version.py",
+        "-o api/",
+        "--force",
+        "--no-toc",
+        "--templatedir _templates",
+        "--separate",
+    ]),
     shell=True,  # noqa: S602
 )
 
@@ -189,21 +187,17 @@ exclude_patterns = [
 # General sphinx settings
 add_module_names = False
 autodoc_default_options = {
-    "exclude-members": ", ".join(
-        [
-            "items",
-            "keys",
-            "values",
-        ]
-    ),
+    "exclude-members": ", ".join([
+        "items",
+        "keys",
+        "values",
+    ]),
     "members": True,
     "undoc-members": True,
     "show-inheritance": True,
-    "special-members": ", ".join(
-        [
-            "__call__",
-        ]
-    ),
+    "special-members": ", ".join([
+        "__call__",
+    ]),
 }
 autodoc_member_order = "bysource"
 autodoc_type_aliases = {
