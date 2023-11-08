@@ -5,6 +5,7 @@ clickable links.
 
 See also https://github.com/sphinx-doc/sphinx/issues/5868.
 """
+
 # pyright: reportMissingImports=false
 
 from typing import TYPE_CHECKING, List

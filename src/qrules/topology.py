@@ -739,14 +739,12 @@ def create_n_body_topology(
     """
     n_in = number_of_initial_states
     n_out = number_of_final_states
-    builder = SimpleStateTransitionTopologyBuilder(
-        [
-            InteractionNode(
-                number_of_ingoing_edges=n_in,
-                number_of_outgoing_edges=n_out,
-            )
-        ]
-    )
+    builder = SimpleStateTransitionTopologyBuilder([
+        InteractionNode(
+            number_of_ingoing_edges=n_in,
+            number_of_outgoing_edges=n_out,
+        )
+    ])
     topologies = builder.build(
         number_of_initial_edges=n_in,
         number_of_final_edges=n_out,

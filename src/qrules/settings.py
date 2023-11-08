@@ -160,18 +160,14 @@ def create_interaction_settings(
             NodeQN.s_projection: __extend_negative(spin_magnitude_domain),
         }
     if formalism == "canonical-helicity":
-        formalism_node_settings.conservation_rules.update(
-            {
-                clebsch_gordan_helicity_to_canonical,
-                ls_spin_validity,
-            }
-        )
-        formalism_node_settings.qn_domains.update(
-            {
-                NodeQN.l_projection: [0],
-                NodeQN.s_projection: __extend_negative(spin_magnitude_domain),
-            }
-        )
+        formalism_node_settings.conservation_rules.update({
+            clebsch_gordan_helicity_to_canonical,
+            ls_spin_validity,
+        })
+        formalism_node_settings.qn_domains.update({
+            NodeQN.l_projection: [0],
+            NodeQN.s_projection: __extend_negative(spin_magnitude_domain),
+        })
     if mass_conservation_factor is not None:
         formalism_node_settings.conservation_rules.add(
             MassConservation(mass_conservation_factor)
@@ -179,16 +175,14 @@ def create_interaction_settings(
 
     interaction_type_settings = {}
     weak_node_settings = deepcopy(formalism_node_settings)
-    weak_node_settings.conservation_rules.update(
-        [
-            ChargeConservation(),  # type: ignore[abstract]
-            ElectronLNConservation(),  # type: ignore[abstract]
-            MuonLNConservation(),  # type: ignore[abstract]
-            TauLNConservation(),  # type: ignore[abstract]
-            BaryonNumberConservation(),  # type: ignore[abstract]
-            identical_particle_symmetrization,
-        ]
-    )
+    weak_node_settings.conservation_rules.update([
+        ChargeConservation(),  # type: ignore[abstract]
+        ElectronLNConservation(),  # type: ignore[abstract]
+        MuonLNConservation(),  # type: ignore[abstract]
+        TauLNConservation(),  # type: ignore[abstract]
+        BaryonNumberConservation(),  # type: ignore[abstract]
+        identical_particle_symmetrization,
+    ])
     weak_node_settings.interaction_strength = 10 ** (-4)
     weak_edge_settings = deepcopy(formalism_edge_settings)
 
@@ -198,15 +192,13 @@ def create_interaction_settings(
     )
 
     em_node_settings = deepcopy(weak_node_settings)
-    em_node_settings.conservation_rules.update(
-        {
-            CharmConservation(),  # type: ignore[abstract]
-            StrangenessConservation(),  # type: ignore[abstract]
-            BottomnessConservation(),  # type: ignore[abstract]
-            parity_conservation,
-            c_parity_conservation,
-        }
-    )
+    em_node_settings.conservation_rules.update({
+        CharmConservation(),  # type: ignore[abstract]
+        StrangenessConservation(),  # type: ignore[abstract]
+        BottomnessConservation(),  # type: ignore[abstract]
+        parity_conservation,
+        c_parity_conservation,
+    })
     if "helicity" in formalism:
         em_node_settings.conservation_rules.add(parity_conservation_helicity)
         em_node_settings.qn_domains.update({NodeQN.parity_prefactor: [-1, 1]})
@@ -219,9 +211,9 @@ def create_interaction_settings(
     )
 
     strong_node_settings = deepcopy(em_node_settings)
-    strong_node_settings.conservation_rules.update(
-        {isospin_conservation, g_parity_conservation}
-    )
+    strong_node_settings.conservation_rules.update({
+        isospin_conservation, g_parity_conservation
+    })
 
     strong_node_settings.interaction_strength = 60
     strong_edge_settings = deepcopy(em_edge_settings)

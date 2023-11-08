@@ -149,19 +149,17 @@ class _CompositeArgumentCreator:
                 if _is_edge_quantum_number(class_field.type)
                 else _ValueExtractor[NodeQuantumNumber](class_field.type)
             )
-            for class_field in attrs.fields(class_type)
+            for class_field in attrs.fields(class_type)  # type: ignore[misc]
         }
 
     def __call__(
         self,
         props: GraphElementPropertyMap,
     ) -> Any:
-        return self.__class_type(
-            **{
-                arg_name: extractor(props)  # type: ignore[operator]
-                for arg_name, extractor in self.__extractors.items()
-            }
-        )
+        return self.__class_type(**{
+            arg_name: extractor(props)  # type: ignore[operator]
+            for arg_name, extractor in self.__extractors.items()
+        })
 
 
 def _sequence_arg_builder(func: Callable) -> Callable[[Sequence], List[Any]]:
@@ -205,7 +203,7 @@ class RuleArgumentHandler:
             if attrs.has(qn_type):
                 class_field_types = [
                     class_field.type
-                    for class_field in attrs.fields(qn_type)
+                    for class_field in attrs.fields(qn_type)  # type: ignore[misc]
                     if not _is_optional(class_field.type)
                 ]
                 qn_check_function: Callable[..., bool] = _CompositeArgumentCheck(
@@ -316,7 +314,7 @@ def get_required_qns(
             class_type = input_type.__args__[0]
 
         if attrs.has(class_type):
-            for class_field in attrs.fields(class_type):
+            for class_field in attrs.fields(class_type):  # type: ignore[misc]
                 field_type = (
                     class_field.type.__args__[0]  # type: ignore[union-attr]
                     if _is_optional(class_field.type)

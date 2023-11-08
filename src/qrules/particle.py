@@ -218,7 +218,7 @@ class Particle:
             p.text(f"{class_name}(...)")
         else:
             with p.group(indent=2, open=f"{class_name}("):
-                for attribute in attrs.fields(type(self)):
+                for attribute in attrs.fields(type(self)):  # type: ignore[misc]
                     value = getattr(self, attribute.name)
                     if value != attribute.default:
                         p.breakable()
