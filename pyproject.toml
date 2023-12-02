@@ -27,6 +27,7 @@ preview = true
 target-version = [
     "py310",
     "py311",
+    "py312",
     "py36",
     "py37",
     "py38",
@@ -148,7 +149,9 @@ addopts = """
 --ignore=docs/conf.py"""
 filterwarnings = [
     "error",
+    "ignore:'importlib.abc.Traversable' is deprecated and slated for removal in Python 3.14:DeprecationWarning",
     "ignore:Passing a schema to Validator.iter_errors is deprecated.*:DeprecationWarning",
+    "ignore:datetime.datetime.utcfromtimestamp\\(\\) is deprecated and scheduled for removal in a future version.*:DeprecationWarning",
     "ignore:unclosed .*:ResourceWarning",
 ]
 markers = ["slow: marks tests as slow (deselect with '-m \"not slow\"')"]
