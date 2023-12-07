@@ -388,7 +388,7 @@ class TestSpin:
         ])
         regex_pattern = f"({regex_pattern})"
         with pytest.raises(ValueError, match=regex_pattern):
-            print(Spin(magnitude, projection))  # noqa: T201
+            print(Spin(magnitude, projection))
 
 
 @pytest.mark.parametrize(

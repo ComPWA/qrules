@@ -14,6 +14,25 @@ repos:
       - id: check-hooks-apply
       - id: check-useless-excludes
 
+  - repo: https://github.com/ComPWA/repo-maintenance
+    rev: 0.1.8
+    hooks:
+      - id: check-dev-files
+        args:
+          - --doc-apt-packages=graphviz
+          - --no-prettierrc
+          - --pin-requirements=monthly
+          - --repo-name=qrules
+          - --repo-title=QRules
+      - id: colab-toc-visible
+      - id: fix-nbformat-version
+      - id: format-setup-cfg
+      - id: set-nb-cells
+        args:
+          - --add-install-cell
+          - --additional-packages=IPython
+          - --extras-require=doc,viz
+
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
@@ -36,25 +55,6 @@ repos:
         name: Tests should start with test_
         args: ["--django"]
       - id: trailing-whitespace
-
-  - repo: https://github.com/ComPWA/repo-maintenance
-    rev: 0.1.8
-    hooks:
-      - id: check-dev-files
-        args:
-          - --doc-apt-packages=graphviz
-          - --no-prettierrc
-          - --pin-requirements=monthly
-          - --repo-name=qrules
-          - --repo-title=QRules
-      - id: colab-toc-visible
-      - id: fix-nbformat-version
-      - id: format-setup-cfg
-      - id: set-nb-cells
-        args:
-          - --add-install-cell
-          - --additional-packages=IPython
-          - --extras-require=doc,viz
 
   - repo: https://github.com/psf/black-pre-commit-mirror
     rev: 23.11.0
