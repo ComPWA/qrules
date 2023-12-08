@@ -295,7 +295,7 @@ nitpick_ignore_regex = [
     (r"py:(class|obj)", r"qrules\.topology\.NodeType"),
     (r"py:(class|obj)", r"qrules\.topology\.VT"),
 ]
-nitpicky = True  # warn if cross-references are missing
+nitpicky = True
 primary_domain = "py"
 project = "QRules"
 pygments_style = "sphinx"
