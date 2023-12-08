@@ -60,6 +60,7 @@ BRANCH = get_branch_name()
 ORGANIZATION = "ComPWA"
 PACKAGE = "qrules"
 REPO_NAME = "qrules"
+REPO_TITLE = "Quantum number conservation rules"
 
 add_module_names = False
 api_github_repo = f"{ORGANIZATION}/{REPO_NAME}"
@@ -221,7 +222,7 @@ html_theme_options = {
             "type": "url",
         },
     ],
-    "logo": {"text": "Quantum number conservation rules"},
+    "logo": {"text": REPO_TITLE},
     "repository_url": f"https://github.com/ComPWA/{REPO_NAME}",
     "repository_branch": BRANCH,
     "path_to_docs": "docs",
@@ -240,7 +241,7 @@ html_theme_options = {
     "show_navbar_depth": 2,
     "show_toc_level": 2,
 }
-html_title = html_theme_options["logo"]["text"]  # type: ignore[index]
+html_title = REPO_TITLE
 intersphinx_mapping = {
     "ampform": ("https://ampform.readthedocs.io/en/stable", None),
     "attrs": (f"https://www.attrs.org/en/{pin('attrs')}", None),
