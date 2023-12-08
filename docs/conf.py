@@ -121,17 +121,16 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.mathjax",
     "sphinx.ext.napoleon",
-    "sphinx.ext.viewcode",
+    "sphinx_api_relink",
     "sphinx_codeautolink",
     "sphinx_comments",
     "sphinx_copybutton",
     "sphinx_design",
     "sphinx_hep_pdgref",
+    "sphinx_pybtex_etal_style",
     "sphinx_thebe",
     "sphinx_togglebutton",
     "sphinxcontrib.bibtex",
-    "sphinx_api_relink",
-    "sphinx_pybtex_etal_style",
 ]
 autodoc_default_options = {
     "exclude-members": ", ".join([
@@ -316,5 +315,4 @@ thebe_config = {
     "repository_branch": html_theme_options["repository_branch"],
 }
 todo_include_todos = False
-viewcode_follow_imported_members = True
 version = get_package_version(PACKAGE)
