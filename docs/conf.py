@@ -4,160 +4,113 @@ This file only contains a selection of the most common options. For a full list 
 documentation: https://www.sphinx-doc.org/en/master/usage/configuration.html
 """
 
-import contextlib
+from __future__ import annotations
+
 import os
-import re
-import shutil
-import subprocess
 import sys
-from typing import Dict
 
-import requests
-
-# pyright: reportMissingImports=false
 import sphobjinv as soi
-from pybtex.database import Entry
-from pybtex.plugin import register_plugin
-from pybtex.richtext import Tag, Text
-from pybtex.style.formatting.unsrt import Style as UnsrtStyle
-from pybtex.style.template import (
-    FieldIsMissing,
-    Node,
-    _format_list,
-    field,
-    href,
-    join,
-    node,
-    sentence,
-    words,
+from sphinx_api_relink.helpers import (
+    get_branch_name,
+    get_execution_mode,
+    get_package_version,
+    pin,
+    set_intersphinx_version_remapping,
 )
 
-if sys.version_info < (3, 8):
-    from importlib_metadata import PackageNotFoundError
-    from importlib_metadata import version as get_package_version
-else:
-    from importlib.metadata import PackageNotFoundError
-    from importlib.metadata import version as get_package_version
-
-# -- Project information -----------------------------------------------------
-project = "QRules"
-PACKAGE = "qrules"
-REPO_NAME = "qrules"
-copyright = "2020, ComPWA"  # noqa: A001
-author = "Common Partial Wave Analysis"
-
-
-# https://docs.readthedocs.io/en/stable/builds.html
-def get_branch_name() -> str:
-    branch_name = os.environ.get("READTHEDOCS_VERSION", "stable")
-    if branch_name == "latest":
-        return "main"
-    if re.match(r"^\d+$", branch_name):  # PR preview
-        return "stable"
-    return branch_name
-
-
-def get_execution_mode() -> str:
-    if "FORCE_EXECUTE_NB" in os.environ:
-        print("\033[93;1mWill run ALL Jupyter notebooks!\033[0m")
-        return "force"
-    if "EXECUTE_NB" in os.environ:
-        return "cache"
-    return "off"
-
-
-BRANCH = get_branch_name()
-
-try:
-    __VERSION = get_package_version(PACKAGE)
-    version = ".".join(__VERSION.split(".")[:3])
-except PackageNotFoundError:
-    pass
-
-
-# -- Fetch logo --------------------------------------------------------------
-def fetch_logo(url: str, output_path: str) -> None:
-    if os.path.exists(output_path):
-        return
-    online_content = requests.get(url, allow_redirects=True)
-    with open(output_path, "wb") as stream:
-        stream.write(online_content.content)
-
-
-LOGO_PATH = "_static/logo.svg"
-with contextlib.suppress(requests.exceptions.ConnectionError):
-    fetch_logo(
-        url="https://raw.githubusercontent.com/ComPWA/ComPWA/04e5199/doc/images/logo.svg",
-        output_path=LOGO_PATH,
-    )
-if os.path.exists(LOGO_PATH):
-    html_logo = LOGO_PATH
-
-# -- Generate API ------------------------------------------------------------
 sys.path.insert(0, os.path.abspath("."))
 from _extend_docstrings import extend_docstrings
-from _relink_references import relink_references
 
-extend_docstrings()
-relink_references()
 
-shutil.rmtree("api", ignore_errors=True)
-subprocess.call(
-    " ".join([
-        "sphinx-apidoc",
-        f"../src/{PACKAGE}/",
-        f"../src/{PACKAGE}/version.py",
-        "-o api/",
-        "--force",
-        "--no-toc",
-        "--templatedir _templates",
-        "--separate",
-    ]),
-    shell=True,  # noqa: S602
-)
-
-# -- Convert sphinx object inventory -----------------------------------------
-inv = soi.Inventory()
-inv.project = "constraint"
-
-constraint_object_names = [
-    "Constraint",
-    "Domain",
-    "Problem",
-    "Solver",
-    "Variable",
-]
-for object_name in constraint_object_names:
-    inv.objects.append(
-        soi.DataObjStr(
-            name=f"{inv.project}.{object_name}",
-            domain="py",
-            role="class",
-            priority="1",
-            uri=f"{inv.project}.{object_name}-class.html",
-            dispname="-",
+def create_constraints_inventory() -> None:
+    inv = soi.Inventory()
+    inv.project = "constraint"
+    constraint_object_names = [
+        "Constraint",
+        "Domain",
+        "Problem",
+        "Solver",
+        "Variable",
+    ]
+    for object_name in constraint_object_names:
+        inv.objects.append(
+            soi.DataObjStr(
+                name=f"{inv.project}.{object_name}",
+                domain="py",
+                role="class",
+                priority="1",
+                uri=f"{inv.project}.{object_name}-class.html",
+                dispname="-",
+            )
         )
-    )
-
-text = inv.data_file(contract=True)
-ztext = soi.compress(text)
-soi.writebytes("constraint.inv", ztext)
+    text = inv.data_file(contract=True)
+    ztext = soi.compress(text)
+    soi.writebytes("constraint.inv", ztext)
 
 
-# -- General configuration ---------------------------------------------------
-master_doc = "index.md"
-source_suffix = {
-    ".ipynb": "myst-nb",
-    ".md": "myst-nb",
-    ".rst": "restructuredtext",
+create_constraints_inventory()
+extend_docstrings()
+set_intersphinx_version_remapping({
+    "ipython": {
+        "8.12.3": "8.12.1",
+    }
+})
+
+BRANCH = get_branch_name()
+ORGANIZATION = "ComPWA"
+PACKAGE = "qrules"
+REPO_NAME = "qrules"
+
+add_module_names = False
+api_github_repo = f"{ORGANIZATION}/{REPO_NAME}"
+api_target_substitutions: dict[str, str | tuple[str, str]] = {
+    "EdgeType": "typing.TypeVar",
+    "NewEdgeType": "typing.TypeVar",
+    "NewNodeType": "typing.TypeVar",
+    "NodeType": "typing.TypeVar",
+    "qrules.topology.EdgeType": "typing.TypeVar",
+    "qrules.topology.NodeType": "typing.TypeVar",
+    "typing_extensions.TypeAlias": "typing.TypeAlias",
 }
-
-# The master toctree document.
-master_doc = "index"
-modindex_common_prefix = [
-    f"{PACKAGE}.",
+api_target_types: dict[str, str | tuple[str, str]] = {
+    "qrules.combinatorics.InitialFacts": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.baryon_number": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.bottomness": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.c_parity": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.charge": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.charmness": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.electron_lepton_number": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.g_parity": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.isospin_magnitude": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.isospin_projection": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.mass": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.muon_lepton_number": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.parity": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.pid": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.spin_magnitude": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.spin_projection": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.strangeness": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.tau_lepton_number": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.topness": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumbers.width": "obj",
+    "qrules.quantum_numbers.NodeQuantumNumbers.l_magnitude": "obj",
+    "qrules.quantum_numbers.NodeQuantumNumbers.l_projection": "obj",
+    "qrules.quantum_numbers.NodeQuantumNumbers.parity_prefactor": "obj",
+    "qrules.quantum_numbers.NodeQuantumNumbers.s_magnitude": "obj",
+    "qrules.quantum_numbers.NodeQuantumNumbers.s_projection": "obj",
+    "qrules.solving.GraphElementProperties": "obj",
+    "qrules.solving.GraphSettings": "obj",
+    "qrules.transition.StateTransition": "obj",
+    "typing.TypeAlias": "obj",
+}
+author = "Common Partial Wave Analysis"
+default_role = "py:obj"
+exclude_patterns = [
+    "**.ipynb_checkpoints",
+    "*build",
+    "adr/template.md",
+    "tests",
 ]
-
 extensions = [
     "myst_nb",
     "sphinx.ext.autodoc",
@@ -176,16 +129,9 @@ extensions = [
     "sphinx_thebe",
     "sphinx_togglebutton",
     "sphinxcontrib.bibtex",
+    "sphinx_api_relink",
+    "sphinx_pybtex_etal_style",
 ]
-exclude_patterns = [
-    "**.ipynb_checkpoints",
-    "*build",
-    "adr/template.md",
-    "tests",
-]
-
-# General sphinx settings
-add_module_names = False
 autodoc_default_options = {
     "exclude-members": ", ".join([
         "items",
@@ -207,15 +153,29 @@ autodoc_type_aliases = {
     "StateTransition": "qrules.transition.StateTransition",
 }
 autodoc_typehints_format = "short"
+autosectionlabel_prefix_document = True
+bibtex_bibfiles = ["bibliography.bib"]
 codeautolink_concat_default = True
-AUTODOC_INSERT_SIGNATURE_LINEBREAKS = True
+comments_config = {
+    "hypothesis": True,
+    "utterances": {
+        "repo": f"ComPWA/{REPO_NAME}",
+        "issue-term": "pathname",
+        "label": "📝 Docs",
+    },
+}
+copybutton_prompt_is_regexp = True
+copybutton_prompt_text = r">>> |\.\.\. "  # doctest
+copyright = "2020, ComPWA"
+generate_apidoc_package_path = f"../src/{PACKAGE}"
 graphviz_output_format = "svg"
 html_copy_source = True  # needed for download notebook button
-html_css_files = []
-if AUTODOC_INSERT_SIGNATURE_LINEBREAKS:
-    html_css_files.append("linebreaks-api.css")
+html_css_files = ["linebreaks-api.css"]
 html_favicon = "_static/favicon.ico"
 html_last_updated_fmt = "%-d %B %Y"
+html_logo = (
+    "https://raw.githubusercontent.com/ComPWA/ComPWA/04e5199/doc/images/logo.svg"
+)
 html_show_copyright = False
 html_show_sourcelink = False
 html_show_sphinx = False
@@ -281,94 +241,26 @@ html_theme_options = {
     "show_toc_level": 2,
 }
 html_title = html_theme_options["logo"]["text"]  # type: ignore[index]
-pygments_style = "sphinx"
-todo_include_todos = False
-viewcode_follow_imported_members = True
-
-# Cross-referencing configuration
-default_role = "py:obj"
-primary_domain = "py"
-nitpicky = True  # warn if cross-references are missing
-nitpick_ignore_regex = [
-    (r"py:(class|obj)", "json.encoder.JSONEncoder"),
-    (r"py:(class|obj)", r"(qrules\.topology\.)?EdgeType"),
-    (r"py:(class|obj)", r"(qrules\.topology\.)?KT"),
-    (r"py:(class|obj)", r"(qrules\.topology\.)?NewEdgeType"),
-    (r"py:(class|obj)", r"(qrules\.topology\.)?NewNodeType"),
-    (r"py:(class|obj)", r"(qrules\.topology\.)?NodeType"),
-    (r"py:(class|obj)", r"(qrules\.topology\.)?VT"),
-]
-
-
-# Intersphinx settings
-version_remapping: Dict[str, Dict[str, str]] = {}
-
-
-def get_version(package_name: str) -> str:
-    python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
-    constraints_path = f"../.constraints/py{python_version}.txt"
-    with open(constraints_path) as stream:
-        constraints = stream.read()
-    for line in constraints.split("\n"):
-        line = line.split("#")[0]  # remove comments
-        line = line.strip()
-        if not line.startswith(package_name):
-            continue
-        if not line:
-            continue
-        line_segments = tuple(line.split("=="))
-        if len(line_segments) != 2:
-            continue
-        _, installed_version, *_ = line_segments
-        installed_version = installed_version.strip()
-        remapped_versions = version_remapping.get(package_name)
-        if remapped_versions is not None:
-            existing_version = remapped_versions.get(installed_version)
-            if existing_version is not None:
-                return existing_version
-        return installed_version
-    return "stable"
-
-
 intersphinx_mapping = {
     "ampform": ("https://ampform.readthedocs.io/en/stable", None),
-    "attrs": (f"https://www.attrs.org/en/{get_version('attrs')}", None),
+    "attrs": (f"https://www.attrs.org/en/{pin('attrs')}", None),
     "compwa-org": ("https://compwa-org.readthedocs.io", None),
     "constraint": ("https://labix.org/doc/constraint/public", "constraint.inv"),
     "graphviz": ("https://graphviz.readthedocs.io/en/stable", None),
-    "IPython": (f"https://ipython.readthedocs.io/en/{get_version('IPython')}", None),
+    "IPython": (f"https://ipython.readthedocs.io/en/{pin('IPython')}", None),
     "jsonschema": ("https://python-jsonschema.readthedocs.io/en/stable", None),
     "mypy": ("https://mypy.readthedocs.io/en/stable", None),
     "pwa": ("https://pwa.readthedocs.io", None),
     "python": ("https://docs.python.org/3", None),
 }
-
-# Settings for autosectionlabel
-autosectionlabel_prefix_document = True
-
-# Settings for bibtex
-bibtex_bibfiles = ["bibliography.bib"]
-suppress_warnings = [
-    "myst.domains",
-]
-
-# Settings for copybutton
-copybutton_prompt_is_regexp = True
-copybutton_prompt_text = r">>> |\.\.\. "  # doctest
-
-# Settings for linkcheck
 linkcheck_anchors = False
 linkcheck_ignore = [
     "https://doi.org/10.1002/andp.19955070504",  # 403 for onlinelibrary.wiley.com
 ]
-
-# Settings for myst_nb
-nb_execution_mode = get_execution_mode()
-nb_execution_show_tb = True
-nb_execution_timeout = -1
-nb_output_stderr = "remove"
-
-# Settings for myst-parser
+master_doc = "index"
+modindex_common_prefix = [
+    f"{PACKAGE}.",
+]
 myst_enable_extensions = [
     "amsmath",
     "colon_fence",
@@ -389,105 +281,39 @@ interactively modify the parameters.
 """,
 }
 myst_update_mathjax = False
+nb_execution_mode = get_execution_mode()
+nb_execution_show_tb = True
+nb_execution_timeout = -1
+nb_output_stderr = "remove"
+nitpick_ignore_regex = [
+    (r"py:(class|obj)", "json.encoder.JSONEncoder"),
+    (r"py:(class|obj)", r"qrules\.topology\.EdgeType"),
+    (r"py:(class|obj)", r"qrules\.topology\.KT"),
+    (r"py:(class|obj)", r"qrules\.topology\.NewEdgeType"),
+    (r"py:(class|obj)", r"qrules\.topology\.NewNodeType"),
+    (r"py:(class|obj)", r"qrules\.topology\.NodeType"),
+    (r"py:(class|obj)", r"qrules\.topology\.VT"),
+]
+nitpicky = True  # warn if cross-references are missing
+primary_domain = "py"
+project = "QRules"
+pygments_style = "sphinx"
+release = get_package_version(PACKAGE)
+source_suffix = {
+    ".ipynb": "myst-nb",
+    ".md": "myst-nb",
+    ".rst": "restructuredtext",
+}
 suppress_warnings = [
+    "myst.domains",
     # skipping unknown output mime type: application/json
     # https://github.com/ComPWA/qrules/runs/8132605149?check_suite_focus=true#step:5:92
     "mystnb.unknown_mime_type",
 ]
-
-# Settings for sphinx_comments
-comments_config = {
-    "hypothesis": True,
-    "utterances": {
-        "repo": f"ComPWA/{REPO_NAME}",
-        "issue-term": "pathname",
-        "label": "📝 Docs",
-    },
-}
-
-# Settings for Thebe cell output
 thebe_config = {
     "repository_url": html_theme_options["repository_url"],
     "repository_branch": html_theme_options["repository_branch"],
 }
-
-
-# Specify bibliography style
-@node
-def et_al(children, data, sep="", sep2=None, last_sep=None):  # type: ignore[no-untyped-def]
-    if sep2 is None:
-        sep2 = sep
-    if last_sep is None:
-        last_sep = sep
-    parts = [part for part in _format_list(children, data) if part]
-    if len(parts) <= 1:
-        return Text(*parts)
-    if len(parts) == 2:
-        return Text(sep2).join(parts)
-    if len(parts) == 3:
-        return Text(last_sep).join([Text(sep).join(parts[:-1]), parts[-1]])
-    return Text(parts[0], Tag("em", " et al"))
-
-
-@node
-def names(children, context, role, **kwargs):  # type: ignore[no-untyped-def]
-    """Return formatted names."""
-    assert not children
-    try:
-        persons = context["entry"].persons[role]
-    except KeyError:
-        raise FieldIsMissing(role, context["entry"]) from None
-
-    style = context["style"]
-    formatted_names = [
-        style.format_name(person, style.abbreviate_names) for person in persons
-    ]
-    return et_al(**kwargs)[formatted_names].format_data(context)
-
-
-class MyStyle(UnsrtStyle):  # pyright: ignore[reportUntypedBaseClass]
-    def __init__(self) -> None:
-        super().__init__(abbreviate_names=True)
-
-    def format_names(self, role: Entry, as_sentence: bool = True) -> Node:
-        formatted_names = names(role, sep=", ", sep2=" and ", last_sep=", and ")
-        if as_sentence:
-            return sentence[formatted_names]
-        return formatted_names
-
-    def format_url(self, e: Entry) -> Node:
-        return words[
-            href[
-                field("url", raw=True),
-                field("url", raw=True, apply_func=remove_http),
-            ]
-        ]
-
-    def format_isbn(self, e: Entry) -> Node:
-        return href[
-            join[
-                "https://isbnsearch.org/isbn/",
-                field("isbn", raw=True, apply_func=remove_dashes_and_spaces),
-            ],
-            join[
-                "ISBN:",
-                field("isbn", raw=True),
-            ],
-        ]
-
-
-def remove_dashes_and_spaces(isbn: str) -> str:
-    to_remove = ["-", " "]
-    for remove in to_remove:
-        isbn = isbn.replace(remove, "")
-    return isbn
-
-
-def remove_http(url: str) -> str:
-    to_remove = ["https://", "http://"]
-    for remove in to_remove:
-        url = url.replace(remove, "")
-    return url
-
-
-register_plugin("pybtex.style.formatting", "unsrt_et_al", MyStyle)
+todo_include_todos = False
+viewcode_follow_imported_members = True
+version = get_package_version(PACKAGE)
