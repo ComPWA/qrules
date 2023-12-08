@@ -52,6 +52,7 @@ create_constraints_inventory()
 extend_docstrings()
 set_intersphinx_version_remapping({
     "ipython": {
+        "8.12.2": "8.12.1",
         "8.12.3": "8.12.1",
     }
 })
@@ -61,6 +62,8 @@ ORGANIZATION = "ComPWA"
 PACKAGE = "qrules"
 REPO_NAME = "qrules"
 REPO_TITLE = "Quantum number conservation rules"
+
+BINDER_LINK = f"https://mybinder.org/v2/gh/{ORGANIZATION}/{REPO_NAME}/{BRANCH}?filepath=docs/usage"
 
 add_module_names = False
 api_github_repo = f"{ORGANIZATION}/{REPO_NAME}"
@@ -105,33 +108,6 @@ api_target_types: dict[str, str | tuple[str, str]] = {
     "typing.TypeAlias": "obj",
 }
 author = "Common Partial Wave Analysis"
-default_role = "py:obj"
-exclude_patterns = [
-    "**.ipynb_checkpoints",
-    "*build",
-    "adr/template.md",
-    "tests",
-]
-extensions = [
-    "myst_nb",
-    "sphinx.ext.autodoc",
-    "sphinx.ext.autosectionlabel",
-    "sphinx.ext.doctest",
-    "sphinx.ext.graphviz",
-    "sphinx.ext.intersphinx",
-    "sphinx.ext.mathjax",
-    "sphinx.ext.napoleon",
-    "sphinx_api_relink",
-    "sphinx_codeautolink",
-    "sphinx_comments",
-    "sphinx_copybutton",
-    "sphinx_design",
-    "sphinx_hep_pdgref",
-    "sphinx_pybtex_etal_style",
-    "sphinx_thebe",
-    "sphinx_togglebutton",
-    "sphinxcontrib.bibtex",
-]
 autodoc_default_options = {
     "exclude-members": ", ".join([
         "items",
@@ -159,14 +135,41 @@ codeautolink_concat_default = True
 comments_config = {
     "hypothesis": True,
     "utterances": {
-        "repo": f"ComPWA/{REPO_NAME}",
+        "repo": f"{ORGANIZATION}/{REPO_NAME}",
         "issue-term": "pathname",
         "label": "📝 Docs",
     },
 }
 copybutton_prompt_is_regexp = True
 copybutton_prompt_text = r">>> |\.\.\. "  # doctest
-copyright = "2020, ComPWA"
+copyright = f"2020, {ORGANIZATION}"
+default_role = "py:obj"
+exclude_patterns = [
+    "**.ipynb_checkpoints",
+    "*build",
+    "adr/template.md",
+    "tests",
+]
+extensions = [
+    "myst_nb",
+    "sphinx.ext.autodoc",
+    "sphinx.ext.autosectionlabel",
+    "sphinx.ext.doctest",
+    "sphinx.ext.graphviz",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.mathjax",
+    "sphinx.ext.napoleon",
+    "sphinx_api_relink",
+    "sphinx_codeautolink",
+    "sphinx_comments",
+    "sphinx_copybutton",
+    "sphinx_design",
+    "sphinx_hep_pdgref",
+    "sphinx_pybtex_etal_style",
+    "sphinx_thebe",
+    "sphinx_togglebutton",
+    "sphinxcontrib.bibtex",
+]
 generate_apidoc_package_path = f"../src/{PACKAGE}"
 graphviz_output_format = "svg"
 html_copy_source = True  # needed for download notebook button
@@ -192,7 +195,7 @@ html_theme_options = {
         },
         {
             "name": "GitHub",
-            "url": f"https://github.com/ComPWA/{REPO_NAME}",
+            "url": f"https://github.com/{ORGANIZATION}/{REPO_NAME}",
             "icon": "fa-brands fa-github",
         },
         {
@@ -208,21 +211,19 @@ html_theme_options = {
         },
         {
             "name": "Launch on Binder",
-            "url": (
-                f"https://mybinder.org/v2/gh/ComPWA/{REPO_NAME}/{BRANCH}?filepath=docs"
-            ),
+            "url": f"https://mybinder.org/v2/gh/{ORGANIZATION}/{REPO_NAME}/{BRANCH}?filepath=docs",
             "icon": "https://mybinder.readthedocs.io/en/latest/_static/favicon.png",
             "type": "url",
         },
         {
             "name": "Launch on Colaboratory",
-            "url": f"https://colab.research.google.com/github/ComPWA/{REPO_NAME}/blob/{BRANCH}",
+            "url": f"https://colab.research.google.com/github/{ORGANIZATION}/{REPO_NAME}/blob/{BRANCH}",
             "icon": "https://avatars.githubusercontent.com/u/33467679?s=100",
             "type": "url",
         },
     ],
     "logo": {"text": REPO_TITLE},
-    "repository_url": f"https://github.com/ComPWA/{REPO_NAME}",
+    "repository_url": f"https://github.com/{ORGANIZATION}/{REPO_NAME}",
     "repository_branch": BRANCH,
     "path_to_docs": "docs",
     "use_download_button": True,
@@ -257,10 +258,9 @@ linkcheck_anchors = False
 linkcheck_ignore = [
     "https://doi.org/10.1002/andp.19955070504",  # 403 for onlinelibrary.wiley.com
 ]
+project = REPO_TITLE
 master_doc = "index"
-modindex_common_prefix = [
-    f"{PACKAGE}.",
-]
+modindex_common_prefix = [f"{PACKAGE}."]
 myst_enable_extensions = [
     "amsmath",
     "colon_fence",
@@ -273,10 +273,9 @@ myst_substitutions = {
     "branch": BRANCH,
     "run_interactive": f"""
 ```{{margin}}
-Run this notebook
-[on Binder](https://mybinder.org/v2/gh/ComPWA/{REPO_NAME}/{BRANCH}?filepath=docs/usage)
-or {{ref}}`locally on Jupyter Lab <compwa-org:develop:Jupyter Notebooks>` to
-interactively modify the parameters.
+Run this notebook [on Binder]({BINDER_LINK}) or
+{{ref}}`locally on Jupyter Lab <compwa-org:develop:Jupyter Notebooks>` to interactively
+modify the parameters.
 ```
 """,
 }
@@ -314,5 +313,4 @@ thebe_config = {
     "repository_url": html_theme_options["repository_url"],
     "repository_branch": html_theme_options["repository_branch"],
 }
-todo_include_todos = False
 version = get_package_version(PACKAGE)
