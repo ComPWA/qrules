@@ -54,7 +54,7 @@ set_intersphinx_version_remapping({
     "ipython": {
         "8.12.2": "8.12.1",
         "8.12.3": "8.12.1",
-    }
+    },
 })
 
 BRANCH = get_branch_name()
