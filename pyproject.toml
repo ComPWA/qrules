@@ -222,7 +222,7 @@ task-tags = ["cspell"]
     "PLW0602",
     "PLW0603",
     "S101",
-    "T201",
+    "T20",
     "TCH00",
 ]
 "docs/*" = [
@@ -232,6 +232,7 @@ task-tags = ["cspell"]
     "S113",
     "T201",
 ]
+"docs/conf.py" = ["A001"]
 "setup.py" = ["D100"]
 "tests/*" = [
     "D",
@@ -241,6 +242,7 @@ task-tags = ["cspell"]
     "PLR2004",
     "S101",
     "S307",
+    "T20",
 ]
 
 [tool.ruff.pydocstyle]
