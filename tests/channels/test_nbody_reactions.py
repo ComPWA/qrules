@@ -32,13 +32,11 @@ def reduce_violated_rules(
         ),
         (
             (["eta"], ["pi+", "pi-"]),
-            {
-                (
-                    "c_parity_conservation",
-                    "parity_conservation",
-                    "spin_magnitude_conservation",
-                )
-            },
+            {(
+                "c_parity_conservation",
+                "parity_conservation",
+                "spin_magnitude_conservation",
+            )},
         ),
         (
             (["Sigma0"], ["Lambda", "pi0"]),
