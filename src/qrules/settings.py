@@ -211,9 +211,9 @@ def create_interaction_settings(
     )
 
     strong_node_settings = deepcopy(em_node_settings)
-    strong_node_settings.conservation_rules.update({
-        isospin_conservation, g_parity_conservation
-    })
+    strong_node_settings.conservation_rules.update(
+        {isospin_conservation, g_parity_conservation}
+    )
 
     strong_node_settings.interaction_strength = 60
     strong_edge_settings = deepcopy(em_edge_settings)
