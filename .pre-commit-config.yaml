@@ -1,6 +1,6 @@
 ci:
   autoupdate_commit_msg: "MAINT: update pip constraints and pre-commit"
-  autoupdate_schedule: monthly
+  autoupdate_schedule: quarterly # already done by requirements-cron.yml
   skip:
     - check-jsonschema
     - mypy
@@ -21,7 +21,7 @@ repos:
         args:
           - --doc-apt-packages=graphviz
           - --no-prettierrc
-          - --pin-requirements=outsource
+          - --pin-requirements=monthly
           - --repo-name=qrules
           - --repo-title=QRules
       - id: colab-toc-visible
