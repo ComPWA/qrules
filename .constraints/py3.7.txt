@@ -149,7 +149,7 @@ requests==2.31.0
 rfc3339-validator==0.1.4
 rfc3986-validator==0.1.1
 rope==1.9.0
-ruff==0.1.11 ; python_version >= "3.7.0"
+ruff==0.1.13 ; python_version >= "3.7.0"
 send2trash==1.8.2
 six==1.16.0
 smmap==5.0.1
