@@ -126,14 +126,14 @@ reportUnusedVariable = true
 typeCheckingMode = "strict"
 
 [tool.pytest.ini_options]
-addopts = """
---color=yes
---doctest-continue-on-failure
---doctest-modules
---durations=3
---ignore=docs/abbreviate_signature.py
---ignore=docs/conf.py
-"""
+addopts = [
+    "--color=yes",
+    "--doctest-continue-on-failure",
+    "--doctest-modules",
+    "--durations=3",
+    "--ignore=docs/abbreviate_signature.py",
+    "--ignore=docs/conf.py",
+]
 filterwarnings = [
     "error",
     "ignore:'importlib.abc.Traversable' is deprecated and slated for removal in Python 3.14:DeprecationWarning",

@@ -280,7 +280,7 @@ class NumberOfThreads:
         return cls.__n_cores
 
     @classmethod
-    def set(cls, n_cores: Optional[int]) -> None:  # noqa: A003
+    def set(cls, n_cores: Optional[int]) -> None:
         """Set the number of threads; use `None` for all available cores."""
         if n_cores is not None and not isinstance(n_cores, int):
             msg = (
