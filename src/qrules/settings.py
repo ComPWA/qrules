@@ -211,9 +211,9 @@ def create_interaction_settings(
     )
 
     strong_node_settings = deepcopy(em_node_settings)
-    strong_node_settings.conservation_rules.update({
-        isospin_conservation, g_parity_conservation
-    })
+    strong_node_settings.conservation_rules.update(
+        {isospin_conservation, g_parity_conservation}
+    )
 
     strong_node_settings.interaction_strength = 60
     strong_edge_settings = deepcopy(em_edge_settings)
@@ -280,7 +280,7 @@ class NumberOfThreads:
         return cls.__n_cores
 
     @classmethod
-    def set(cls, n_cores: Optional[int]) -> None:  # noqa: A003
+    def set(cls, n_cores: Optional[int]) -> None:
         """Set the number of threads; use `None` for all available cores."""
         if n_cores is not None and not isinstance(n_cores, int):
             msg = (

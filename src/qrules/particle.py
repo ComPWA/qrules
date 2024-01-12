@@ -369,9 +369,7 @@ class ParticleCollection(abc.MutableSet):
         msg = f"Cannot search for a search term of type {type(search_term)}"
         raise NotImplementedError(msg)
 
-    def filter(  # noqa: A003
-        self, function: Callable[[Particle], bool]
-    ) -> "ParticleCollection":
+    def filter(self, function: Callable[[Particle], bool]) -> "ParticleCollection":
         """Search by `Particle` properties using a :code:`lambda` function.
 
         For example:
