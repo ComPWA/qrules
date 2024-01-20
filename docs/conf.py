@@ -233,10 +233,11 @@ html_theme_options = {
     "repository_url": f"https://github.com/{ORGANIZATION}/{REPO_NAME}",
     "show_navbar_depth": 2,
     "show_toc_level": 2,
-    "use_download_button": True,
+    "use_download_button": False,
     "use_edit_page_button": True,
     "use_issues_button": True,
     "use_repository_button": True,
+    "use_source_button": True,
 }
 html_title = REPO_TITLE
 intersphinx_mapping = {
