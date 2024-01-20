@@ -219,14 +219,6 @@ html_theme_options = {
             "type": "url",
         },
     ],
-    "logo": {"text": REPO_TITLE},
-    "repository_url": f"https://github.com/{ORGANIZATION}/{REPO_NAME}",
-    "repository_branch": BRANCH,
-    "path_to_docs": "docs",
-    "use_download_button": True,
-    "use_edit_page_button": True,
-    "use_issues_button": True,
-    "use_repository_button": True,
     "launch_buttons": {
         "binderhub_url": "https://mybinder.org",
         "colab_url": "https://colab.research.google.com",
@@ -235,8 +227,16 @@ html_theme_options = {
         "thebe": True,
         "thebelab": True,
     },
+    "logo": {"text": REPO_TITLE},
+    "path_to_docs": "docs",
+    "repository_branch": BRANCH,
+    "repository_url": f"https://github.com/{ORGANIZATION}/{REPO_NAME}",
     "show_navbar_depth": 2,
     "show_toc_level": 2,
+    "use_download_button": True,
+    "use_edit_page_button": True,
+    "use_issues_button": True,
+    "use_repository_button": True,
 }
 html_title = REPO_TITLE
 intersphinx_mapping = {
