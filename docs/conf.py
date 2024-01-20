@@ -256,7 +256,6 @@ linkcheck_ignore = [
     "https://doi.org/10.1002/andp.19955070504",  # 403 for onlinelibrary.wiley.com
 ]
 project = REPO_TITLE
-master_doc = "index"
 modindex_common_prefix = [f"{PACKAGE}."]
 myst_enable_extensions = [
     "amsmath",
@@ -295,11 +294,6 @@ primary_domain = "py"
 project = "QRules"
 pygments_style = "sphinx"
 release = get_package_version(PACKAGE)
-source_suffix = {
-    ".ipynb": "myst-nb",
-    ".md": "myst-nb",
-    ".rst": "restructuredtext",
-}
 suppress_warnings = [
     "myst.domains",
     # skipping unknown output mime type: application/json
