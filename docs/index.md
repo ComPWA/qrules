@@ -125,7 +125,7 @@ maxdepth: 2
 API <api/qrules>
 Changelog <https://github.com/ComPWA/qrules/releases>
 Upcoming features <https://github.com/ComPWA/qrules/milestones?direction=asc&sort=title&state=open>
-Help developing <https://compwa-org.readthedocs.io/en/stable/develop.html>
+Help developing <https://compwa.github.io/develop>
 ```
 
 ```{toctree}
@@ -136,5 +136,5 @@ hidden:
 AmpForm <https://ampform.readthedocs.io>
 TensorWaves <https://tensorwaves.readthedocs.io>
 PWA Pages <https://pwa.readthedocs.io>
-ComPWA project <https://compwa-org.readthedocs.io>
+ComPWA project <https://compwa.github.io>
 ```
