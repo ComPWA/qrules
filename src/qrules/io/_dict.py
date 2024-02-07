@@ -53,11 +53,11 @@ def build_particle_collection(
 
 
 def build_particle(definition: dict) -> Particle:
-    isospin_def = definition.get("isospin", None)
+    isospin_def = definition.get("isospin")
     if isospin_def is not None:
         definition["isospin"] = Spin(**isospin_def)
     for parity in ["parity", "c_parity", "g_parity"]:
-        parity_def = definition.get(parity, None)
+        parity_def = definition.get(parity)
         if parity_def is not None:
             definition[parity] = Parity(**parity_def)
     return Particle(**definition)

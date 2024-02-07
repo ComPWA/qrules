@@ -119,7 +119,7 @@ def _sort_nested(nested_list: List[List[str]]) -> List[List[str]]:
 
 
 def ensure_nested_list(
-    nested_list: Union[List[str], List[List[str]]]
+    nested_list: Union[List[str], List[List[str]]],
 ) -> List[List[str]]:
     if any(not isinstance(item, list) for item in nested_list):
         nested_list = [nested_list]  # type: ignore[assignment]
@@ -337,7 +337,7 @@ def __get_kinematic_groupings(
         List[List[str]],
         List[str],
         None,
-    ]
+    ],
 ) -> Optional[List[_KinematicRepresentation]]:
     if final_state_groupings is None:
         return None

@@ -120,7 +120,7 @@ def _convert_violated_rules_to_names(
     rules: Union[
         Dict[int, Set[Rule]],
         Dict[int, Set[GraphElementRule]],
-    ]
+    ],
 ) -> Dict[int, Set[str]]:
     def get_name(rule: Any) -> str:
         if inspect.isfunction(rule):
@@ -140,7 +140,7 @@ def _convert_non_executed_rules_to_names(
     rules: Union[
         Dict[int, Set[Rule]],
         Dict[int, Set[GraphElementRule]],
-    ]
+    ],
 ) -> Dict[int, Set[str]]:
     def get_name(rule: Any) -> str:
         if inspect.isfunction(rule):
@@ -564,7 +564,7 @@ class CSPSolver(Solver):
             graph_element_settings: Union[
                 NodeSettings,
                 EdgeSettings,
-            ]
+            ],
         ) -> List[Rule]:
             # first add priorities to the entries
             priority_list = [
