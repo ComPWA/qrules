@@ -15,7 +15,7 @@ repos:
       - id: check-useless-excludes
 
   - repo: https://github.com/kynan/nbstripout
-    rev: 0.6.1
+    rev: 0.7.1
     hooks:
       - id: nbstripout
         args:
@@ -82,7 +82,7 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 23.12.1
+    rev: 24.1.1
     hooks:
       - id: black
       - id: black-jupyter
@@ -100,7 +100,7 @@ repos:
       - id: prettier
 
   - repo: https://github.com/ComPWA/mirrors-taplo
-    rev: v0.8.1
+    rev: v0.9.0
     hooks:
       - id: taplo
 
@@ -112,7 +112,7 @@ repos:
           - --in-place
 
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0.27.3
+    rev: 0.28.0
     hooks:
       - id: check-jsonschema
         name: Check CITATION.cff
@@ -151,12 +151,12 @@ repos:
           - python
 
   - repo: https://github.com/ComPWA/mirrors-pyright
-    rev: v1.1.345
+    rev: v1.1.350
     hooks:
       - id: pyright
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.1.13
+    rev: v0.2.1
     hooks:
       - id: ruff
         args: [--fix]
