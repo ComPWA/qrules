@@ -307,7 +307,6 @@ def get_required_qns(
     required_edge_qns: Set[Type[EdgeQuantumNumber]] = set()
     required_node_qns: Set[Type[NodeQuantumNumber]] = set()
 
-    arg_counter = 0
     for input_type in rule_annotations:
         class_type = input_type
         if _is_sequence_type(input_type):
@@ -329,6 +328,5 @@ def get_required_qns(
                 required_edge_qns.add(class_type)
             else:
                 required_node_qns.add(class_type)
-        arg_counter += 1
 
-    return (required_edge_qns, required_node_qns)
+    return required_edge_qns, required_node_qns
