@@ -128,7 +128,9 @@ class _ValueExtractor(Generic[_ElementType]):
 
         return None
 
-    def __extract(self, props: GraphElementPropertyMap[_ElementType]) -> _ElementType:
+    def __extract(
+        self, props: GraphElementPropertyMap[_ElementType]
+    ) -> Union[_ElementType, None]:
         value = props[self.__obj_type]
         if value is None:
             return None

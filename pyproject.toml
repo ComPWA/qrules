@@ -101,14 +101,22 @@ exclude = [
     "**/__pycache__",
     "**/_build",
 ]
+reportArgumentType = false
+reportAssignmentType = false
+reportAttributeAccessIssue = false
+reportCallIssue = false
 reportGeneralTypeIssues = false
 reportIncompatibleMethodOverride = false
+reportIndexIssue = false
+reportInvalidTypeArguments = false
 reportMissingParameterType = false
 reportMissingTypeArgument = false
 reportMissingTypeStubs = false
+reportOperatorIssue = false
 reportOverlappingOverload = false
 reportPrivateImportUsage = false
 reportPrivateUsage = false
+reportReturnType = false
 reportUnboundVariable = false
 reportUnknownArgumentType = false
 reportUnknownLambdaType = false
