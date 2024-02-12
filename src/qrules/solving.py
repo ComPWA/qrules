@@ -515,7 +515,7 @@ class CSPSolver(Solver):
                     validate_full_solution(
                         QNProblemSet(
                             initial_facts=MutableTransition(
-                                topology, states, interactions  # type: ignore[arg-type]
+                                topology, states, interactions
                             ),
                             solving_settings=MutableTransition(
                                 topology,
@@ -810,9 +810,7 @@ class Scoresheet:
 _QNType = TypeVar("_QNType", EdgeQuantumNumber, NodeQuantumNumber)
 
 
-class _GraphElementConstraint(
-    Generic[_QNType], Constraint  # pyright: ignore[reportUntypedBaseClass]
-):
+class _GraphElementConstraint(Generic[_QNType], Constraint):
     """Wrapper class of the python-constraint Constraint class.
 
     This allows a customized definition of conservation rules, and hence a cleaner user

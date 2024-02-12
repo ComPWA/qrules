@@ -8,32 +8,6 @@ requires = [
 [tool.setuptools_scm]
 write_to = "src/qrules/version.py"
 
-[tool.black]
-exclude = '''
-/(
-    .*\.egg-info
-    | .*build
-    | \.eggs
-    | \.git
-    | \.pytest_cache
-    | \.tox
-    | \.venv
-    | \.vscode
-    | dist
-)/
-'''
-include = '\.pyi?$'
-preview = true
-target-version = [
-    "py310",
-    "py311",
-    "py312",
-    "py36",
-    "py37",
-    "py38",
-    "py39",
-]
-
 [tool.coverage.run]
 branch = true
 source = ["src"]
@@ -168,6 +142,10 @@ src = [
 ]
 target-version = "py37"
 
+[tool.ruff.format]
+docstring-code-format = true
+line-ending = "lf"
+
 [tool.ruff.lint]
 extend-select = [
     "A",
@@ -211,6 +189,7 @@ ignore = [
     "D407",
     "D416",
     "E501",
+    "ISC001",
     "PLR0913",
     "PLR2004",
     "PLR5501",

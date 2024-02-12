@@ -62,7 +62,8 @@ class TestParticle:
         with pytest.raises(FrozenInstanceError):
             test_state.charge = 1  # type: ignore[misc]
         with pytest.raises(
-            ValueError, match=r"Fails Gell-Mann–Nishijima"  # noqa: RUF001
+            ValueError,
+            match=r"Fails Gell-Mann–Nishijima",  # noqa: RUF001
         ):
             Particle(
                 name="Fails Gell-Mann–Nishijima formula",  # noqa: RUF001

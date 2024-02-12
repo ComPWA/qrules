@@ -204,9 +204,7 @@ class ProblemSet:
             for k, v in self.initial_facts.states.items()
         }
         return QNProblemSet(
-            initial_facts=MutableTransition(
-                self.topology, states, interactions  # type: ignore[arg-type]
-            ),
+            initial_facts=MutableTransition(self.topology, states, interactions),
             solving_settings=self.solving_settings,
         )
 
@@ -242,7 +240,9 @@ class StateTransitionManager:
         final_state: Sequence[StateDefinition],
         particle_db: Optional[ParticleCollection] = None,
         allowed_intermediate_particles: Optional[List[str]] = None,
-        interaction_type_settings: Optional[Dict[InteractionType, Tuple[EdgeSettings, NodeSettings]]] = None,  # type: ignore[assignment]
+        interaction_type_settings: Optional[
+            Dict[InteractionType, Tuple[EdgeSettings, NodeSettings]]
+        ] = None,
         formalism: str = "helicity",
         topology_building: str = "isobar",
         solving_mode: SolvingMode = SolvingMode.FAST,
