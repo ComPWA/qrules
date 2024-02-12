@@ -113,7 +113,7 @@ DEFAULT_INTERACTION_TYPES = [
 ]
 
 
-def create_interaction_settings(
+def create_interaction_settings(  # noqa: PLR0917
     formalism: str,
     particle_db: ParticleCollection,
     nbody_topology: bool = False,
@@ -322,6 +322,6 @@ def _int_domain(start: int, stop: int) -> List[int]:
 
 
 def __extend_negative(
-    magnitudes: Iterable[Union[int, float]]
+    magnitudes: Iterable[Union[int, float]],
 ) -> List[Union[int, float]]:
     return sorted(list(magnitudes) + [-x for x in magnitudes if x > 0])

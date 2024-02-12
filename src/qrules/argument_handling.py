@@ -80,7 +80,7 @@ class _CompositeArgumentCheck:
 
 
 def _direct_qn_check(
-    qn_type: Union[Type[EdgeQuantumNumber], Type[NodeQuantumNumber]]
+    qn_type: Union[Type[EdgeQuantumNumber], Type[NodeQuantumNumber]],
 ) -> Callable[[GraphElementPropertyMap], bool]:
     def wrapper(props: GraphElementPropertyMap) -> bool:
         return qn_type in props
@@ -128,7 +128,9 @@ class _ValueExtractor(Generic[_ElementType]):
 
         return None
 
-    def __extract(self, props: GraphElementPropertyMap[_ElementType]) -> _ElementType:
+    def __extract(
+        self, props: GraphElementPropertyMap[_ElementType]
+    ) -> Union[_ElementType, None]:
         value = props[self.__obj_type]
         if value is None:
             return None
@@ -307,7 +309,6 @@ def get_required_qns(
     required_edge_qns: Set[Type[EdgeQuantumNumber]] = set()
     required_node_qns: Set[Type[NodeQuantumNumber]] = set()
 
-    arg_counter = 0
     for input_type in rule_annotations:
         class_type = input_type
         if _is_sequence_type(input_type):
@@ -329,6 +330,5 @@ def get_required_qns(
                 required_edge_qns.add(class_type)
             else:
                 required_node_qns.add(class_type)
-        arg_counter += 1
 
-    return (required_edge_qns, required_node_qns)
+    return required_edge_qns, required_node_qns

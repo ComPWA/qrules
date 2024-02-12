@@ -25,14 +25,14 @@ def _check_plus_minus(_: Any, __: attrs.Attribute, value: Any) -> None:
             f" {type(value).__name__}"
         )
         raise TypeError(msg)
-    if value not in [-1, +1]:
+    if value not in {-1, +1}:
         msg = f"Parity can only be +1 or -1, not {value}"
         raise ValueError(msg)
 
 
 @total_ordering
 @frozen(eq=False, hash=True, order=False, repr=False)
-class Parity:
+class Parity:  # noqa: PLW1641
     value: int = field(validator=[instance_of(int), _check_plus_minus])
 
     def __eq__(self, other: object) -> bool:

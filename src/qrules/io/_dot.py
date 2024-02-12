@@ -10,18 +10,7 @@ from collections import abc
 from functools import singledispatch
 from inspect import isfunction
 from numbers import Number
-from typing import (
-    Any,
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    Set,
-    Tuple,
-    Type,
-    Union,
-    cast,
-)
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Type, Union, cast
 
 import attrs
 from attrs import Attribute, define, field
@@ -463,7 +452,7 @@ def _get_particle_graphs(
         particle_transition: FrozenTransition[Particle, None] = FrozenTransition(
             stripped_transition.topology,
             states=stripped_transition.states,
-            interactions={i: None for i in topology.nodes},
+            interactions=dict.fromkeys(topology.nodes),
         )
         inventory.add(particle_transition)
     return sorted(
@@ -502,7 +491,7 @@ def _collapse_graphs(
         g.topology: MutableTransition(
             g.topology,
             states={i: set() for i in g.topology.edges},  # type: ignore[misc]
-            interactions={i: None for i in g.topology.nodes},  # type: ignore[misc]
+            interactions=dict.fromkeys(g.topology.nodes),  # type: ignore[misc]
         )
         for g in graphs
     }

@@ -41,6 +41,7 @@
   },
   "git.rebaseWhenSync": true,
   "github-actions.workflows.pinned.workflows": [".github/workflows/ci.yml"],
+  "gitlens.telemetry.enabled": false,
   "json.schemas": [
     {
       "fileMatch": ["*particle*.json"],
@@ -62,6 +63,7 @@
   "python.testing.pytestArgs": ["--color=no", "--no-cov"],
   "python.testing.pytestEnabled": true,
   "python.testing.unittestEnabled": false,
+  "redhat.telemetry.enabled": false,
   "rewrap.wrappingColumn": 88,
   "ruff.enable": true,
   "ruff.organizeImports": true,
@@ -69,6 +71,7 @@
     "**/tests/**/__init__.py": true,
     ".constraints/*.txt": true
   },
+  "telemetry.telemetryLevel": "off",
   "yaml.schemas": {
     "./src/qrules/particle-validation.json": ["*particle*.y*ml"],
     "https://citation-file-format.github.io/1.2.0/schema.json": "CITATION.cff",

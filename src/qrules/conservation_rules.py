@@ -120,11 +120,13 @@ def additive_quantum_number_rule(
             return sum(ingoing_edge_qns) == sum(outgoing_edge_qns)
 
         rule_class.__call__ = new_call
-        rule_class.__doc__ = dedent(f"""
+        rule_class.__doc__ = dedent(
+            f"""
             Decorated via `{additive_quantum_number_rule.__name__}`.
 
             Check for `~.EdgeQuantumNumbers.{quantum_number.__name__}` conservation.
-            """)
+            """
+        )
         return rule_class
 
     return decorator

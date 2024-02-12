@@ -236,7 +236,7 @@ class StateTransitionManager:
     .. seealso:: :doc:`/usage/reaction` and `.generate_transitions`
     """
 
-    def __init__(  # noqa: C901, PLR0912
+    def __init__(  # noqa: C901, PLR0912, PLR0917
         self,
         initial_state: Sequence[StateDefinition],
         final_state: Sequence[StateDefinition],
@@ -430,7 +430,7 @@ class StateTransitionManager:
         ]
         return _group_by_strength(problem_sets)
 
-    def __determine_graph_settings(  # noqa: C901
+    def __determine_graph_settings(  # noqa: C901, PLR0914
         self, topology: Topology, initial_facts: "InitialFacts"
     ) -> List[GraphSettings]:
         weak_edge_settings, _ = self.interaction_type_settings[InteractionType.WEAK]

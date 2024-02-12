@@ -154,7 +154,7 @@ class InteractionDeterminator(ABC):
 class GammaCheck(InteractionDeterminator):
     """Conservation check for photons."""
 
-    def check(
+    def check(  # noqa: PLR6301
         self,
         in_states: List[ParticleWithSpin],
         out_states: List[ParticleWithSpin],
@@ -171,7 +171,7 @@ class GammaCheck(InteractionDeterminator):
 class LeptonCheck(InteractionDeterminator):
     """Conservation check lepton numbers."""
 
-    def check(
+    def check(  # noqa: PLR6301
         self,
         in_states: List[ParticleWithSpin],
         out_states: List[ParticleWithSpin],

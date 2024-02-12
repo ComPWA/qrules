@@ -120,7 +120,7 @@ def _convert_violated_rules_to_names(
     rules: Union[
         Dict[int, Set[Rule]],
         Dict[int, Set[GraphElementRule]],
-    ]
+    ],
 ) -> Dict[int, Set[str]]:
     def get_name(rule: Any) -> str:
         if inspect.isfunction(rule):
@@ -140,7 +140,7 @@ def _convert_non_executed_rules_to_names(
     rules: Union[
         Dict[int, Set[Rule]],
         Dict[int, Set[GraphElementRule]],
-    ]
+    ],
 ) -> Dict[int, Set[str]]:
     def get_name(rule: Any) -> str:
         if inspect.isfunction(rule):
@@ -549,7 +549,9 @@ class CSPSolver(Solver):
         self.__problem = Problem(BacktrackingSolver(True))
         self.__scoresheet = Scoresheet()
 
-    def __initialize_constraints(self, problem_set: QNProblemSet) -> None:
+    def __initialize_constraints(  # noqa: PLR0914
+        self, problem_set: QNProblemSet
+    ) -> None:
         """Initialize all of the constraints for this graph.
 
         For each interaction node a set of independent constraints/conservation laws are
@@ -564,7 +566,7 @@ class CSPSolver(Solver):
             graph_element_settings: Union[
                 NodeSettings,
                 EdgeSettings,
-            ]
+            ],
         ) -> List[Rule]:
             # first add priorities to the entries
             priority_list = [

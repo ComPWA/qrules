@@ -98,10 +98,10 @@ _GRAPHVIZ_COUNTER = 0
 _IMAGE_DIR = "_images"
 
 
-def _graphviz_to_image(
+def _graphviz_to_image(  # noqa: PLR0917
     dot: str,
     options: Optional[Dict[str, str]] = None,
-    format: str = "svg",  # noqa: A002
+    format: str = "svg",
     indent: int = 0,
     caption: str = "",
     label: str = "",

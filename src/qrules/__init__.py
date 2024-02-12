@@ -56,7 +56,7 @@ from .topology import MutableTransition, create_n_body_topology
 from .transition import EdgeSettings, ProblemSet, ReactionInfo, StateTransitionManager
 
 
-def check_reaction_violations(  # noqa: C901
+def check_reaction_violations(  # noqa: C901, PLR0917
     initial_state: Union[StateDefinition, Sequence[StateDefinition]],
     final_state: Sequence[StateDefinition],
     mass_conservation_factor: Optional[float] = 3.0,
@@ -138,10 +138,9 @@ def check_reaction_violations(  # noqa: C901
         edge_check_result = _check_violations(
             initial_facts[0],
             node_rules={},
-            edge_rules={
-                edge_id: pure_edge_rules
-                for edge_id in topology.incoming_edge_ids | topology.outgoing_edge_ids
-            },
+            edge_rules=dict.fromkeys(
+                topology.incoming_edge_ids | topology.outgoing_edge_ids, pure_edge_rules
+            ),
         )
 
         if edge_check_result.violated_edge_rules:
@@ -173,7 +172,7 @@ def check_reaction_violations(  # noqa: C901
             frozenset((x,))
             for x in _check_violations(
                 initial_facts[0],
-                node_rules={i: edge_qn_conservation_rules for i in topology.nodes},
+                node_rules=dict.fromkeys(topology.nodes, edge_qn_conservation_rules),
                 edge_rules={},
             ).violated_node_rules[node_id]
         }
@@ -253,7 +252,7 @@ def check_reaction_violations(  # noqa: C901
     return violations
 
 
-def generate_transitions(
+def generate_transitions(  # noqa: PLR0917
     initial_state: Union[StateDefinition, Sequence[StateDefinition]],
     final_state: Sequence[StateDefinition],
     allowed_intermediate_particles: Optional[List[str]] = None,
