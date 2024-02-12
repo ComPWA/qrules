@@ -138,10 +138,7 @@ def check_reaction_violations(  # noqa: C901
         edge_check_result = _check_violations(
             initial_facts[0],
             node_rules={},
-            edge_rules={
-                edge_id: pure_edge_rules
-                for edge_id in topology.incoming_edge_ids | topology.outgoing_edge_ids
-            },
+            edge_rules=dict.fromkeys(topology.incoming_edge_ids | topology.outgoing_edge_ids, pure_edge_rules),
         )
 
         if edge_check_result.violated_edge_rules:
@@ -173,7 +170,7 @@ def check_reaction_violations(  # noqa: C901
             frozenset((x,))
             for x in _check_violations(
                 initial_facts[0],
-                node_rules={i: edge_qn_conservation_rules for i in topology.nodes},
+                node_rules=dict.fromkeys(topology.nodes, edge_qn_conservation_rules),
                 edge_rules={},
             ).violated_node_rules[node_id]
         }
