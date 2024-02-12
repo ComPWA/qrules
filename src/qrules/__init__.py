@@ -56,7 +56,7 @@ from .topology import MutableTransition, create_n_body_topology
 from .transition import EdgeSettings, ProblemSet, ReactionInfo, StateTransitionManager
 
 
-def check_reaction_violations(  # noqa: C901
+def check_reaction_violations(  # noqa: C901, PLR0917
     initial_state: Union[StateDefinition, Sequence[StateDefinition]],
     final_state: Sequence[StateDefinition],
     mass_conservation_factor: Optional[float] = 3.0,
@@ -252,7 +252,7 @@ def check_reaction_violations(  # noqa: C901
     return violations
 
 
-def generate_transitions(
+def generate_transitions(  # noqa: PLR0917
     initial_state: Union[StateDefinition, Sequence[StateDefinition]],
     final_state: Sequence[StateDefinition],
     allowed_intermediate_particles: Optional[List[str]] = None,

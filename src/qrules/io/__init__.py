@@ -124,7 +124,7 @@ def load(filename: str) -> object:
         if file_extension == "json":
             definition = json.load(stream)
             return fromdict(definition)
-        if file_extension in ["yaml", "yml"]:
+        if file_extension in {"yaml", "yml"}:
             definition = yaml.load(stream, Loader=yaml.SafeLoader)
             return fromdict(definition)
     msg = f'No loader defined for file type "{file_extension}"'
@@ -148,7 +148,7 @@ def write(instance: object, filename: str) -> None:
         if file_extension == "json":
             json.dump(asdict(instance), stream, indent=2, cls=JSONSetEncoder)
             return
-        if file_extension in ["yaml", "yml"]:
+        if file_extension in {"yaml", "yml"}:
             yaml.dump(
                 asdict(instance),
                 stream,

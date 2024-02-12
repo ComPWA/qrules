@@ -113,7 +113,7 @@ DEFAULT_INTERACTION_TYPES = [
 ]
 
 
-def create_interaction_settings(
+def create_interaction_settings(  # noqa: PLR0917
     formalism: str,
     particle_db: ParticleCollection,
     nbody_topology: bool = False,

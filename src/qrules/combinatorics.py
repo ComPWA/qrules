@@ -38,7 +38,7 @@ InitialFacts: TypeAlias = "MutableTransition[ParticleWithSpin, InteractionProper
 """A `.Transition` with only initial and final state information."""
 
 
-class _KinematicRepresentation:
+class _KinematicRepresentation:  # noqa: PLW1641
     def __init__(
         self,
         final_state: Optional[Union[List[List[str]], List[str]]] = None,

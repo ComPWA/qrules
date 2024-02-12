@@ -54,7 +54,7 @@ def _to_float(value: SupportsFloat) -> float:
 
 @total_ordering
 @frozen(eq=False, hash=True, order=False)
-class Spin:
+class Spin:  # noqa: PLW1641
     """Safe, immutable data container for spin **with projection**."""
 
     magnitude: float = field(converter=_to_float)
@@ -242,7 +242,7 @@ def _get_name_root(name: str) -> str:
 ParticleWithSpin = Tuple[Particle, float]
 
 
-class ParticleCollection(abc.MutableSet):
+class ParticleCollection(abc.MutableSet):  # noqa: PLW1641
     """Searchable collection of immutable `.Particle` instances."""
 
     def __init__(self, particles: Optional[Iterable[Particle]] = None) -> None:
@@ -359,13 +359,13 @@ class ParticleCollection(abc.MutableSet):
         """Search for a particle by either name (`str`) or PID (`int`)."""
         if isinstance(search_term, str):
             particle_name = search_term
-            return self.__getitem__(particle_name)
+            return self[particle_name]
         if isinstance(search_term, int):
             if search_term not in self.__pid_to_name:
                 msg = f"No particle with PID {search_term}"
                 raise KeyError(msg)
             particle_name = self.__pid_to_name[search_term]
-            return self.__getitem__(particle_name)
+            return self[particle_name]
         msg = f"Cannot search for a search term of type {type(search_term)}"
         raise NotImplementedError(msg)
 
@@ -402,7 +402,7 @@ class ParticleCollection(abc.MutableSet):
         return [p.name for p in sorted(self)]
 
 
-def create_particle(
+def create_particle(  # noqa: PLR0917
     template_particle: Particle,
     name: Optional[str] = None,
     latex: Optional[str] = None,
@@ -504,7 +504,7 @@ def load_pdg() -> ParticleCollection:
     PDG info is imported from the `scikit-hep/particle
     <https://github.com/scikit-hep/particle>`_ package.
     """
-    from particle import Particle as PdgDatabase
+    from particle import Particle as PdgDatabase  # noqa: PLC0415
 
     all_pdg_particles = PdgDatabase.findall(
         lambda item: item.charge is not None
@@ -658,7 +658,7 @@ def __filter_quark_content(pdg_particle: "PdgDatabase") -> str:
 
 
 def __create_parity(parity_enum: "enums.Parity") -> Optional[Parity]:
-    from particle.particle import enums
+    from particle.particle import enums  # noqa: PLC0415
 
     if parity_enum is None or parity_enum == enums.Parity.u:
         return None

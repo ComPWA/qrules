@@ -248,6 +248,10 @@ split-on-trailing-comma = false
     "S113",
     "T201",
 ]
+"docs/_extend_docstrings.py" = [
+    "A002",
+    "PLC0415",
+]
 "docs/conf.py" = [
     "A001",
     "D100",
@@ -257,6 +261,7 @@ split-on-trailing-comma = false
     "D",
     "INP001",
     "PGH001",
+    "PLC2701",
     "PLR0913",
     "PLR2004",
     "PLR6301",
@@ -267,6 +272,9 @@ split-on-trailing-comma = false
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.ruff.lint.pylint]
+allow-dunder-method-names = ["_repr_pretty_"]
 
 [tool.tomlsort]
 all = false

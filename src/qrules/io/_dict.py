@@ -106,7 +106,7 @@ def build_topology(definition: dict) -> Topology:
 
 
 def validate_particle_collection(instance: dict) -> None:
-    import jsonschema
+    import jsonschema  # noqa: PLC0415
 
     jsonschema.validate(instance=instance, schema=__SCHEMA_PARTICLES)
 

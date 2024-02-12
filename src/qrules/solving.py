@@ -549,7 +549,9 @@ class CSPSolver(Solver):
         self.__problem = Problem(BacktrackingSolver(True))
         self.__scoresheet = Scoresheet()
 
-    def __initialize_constraints(self, problem_set: QNProblemSet) -> None:
+    def __initialize_constraints(  # noqa: PLR0914
+        self, problem_set: QNProblemSet
+    ) -> None:
         """Initialize all of the constraints for this graph.
 
         For each interaction node a set of independent constraints/conservation laws are
