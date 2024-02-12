@@ -138,7 +138,9 @@ def check_reaction_violations(  # noqa: C901
         edge_check_result = _check_violations(
             initial_facts[0],
             node_rules={},
-            edge_rules=dict.fromkeys(topology.incoming_edge_ids | topology.outgoing_edge_ids, pure_edge_rules),
+            edge_rules=dict.fromkeys(
+                topology.incoming_edge_ids | topology.outgoing_edge_ids, pure_edge_rules
+            ),
         )
 
         if edge_check_result.violated_edge_rules:
