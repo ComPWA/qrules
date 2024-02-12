@@ -661,10 +661,12 @@ class SimpleStateTransitionTopologyBuilder:
                 # remove all combinations that originate from the same nodes
                 for comb1, comb2 in itertools.combinations(combis, 2):
                     if get_originating_node_list(
-                        topology, comb1  # type: ignore[arg-type]
+                        topology,  # type: ignore[arg-type]
+                        comb1,
                     ) == get_originating_node_list(
-                        topology, comb2  # type: ignore[arg-type]
-                    ):  # type: ignore[arg-type]
+                        topology,  # type: ignore[arg-type]
+                        comb2,
+                    ):
                         combis.remove(comb2)
 
                 for combi in combis:
@@ -725,8 +727,8 @@ def create_n_body_topology(
 
     Example:
         >>> topology = create_n_body_topology(
-        ...    number_of_initial_states=2,
-        ...    number_of_final_states=5,
+        ...     number_of_initial_states=2,
+        ...     number_of_final_states=5,
         ... )
         >>> topology
         Topology(nodes=..., edges...)
@@ -739,14 +741,12 @@ def create_n_body_topology(
     """
     n_in = number_of_initial_states
     n_out = number_of_final_states
-    builder = SimpleStateTransitionTopologyBuilder(
-        [
-            InteractionNode(
-                number_of_ingoing_edges=n_in,
-                number_of_outgoing_edges=n_out,
-            )
-        ]
-    )
+    builder = SimpleStateTransitionTopologyBuilder([
+        InteractionNode(
+            number_of_ingoing_edges=n_in,
+            number_of_outgoing_edges=n_out,
+        )
+    ])
     topologies = builder.build(
         number_of_initial_edges=n_in,
         number_of_final_edges=n_out,

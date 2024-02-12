@@ -58,10 +58,12 @@ class GraphPrinter:
         converter=_create_default_figure_style, default=None
     )
     edge_style: Dict[str, Any] = field(
-        converter=default_if_none(factory=dict), default=None  # type: ignore[misc]
+        converter=default_if_none(factory=dict),  # type: ignore[misc]
+        default=None,
     )
     node_style: Dict[str, Any] = field(
-        converter=default_if_none(factory=dict), default=None  # type: ignore[misc]
+        converter=default_if_none(factory=dict),  # type: ignore[misc]
+        default=None,
     )
     indent: int = 4
 
