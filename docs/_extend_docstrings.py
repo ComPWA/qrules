@@ -4,11 +4,12 @@ This small script is used by ``conf.py`` to dynamically modify docstrings.
 """
 
 # pyright: reportMissingImports=false
+from __future__ import annotations
 
 import inspect
 import logging
 import textwrap
-from typing import Callable, Dict, Optional, Type, Union
+from typing import Callable
 
 import qrules
 
@@ -89,7 +90,7 @@ def extend_Topology() -> None:  # noqa: N802
     )
 
 
-def _append_to_docstring(class_type: Union[Callable, Type], appended_text: str) -> None:
+def _append_to_docstring(class_type: Callable | type, appended_text: str) -> None:
     assert class_type.__doc__ is not None
     class_type.__doc__ += appended_text
 
@@ -100,7 +101,7 @@ _IMAGE_DIR = "_images"
 
 def _graphviz_to_image(  # noqa: PLR0917
     dot: str,
-    options: Optional[Dict[str, str]] = None,
+    options: dict[str, str] | None = None,
     format: str = "svg",
     indent: int = 0,
     caption: str = "",
