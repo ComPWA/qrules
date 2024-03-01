@@ -252,33 +252,23 @@ class Topology:
 
     def __attrs_post_init__(self) -> None:
         self.__verify()
-        incoming = sorted(
+        incoming = {
             edge_id
             for edge_id, edge in self.edges.items()
             if edge.originating_node_id is None
-        )
-        outgoing = sorted(
+        }
+        outgoing = {
             edge_id
             for edge_id, edge in self.edges.items()
             if edge.ending_node_id is None
-        )
-        inter = sorted(set(self.edges) - set(incoming) - set(outgoing))
-        expected = list(range(-len(incoming), 0))
-        if sorted(incoming) != expected:
-            msg = f"Incoming edge IDs should be {expected}, not {incoming}."
+        }
+        if incoming & outgoing:
+            msg = "Topology has both incoming and outgoing edges. This is not allowed."
             raise ValueError(msg)
-        n_out = len(outgoing)
-        expected = list(range(n_out))
-        if sorted(outgoing) != expected:
-            msg = f"Outgoing edge IDs should be {expected}, not {outgoing}."
-            raise ValueError(msg)
-        expected = list(range(n_out, n_out + len(inter)))
-        if sorted(inter) != expected:
-            msg = f"Intermediate edge IDs should be {expected}."
-            raise ValueError(msg)
+        intermediate = set(self.edges) - incoming - outgoing
         object.__setattr__(self, "incoming_edge_ids", frozenset(incoming))
         object.__setattr__(self, "outgoing_edge_ids", frozenset(outgoing))
-        object.__setattr__(self, "intermediate_edge_ids", frozenset(inter))
+        object.__setattr__(self, "intermediate_edge_ids", frozenset(intermediate))
 
     def __verify(self) -> None:
         """Verify if there are no dangling edges or nodes."""
