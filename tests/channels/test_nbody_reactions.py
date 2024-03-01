@@ -1,4 +1,4 @@
-from typing import FrozenSet, Set, Union
+from __future__ import annotations
 
 import pytest
 
@@ -6,9 +6,9 @@ from qrules import check_reaction_violations
 
 
 def reduce_violated_rules(
-    violated_rules: Set[FrozenSet[str]],
-) -> Set[Union[str, FrozenSet[str]]]:
-    reduced_violations: Set[Union[str, FrozenSet[str]]] = set()
+    violated_rules: set[frozenset[str]],
+) -> set[str | frozenset[str]]:
+    reduced_violations: set[str | frozenset[str]] = set()
     for rule_group in violated_rules:
         if len(rule_group) == 1:
             reduced_violations.add(next(iter(rule_group)))

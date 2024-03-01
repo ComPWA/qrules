@@ -1,4 +1,6 @@
-from typing import List, Optional, Tuple
+from __future__ import annotations
+
+from typing import List, Tuple
 
 import pytest
 
@@ -14,11 +16,11 @@ _SpinRuleInputType = Tuple[List[SpinEdgeInput], List[SpinEdgeInput], SpinNodeInp
 
 
 def __create_two_body_decay_spin_data(
-    in_spin: Optional[Spin] = None,
-    out_spin1: Optional[Spin] = None,
-    out_spin2: Optional[Spin] = None,
-    angular_momentum: Optional[Spin] = None,
-    coupled_spin: Optional[Spin] = None,
+    in_spin: Spin | None = None,
+    out_spin1: Spin | None = None,
+    out_spin2: Spin | None = None,
+    angular_momentum: Spin | None = None,
+    coupled_spin: Spin | None = None,
 ) -> _SpinRuleInputType:
     spin_zero = Spin(0, 0)
     if in_spin is None:
