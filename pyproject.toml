@@ -1,9 +1,152 @@
 [build-system]
+build-backend = "setuptools.build_meta"
 requires = [
-    "setuptools>=36.2.1", # environment markers
+    "setuptools>=61.2",
     "setuptools_scm",
-    "wheel",
 ]
+
+[project]
+authors = [{name = "Common Partial Wave Analysis", email = "compwa-admin@ep1.rub.de"}]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Scientific/Engineering",
+    "Typing :: Typed",
+]
+dependencies = [
+    "PyYAML",
+    "attrs >=20.1.0", # on_setattr and https://www.attrs.org/en/stable/api.html#next-gen
+    "jsonschema",
+    "particle",
+    "python-constraint",
+    "tqdm >=4.24.0", # autonotebook
+    'typing-extensions; python_version <"3.10.0"', # typing.TypeAlias
+]
+description = "Rule-based particle reaction problem solver on a quantum number level"
+dynamic = ["version"]
+keywords = [
+    "HEP",
+    "PWA",
+    "amplitude analysis",
+    "partial wave analysis",
+    "particle physics",
+    "particles",
+    "physics",
+]
+license = {text = "GPLv3 or later"}
+maintainers = [{email = "compwa-admin@ep1.rub.de"}]
+name = "qrules"
+requires-python = ">=3.7"
+
+[project.optional-dependencies]
+all = [
+    "qrules[viz]",
+]
+dev = [
+    "qrules[all]",
+    "qrules[doc]",
+    "qrules[jupyter]",
+    "qrules[sty]",
+    "qrules[test]",
+    "sphinx-autobuild",
+    "tox >=1.9", # for skip_install, use_develop
+]
+doc = [
+    "Sphinx >=3",
+    "myst-nb", # nb_ configuration prefixes
+    "qrules[viz]",
+    "sphinx-book-theme",
+    "sphinx-codeautolink[ipython]",
+    "sphinx-comments",
+    "sphinx-copybutton",
+    "sphinx-design",
+    "sphinx-hep-pdgref",
+    "sphinx-thebe",
+    "sphinx-togglebutton",
+    "sphinxcontrib-bibtex >=2",
+    "sphobjinv",
+    'sphinx-api-relink >=0.0.4',
+    'sphinx-pybtex-etal-style',
+]
+jupyter = [
+    "black",
+    "ipywidgets",
+    "isort",
+    "jupyterlab",
+    "jupyterlab-code-formatter",
+    "jupyterlab-lsp",
+    "python-lsp-server[rope]",
+    'jupyterlab-git',
+    'jupyterlab-myst',
+    'python-lsp-ruff',
+]
+sty = [
+    "mypy >=0.730", # attrs and error code support
+    "pre-commit >=1.4.0",
+    "qrules[types]",
+    'ruff',
+]
+test = [
+    "ipython",
+    "nbmake",
+    "pydot <2", # problem with pydot.graph_from_dot_data
+    "pytest",
+    "pytest-cov",
+    "pytest-profiling",
+    "pytest-xdist",
+    'importlib-metadata; python_version <"3.8.0"',
+    'nbmake <1.3; python_version=="3.7.*"',
+]
+types = [
+    "ipython",
+    "pydot <2", # problem with pydot.graph_from_dot_data
+    "pytest",
+    "sphobjinv",
+    "types-PyYAML",
+    "types-setuptools",
+    'sphinx-api-relink >=0.0.4',
+]
+viz = [
+    "graphviz",
+]
+
+[project.readme]
+content-type = "text/markdown"
+file = "README.md"
+
+[project.urls]
+Changelog = "https://github.com/ComPWA/qrules/releases"
+Documentation = "https://qrules.rtfd.io"
+Source = "https://github.com/ComPWA/qrules"
+Tracker = "https://github.com/ComPWA/qrules/issues"
+
+[tool.setuptools]
+include-package-data = false
+package-dir = {"" = "src"}
+
+[tool.setuptools.package-data]
+qrules = [
+    "additional_definitions.yml",
+    "particle-validation.json",
+    "py.typed",
+]
+
+[tool.setuptools.packages.find]
+namespaces = false
+where = ["src"]
 
 [tool.setuptools_scm]
 write_to = "src/qrules/version.py"
@@ -160,6 +303,7 @@ extend-select = [
     "D",
     "EM",
     "ERA",
+    "FA",
     "I",
     "ICN",
     "INP",
@@ -193,6 +337,7 @@ ignore = [
     "D407",
     "D416",
     "E501",
+    "FA100",
     "ISC001",
     "PLR0913",
     "PLR2004",
