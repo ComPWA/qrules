@@ -9,6 +9,8 @@ The `.transition` module uses the properties of `Particle` instances when it com
 which `.MutableTransition` s are allowed between an initial state and final state.
 """
 
+from __future__ import annotations
+
 import logging
 import re
 from collections import abc
@@ -19,14 +21,10 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    Dict,
     Iterable,
     Iterator,
-    List,
-    Optional,
     SupportsFloat,
     Tuple,
-    Union,
 )
 
 import attrs
@@ -96,24 +94,24 @@ class Spin:  # noqa: PLW1641
             return attrs.astuple(self) > attrs.astuple(other)
         return self.magnitude > other
 
-    def __neg__(self) -> "Spin":
+    def __neg__(self) -> Spin:
         return Spin(self.magnitude, -self.projection)
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}{(self.magnitude, self.projection)}"
 
-    def _repr_pretty_(self, p: "PrettyPrinter", _: bool) -> None:
+    def _repr_pretty_(self, p: PrettyPrinter, _: bool) -> None:
         class_name = type(self).__name__
         magnitude = _to_fraction(self.magnitude)
         projection = _to_fraction(self.projection, render_plus=True)
         p.text(f"{class_name}({magnitude}, {projection})")
 
 
-def _to_parity(value: Union[Parity, int]) -> Parity:
+def _to_parity(value: Parity | int) -> Parity:
     return Parity(int(value))
 
 
-def _to_spin(value: Union[Spin, Tuple[float, float]]) -> Spin:
+def _to_spin(value: Spin | tuple[float, float]) -> Spin:
     if isinstance(value, tuple):
         return Spin(*value)
     return value
@@ -142,13 +140,13 @@ class Particle:
     # Labels
     name: str = field(eq=False)
     pid: int = field(eq=False)
-    latex: Optional[str] = field(eq=False, default=None)
+    latex: str | None = field(eq=False, default=None)
     # Unique properties
     spin: float = field(converter=float)
     mass: float = field(converter=float)
     width: float = field(converter=float, default=0.0)
     charge: int = field(default=0)
-    isospin: Optional[Spin] = field(converter=optional(_to_spin), default=None)
+    isospin: Spin | None = field(converter=optional(_to_spin), default=None)
     strangeness: int = field(default=0, validator=instance_of(int))
     charmness: int = field(default=0, validator=instance_of(int))
     bottomness: int = field(default=0, validator=instance_of(int))
@@ -157,9 +155,9 @@ class Particle:
     electron_lepton_number: int = field(default=0, validator=instance_of(int))
     muon_lepton_number: int = field(default=0, validator=instance_of(int))
     tau_lepton_number: int = field(default=0, validator=instance_of(int))
-    parity: Optional[Parity] = field(converter=optional(_to_parity), default=None)
-    c_parity: Optional[Parity] = field(converter=optional(_to_parity), default=None)
-    g_parity: Optional[Parity] = field(converter=optional(_to_parity), default=None)
+    parity: Parity | None = field(converter=optional(_to_parity), default=None)
+    c_parity: Parity | None = field(converter=optional(_to_parity), default=None)
+    g_parity: Parity | None = field(converter=optional(_to_parity), default=None)
 
     def __attrs_post_init__(self) -> None:
         if self.isospin is not None and not gellmann_nishijima(
@@ -202,7 +200,7 @@ class Particle:
         msg = f"Cannot compare {type(self).__name__} with {type(other).__name__}"
         raise NotImplementedError(msg)
 
-    def __neg__(self) -> "Particle":
+    def __neg__(self) -> Particle:
         return create_antiparticle(self)
 
     def is_lepton(self) -> bool:
@@ -212,7 +210,7 @@ class Particle:
             or self.tau_lepton_number != 0
         )
 
-    def _repr_pretty_(self, p: "PrettyPrinter", cycle: bool) -> None:
+    def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
         class_name = type(self).__name__
         if cycle:
             p.text(f"{class_name}(...)")
@@ -246,9 +244,9 @@ ParticleWithSpin = Tuple[Particle, float]
 class ParticleCollection(abc.MutableSet):  # noqa: PLW1641
     """Searchable collection of immutable `.Particle` instances."""
 
-    def __init__(self, particles: Optional[Iterable[Particle]] = None) -> None:
-        self.__particles: Dict[str, Particle] = {}
-        self.__pid_to_name: Dict[int, str] = {}
+    def __init__(self, particles: Iterable[Particle] | None = None) -> None:
+        self.__particles: dict[str, Particle] = {}
+        self.__pid_to_name: dict[int, str] = {}
         if particles is not None:
             self.update(particles)
 
@@ -291,9 +289,7 @@ class ParticleCollection(abc.MutableSet):  # noqa: PLW1641
     def __len__(self) -> int:
         return len(self.__particles)
 
-    def __iadd__(
-        self, other: Union[Particle, "ParticleCollection"]
-    ) -> "ParticleCollection":
+    def __iadd__(self, other: Particle | ParticleCollection) -> ParticleCollection:
         if isinstance(other, Particle):
             self.add(other)
         elif isinstance(other, ParticleCollection):
@@ -310,7 +306,7 @@ class ParticleCollection(abc.MutableSet):  # noqa: PLW1641
         output += "})"
         return output
 
-    def _repr_pretty_(self, p: "PrettyPrinter", cycle: bool) -> None:
+    def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
         class_name = type(self).__name__
         if cycle:
             p.text(f"{class_name}(...)")
@@ -344,7 +340,7 @@ class ParticleCollection(abc.MutableSet):  # noqa: PLW1641
         self.__particles[value.name] = value
         self.__pid_to_name[value.pid] = value.name
 
-    def discard(self, value: Union[Particle, str]) -> None:
+    def discard(self, value: Particle | str) -> None:
         particle_name = ""
         if isinstance(value, Particle):
             particle_name = value.name
@@ -356,7 +352,7 @@ class ParticleCollection(abc.MutableSet):  # noqa: PLW1641
         del self.__pid_to_name[self[particle_name].pid]
         del self.__particles[particle_name]
 
-    def find(self, search_term: Union[int, str]) -> Particle:
+    def find(self, search_term: int | str) -> Particle:
         """Search for a particle by either name (`str`) or PID (`int`)."""
         if isinstance(search_term, str):
             particle_name = search_term
@@ -370,7 +366,7 @@ class ParticleCollection(abc.MutableSet):  # noqa: PLW1641
         msg = f"Cannot search for a search term of type {type(search_term)}"
         raise NotImplementedError(msg)
 
-    def filter(self, function: Callable[[Particle], bool]) -> "ParticleCollection":
+    def filter(self, function: Callable[[Particle], bool]) -> ParticleCollection:
         """Search by `Particle` properties using a :code:`lambda` function.
 
         For example:
@@ -399,31 +395,31 @@ class ParticleCollection(abc.MutableSet):  # noqa: PLW1641
             self.add(particle)
 
     @property
-    def names(self) -> List[str]:
+    def names(self) -> list[str]:
         return [p.name for p in sorted(self)]
 
 
 def create_particle(  # noqa: PLR0917
     template_particle: Particle,
-    name: Optional[str] = None,
-    latex: Optional[str] = None,
-    pid: Optional[int] = None,
-    mass: Optional[float] = None,
-    width: Optional[float] = None,
-    charge: Optional[int] = None,
-    spin: Optional[float] = None,
-    isospin: Optional[Spin] = None,
-    strangeness: Optional[int] = None,
-    charmness: Optional[int] = None,
-    bottomness: Optional[int] = None,
-    topness: Optional[int] = None,
-    baryon_number: Optional[int] = None,
-    electron_lepton_number: Optional[int] = None,
-    muon_lepton_number: Optional[int] = None,
-    tau_lepton_number: Optional[int] = None,
-    parity: Optional[int] = None,
-    c_parity: Optional[int] = None,
-    g_parity: Optional[int] = None,
+    name: str | None = None,
+    latex: str | None = None,
+    pid: int | None = None,
+    mass: float | None = None,
+    width: float | None = None,
+    charge: int | None = None,
+    spin: float | None = None,
+    isospin: Spin | None = None,
+    strangeness: int | None = None,
+    charmness: int | None = None,
+    bottomness: int | None = None,
+    topness: int | None = None,
+    baryon_number: int | None = None,
+    electron_lepton_number: int | None = None,
+    muon_lepton_number: int | None = None,
+    tau_lepton_number: int | None = None,
+    parity: int | None = None,
+    c_parity: int | None = None,
+    g_parity: int | None = None,
 ) -> Particle:
     return Particle(
         name=name if name else template_particle.name,
@@ -464,13 +460,13 @@ def create_particle(  # noqa: PLR0917
 
 def create_antiparticle(
     template_particle: Particle,
-    new_name: Optional[str] = None,
-    new_latex: Optional[str] = None,
+    new_name: str | None = None,
+    new_latex: str | None = None,
 ) -> Particle:
-    isospin: Optional[Spin] = None
+    isospin: Spin | None = None
     if template_particle.isospin:
         isospin = -template_particle.isospin
-    parity: Optional[Parity] = None
+    parity: Parity | None = None
     if template_particle.parity is not None:
         if template_particle.spin.is_integer():
             parity = template_particle.parity
@@ -530,13 +526,13 @@ __skip_particles = {
 }
 
 
-def __sign(value: Union[float, int]) -> int:
+def __sign(value: float | int) -> int:
     return int(copysign(1, value))
 
 
 # cspell:ignore pdgid
-def __convert_pdg_instance(pdg_particle: "PdgDatabase") -> Particle:
-    def convert_mass_width(value: Optional[float]) -> float:
+def __convert_pdg_instance(pdg_particle: PdgDatabase) -> Particle:
+    def convert_mass_width(value: float | None) -> float:
         if value is None:
             return 0.0
         return float(value) / 1e3  # https://github.com/ComPWA/qrules/issues/14
@@ -547,7 +543,7 @@ def __convert_pdg_instance(pdg_particle: "PdgDatabase") -> Particle:
     quark_numbers = __compute_quark_numbers(pdg_particle)
     lepton_numbers = __compute_lepton_numbers(pdg_particle)
     if pdg_particle.pdgid.is_lepton:  # convention: C(fermion)=+1
-        parity: Optional[Parity] = Parity(__sign(pdg_particle.pdgid))
+        parity: Parity | None = Parity(__sign(pdg_particle.pdgid))
     else:
         parity = __create_parity(pdg_particle.P)
     latex = None
@@ -577,8 +573,8 @@ def __convert_pdg_instance(pdg_particle: "PdgDatabase") -> Particle:
 
 
 def __compute_quark_numbers(
-    pdg_particle: "PdgDatabase",
-) -> Tuple[int, int, int, int]:
+    pdg_particle: PdgDatabase,
+) -> tuple[int, int, int, int]:
     strangeness = 0
     charmness = 0
     bottomness = 0
@@ -598,8 +594,8 @@ def __compute_quark_numbers(
 
 
 def __compute_lepton_numbers(
-    pdg_particle: "PdgDatabase",
-) -> Tuple[int, int, int]:
+    pdg_particle: PdgDatabase,
+) -> tuple[int, int, int]:
     electron_lepton_number = 0
     muon_lepton_number = 0
     tau_lepton_number = 0
@@ -614,11 +610,11 @@ def __compute_lepton_numbers(
     return electron_lepton_number, muon_lepton_number, tau_lepton_number
 
 
-def __compute_baryonnumber(pdg_particle: "PdgDatabase") -> int:
+def __compute_baryonnumber(pdg_particle: PdgDatabase) -> int:
     return int(__sign(pdg_particle.pdgid) * pdg_particle.pdgid.is_baryon)
 
 
-def __create_isospin(pdg_particle: "PdgDatabase") -> Optional[Spin]:
+def __create_isospin(pdg_particle: PdgDatabase) -> Spin | None:
     if pdg_particle.I is None:
         return None
     magnitude = pdg_particle.I
@@ -626,7 +622,7 @@ def __create_isospin(pdg_particle: "PdgDatabase") -> Optional[Spin]:
     return Spin(magnitude, projection)
 
 
-def __isospin_projection_from_pdg(pdg_particle: "PdgDatabase") -> float:
+def __isospin_projection_from_pdg(pdg_particle: PdgDatabase) -> float:
     if pdg_particle.charge is None:
         msg = f"PDG instance has no charge:\n{pdg_particle}"
         raise ValueError(msg)
@@ -651,14 +647,14 @@ def __isospin_projection_from_pdg(pdg_particle: "PdgDatabase") -> float:
     return projection
 
 
-def __filter_quark_content(pdg_particle: "PdgDatabase") -> str:
+def __filter_quark_content(pdg_particle: PdgDatabase) -> str:
     matches = re.search(r"([dDuUsScCbBtT+-]{2,})", pdg_particle.quarks)
     if matches is None:
         return ""
     return matches[1]
 
 
-def __create_parity(parity_enum: "enums.Parity") -> Optional[Parity]:
+def __create_parity(parity_enum: enums.Parity) -> Parity | None:
     from particle.particle import enums  # noqa: PLC0415
 
     if parity_enum is None or parity_enum == enums.Parity.u:
