@@ -38,6 +38,7 @@ _ElementType = TypeVar("_ElementType")
 
 GraphElementPropertyMap = Dict[Type[_ElementType], Scalar]
 GraphEdgePropertyMap = GraphElementPropertyMap[EdgeQuantumNumber]
+"""Type alias for a graph edge property map."""
 GraphNodePropertyMap = GraphElementPropertyMap[NodeQuantumNumber]
 
 

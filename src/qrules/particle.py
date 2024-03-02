@@ -240,6 +240,7 @@ def _get_name_root(name: str) -> str:
 
 
 ParticleWithSpin = Tuple[Particle, float]
+"""A particle and its spin projection."""
 
 
 class ParticleCollection(abc.MutableSet):  # noqa: PLW1641

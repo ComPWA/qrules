@@ -1,12 +1,13 @@
 """Functions that steer operations of `qrules`."""
 
+from __future__ import annotations
+
 import logging
 from abc import ABC, abstractmethod
-from typing import Callable, Dict, Iterable, List, Optional, Set, Tuple, Type
+from typing import TYPE_CHECKING, Callable, Dict, Iterable, List, Tuple
 
 import attrs
 
-from .particle import Particle, ParticleCollection, ParticleWithSpin
 from .quantum_numbers import (
     EdgeQuantumNumber,
     EdgeQuantumNumbers,
@@ -19,6 +20,9 @@ from .settings import InteractionType
 from .solving import GraphEdgePropertyMap, GraphNodePropertyMap, GraphSettings
 from .topology import MutableTransition
 
+if TYPE_CHECKING:
+    from .particle import Particle, ParticleCollection, ParticleWithSpin
+
 _LOGGER = logging.getLogger(__name__)
 
 Strength = float
@@ -28,9 +32,9 @@ GraphSettingsGroups = Dict[Strength, List[Tuple[MutableTransition, GraphSettings
 
 def create_edge_properties(
     particle: Particle,
-    spin_projection: Optional[float] = None,
+    spin_projection: float | None = None,
 ) -> GraphEdgePropertyMap:
-    edge_qn_mapping: Dict[str, Type[EdgeQuantumNumber]] = {
+    edge_qn_mapping: dict[str, type[EdgeQuantumNumber]] = {
         qn_name: qn_type
         for qn_name, qn_type in EdgeQuantumNumbers.__dict__.items()
         if not qn_name.startswith("__")
@@ -56,10 +60,8 @@ def create_edge_properties(
     return property_map
 
 
-def create_node_properties(
-    interactions: InteractionProperties,
-) -> GraphNodePropertyMap:
-    node_qn_mapping: Dict[str, Type[NodeQuantumNumber]] = {
+def create_node_properties(interactions: InteractionProperties) -> GraphNodePropertyMap:
+    node_qn_mapping: dict[str, type[NodeQuantumNumber]] = {
         qn_name: qn_type
         for qn_name, qn_type in NodeQuantumNumbers.__dict__.items()
         if not qn_name.startswith("__")
@@ -120,9 +122,9 @@ def create_interaction_properties(
 
 
 def filter_interaction_types(
-    valid_determined_interaction_types: List[InteractionType],
-    allowed_interaction_types: List[InteractionType],
-) -> List[InteractionType]:
+    valid_determined_interaction_types: list[InteractionType],
+    allowed_interaction_types: list[InteractionType],
+) -> list[InteractionType]:
     int_type_intersection = list(
         set(allowed_interaction_types) & set(valid_determined_interaction_types)
     )
@@ -144,10 +146,10 @@ class InteractionDeterminator(ABC):
     @abstractmethod
     def check(
         self,
-        in_states: List[ParticleWithSpin],
-        out_states: List[ParticleWithSpin],
+        in_states: list[ParticleWithSpin],
+        out_states: list[ParticleWithSpin],
         interactions: InteractionProperties,
-    ) -> List[InteractionType]:
+    ) -> list[InteractionType]:
         pass
 
 
@@ -156,10 +158,10 @@ class GammaCheck(InteractionDeterminator):
 
     def check(  # noqa: PLR6301
         self,
-        in_states: List[ParticleWithSpin],
-        out_states: List[ParticleWithSpin],
+        in_states: list[ParticleWithSpin],
+        out_states: list[ParticleWithSpin],
         interactions: InteractionProperties,
-    ) -> List[InteractionType]:
+    ) -> list[InteractionType]:
         int_types = list(InteractionType)
         for particle, _ in in_states + out_states:
             if "gamma" in particle.name:
@@ -173,10 +175,10 @@ class LeptonCheck(InteractionDeterminator):
 
     def check(  # noqa: PLR6301
         self,
-        in_states: List[ParticleWithSpin],
-        out_states: List[ParticleWithSpin],
+        in_states: list[ParticleWithSpin],
+        out_states: list[ParticleWithSpin],
         interactions: InteractionProperties,
-    ) -> List[InteractionType]:
+    ) -> list[InteractionType]:
         node_interaction_types = list(InteractionType)
         for particle, _ in in_states + out_states:
             if particle.is_lepton():
@@ -191,10 +193,10 @@ class LeptonCheck(InteractionDeterminator):
 
 
 def remove_duplicate_solutions(
-    solutions: List["MutableTransition[ParticleWithSpin, InteractionProperties]"],
-    remove_qns_list: Optional[Set[Type[NodeQuantumNumber]]] = None,
-    ignore_qns_list: Optional[Set[Type[NodeQuantumNumber]]] = None,
-) -> "List[MutableTransition[ParticleWithSpin, InteractionProperties]]":
+    solutions: list[MutableTransition[ParticleWithSpin, InteractionProperties]],
+    remove_qns_list: set[type[NodeQuantumNumber]] | None = None,
+    ignore_qns_list: set[type[NodeQuantumNumber]] | None = None,
+) -> list[MutableTransition[ParticleWithSpin, InteractionProperties]]:
     if remove_qns_list is None:
         remove_qns_list = set()
     if ignore_qns_list is None:
@@ -203,7 +205,7 @@ def remove_duplicate_solutions(
     _LOGGER.info(f"removing these qns from graphs: {remove_qns_list}")
     _LOGGER.info(f"ignoring qns in graph comparison: {ignore_qns_list}")
 
-    filtered_solutions: List[
+    filtered_solutions: list[
         MutableTransition[ParticleWithSpin, InteractionProperties]
     ] = []
     remove_counter = 0
@@ -224,9 +226,9 @@ def remove_duplicate_solutions(
 
 
 def _remove_qns_from_graph(
-    graph: "MutableTransition[ParticleWithSpin, InteractionProperties]",
-    qn_list: Set[Type[NodeQuantumNumber]],
-) -> "MutableTransition[ParticleWithSpin, InteractionProperties]":
+    graph: MutableTransition[ParticleWithSpin, InteractionProperties],
+    qn_list: set[type[NodeQuantumNumber]],
+) -> MutableTransition[ParticleWithSpin, InteractionProperties]:
     new_interactions = {}
     for node_id in graph.topology.nodes:
         interactions = graph.interactions[node_id]
@@ -239,9 +241,9 @@ def _remove_qns_from_graph(
 
 def _check_equal_ignoring_qns(
     ref_graph: MutableTransition,
-    solutions: List[MutableTransition],
-    ignored_qn_list: Set[Type[NodeQuantumNumber]],
-) -> Optional[MutableTransition]:
+    solutions: list[MutableTransition],
+    ignored_qn_list: set[type[NodeQuantumNumber]],
+) -> MutableTransition | None:
     """Define equal operator for graphs, ignoring certain quantum numbers."""
     if not isinstance(ref_graph, MutableTransition):
         msg = "Reference graph has to be of type MutableTransition"
@@ -263,8 +265,7 @@ class NodePropertyComparator:
     """Functor for comparing node properties in two graphs."""
 
     def __init__(
-        self,
-        ignored_qn_list: Optional[Set[Type[NodeQuantumNumber]]] = None,
+        self, ignored_qn_list: set[type[NodeQuantumNumber]] | None = None
     ) -> None:
         self.__ignored_qn_list = ignored_qn_list if ignored_qn_list else set()
 
@@ -283,9 +284,9 @@ class NodePropertyComparator:
 
 
 def filter_graphs(
-    graphs: List[MutableTransition],
+    graphs: list[MutableTransition],
     filters: Iterable[Callable[[MutableTransition], bool]],
-) -> List[MutableTransition]:
+) -> list[MutableTransition]:
     r"""Implement filtering of a list of `.MutableTransition` 's.
 
     This function can be used to select a subset of `.MutableTransition` 's from a list.
@@ -316,9 +317,9 @@ def filter_graphs(
 
 def require_interaction_property(
     ingoing_particle_name: str,
-    interaction_qn: Type[NodeQuantumNumber],
-    allowed_values: List,
-) -> "Callable[[MutableTransition[ParticleWithSpin, InteractionProperties]], bool]":
+    interaction_qn: type[NodeQuantumNumber],
+    allowed_values: list,
+) -> Callable[[MutableTransition[ParticleWithSpin, InteractionProperties]], bool]:
     """Filter function.
 
     Closure, which can be used as a filter function in :func:`.filter_graphs`.
@@ -343,7 +344,7 @@ def require_interaction_property(
     """
 
     def check(
-        graph: "MutableTransition[ParticleWithSpin, InteractionProperties]",
+        graph: MutableTransition[ParticleWithSpin, InteractionProperties],
     ) -> bool:
         node_ids = _find_node_ids_with_ingoing_particle_name(
             graph, ingoing_particle_name
@@ -362,9 +363,9 @@ def require_interaction_property(
 
 
 def _find_node_ids_with_ingoing_particle_name(
-    graph: "MutableTransition[ParticleWithSpin, InteractionProperties]",
+    graph: MutableTransition[ParticleWithSpin, InteractionProperties],
     ingoing_particle_name: str,
-) -> List[int]:
+) -> list[int]:
     topology = graph.topology
     found_node_ids = []
     for node_id in topology.nodes:

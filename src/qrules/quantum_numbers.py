@@ -150,6 +150,7 @@ NodeQuantumNumber = Union[
     NodeQuantumNumbers.s_projection,
     NodeQuantumNumbers.parity_prefactor,
 ]
+"""Type hint for quantum numbers of interaction nodes."""
 
 
 def _to_optional_float(optional_float: Optional[float]) -> Optional[float]:
