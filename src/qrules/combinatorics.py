@@ -34,6 +34,7 @@ else:
 
 StateWithSpins = Tuple[str, Sequence[float]]
 StateDefinition = Union[str, StateWithSpins]
+"""Particle name, optionally with a list of spin projections."""
 InitialFacts: TypeAlias = "MutableTransition[ParticleWithSpin, InteractionProperties]"
 """A `.Transition` with only initial and final state information."""
 

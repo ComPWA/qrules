@@ -1,5 +1,7 @@
 """Find allowed transitions between an initial and final state."""
 
+from __future__ import annotations
+
 import logging
 import re
 import sys
@@ -8,19 +10,7 @@ from collections import defaultdict
 from copy import copy, deepcopy
 from enum import Enum, auto
 from multiprocessing import Pool
-from typing import (
-    TYPE_CHECKING,
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    Sequence,
-    Set,
-    Tuple,
-    Type,
-    Union,
-    overload,
-)
+from typing import TYPE_CHECKING, Iterable, Sequence, overload
 
 import attrs
 from attrs import define, field, frozen
@@ -107,17 +97,17 @@ class SolvingMode(Enum):
 @implement_pretty_repr
 @define(on_setattr=attrs.setters.frozen)
 class ExecutionInfo:
-    not_executed_node_rules: Dict[int, Set[str]] = field(
+    not_executed_node_rules: dict[int, set[str]] = field(
         factory=lambda: defaultdict(set)
     )
-    violated_node_rules: Dict[int, Set[str]] = field(factory=lambda: defaultdict(set))
-    not_executed_edge_rules: Dict[int, Set[str]] = field(
+    violated_node_rules: dict[int, set[str]] = field(factory=lambda: defaultdict(set))
+    not_executed_edge_rules: dict[int, set[str]] = field(
         factory=lambda: defaultdict(set)
     )
-    violated_edge_rules: Dict[int, Set[str]] = field(factory=lambda: defaultdict(set))
+    violated_edge_rules: dict[int, set[str]] = field(factory=lambda: defaultdict(set))
 
     def extend(
-        self, other_result: "ExecutionInfo", intersect_violations: bool = False
+        self, other_result: ExecutionInfo, intersect_violations: bool = False
     ) -> None:
         for key, rules in other_result.not_executed_node_rules.items():
             self.not_executed_node_rules[key].update(rules)
@@ -148,8 +138,8 @@ class ExecutionInfo:
 class _SolutionContainer:
     """Defines a result of a `.ProblemSet`."""
 
-    solutions: "List[MutableTransition[ParticleWithSpin, InteractionProperties]]" = (
-        field(factory=list)
+    solutions: list[MutableTransition[ParticleWithSpin, InteractionProperties]] = field(
+        factory=list
     )
     execution_info: ExecutionInfo = field(default=ExecutionInfo())
 
@@ -169,7 +159,7 @@ class _SolutionContainer:
             )
 
     def extend(
-        self, other: "_SolutionContainer", intersect_violations: bool = False
+        self, other: _SolutionContainer, intersect_violations: bool = False
     ) -> None:
         if self.solutions or other.solutions:
             self.solutions.extend(other.solutions)
@@ -188,9 +178,9 @@ class ProblemSet:
 
     topology: Topology
     """`.Topology` over which the problem set is defined."""
-    initial_facts: "InitialFacts"
+    initial_facts: InitialFacts
     """Information about the initial and final state."""
-    solving_settings: "GraphSettings"
+    solving_settings: GraphSettings
     """Solving settings, such as conservation rules and QN-domains."""
 
     def to_qn_problem_set(self) -> QNProblemSet:
@@ -212,15 +202,15 @@ attrs.resolve_types(ProblemSet, globals(), locals())  # type: ignore[type-var]
 
 
 def _group_by_strength(
-    problem_sets: List[ProblemSet],
-) -> Dict[float, List[ProblemSet]]:
-    def calculate_strength(node_interaction_settings: Dict[int, NodeSettings]) -> float:
+    problem_sets: list[ProblemSet],
+) -> dict[float, list[ProblemSet]]:
+    def calculate_strength(node_interaction_settings: dict[int, NodeSettings]) -> float:
         strength = 1.0
         for int_setting in node_interaction_settings.values():
             strength *= int_setting.interaction_strength
         return strength
 
-    strength_sorted_problem_sets: Dict[float, List[ProblemSet]] = defaultdict(list)
+    strength_sorted_problem_sets: dict[float, list[ProblemSet]] = defaultdict(list)
     for problem_set in problem_sets:
         strength = calculate_strength(problem_set.solving_settings.interactions)
         strength_sorted_problem_sets[strength].append(problem_set)
@@ -237,19 +227,20 @@ class StateTransitionManager:
         self,
         initial_state: Sequence[StateDefinition],
         final_state: Sequence[StateDefinition],
-        particle_db: Optional[ParticleCollection] = None,
-        allowed_intermediate_particles: Optional[List[str]] = None,
-        interaction_type_settings: Optional[
-            Dict[InteractionType, Tuple[EdgeSettings, NodeSettings]]
-        ] = None,
+        particle_db: ParticleCollection | None = None,
+        allowed_intermediate_particles: list[str] | None = None,
+        interaction_type_settings: dict[
+            InteractionType, tuple[EdgeSettings, NodeSettings]
+        ]
+        | None = None,
         formalism: str = "helicity",
         topology_building: str = "isobar",
         solving_mode: SolvingMode = SolvingMode.FAST,
         reload_pdg: bool = False,
-        mass_conservation_factor: Optional[float] = 3.0,
+        mass_conservation_factor: float | None = 3.0,
         max_angular_momentum: int = 1,
         max_spin_magnitude: float = 2.0,
-        number_of_threads: Optional[int] = None,
+        number_of_threads: int | None = None,
     ) -> None:
         if number_of_threads is not None:
             NumberOfThreads.set(number_of_threads)
@@ -276,7 +267,7 @@ class StateTransitionManager:
         self.final_state = list(final_state)
         self.interaction_type_settings = interaction_type_settings
 
-        self.interaction_determinators: List[InteractionDeterminator] = [
+        self.interaction_determinators: list[InteractionDeterminator] = [
             LeptonCheck(),
             GammaCheck(),
         ]
@@ -284,13 +275,12 @@ class StateTransitionManager:
 
         .. seealso:: {ref}`usage/reaction:Select interaction types`
         """
-        self.final_state_groupings: Optional[List[List[List[str]]]] = None
-        self.__allowed_interaction_types: Union[
-            List[InteractionType],
-            Dict[int, List[InteractionType]],
-        ] = DEFAULT_INTERACTION_TYPES
-        self.filter_remove_qns: Set[Type[NodeQuantumNumber]] = set()
-        self.filter_ignore_qns: Set[Type[NodeQuantumNumber]] = set()
+        self.final_state_groupings: list[list[list[str]]] | None = None
+        self.__allowed_interaction_types: (
+            list[InteractionType] | dict[int, list[InteractionType]]
+        ) = DEFAULT_INTERACTION_TYPES
+        self.filter_remove_qns: set[type[NodeQuantumNumber]] = set()
+        self.filter_ignore_qns: set[type[NodeQuantumNumber]] = set()
         if formalism == "helicity":
             self.filter_remove_qns = {
                 NodeQuantumNumbers.l_magnitude,
@@ -303,7 +293,7 @@ class StateTransitionManager:
         use_nbody_topology = False
         topology_building = topology_building.lower()
         if topology_building == "isobar":
-            self.topologies: Tuple[Topology, ...] = create_isobar_topologies(
+            self.topologies: tuple[Topology, ...] = create_isobar_topologies(
                 len(final_state)
             )
             """`.Topology` instances over which the STM propagates quantum numbers."""
@@ -332,14 +322,14 @@ class StateTransitionManager:
 
         self.__intermediate_particle_filters = allowed_intermediate_particles
         if allowed_intermediate_particles is None:
-            self.__allowed_intermediate_states: List[GraphEdgePropertyMap] = [
+            self.__allowed_intermediate_states: list[GraphEdgePropertyMap] = [
                 create_edge_properties(x) for x in self.__particles
             ]
         else:
             self.set_allowed_intermediate_particles(allowed_intermediate_particles)
 
     def set_allowed_intermediate_particles(
-        self, name_patterns: Union[Iterable[str], str], regex: bool = False
+        self, name_patterns: Iterable[str] | str, regex: bool = False
     ) -> None:
         if isinstance(name_patterns, str):
             name_patterns = [name_patterns]
@@ -363,9 +353,7 @@ class StateTransitionManager:
     def formalism(self) -> str:
         return self.__formalism
 
-    def add_final_state_grouping(
-        self, fs_group: Union[List[str], List[List[str]]]
-    ) -> None:
+    def add_final_state_grouping(self, fs_group: list[str] | list[list[str]]) -> None:
         if not isinstance(fs_group, list):
             msg = "The final state grouping has to be of type list."
             raise TypeError(msg)
@@ -378,10 +366,10 @@ class StateTransitionManager:
     @overload
     def get_allowed_interaction_types(
         self,
-    ) -> Union[List[InteractionType], Dict[int, List[InteractionType]]]: ...
+    ) -> list[InteractionType] | dict[int, list[InteractionType]]: ...
 
     @overload
-    def get_allowed_interaction_types(self, node_id: int) -> List[InteractionType]: ...
+    def get_allowed_interaction_types(self, node_id: int) -> list[InteractionType]: ...
 
     def get_allowed_interaction_types(self, node_id=None):  # type: ignore[no-untyped-def]
         if node_id is None:
@@ -393,7 +381,7 @@ class StateTransitionManager:
     def set_allowed_interaction_types(
         self,
         allowed_interaction_types: Iterable[InteractionType],
-        node_id: Optional[int] = None,
+        node_id: int | None = None,
     ) -> None:
         # verify order
         for allowed_types in allowed_interaction_types:
@@ -412,7 +400,7 @@ class StateTransitionManager:
                 self.__allowed_interaction_types = {}
             self.__allowed_interaction_types[node_id] = allowed_interaction_types
 
-    def create_problem_sets(self) -> Dict[float, List[ProblemSet]]:
+    def create_problem_sets(self) -> dict[float, list[ProblemSet]]:
         problem_sets = [
             ProblemSet(permutation, initial_facts, settings)
             for topology in self.topologies
@@ -430,17 +418,17 @@ class StateTransitionManager:
         return _group_by_strength(problem_sets)
 
     def __determine_graph_settings(  # noqa: C901, PLR0914
-        self, topology: Topology, initial_facts: "InitialFacts"
-    ) -> List[GraphSettings]:
+        self, topology: Topology, initial_facts: InitialFacts
+    ) -> list[GraphSettings]:
         weak_edge_settings, _ = self.interaction_type_settings[InteractionType.WEAK]
 
-        def create_intermediate_edge_qn_domains() -> Dict:
+        def create_intermediate_edge_qn_domains() -> dict:
             if self.__intermediate_particle_filters is None:
                 return weak_edge_settings.qn_domains
 
             # if a list of intermediate states is given by user,
             # built a domain based on these states
-            intermediate_edge_domains: Dict[Type[EdgeQuantumNumber], Set] = defaultdict(
+            intermediate_edge_domains: dict[type[EdgeQuantumNumber], set] = defaultdict(
                 set
             )
             intermediate_edge_domains[EdgeQuantumNumbers.spin_projection].update(
@@ -472,7 +460,7 @@ class StateTransitionManager:
         final_state_edges = topology.outgoing_edge_ids
         initial_state_edges = topology.incoming_edge_ids
 
-        graph_settings: List[GraphSettings] = [
+        graph_settings: list[GraphSettings] = [
             MutableTransition(
                 topology,
                 states={
@@ -483,7 +471,7 @@ class StateTransitionManager:
         ]
 
         for node_id in topology.nodes:
-            interaction_types: List[InteractionType] = []
+            interaction_types: list[InteractionType] = []
             out_edge_ids = topology.get_edge_ids_outgoing_from_node(node_id)
             in_edge_ids = topology.get_edge_ids_outgoing_from_node(node_id)
             in_states = [
@@ -517,7 +505,7 @@ class StateTransitionManager:
                 str(node_id),
             )
 
-            temp_graph_settings: List[GraphSettings] = graph_settings
+            temp_graph_settings: list[GraphSettings] = graph_settings
             graph_settings = []
             for temp_setting in temp_graph_settings:
                 for int_type in interaction_types:
@@ -530,8 +518,8 @@ class StateTransitionManager:
         return graph_settings
 
     def find_solutions(  # noqa: C901
-        self, problem_sets: Dict[float, List[ProblemSet]]
-    ) -> "ReactionInfo":
+        self, problem_sets: dict[float, list[ProblemSet]]
+    ) -> ReactionInfo:
         """Check for solutions for a specific set of interaction settings."""
         results = self._find_particle_transitions(problem_sets)
         for strength, result in results.items():
@@ -556,7 +544,7 @@ class StateTransitionManager:
             final_result.execution_info.violated_edge_rules
             or final_result.execution_info.violated_node_rules
         ):
-            violated_rules: Set[str] = set()
+            violated_rules: set[str] = set()
             for rules in execution_info.violated_edge_rules.values():
                 violated_rules |= rules
             for rules in execution_info.violated_node_rules.values():
@@ -571,7 +559,7 @@ class StateTransitionManager:
             final_result.execution_info.not_executed_edge_rules
             or final_result.execution_info.not_executed_node_rules
         ):
-            not_executed_rules: Set[str] = set()
+            not_executed_rules: set[str] = set()
             for rules in execution_info.not_executed_edge_rules.values():
                 not_executed_rules |= rules
             for rules in execution_info.not_executed_node_rules.values():
@@ -595,10 +583,10 @@ class StateTransitionManager:
         return ReactionInfo(transitions, self.formalism)
 
     def _find_particle_transitions(
-        self, problem_sets: Dict[float, List[ProblemSet]]
-    ) -> Dict[float, _SolutionContainer]:
+        self, problem_sets: dict[float, list[ProblemSet]]
+    ) -> dict[float, _SolutionContainer]:
         qn_results = self.find_quantum_number_transitions(problem_sets)
-        results: Dict[float, _SolutionContainer] = defaultdict(_SolutionContainer)
+        results: dict[float, _SolutionContainer] = defaultdict(_SolutionContainer)
         for strength, qn_solutions in qn_results.items():
             for qn_problem_set, qn_result in qn_solutions:
                 particle_result = self.__convert_to_particle_definitions(
@@ -612,10 +600,10 @@ class StateTransitionManager:
         return dict(results)
 
     def find_quantum_number_transitions(
-        self, problem_sets: Dict[float, List[ProblemSet]]
-    ) -> Dict[float, List[Tuple[QNProblemSet, QNResult]]]:
+        self, problem_sets: dict[float, list[ProblemSet]]
+    ) -> dict[float, list[tuple[QNProblemSet, QNResult]]]:
         """Find allowed transitions purely in terms of quantum number sets."""
-        qn_results: Dict[float, List[Tuple[QNProblemSet, QNResult]]] = defaultdict(list)
+        qn_results: dict[float, list[tuple[QNProblemSet, QNResult]]] = defaultdict(list)
         _LOGGER.info(
             "Number of interaction settings groups being processed: %d",
             len(problem_sets),
@@ -656,7 +644,7 @@ class StateTransitionManager:
         progress_bar.close()
         return qn_results
 
-    def _solve(self, qn_problem_set: QNProblemSet) -> Tuple[QNProblemSet, QNResult]:
+    def _solve(self, qn_problem_set: QNProblemSet) -> tuple[QNProblemSet, QNResult]:
         solver = CSPSolver(self.__allowed_intermediate_states)
         solutions = solver.find_solutions(qn_problem_set)
         return qn_problem_set, solutions
@@ -710,9 +698,9 @@ def _filter_by_name_pattern(
 
 
 def _match_final_state_ids(
-    graph: "MutableTransition[ParticleWithSpin, InteractionProperties]",
+    graph: MutableTransition[ParticleWithSpin, InteractionProperties],
     state_definition: Sequence[StateDefinition],
-) -> "MutableTransition[ParticleWithSpin, InteractionProperties]":
+) -> MutableTransition[ParticleWithSpin, InteractionProperties]:
     """Temporary fix to https://github.com/ComPWA/qrules/issues/143."""
     particle_names = _strip_spin(state_definition)
     name_to_id = {name: i for i, name in enumerate(particle_names)}
@@ -730,7 +718,7 @@ def _match_final_state_ids(
     )
 
 
-def _strip_spin(state_definition: Sequence[StateDefinition]) -> List[str]:
+def _strip_spin(state_definition: Sequence[StateDefinition]) -> list[str]:
     particle_names = []
     for state in state_definition:
         if isinstance(state, str):
@@ -753,7 +741,7 @@ StateTransition: TypeAlias = "FrozenTransition[State, InteractionProperties]"
 
 def _sort_tuple(
     iterable: Iterable[StateTransition],
-) -> Tuple[StateTransition, ...]:
+) -> tuple[StateTransition, ...]:
     return tuple(sorted(iterable))
 
 
@@ -762,7 +750,7 @@ def _sort_tuple(
 class ReactionInfo:
     """Ordered collection of `StateTransition` instances."""
 
-    transitions: Tuple[StateTransition, ...] = field(converter=_sort_tuple)
+    transitions: tuple[StateTransition, ...] = field(converter=_sort_tuple)
     formalism: str = field(validator=instance_of(str))
 
     initial_state: FrozenDict[int, Particle] = field(init=False, repr=False, eq=False)
@@ -784,7 +772,7 @@ class ReactionInfo:
         }
         return ParticleCollection(particles)
 
-    def group_by_topology(self) -> Dict[Topology, List[StateTransition]]:
+    def group_by_topology(self) -> dict[Topology, list[StateTransition]]:
         groupings = defaultdict(list)
         for transition in self.transitions:
             groupings[transition.topology].append(transition)

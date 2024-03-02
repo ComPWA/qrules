@@ -71,6 +71,8 @@ api_target_substitutions: dict[str, str | tuple[str, str]] = {
     "NodeType": "typing.TypeVar",
     "qrules.topology.EdgeType": "typing.TypeVar",
     "qrules.topology.NodeType": "typing.TypeVar",
+    "StateDefinition": ("obj", "qrules.combinatorics.StateDefinition"),
+    "TypeAlias": "typing.TypeAlias",
     "typing_extensions.TypeAlias": "typing.TypeAlias",
 }
 api_target_types: dict[str, str | tuple[str, str]] = {
