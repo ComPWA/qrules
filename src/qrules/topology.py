@@ -14,6 +14,8 @@
     )
 """
 
+from __future__ import annotations
+
 import copy
 import itertools
 import logging
@@ -25,19 +27,13 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    Dict,
-    FrozenSet,
     Generic,
     ItemsView,
     Iterable,
     Iterator,
     KeysView,
-    List,
     Mapping,
-    Optional,
     Sequence,
-    Set,
-    Tuple,
     TypeVar,
     ValuesView,
     overload,
@@ -83,8 +79,8 @@ class FrozenDict(abc.Hashable, abc.Mapping, Generic[KT, VT]):
         :meth:`~object.__lt__` method.
     """
 
-    def __init__(self, mapping: Optional[Mapping] = None):
-        self.__mapping: Dict[KT, VT] = {}
+    def __init__(self, mapping: Mapping | None = None):
+        self.__mapping: dict[KT, VT] = {}
         if mapping is not None:
             self.__mapping = dict(mapping)
         self.__hash = hash(None)
@@ -96,7 +92,7 @@ class FrozenDict(abc.Hashable, abc.Mapping, Generic[KT, VT]):
     def __repr__(self) -> str:
         return f"{type(self).__name__}({self.__mapping})"
 
-    def _repr_pretty_(self, p: "PrettyPrinter", cycle: bool) -> None:
+    def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
         class_name = type(self).__name__
         if cycle:
             p.text(f"{class_name}(...)")
@@ -146,11 +142,11 @@ class FrozenDict(abc.Hashable, abc.Mapping, Generic[KT, VT]):
 
 def _convert_mapping_to_sorted_tuple(
     mapping: Mapping[KT, VT],
-) -> Tuple[Tuple[KT, VT], ...]:
+) -> tuple[tuple[KT, VT], ...]:
     return tuple((key, mapping[key]) for key in sorted(mapping.keys()))
 
 
-def _to_optional_int(optional_int: Optional[int]) -> Optional[int]:
+def _to_optional_int(optional_int: int | None) -> int | None:
     if optional_int is None:
         return None
     return int(optional_int)
@@ -160,27 +156,27 @@ def _to_optional_int(optional_int: Optional[int]) -> Optional[int]:
 class Edge:
     """Struct-like definition of an edge, used in `Topology.edges`."""
 
-    originating_node_id: Optional[int] = field(default=None, converter=_to_optional_int)
+    originating_node_id: int | None = field(default=None, converter=_to_optional_int)
     """Node ID where the `Edge` **starts**.
 
     An `Edge` is **incoming to** a `Topology` if its `originating_node_id` is `None`
     (see `~Topology.incoming_edge_ids`).
     """
-    ending_node_id: Optional[int] = field(default=None, converter=_to_optional_int)
+    ending_node_id: int | None = field(default=None, converter=_to_optional_int)
     """Node ID where the `Edge` **ends**.
 
     An `Edge` is **outgoing from** a `Topology` if its `ending_node_id` is `None` (see
     `~Topology.outgoing_edge_ids`).
     """
 
-    def get_connected_nodes(self) -> Set[int]:
+    def get_connected_nodes(self) -> set[int]:
         """Get all node IDs to which the `Edge` is connected."""
         connected_nodes = {self.ending_node_id, self.originating_node_id}
         connected_nodes.discard(None)
         return connected_nodes  # type: ignore[return-value]
 
 
-def _to_topology_nodes(inst: Iterable[int]) -> FrozenSet[int]:
+def _to_topology_nodes(inst: Iterable[int]) -> frozenset[int]:
     return frozenset(inst)
 
 
@@ -224,7 +220,7 @@ class Topology:
     Topology(nodes=..., edges=...)
     """
 
-    nodes: FrozenSet[int] = field(
+    nodes: frozenset[int] = field(
         converter=_to_topology_nodes,
         validator=deep_iterable(member_validator=instance_of(int)),
     )
@@ -237,17 +233,17 @@ class Topology:
     )
     """Mapping of edge IDs to their corresponding `Edge` definition."""
 
-    incoming_edge_ids: FrozenSet[int] = field(init=False, repr=False)
+    incoming_edge_ids: frozenset[int] = field(init=False, repr=False)
     """Edge IDs of edges that have no `~Edge.originating_node_id`.
 
     `Transition.initial_states` provide properties for these edges.
     """
-    outgoing_edge_ids: FrozenSet[int] = field(init=False, repr=False)
+    outgoing_edge_ids: frozenset[int] = field(init=False, repr=False)
     """Edge IDs of edges that have no `~Edge.ending_node_id`.
 
     `Transition.final_states` provide properties for these edges.
     """
-    intermediate_edge_ids: FrozenSet[int] = field(init=False, repr=False)
+    intermediate_edge_ids: frozenset[int] = field(init=False, repr=False)
     """Edge IDs of edges that connect two `nodes`."""
 
     def __attrs_post_init__(self) -> None:
@@ -294,7 +290,7 @@ class Topology:
                 msg = f"Node {node_id} is not connected to any other node"
                 raise ValueError(msg)
 
-    def __get_surrounding_nodes(self, node_id: int) -> Set[int]:
+    def __get_surrounding_nodes(self, node_id: int) -> set[int]:
         surrounding_nodes = set()
         for edge in self.edges.values():
             connected_nodes = edge.get_connected_nodes()
@@ -303,7 +299,7 @@ class Topology:
         surrounding_nodes.discard(node_id)
         return surrounding_nodes
 
-    def is_isomorphic(self, other: "Topology") -> bool:
+    def is_isomorphic(self, other: Topology) -> bool:
         """Check if two graphs are isomorphic.
 
         Returns `True` if the two graphs have a one-to-one mapping of the node IDs and
@@ -313,21 +309,21 @@ class Topology:
         """
         raise NotImplementedError
 
-    def get_edge_ids_ingoing_to_node(self, node_id: int) -> Set[int]:
+    def get_edge_ids_ingoing_to_node(self, node_id: int) -> set[int]:
         return {
             edge_id
             for edge_id, edge in self.edges.items()
             if edge.ending_node_id == node_id
         }
 
-    def get_edge_ids_outgoing_from_node(self, node_id: int) -> Set[int]:
+    def get_edge_ids_outgoing_from_node(self, node_id: int) -> set[int]:
         return {
             edge_id
             for edge_id, edge in self.edges.items()
             if edge.originating_node_id == node_id
         }
 
-    def get_originating_final_state_edge_ids(self, node_id: int) -> Set[int]:
+    def get_originating_final_state_edge_ids(self, node_id: int) -> set[int]:
         fs_edges = self.outgoing_edge_ids
         edge_ids = set()
         temp_edge_list = self.get_edge_ids_outgoing_from_node(node_id)
@@ -345,9 +341,9 @@ class Topology:
             temp_edge_list = new_temp_edge_list
         return edge_ids
 
-    def get_originating_initial_state_edge_ids(self, node_id: int) -> Set[int]:
+    def get_originating_initial_state_edge_ids(self, node_id: int) -> set[int]:
         is_edges = self.incoming_edge_ids
-        edge_ids: Set[int] = set()
+        edge_ids: set[int] = set()
         temp_edge_list = self.get_edge_ids_ingoing_to_node(node_id)
         while temp_edge_list:
             new_temp_edge_list = set()
@@ -363,7 +359,7 @@ class Topology:
             temp_edge_list = new_temp_edge_list
         return edge_ids
 
-    def relabel_edges(self, old_to_new: Mapping[int, int]) -> "Topology":
+    def relabel_edges(self, old_to_new: Mapping[int, int]) -> Topology:
         """Create a new `Topology` with new edge IDs.
 
         This method is particularly useful when creating permutations of a `Topology`,
@@ -388,11 +384,11 @@ class Topology:
         }
         return attrs.evolve(self, edges=new_edges)
 
-    def swap_edges(self, edge_id1: int, edge_id2: int) -> "Topology":
+    def swap_edges(self, edge_id1: int, edge_id2: int) -> Topology:
         return self.relabel_edges({edge_id1: edge_id2, edge_id2: edge_id1})
 
 
-def get_originating_node_list(topology: Topology, edge_ids: Iterable[int]) -> List[int]:
+def get_originating_node_list(topology: Topology, edge_ids: Iterable[int]) -> list[int]:
     """Get list of node ids from which the supplied edges originate from.
 
     Args:
@@ -400,17 +396,17 @@ def get_originating_node_list(topology: Topology, edge_ids: Iterable[int]) -> Li
         edge_ids ([int]): A list of edge ids for which the origin node is searched for.
     """
 
-    def __get_originating_node(edge_id: int) -> Optional[int]:
+    def __get_originating_node(edge_id: int) -> int | None:
         return topology.edges[edge_id].originating_node_id
 
     return [node_id for node_id in map(__get_originating_node, edge_ids) if node_id]
 
 
-def _to_mutable_topology_nodes(inst: Iterable[int]) -> Set[int]:
+def _to_mutable_topology_nodes(inst: Iterable[int]) -> set[int]:
     return set(inst)
 
 
-def _to_mutable_topology_edges(inst: Mapping[int, Edge]) -> Dict[int, Edge]:
+def _to_mutable_topology_edges(inst: Mapping[int, Edge]) -> dict[int, Edge]:
     return dict(inst)
 
 
@@ -423,13 +419,13 @@ class MutableTopology:
     numbering of edge and node IDs.
     """
 
-    nodes: Set[int] = field(
+    nodes: set[int] = field(
         converter=_to_mutable_topology_nodes,
         factory=set,
         on_setattr=deep_iterable(member_validator=instance_of(int)),
     )
     """See `Topology.nodes`."""
-    edges: Dict[int, Edge] = field(
+    edges: dict[int, Edge] = field(
         converter=_to_mutable_topology_edges,
         factory=dict,
         on_setattr=deep_mapping(
@@ -519,7 +515,7 @@ class MutableTopology:
                 originating_node_id=node_id,
             )
 
-    def organize_edge_ids(self) -> "MutableTopology":
+    def organize_edge_ids(self) -> MutableTopology:
         """Organize edge IDS so that they lie in range :code:`[-m, n+i]`.
 
         Here, :code:`m` is the number of `.incoming_edge_ids`, :code:`n` is the number
@@ -584,11 +580,11 @@ class SimpleStateTransitionTopologyBuilder:
         if not isinstance(interaction_node_set, list):
             msg = "interaction_node_set must be a list"
             raise TypeError(msg)
-        self.interaction_node_set: List[InteractionNode] = list(interaction_node_set)
+        self.interaction_node_set: list[InteractionNode] = list(interaction_node_set)
 
     def build(
         self, number_of_initial_edges: int, number_of_final_edges: int
-    ) -> Tuple[Topology, ...]:
+    ) -> tuple[Topology, ...]:
         number_of_initial_edges = int(number_of_initial_edges)
         number_of_final_edges = int(number_of_final_edges)
         if number_of_initial_edges < 1:
@@ -600,7 +596,7 @@ class SimpleStateTransitionTopologyBuilder:
 
         _LOGGER.info("building topology graphs...")
         # result list
-        graph_tuple_list: List[Tuple[MutableTopology, List[int]]] = []
+        graph_tuple_list: list[tuple[MutableTopology, list[int]]] = []
         # create seed graph
         seed_graph = MutableTopology()
         current_open_end_edges = list(range(number_of_initial_edges))
@@ -631,9 +627,9 @@ class SimpleStateTransitionTopologyBuilder:
         return tuple(topologies)
 
     def _extend_graph(
-        self, pair: Tuple[MutableTopology, Sequence[int]]
-    ) -> List[Tuple[MutableTopology, List[int]]]:
-        extended_graph_list: List[Tuple[MutableTopology, List[int]]] = []
+        self, pair: tuple[MutableTopology, Sequence[int]]
+    ) -> list[tuple[MutableTopology, list[int]]]:
+        extended_graph_list: list[tuple[MutableTopology, list[int]]] = []
 
         topology, current_open_end_edges = pair
 
@@ -668,7 +664,7 @@ class SimpleStateTransitionTopologyBuilder:
 
 def create_isobar_topologies(
     number_of_final_states: int,
-) -> Tuple[Topology, ...]:
+) -> tuple[Topology, ...]:
     """Builder function to create a set of unique isobar decay topologies.
 
     Args:
@@ -752,10 +748,10 @@ def create_n_body_topology(
 
 
 def _attach_node_to_edges(
-    graph: Tuple[MutableTopology, Sequence[int]],
+    graph: tuple[MutableTopology, Sequence[int]],
     interaction_node: InteractionNode,
     ingoing_edge_ids: Iterable[int],
-) -> Tuple[MutableTopology, List[int]]:
+) -> tuple[MutableTopology, list[int]]:
     temp_graph = copy.deepcopy(graph[0])
     new_open_end_lines = list(copy.deepcopy(graph[1]))
 
@@ -827,21 +823,21 @@ class Transition(ABC, Generic[EdgeType, NodeType]):
         """Mapping of properties over its `topology` `~Topology.nodes`."""
 
     @property
-    def initial_states(self) -> Dict[int, EdgeType]:
+    def initial_states(self) -> dict[int, EdgeType]:
         """Properties for the `~Topology.incoming_edge_ids`."""
         return self.filter_states(self.topology.incoming_edge_ids)
 
     @property
-    def final_states(self) -> Dict[int, EdgeType]:
+    def final_states(self) -> dict[int, EdgeType]:
         """Properties for the `~Topology.outgoing_edge_ids`."""
         return self.filter_states(self.topology.outgoing_edge_ids)
 
     @property
-    def intermediate_states(self) -> Dict[int, EdgeType]:
+    def intermediate_states(self) -> dict[int, EdgeType]:
         """Properties for the intermediate edges (connecting two nodes)."""
         return self.filter_states(self.topology.intermediate_edge_ids)
 
-    def filter_states(self, edge_ids: Iterable[int]) -> Dict[int, EdgeType]:
+    def filter_states(self, edge_ids: Iterable[int]) -> dict[int, EdgeType]:
         """Filter `states` by a selection of :code:`edge_ids`."""
         return {i: self.states[i] for i in edge_ids}
 
@@ -859,29 +855,29 @@ class FrozenTransition(Transition, Generic[EdgeType, NodeType]):
         _assert_all_defined(self.topology.nodes, self.interactions)
         _assert_all_defined(self.topology.edges, self.states)
 
-    def unfreeze(self) -> "MutableTransition[EdgeType, NodeType]":
+    def unfreeze(self) -> MutableTransition[EdgeType, NodeType]:
         """Convert into a `MutableTransition`."""
         return MutableTransition(self.topology, self.states, self.interactions)
 
     @overload
-    def convert(self) -> "FrozenTransition[EdgeType, NodeType]": ...
+    def convert(self) -> FrozenTransition[EdgeType, NodeType]: ...
 
     @overload
     def convert(
         self, state_converter: Callable[[EdgeType], NewEdgeType]
-    ) -> "FrozenTransition[NewEdgeType, NodeType]": ...
+    ) -> FrozenTransition[NewEdgeType, NodeType]: ...
 
     @overload
     def convert(
         self, *, interaction_converter: Callable[[NodeType], NewNodeType]
-    ) -> "FrozenTransition[EdgeType, NewNodeType]": ...
+    ) -> FrozenTransition[EdgeType, NewNodeType]: ...
 
     @overload
     def convert(
         self,
         state_converter: Callable[[EdgeType], NewEdgeType],
         interaction_converter: Callable[[NodeType], NewNodeType],
-    ) -> "FrozenTransition[NewEdgeType, NewNodeType]": ...
+    ) -> FrozenTransition[NewEdgeType, NewNodeType]: ...
 
     def convert(self, state_converter=None, interaction_converter=None):  # type: ignore[no-untyped-def]
         """Cast the edge and/or node properties to another type."""
@@ -903,11 +899,11 @@ def _identity_function(obj: Any) -> Any:
     return obj
 
 
-def _cast_states(obj: Mapping[int, EdgeType]) -> Dict[int, EdgeType]:
+def _cast_states(obj: Mapping[int, EdgeType]) -> dict[int, EdgeType]:
     return dict(obj)
 
 
-def _cast_interactions(obj: Mapping[int, NodeType]) -> Dict[int, NodeType]:
+def _cast_interactions(obj: Mapping[int, NodeType]) -> dict[int, NodeType]:
     return dict(obj)
 
 
@@ -920,16 +916,16 @@ class MutableTransition(Transition, Generic[EdgeType, NodeType]):
     """
 
     topology: Topology = field(validator=instance_of(Topology))
-    states: Dict[int, EdgeType] = field(converter=_cast_states, factory=dict)
-    interactions: Dict[int, NodeType] = field(
+    states: dict[int, EdgeType] = field(converter=_cast_states, factory=dict)
+    interactions: dict[int, NodeType] = field(
         converter=_cast_interactions, factory=dict
     )
 
     def compare(
         self,
-        other: "MutableTransition",
-        state_comparator: Optional[Callable[[EdgeType, EdgeType], bool]] = None,
-        interaction_comparator: Optional[Callable[[NodeType, NodeType], bool]] = None,
+        other: MutableTransition,
+        state_comparator: Callable[[EdgeType, EdgeType], bool] | None = None,
+        interaction_comparator: Callable[[NodeType, NodeType], bool] | None = None,
     ) -> bool:
         if self.topology != other.topology:
             return False
@@ -947,8 +943,8 @@ class MutableTransition(Transition, Generic[EdgeType, NodeType]):
 
     def swap_edges(self, edge_id1: int, edge_id2: int) -> None:
         self.topology = self.topology.swap_edges(edge_id1, edge_id2)
-        value1: Optional[EdgeType] = None
-        value2: Optional[EdgeType] = None
+        value1: EdgeType | None = None
+        value2: EdgeType | None = None
         if edge_id1 in self.states:
             value1 = self.states.pop(edge_id1)
         if edge_id2 in self.states:
@@ -958,7 +954,7 @@ class MutableTransition(Transition, Generic[EdgeType, NodeType]):
         if value2 is not None:
             self.states[edge_id1] = value2
 
-    def freeze(self) -> "FrozenTransition[EdgeType, NodeType]":
+    def freeze(self) -> FrozenTransition[EdgeType, NodeType]:
         """Convert into a `FrozenTransition`."""
         return FrozenTransition(self.topology, self.states, self.interactions)
 
