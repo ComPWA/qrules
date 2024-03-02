@@ -8,12 +8,11 @@ import pytest
 
 from qrules import InteractionType, ProblemSet, StateTransitionManager
 from qrules.combinatorics import (
-    ParticleWithSpin,
     _create_edge_id_particle_mapping,
     match_external_edges,
     perform_external_edge_identical_particle_combinatorics,
 )
-from qrules.particle import Particle
+from qrules.particle import Particle, ParticleWithSpin
 from qrules.quantum_numbers import (
     EdgeQuantumNumbers,
     InteractionProperties,
