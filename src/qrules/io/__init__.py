@@ -5,9 +5,11 @@ disk, so that they can be used by external packages, or just to store (cache) th
 of the system.
 """
 
+from __future__ import annotations
+
 import json
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 import attrs
 import yaml
@@ -54,14 +56,14 @@ __REQUIRED_TOPOLOGY_FIELDS = {
 def asdot(
     instance: object,
     *,
-    render_node: Optional[bool] = None,
+    render_node: bool | None = None,
     render_final_state_id: bool = True,
     render_resonance_id: bool = False,
     render_initial_state_id: bool = False,
     strip_spin: bool = False,
     collapse_graphs: bool = False,
-    edge_style: Optional[Dict[str, Any]] = None,
-    node_style: Optional[Dict[str, Any]] = None,
+    edge_style: dict[str, Any] | None = None,
+    node_style: dict[str, Any] | None = None,
     **figure_style: Any,
 ) -> str:
     """Convert a `object` to a DOT language `str`.
@@ -135,7 +137,7 @@ class _IncreasedIndent(yaml.Dumper):
     def increase_indent(self, flow: bool = False, indentless: bool = False) -> None:
         return super().increase_indent(flow, False)
 
-    def write_line_break(self, data: Optional[str] = None) -> None:
+    def write_line_break(self, data: str | None = None) -> None:
         """See https://stackoverflow.com/a/44284819."""
         super().write_line_break(data)
         if len(self.indents) == 1:
