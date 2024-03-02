@@ -64,6 +64,7 @@ api_github_repo = f"{ORGANIZATION}/{REPO_NAME}"
 api_target_substitutions: dict[str, str | tuple[str, str]] = {
     "EdgeType": "typing.TypeVar",
     "GraphEdgePropertyMap": ("obj", "qrules.argument_handling.GraphEdgePropertyMap"),
+    "GraphNodePropertyMap": ("obj", "qrules.argument_handling.GraphNodePropertyMap"),
     "GraphElementProperties": ("obj", "qrules.solving.GraphElementProperties"),
     "GraphSettings": ("obj", "qrules.solving.GraphSettings"),
     "InitialFacts": ("obj", "qrules.combinatorics.InitialFacts"),

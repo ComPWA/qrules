@@ -40,6 +40,7 @@ GraphElementPropertyMap = Dict[Type[_ElementType], Scalar]
 GraphEdgePropertyMap = GraphElementPropertyMap[EdgeQuantumNumber]
 """Type alias for a graph edge property map."""
 GraphNodePropertyMap = GraphElementPropertyMap[NodeQuantumNumber]
+"""Type alias for a graph node property map."""
 
 
 def _is_optional(field_type: Optional[type]) -> bool:
