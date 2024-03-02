@@ -7,11 +7,13 @@ It is possible to change some settings from the outside, for instance:
 >>> qrules.settings.MAX_SPIN_MAGNITUDE = 3
 """
 
+from __future__ import annotations
+
 import multiprocessing
 from copy import deepcopy
 from enum import Enum, auto
 from os.path import dirname, join, realpath
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Callable, Iterable
 
 from qrules.conservation_rules import (
     BaryonNumberConservation,
@@ -41,19 +43,21 @@ from qrules.conservation_rules import (
     spin_magnitude_conservation,
     spin_validity,
 )
-from qrules.particle import Particle, ParticleCollection
 from qrules.quantum_numbers import EdgeQuantumNumbers as EdgeQN
 from qrules.quantum_numbers import NodeQuantumNumbers as NodeQN
 from qrules.quantum_numbers import arange
 from qrules.solving import EdgeSettings, NodeSettings
+
+if TYPE_CHECKING:
+    from qrules.particle import Particle, ParticleCollection
 
 __QRULES_PATH = dirname(realpath(__file__))
 ADDITIONAL_PARTICLES_DEFINITIONS_PATH: str = join(
     __QRULES_PATH, "additional_definitions.yml"
 )
 
-CONSERVATION_LAW_PRIORITIES: Dict[
-    Union[GraphElementRule, EdgeQNConservationRule, ConservationRule], int
+CONSERVATION_LAW_PRIORITIES: dict[
+    GraphElementRule | EdgeQNConservationRule | ConservationRule, int
 ] = {
     MassConservation: 10,  # type: ignore[dict-item]
     ElectronLNConservation: 45,  # type: ignore[dict-item]
@@ -78,7 +82,7 @@ CONSERVATION_LAW_PRIORITIES: Dict[
 """Determines the order with which to verify conservation rules."""
 
 
-EDGE_RULE_PRIORITIES: Dict[GraphElementRule, int] = {
+EDGE_RULE_PRIORITIES: dict[GraphElementRule, int] = {
     gellmann_nishijima: 50,
     isospin_validity: 61,
     spin_validity: 62,
@@ -94,7 +98,7 @@ class InteractionType(Enum):
     WEAK = auto()
 
     @staticmethod
-    def from_str(description: str) -> "InteractionType":
+    def from_str(description: str) -> InteractionType:
         description_lower = description.lower()
         if description_lower.startswith("e"):
             return InteractionType.EM
@@ -117,10 +121,10 @@ def create_interaction_settings(  # noqa: PLR0917
     formalism: str,
     particle_db: ParticleCollection,
     nbody_topology: bool = False,
-    mass_conservation_factor: Optional[float] = 3.0,
+    mass_conservation_factor: float | None = 3.0,
     max_angular_momentum: int = 2,
     max_spin_magnitude: float = 2.0,
-) -> Dict[InteractionType, Tuple[EdgeSettings, NodeSettings]]:
+) -> dict[InteractionType, tuple[EdgeSettings, NodeSettings]]:
     """Create a container that holds the settings for `.InteractionType`."""
     formalism_edge_settings = EdgeSettings(
         conservation_rules={
@@ -226,20 +230,20 @@ def create_interaction_settings(  # noqa: PLR0917
     return interaction_type_settings
 
 
-def __get_ang_mom_magnitudes(is_nbody: bool, max_angular_momentum: int) -> List[float]:
+def __get_ang_mom_magnitudes(is_nbody: bool, max_angular_momentum: int) -> list[float]:
     if is_nbody:
         return [0]
     return _int_domain(0, max_angular_momentum)  # type: ignore[return-value]
 
 
-def __get_spin_magnitudes(is_nbody: bool, max_spin_magnitude: float) -> List[float]:
+def __get_spin_magnitudes(is_nbody: bool, max_spin_magnitude: float) -> list[float]:
     if is_nbody:
         return [0]
     return _halves_domain(0, max_spin_magnitude)
 
 
-def _create_domains(particle_db: ParticleCollection) -> Dict[Any, list]:
-    domains: Dict[Any, list] = {
+def _create_domains(particle_db: ParticleCollection) -> dict[Any, list]:
+    domains: dict[Any, list] = {
         EdgeQN.electron_lepton_number: [-1, 0, +1],
         EdgeQN.muon_lepton_number: [-1, 0, +1],
         EdgeQN.tau_lepton_number: [-1, 0, +1],
@@ -272,7 +276,7 @@ def _create_domains(particle_db: ParticleCollection) -> Dict[Any, list]:
 
 
 class NumberOfThreads:
-    __n_cores: Optional[int] = None
+    __n_cores: int | None = None
 
     @classmethod
     def get(cls) -> int:
@@ -281,7 +285,7 @@ class NumberOfThreads:
         return cls.__n_cores
 
     @classmethod
-    def set(cls, n_cores: Optional[int]) -> None:
+    def set(cls, n_cores: int | None) -> None:
         """Set the number of threads; use `None` for all available cores."""
         if n_cores is not None and not isinstance(n_cores, int):
             msg = (
@@ -294,19 +298,19 @@ class NumberOfThreads:
 
 def __positive_halves_domain(
     particle_db: ParticleCollection, attr_getter: Callable[[Particle], Any]
-) -> List[float]:
+) -> list[float]:
     values = set(map(attr_getter, particle_db))
     return _halves_domain(0, max(values))
 
 
 def __positive_int_domain(
     particle_db: ParticleCollection, attr_getter: Callable[[Particle], Any]
-) -> List[int]:
+) -> list[int]:
     values = set(map(attr_getter, particle_db))
     return _int_domain(0, max(values))
 
 
-def _halves_domain(start: float, stop: float) -> List[float]:
+def _halves_domain(start: float, stop: float) -> list[float]:
     if start % 0.5 != 0.0:
         msg = f"Start value {start} needs to be multiple of 0.5"
         raise ValueError(msg)
@@ -318,11 +322,11 @@ def _halves_domain(start: float, stop: float) -> List[float]:
     ]
 
 
-def _int_domain(start: int, stop: int) -> List[int]:
+def _int_domain(start: int, stop: int) -> list[int]:
     return list(range(start, stop + 1))
 
 
 def __extend_negative(
-    magnitudes: Iterable[Union[int, float]],
-) -> List[Union[int, float]]:
+    magnitudes: Iterable[int | float],
+) -> list[int | float]:
     return sorted(list(magnitudes) + [-x for x in magnitudes if x > 0])
