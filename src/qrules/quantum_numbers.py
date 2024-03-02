@@ -6,10 +6,12 @@ hints. `.EdgeQuantumNumbers` and `.NodeQuantumNumbers` are the main structures a
 as a bridge between the :mod:`.particle` and the :mod:`.conservation_rules` module.
 """
 
+from __future__ import annotations
+
 from decimal import Decimal
 from fractions import Fraction
 from functools import total_ordering
-from typing import Any, Generator, NewType, Optional, Union
+from typing import Any, Generator, NewType, Union
 
 import attrs
 from attrs import field, frozen
@@ -48,14 +50,14 @@ class Parity:  # noqa: PLW1641
     def __int__(self) -> int:
         return self.value
 
-    def __neg__(self) -> "Parity":
+    def __neg__(self) -> Parity:
         return Parity(-self.value)
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}({_to_fraction(self.value)})"
 
 
-def _to_fraction(value: Union[float, int], render_plus: bool = False) -> str:
+def _to_fraction(value: float | int, render_plus: bool = False) -> str:
     label = str(Fraction(value))
     if render_plus and value > 0:
         return f"+{label}"
@@ -153,13 +155,13 @@ NodeQuantumNumber = Union[
 """Type hint for quantum numbers of interaction nodes."""
 
 
-def _to_optional_float(optional_float: Optional[float]) -> Optional[float]:
+def _to_optional_float(optional_float: float | None) -> float | None:
     if optional_float is None:
         return None
     return float(optional_float)
 
 
-def _to_optional_int(optional_int: Optional[int]) -> Optional[int]:
+def _to_optional_int(optional_int: int | None) -> int | None:
     if optional_int is None:
         return None
     return int(optional_int)
@@ -183,15 +185,13 @@ class InteractionProperties:
         serves as an interface to the user.
     """
 
-    l_magnitude: Optional[int] = field(  # L cannot be half integer
+    l_magnitude: int | None = field(  # L cannot be half integer
         default=None, converter=_to_optional_int
     )
-    l_projection: Optional[int] = field(default=None, converter=_to_optional_int)
-    s_magnitude: Optional[float] = field(default=None, converter=_to_optional_float)
-    s_projection: Optional[float] = field(default=None, converter=_to_optional_float)
-    parity_prefactor: Optional[float] = field(
-        default=None, converter=_to_optional_float
-    )
+    l_projection: int | None = field(default=None, converter=_to_optional_int)
+    s_magnitude: float | None = field(default=None, converter=_to_optional_float)
+    s_projection: float | None = field(default=None, converter=_to_optional_float)
+    parity_prefactor: float | None = field(default=None, converter=_to_optional_float)
 
 
 def arange(x_1: float, x_2: float, delta: float = 1.0) -> Generator[float, None, None]:
