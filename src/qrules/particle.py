@@ -32,8 +32,8 @@ from attrs import field, frozen
 from attrs.converters import optional
 from attrs.validators import instance_of
 
-from .conservation_rules import GellMannNishijimaInput, gellmann_nishijima
-from .quantum_numbers import Parity, _to_fraction
+from qrules.conservation_rules import GellMannNishijimaInput, gellmann_nishijima
+from qrules.quantum_numbers import Parity, _to_fraction
 
 if TYPE_CHECKING:
     from IPython.lib.pretty import PrettyPrinter

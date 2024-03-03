@@ -21,8 +21,7 @@ from attrs import define, field, frozen
 from constraint import BacktrackingSolver, Constraint, Problem, Unassigned, Variable
 
 from qrules._implementers import implement_pretty_repr
-
-from .argument_handling import (
+from qrules.argument_handling import (
     GraphEdgePropertyMap,
     GraphElementRule,
     GraphNodePropertyMap,
@@ -31,8 +30,12 @@ from .argument_handling import (
     Scalar,
     get_required_qns,
 )
-from .quantum_numbers import EdgeQuantumNumber, EdgeQuantumNumbers, NodeQuantumNumber
-from .topology import MutableTransition, Topology
+from qrules.quantum_numbers import (
+    EdgeQuantumNumber,
+    EdgeQuantumNumbers,
+    NodeQuantumNumber,
+)
+from qrules.topology import MutableTransition, Topology
 
 if sys.version_info >= (3, 10):
     from typing import TypeAlias

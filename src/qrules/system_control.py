@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Callable, Dict, Iterable, List, Tuple
 
 import attrs
 
-from .quantum_numbers import (
+from qrules.quantum_numbers import (
     EdgeQuantumNumber,
     EdgeQuantumNumbers,
     InteractionProperties,
@@ -16,12 +16,12 @@ from .quantum_numbers import (
     NodeQuantumNumbers,
     Parity,
 )
-from .settings import InteractionType
-from .solving import GraphEdgePropertyMap, GraphNodePropertyMap, GraphSettings
-from .topology import MutableTransition
+from qrules.settings import InteractionType
+from qrules.solving import GraphEdgePropertyMap, GraphNodePropertyMap, GraphSettings
+from qrules.topology import MutableTransition
 
 if TYPE_CHECKING:
-    from .particle import Particle, ParticleCollection, ParticleWithSpin
+    from qrules.particle import Particle, ParticleCollection, ParticleWithSpin
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -23,12 +23,12 @@ from typing import (
 
 import attrs
 
-from .conservation_rules import (
+from qrules.conservation_rules import (
     ConservationRule,
     EdgeQNConservationRule,
     GraphElementRule,
 )
-from .quantum_numbers import EdgeQuantumNumber, NodeQuantumNumber, Parity
+from qrules.quantum_numbers import EdgeQuantumNumber, NodeQuantumNumber, Parity
 
 Scalar = Union[int, float]
 

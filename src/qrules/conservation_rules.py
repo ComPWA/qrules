@@ -54,9 +54,9 @@ from typing import Any, Callable, List, Optional, Set, Tuple, Type, Union
 from attrs import define, field, frozen
 from attrs.converters import optional
 
-from .quantum_numbers import EdgeQuantumNumbers as EdgeQN
-from .quantum_numbers import NodeQuantumNumbers as NodeQN
-from .quantum_numbers import arange
+from qrules.quantum_numbers import EdgeQuantumNumbers as EdgeQN
+from qrules.quantum_numbers import NodeQuantumNumbers as NodeQN
+from qrules.quantum_numbers import arange
 
 if sys.version_info >= (3, 8):
     from typing import Protocol
