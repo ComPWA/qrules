@@ -22,9 +22,9 @@ from typing import Iterable, Sequence
 
 import attrs
 
-from . import io
-from .combinatorics import InitialFacts, StateDefinition, create_initial_facts
-from .conservation_rules import (
+from qrules import io
+from qrules.combinatorics import InitialFacts, StateDefinition, create_initial_facts
+from qrules.conservation_rules import (
     BaryonNumberConservation,
     BottomnessConservation,
     ChargeConservation,
@@ -45,17 +45,22 @@ from .conservation_rules import (
     parity_conservation,
     spin_magnitude_conservation,
 )
-from .particle import ParticleCollection, load_pdg
-from .quantum_numbers import InteractionProperties
-from .settings import (
+from qrules.particle import ParticleCollection, load_pdg
+from qrules.quantum_numbers import InteractionProperties
+from qrules.settings import (
     ADDITIONAL_PARTICLES_DEFINITIONS_PATH,
     InteractionType,
     _halves_domain,
     _int_domain,
 )
-from .solving import NodeSettings, QNResult, Rule, validate_full_solution
-from .topology import MutableTransition, create_n_body_topology
-from .transition import EdgeSettings, ProblemSet, ReactionInfo, StateTransitionManager
+from qrules.solving import NodeSettings, QNResult, Rule, validate_full_solution
+from qrules.topology import MutableTransition, create_n_body_topology
+from qrules.transition import (
+    EdgeSettings,
+    ProblemSet,
+    ReactionInfo,
+    StateTransitionManager,
+)
 
 
 def check_reaction_violations(  # noqa: C901, PLR0917

@@ -14,10 +14,9 @@ from typing import Any
 import attrs
 import yaml
 
+from qrules.io import _dict, _dot
 from qrules.particle import Particle, ParticleCollection
 from qrules.topology import Topology
-
-from . import _dict, _dot
 
 
 def asdict(instance: object) -> dict:

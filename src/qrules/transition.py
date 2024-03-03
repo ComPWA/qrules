@@ -18,8 +18,7 @@ from attrs.validators import instance_of
 from tqdm.auto import tqdm
 
 from qrules._implementers import implement_pretty_repr
-
-from .combinatorics import (
+from qrules.combinatorics import (
     InitialFacts,
     StateDefinition,
     create_initial_facts,
@@ -27,27 +26,27 @@ from .combinatorics import (
     match_external_edges,
     permutate_topology_kinematically,
 )
-from .particle import (
+from qrules.particle import (
     Particle,
     ParticleCollection,
     ParticleWithSpin,
     _to_float,
     load_pdg,
 )
-from .quantum_numbers import (
+from qrules.quantum_numbers import (
     EdgeQuantumNumber,
     EdgeQuantumNumbers,
     InteractionProperties,
     NodeQuantumNumber,
     NodeQuantumNumbers,
 )
-from .settings import (
+from qrules.settings import (
     DEFAULT_INTERACTION_TYPES,
     InteractionType,
     NumberOfThreads,
     create_interaction_settings,
 )
-from .solving import (
+from qrules.solving import (
     CSPSolver,
     EdgeSettings,
     GraphEdgePropertyMap,
@@ -56,7 +55,7 @@ from .solving import (
     QNProblemSet,
     QNResult,
 )
-from .system_control import (
+from qrules.system_control import (
     GammaCheck,
     InteractionDeterminator,
     LeptonCheck,
@@ -67,7 +66,7 @@ from .system_control import (
     find_particle,
     remove_duplicate_solutions,
 )
-from .topology import (
+from qrules.topology import (
     FrozenDict,
     MutableTransition,
     Topology,
@@ -80,7 +79,7 @@ if sys.version_info >= (3, 10):
 else:
     from typing_extensions import TypeAlias
 if TYPE_CHECKING:
-    from .topology import FrozenTransition
+    from qrules.topology import FrozenTransition
 
 _LOGGER = logging.getLogger(__name__)
 

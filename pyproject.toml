@@ -347,6 +347,9 @@ ignore = [
 ]
 task-tags = ["cspell"]
 
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
 [tool.ruff.lint.isort]
 split-on-trailing-comma = false
 
