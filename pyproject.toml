@@ -337,7 +337,6 @@ ignore = [
     "D407",
     "D416",
     "E501",
-    "FA100",
     "ISC001",
     "PLR0913",
     "PLR2004",
@@ -384,6 +383,7 @@ split-on-trailing-comma = false
     "D100",
 ]
 "setup.py" = ["D100"]
+"src/qrules/conservation_rules.py" = ["FA100"]
 "tests/*" = [
     "D",
     "INP001",

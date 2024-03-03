@@ -1,4 +1,4 @@
-from typing import List
+from __future__ import annotations
 
 import pytest
 
@@ -119,8 +119,8 @@ def test_permutate_topology_kinematically(
 )
 def test_generate_kinematic_permutations(
     n_permutations: int,
-    initial_state: List[str],
-    final_state: List[str],
+    initial_state: list[str],
+    final_state: list[str],
     three_body_decay: Topology,
     two_to_three_decay: Topology,
 ):

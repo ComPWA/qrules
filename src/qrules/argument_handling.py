@@ -5,6 +5,8 @@ arguments from general graph property maps. The information is extracted from th
 annotations of the rules.
 """
 
+from __future__ import annotations
+
 import inspect
 from typing import (
     Any,
@@ -12,9 +14,7 @@ from typing import (
     Dict,
     Generic,
     List,
-    Optional,
     Sequence,
-    Set,
     Tuple,
     Type,
     TypeVar,
@@ -38,10 +38,12 @@ _ElementType = TypeVar("_ElementType")
 
 GraphElementPropertyMap = Dict[Type[_ElementType], Scalar]
 GraphEdgePropertyMap = GraphElementPropertyMap[EdgeQuantumNumber]
+"""Type alias for a graph edge property map."""
 GraphNodePropertyMap = GraphElementPropertyMap[NodeQuantumNumber]
+"""Type alias for a graph node property map."""
 
 
-def _is_optional(field_type: Optional[type]) -> bool:
+def _is_optional(field_type: type | None) -> bool:
     if (
         getattr(field_type, "__origin__", None) is Union
         and type(None) in field_type.__args__  # type: ignore[union-attr]
@@ -66,7 +68,7 @@ def _is_node_quantum_number(qn_type: Any) -> bool:
 class _CompositeArgumentCheck:
     def __init__(
         self,
-        class_field_types: Union[List[EdgeQuantumNumber], List[NodeQuantumNumber]],
+        class_field_types: list[EdgeQuantumNumber] | list[NodeQuantumNumber],
     ) -> None:
         self.__class_field_types = class_field_types
 
@@ -80,7 +82,7 @@ class _CompositeArgumentCheck:
 
 
 def _direct_qn_check(
-    qn_type: Union[Type[EdgeQuantumNumber], Type[NodeQuantumNumber]],
+    qn_type: type[EdgeQuantumNumber] | type[NodeQuantumNumber],
 ) -> Callable[[GraphElementPropertyMap], bool]:
     def wrapper(props: GraphElementPropertyMap) -> bool:
         return qn_type in props
@@ -99,7 +101,7 @@ def _sequence_input_check(func: Callable) -> Callable[[Sequence], bool]:
     return wrapper
 
 
-def _check_all_arguments(checks: List[Callable]) -> Callable[..., bool]:
+def _check_all_arguments(checks: list[Callable]) -> Callable[..., bool]:
     def wrapper(*args: Any) -> bool:
         return all(check(arg) for check, arg in zip(checks, args))
 
@@ -107,8 +109,8 @@ def _check_all_arguments(checks: List[Callable]) -> Callable[..., bool]:
 
 
 class _ValueExtractor(Generic[_ElementType]):
-    def __init__(self, obj_type: Optional[Type[_ElementType]]) -> None:
-        self.__obj_type: Type[_ElementType] = obj_type  # type: ignore[assignment]
+    def __init__(self, obj_type: type[_ElementType] | None) -> None:
+        self.__obj_type: type[_ElementType] = obj_type  # type: ignore[assignment]
         self.__function = self.__extract
 
         if _is_optional(obj_type):
@@ -117,12 +119,12 @@ class _ValueExtractor(Generic[_ElementType]):
 
     def __call__(
         self, props: GraphElementPropertyMap[_ElementType]
-    ) -> Optional[_ElementType]:
+    ) -> _ElementType | None:
         return self.__function(props)
 
     def __optional_extract(
         self, props: GraphElementPropertyMap[_ElementType]
-    ) -> Optional[_ElementType]:
+    ) -> _ElementType | None:
         if self.__obj_type in props:
             return self.__extract(props)
 
@@ -130,7 +132,7 @@ class _ValueExtractor(Generic[_ElementType]):
 
     def __extract(
         self, props: GraphElementPropertyMap[_ElementType]
-    ) -> Union[_ElementType, None]:
+    ) -> _ElementType | None:
         value = props[self.__obj_type]
         if value is None:
             return None
@@ -164,8 +166,8 @@ class _CompositeArgumentCreator:
         })
 
 
-def _sequence_arg_builder(func: Callable) -> Callable[[Sequence], List[Any]]:
-    def wrapper(states_list: Sequence[Any]) -> List[Any]:
+def _sequence_arg_builder(func: Callable) -> Callable[[Sequence], list[Any]]:
+    def wrapper(states_list: Sequence[Any]) -> list[Any]:
         if not isinstance(states_list, (list, tuple)):
             msg = "Rule evaluated with invalid argument type..."
             raise TypeError(msg)
@@ -175,8 +177,8 @@ def _sequence_arg_builder(func: Callable) -> Callable[[Sequence], List[Any]]:
     return wrapper
 
 
-def _build_all_arguments(checks: List[Callable]) -> Callable:
-    def wrapper(*args: Any) -> List[Any]:
+def _build_all_arguments(checks: list[Callable]) -> Callable:
+    def wrapper(*args: Any) -> list[Any]:
         return [check(arg) for check, arg in zip(checks, args) if arg]
 
     return wrapper
@@ -184,15 +186,15 @@ def _build_all_arguments(checks: List[Callable]) -> Callable:
 
 class RuleArgumentHandler:
     def __init__(self) -> None:
-        self.__rule_to_requirements_check: Dict[Rule, Callable] = {}
-        self.__rule_to_argument_builder: Dict[Rule, Callable] = {}
+        self.__rule_to_requirements_check: dict[Rule, Callable] = {}
+        self.__rule_to_argument_builder: dict[Rule, Callable] = {}
 
     def __verify(self, rule_annotations: list) -> None:
         pass
 
     @staticmethod
     def __create_requirements_check(
-        argument_types: List[type],
+        argument_types: list[type],
     ) -> Callable:
         individual_argument_checkers = []
         for input_type in argument_types:
@@ -223,7 +225,7 @@ class RuleArgumentHandler:
 
     @staticmethod
     def __create_argument_builder(
-        argument_types: List[type],
+        argument_types: list[type],
     ) -> Callable:
         individual_argument_builders = []
         for input_type in argument_types:
@@ -254,24 +256,12 @@ class RuleArgumentHandler:
 
         return _build_all_arguments(individual_argument_builders)
 
-    def register_rule(self, rule: Rule) -> Tuple[Callable, Callable]:
+    def register_rule(self, rule: Rule) -> tuple[Callable, Callable]:
         if (
             rule not in self.__rule_to_requirements_check
             or rule not in self.__rule_to_argument_builder
         ):
-            rule_annotations = []
-            rule_func_signature = inspect.signature(rule)
-            if not rule_func_signature.return_annotation:
-                msg = f"missing return type annotation for rule {rule!s}"
-                raise TypeError(msg)
-            for par in rule_func_signature.parameters.values():
-                if not par.annotation:
-                    msg = (
-                        f"missing type annotations for argument {par.name} of rule"
-                        f" {rule!s}"
-                    )
-                    raise TypeError(msg)
-                rule_annotations.append(par.annotation)
+            rule_annotations = _resolve_argument_type_hints(rule)
 
             # check type annotations are legal
             try:
@@ -296,9 +286,31 @@ class RuleArgumentHandler:
         )
 
 
+def _resolve_argument_type_hints(rule: Rule) -> list:
+    """Get the signature of a rule, with resolved type hints.
+
+    >>> from qrules.conservation_rules import gellmann_nishijima, MassConservation
+    >>> _resolve_argument_type_hints(gellmann_nishijima)
+    [<class 'qrules.conservation_rules.GellMannNishijimaInput'>]
+    >>> _resolve_argument_type_hints(MassConservation(width_factor=1.0))
+    [typing.List[qrules.conservation_rules.MassEdgeInput], typing.List[qrules.conservation_rules.MassEdgeInput]]
+    """
+    func_signature = inspect.signature(rule)
+    if not func_signature.return_annotation:
+        msg = f"Missing return type annotation for rule {rule!s}"
+        raise TypeError(msg)
+    rule_annotations = []
+    for par in func_signature.parameters.values():
+        if not par.annotation:
+            msg = f"missing type annotations for argument {par.name} of rule {rule!s}"
+            raise TypeError(msg)
+        rule_annotations.append(par.annotation)
+    return rule_annotations
+
+
 def get_required_qns(
     rule: Rule,
-) -> Tuple[Set[Type[EdgeQuantumNumber]], Set[Type[NodeQuantumNumber]]]:
+) -> tuple[set[type[EdgeQuantumNumber]], set[type[NodeQuantumNumber]]]:
     rule_annotations = []
     for par in inspect.signature(rule).parameters.values():
         if not par.annotation:
@@ -306,8 +318,8 @@ def get_required_qns(
             raise TypeError(msg)
         rule_annotations.append(par.annotation)
 
-    required_edge_qns: Set[Type[EdgeQuantumNumber]] = set()
-    required_node_qns: Set[Type[NodeQuantumNumber]] = set()
+    required_edge_qns: set[type[EdgeQuantumNumber]] = set()
+    required_node_qns: set[type[NodeQuantumNumber]] = set()
 
     for input_type in rule_annotations:
         class_type = input_type

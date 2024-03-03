@@ -1,9 +1,11 @@
 """Serialization from and to a `dict`."""
 
+from __future__ import annotations
+
 import json
 from collections import abc
 from os.path import dirname, realpath
-from typing import Any, Dict
+from typing import Any
 
 import attrs
 
@@ -72,13 +74,13 @@ def build_reaction_info(definition: dict) -> ReactionInfo:
 
 def build_transition(
     definition: dict,
-) -> "FrozenTransition[State, InteractionProperties]":
+) -> FrozenTransition[State, InteractionProperties]:
     topology = build_topology(definition["topology"])
-    states_def: Dict[int, dict] = definition["states"]
-    states: Dict[int, State] = {}
+    states_def: dict[int, dict] = definition["states"]
+    states: dict[int, State] = {}
     for i, edge_def in states_def.items():
         states[int(i)] = build_state(edge_def)
-    interactions_def: Dict[int, dict] = definition["interactions"]
+    interactions_def: dict[int, dict] = definition["interactions"]
     interactions = {
         int(i): InteractionProperties(**node_def)
         for i, node_def in interactions_def.items()
@@ -100,7 +102,7 @@ def build_state(definition: Any) -> State:
 
 def build_topology(definition: dict) -> Topology:
     nodes = definition["nodes"]
-    edges_def: Dict[int, dict] = definition["edges"]
+    edges_def: dict[int, dict] = definition["edges"]
     edges = {int(i): Edge(**edge_def) for i, edge_def in edges_def.items()}
     return Topology(nodes, edges)
 

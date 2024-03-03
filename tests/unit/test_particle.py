@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import logging
 import sys
 from copy import deepcopy
-from typing import List, Union
 
 import pytest
 from attrs.exceptions import FrozenInstanceError
@@ -152,7 +153,7 @@ class TestParticle:
         assert f0_mesons == sorted_expected
 
 
-def _get_omega_mesons() -> List[str]:
+def _get_omega_mesons() -> list[str]:
     scikit_hep_particle_version = ".".join(version("particle").split(".")[:2])
     if scikit_hep_particle_version in {"0.21", "0.22"}:
         return ["omega(782)", "omega(3)(1670)", "omega(1650)"]
@@ -300,7 +301,7 @@ class TestParticleCollection:
         self,
         particle_database: ParticleCollection,
         search_term,
-        expected: Union[List[str], str],
+        expected: list[str] | str,
     ):
         with pytest.raises(LookupError) as exception:
             particle_database.find(search_term)

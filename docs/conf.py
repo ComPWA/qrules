@@ -63,14 +63,20 @@ add_module_names = False
 api_github_repo = f"{ORGANIZATION}/{REPO_NAME}"
 api_target_substitutions: dict[str, str | tuple[str, str]] = {
     "EdgeType": "typing.TypeVar",
+    "GraphEdgePropertyMap": ("obj", "qrules.argument_handling.GraphEdgePropertyMap"),
+    "GraphNodePropertyMap": ("obj", "qrules.argument_handling.GraphNodePropertyMap"),
     "GraphElementProperties": ("obj", "qrules.solving.GraphElementProperties"),
     "GraphSettings": ("obj", "qrules.solving.GraphSettings"),
     "InitialFacts": ("obj", "qrules.combinatorics.InitialFacts"),
     "NewEdgeType": "typing.TypeVar",
     "NewNodeType": "typing.TypeVar",
+    "NodeQuantumNumber": ("obj", "qrules.quantum_numbers.NodeQuantumNumber"),
     "NodeType": "typing.TypeVar",
+    "ParticleWithSpin": ("obj", "qrules.particle.ParticleWithSpin"),
     "qrules.topology.EdgeType": "typing.TypeVar",
     "qrules.topology.NodeType": "typing.TypeVar",
+    "StateDefinition": ("obj", "qrules.combinatorics.StateDefinition"),
+    "TypeAlias": "typing.TypeAlias",
     "typing_extensions.TypeAlias": "typing.TypeAlias",
 }
 api_target_types: dict[str, str | tuple[str, str]] = {

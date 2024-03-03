@@ -1,6 +1,8 @@
 """A collection of implementation tools to can be used accross all modules."""
 
-from typing import TYPE_CHECKING, Any, Type, TypeVar
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, TypeVar
 
 import attrs
 
@@ -12,14 +14,14 @@ _DecoratedClass = TypeVar("_DecoratedClass")
 
 
 def implement_pretty_repr(
-    decorated_class: Type[_DecoratedClass],
-) -> Type[_DecoratedClass]:
+    decorated_class: type[_DecoratedClass],
+) -> type[_DecoratedClass]:
     """Implement a pretty :code:`repr` in a class decorated by `attrs`."""
     if not attrs.has(decorated_class):
         msg = "Can only implement a pretty repr for a class created with attrs"
         raise TypeError(msg)
 
-    def repr_pretty(self: Any, p: "PrettyPrinter", cycle: bool) -> None:
+    def repr_pretty(self: Any, p: PrettyPrinter, cycle: bool) -> None:
         class_name = type(self).__name__
         if cycle:
             p.text(f"{class_name}(...)")

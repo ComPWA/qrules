@@ -1,4 +1,6 @@
-from typing import NamedTuple, Tuple
+from __future__ import annotations
+
+from typing import NamedTuple
 
 import pytest
 
@@ -54,7 +56,7 @@ class Input(NamedTuple):
 def test_parity_prefactor(
     test_input: Input,
     ingoing_state: str,
-    related_component_names: Tuple[str, str],
+    related_component_names: tuple[str, str],
     relative_parity_prefactor: float,
 ) -> None:
     stm = StateTransitionManager(

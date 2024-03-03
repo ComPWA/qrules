@@ -5,8 +5,9 @@ because of https://github.com/python/mypy/issues/6850. Duck typing is therefore 
 through functions defined in this test.
 """
 
+from __future__ import annotations
+
 import inspect
-from typing import Set, Type
 
 import attrs
 
@@ -55,7 +56,7 @@ def test_protocol_compliance():
     }
 
 
-def __get_duck_types(instance: Type) -> Set[Type]:
+def __get_duck_types(instance: type) -> set[type]:
     """Get a `set` of rule input classes that this instance can duck type."""
     return {c for c in RULE_INPUT_CLASSES if __is_duck_type(c, instance)}
 
@@ -66,7 +67,7 @@ def test_is_duck_type():
     assert __is_duck_type(conservation_rules.MassEdgeInput, Particle)
 
 
-def __is_duck_type(duck_type: Type, class_type: Type) -> bool:
+def __is_duck_type(duck_type: type, class_type: type) -> bool:
     """See https://github.com/python/mypy/issues/6850."""
     return __get_members(duck_type) <= __get_members(class_type)
 
@@ -97,7 +98,7 @@ def test_get_members():
     }
 
 
-def __get_members(class_type: Type) -> Set[str]:
+def __get_members(class_type: type) -> set[str]:
     use_attrs = class_type not in {EdgeQuantumNumbers, NodeQuantumNumbers}
     if use_attrs and attrs.has(class_type):
         return {f.name for f in attrs.fields(class_type)}  # type: ignore[misc]

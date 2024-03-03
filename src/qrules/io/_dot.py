@@ -3,6 +3,8 @@
 See :doc:`/usage/visualize` for more info.
 """
 
+from __future__ import annotations
+
 import logging
 import re
 import string
@@ -10,25 +12,25 @@ from collections import abc
 from functools import singledispatch
 from inspect import isfunction
 from numbers import Number
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Type, Union, cast
+from typing import TYPE_CHECKING, Any, Iterable, cast
 
 import attrs
 from attrs import Attribute, define, field
 from attrs.converters import default_if_none
 
-from qrules.argument_handling import Rule
 from qrules.particle import Particle, ParticleWithSpin, Spin
 from qrules.quantum_numbers import InteractionProperties, _to_fraction
 from qrules.solving import EdgeSettings, NodeSettings, QNProblemSet, QNResult
 from qrules.topology import FrozenTransition, MutableTransition, Topology, Transition
 from qrules.transition import ProblemSet, ReactionInfo, State
 
+if TYPE_CHECKING:
+    from qrules.argument_handling import Rule
+
 _LOGGER = logging.getLogger(__name__)
 
 
-def _check_booleans(
-    instance: "GraphPrinter", attribute: Attribute, value: bool
-) -> None:
+def _check_booleans(instance: GraphPrinter, attribute: Attribute, value: bool) -> None:
     if instance.strip_spin and instance.collapse_graphs:
         msg = "Cannot both strip spin and collapse graphs"
         raise ValueError(msg)
@@ -37,7 +39,7 @@ def _check_booleans(
         raise ValueError(msg)
 
 
-def _create_default_figure_style(style: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+def _create_default_figure_style(style: dict[str, Any] | None) -> dict[str, Any]:
     figure_style = {"bgcolor": None}
     if style is None:
         return figure_style
@@ -47,21 +49,21 @@ def _create_default_figure_style(style: Optional[Dict[str, Any]]) -> Dict[str, A
 
 @define(on_setattr=_check_booleans)
 class GraphPrinter:
-    render_node: Optional[bool] = None
+    render_node: bool | None = None
     render_final_state_id: bool = True
     render_resonance_id: bool = False
     render_initial_state_id: bool = False
     strip_spin: bool = False
     collapse_graphs: bool = False
 
-    figure_style: Dict[str, Any] = field(
+    figure_style: dict[str, Any] = field(
         converter=_create_default_figure_style, default=None
     )
-    edge_style: Dict[str, Any] = field(
+    edge_style: dict[str, Any] = field(
         converter=default_if_none(factory=dict),  # type: ignore[misc]
         default=None,
     )
-    node_style: Dict[str, Any] = field(
+    node_style: dict[str, Any] = field(
         converter=default_if_none(factory=dict),  # type: ignore[misc]
         default=None,
     )
@@ -76,7 +78,7 @@ class GraphPrinter:
         dot += "\n}\n"
         return dot
 
-    def _create_preface(self) -> List[str]:
+    def _create_preface(self) -> list[str]:
         return [
             "rankdir=LR",
             "node [shape=none, width=0]",
@@ -84,7 +86,7 @@ class GraphPrinter:
             *_create_graphviz_assignments(self.figure_style),
         ]
 
-    def _render(self, obj: Any) -> List[str]:
+    def _render(self, obj: Any) -> list[str]:
         if isinstance(obj, QNResult):
             obj = obj.solutions
         if isinstance(obj, ReactionInfo):
@@ -96,7 +98,7 @@ class GraphPrinter:
         msg = f"No DOT rendering for type {type(obj).__name__}"
         raise NotImplementedError(msg)
 
-    def _render_multiple_transitions(self, obj: Iterable) -> List[str]:
+    def _render_multiple_transitions(self, obj: Iterable) -> list[str]:
         if self.collapse_graphs:
             transitions: list = _collapse_graphs(obj)
         elif self.strip_spin:
@@ -113,15 +115,13 @@ class GraphPrinter:
 
     def _render_transition(  # noqa: C901, PLR0912, PLR0915
         self,
-        obj: Union[ProblemSet, QNProblemSet, Topology, Transition],
+        obj: ProblemSet | QNProblemSet | Topology | Transition,
         prefix: str = "",
-    ) -> List[str]:
-        lines: List[str] = []
+    ) -> list[str]:
+        lines: list[str] = []
         if isinstance(obj, tuple) and len(obj) == 2:
             topology: Topology = obj[0]
-            rendered_graph: Union[ProblemSet, QNProblemSet, Topology, Transition] = obj[
-                1
-            ]
+            rendered_graph: ProblemSet | QNProblemSet | Topology | Transition = obj[1]
         elif isinstance(obj, (ProblemSet, QNProblemSet, Transition)):
             rendered_graph = obj
             topology = obj.topology
@@ -189,14 +189,14 @@ class GraphPrinter:
         return f"{from_node} -> {to_node}{styling}"
 
     @staticmethod
-    def _create_graphviz_node(node: str, label: str, style: Dict[str, Any]) -> str:
+    def _create_graphviz_node(node: str, label: str, style: dict[str, Any]) -> str:
         style = dict(style)  # copy
         style["label"] = label
         styling = _create_graphviz_styling(style)
         return f"{node}{styling}"
 
 
-def _create_graphviz_styling(graphviz_attrs: Dict[str, Any]) -> str:
+def _create_graphviz_styling(graphviz_attrs: dict[str, Any]) -> str:
     """Create a `str` of Graphviz attribute assignments for a node or edge.
 
     See `Graphviz attributes <https://graphviz.org/doc/info/attrs.html>`_ for the
@@ -213,7 +213,7 @@ def _create_graphviz_styling(graphviz_attrs: Dict[str, Any]) -> str:
     return f" [{', '.join(assignments)}]"
 
 
-def _create_graphviz_assignments(graphviz_attrs: Dict[str, Any]) -> List[str]:
+def _create_graphviz_assignments(graphviz_attrs: dict[str, Any]) -> list[str]:
     """Create a `list` of graphviz attribute assignments.
 
     See `Graphviz attributes <https://graphviz.org/doc/info/attrs.html>`_ for the
@@ -236,7 +236,7 @@ def _create_graphviz_assignments(graphviz_attrs: Dict[str, Any]) -> List[str]:
     return items
 
 
-def _get_graphviz_node(edge_id: int, node_id: Optional[int] = None) -> str:
+def _get_graphviz_node(edge_id: int, node_id: int | None = None) -> str:
     if node_id is None:
         if edge_id < 0:  # initial state
             return string.ascii_uppercase[-edge_id - 1]
@@ -251,7 +251,7 @@ def _create_same_rank_line(node_edge_ids: Iterable[int], prefix: str = "") -> st
 
 
 def _create_edge_label(
-    graph: Union[ProblemSet, QNProblemSet, Topology, Transition],
+    graph: ProblemSet | QNProblemSet | Topology | Transition,
     edge_id: int,
     render_edge_id: bool,
 ) -> str:
@@ -262,7 +262,7 @@ def _create_edge_label(
     if isinstance(graph, (ProblemSet, QNProblemSet)):
         edge_setting = graph.solving_settings.states.get(edge_id)
         initial_fact = graph.initial_facts.states.get(edge_id)
-        edge_property: Optional[Union[EdgeSettings, ParticleWithSpin]] = None
+        edge_property: EdgeSettings | ParticleWithSpin | None = None
         if edge_setting:
             edge_property = edge_setting
         if initial_fact:
@@ -357,7 +357,7 @@ def _(obj: InteractionProperties) -> str:
 
 @as_string.register(EdgeSettings)
 @as_string.register(NodeSettings)
-def _(settings: Union[EdgeSettings, NodeSettings]) -> str:
+def _(settings: EdgeSettings | NodeSettings) -> str:
     output = ""
     if settings.rule_priorities:
         output += "RULES\n"
@@ -378,7 +378,7 @@ def _(settings: Union[EdgeSettings, NodeSettings]) -> str:
     return output
 
 
-def __get_priority(rule: Any, rule_priorities: Dict[Any, int]) -> Union[int, str]:
+def __get_priority(rule: Any, rule_priorities: dict[Any, int]) -> int | str:
     rule_type = __get_type(rule)
     return rule_priorities.get(rule_type, "NA")
 
@@ -387,7 +387,7 @@ def __render_rule(rule: Rule) -> str:
     return __get_type(rule).__name__
 
 
-def __get_type(rule: Rule) -> Type[Rule]:
+def __get_type(rule: Rule) -> type[Rule]:
     if isfunction(rule):
         return rule  # type: ignore[return-value]
     return type(rule)
@@ -437,7 +437,7 @@ def _(obj: tuple) -> str:
 
 def _get_particle_graphs(
     graphs: Iterable[Transition[ParticleWithSpin, InteractionProperties]],
-) -> "List[FrozenTransition[Particle, None]]":
+) -> list[FrozenTransition[Particle, None]]:
     """Strip `list` of `.Transition` s of the spin projections.
 
     Extract a `list` of `.Transition` instances with only `.Particle` instances on the
@@ -465,7 +465,7 @@ def _get_particle_graphs(
 
 def _strip_projections(
     graph: Transition[Any, InteractionProperties],
-) -> "FrozenTransition[Particle, InteractionProperties]":
+) -> FrozenTransition[Particle, InteractionProperties]:
     if isinstance(graph, MutableTransition):
         transition = graph.freeze()
     transition = cast("FrozenTransition[Any, InteractionProperties]", graph)
@@ -488,8 +488,8 @@ def __to_particle(state: Any) -> Particle:
 
 def _collapse_graphs(
     graphs: Iterable[Transition[ParticleWithSpin, InteractionProperties]],
-) -> "List[FrozenTransition[Tuple[Particle, ...], None]]":
-    transition_groups: "Dict[Topology, MutableTransition[Set[Particle], None]]" = {
+) -> list[FrozenTransition[tuple[Particle, ...], None]]:
+    transition_groups: dict[Topology, MutableTransition[set[Particle], None]] = {
         g.topology: MutableTransition(
             g.topology,
             states={i: set() for i in g.topology.edges},  # type: ignore[misc]
@@ -506,7 +506,7 @@ def _collapse_graphs(
             else:
                 particle, _ = state
             group.states[state_id].add(particle)
-    collected_graphs: "List[FrozenTransition[Tuple[Particle, ...], None]]" = []
+    collected_graphs: list[FrozenTransition[tuple[Particle, ...], None]] = []
     for topology in sorted(transition_groups):
         group = transition_groups[topology]
         collected_graphs.append(

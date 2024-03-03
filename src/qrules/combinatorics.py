@@ -5,27 +5,28 @@ interactions. This module provides tools to permutate, modify or extract these e
 node properties.
 """
 
+from __future__ import annotations
+
 import itertools
 import sys
 from collections import OrderedDict
 from copy import deepcopy
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
-    Dict,
     Iterable,
-    List,
     Mapping,
-    Optional,
     Sequence,
-    Set,
     Tuple,
     Union,
 )
 
-from qrules.particle import ParticleCollection, ParticleWithSpin
 from qrules.quantum_numbers import InteractionProperties, arange
 from qrules.topology import MutableTransition, Topology, get_originating_node_list
+
+if TYPE_CHECKING:
+    from qrules.particle import ParticleCollection, ParticleWithSpin
 
 if sys.version_info >= (3, 10):
     from typing import TypeAlias
@@ -34,6 +35,7 @@ else:
 
 StateWithSpins = Tuple[str, Sequence[float]]
 StateDefinition = Union[str, StateWithSpins]
+"""Particle name, optionally with a list of spin projections."""
 InitialFacts: TypeAlias = "MutableTransition[ParticleWithSpin, InteractionProperties]"
 """A `.Transition` with only initial and final state information."""
 
@@ -41,22 +43,22 @@ InitialFacts: TypeAlias = "MutableTransition[ParticleWithSpin, InteractionProper
 class _KinematicRepresentation:  # noqa: PLW1641
     def __init__(
         self,
-        final_state: Optional[Union[List[List[str]], List[str]]] = None,
-        initial_state: Optional[Union[List[List[str]], List[str]]] = None,
+        final_state: list[list[str]] | list[str] | None = None,
+        initial_state: list[list[str]] | list[str] | None = None,
     ) -> None:
-        self.__initial_state: Optional[List[List[str]]] = None
-        self.__final_state: Optional[List[List[str]]] = None
+        self.__initial_state: list[list[str]] | None = None
+        self.__final_state: list[list[str]] | None = None
         if initial_state is not None:
             self.__initial_state = _sort_nested(ensure_nested_list(initial_state))
         if final_state is not None:
             self.__final_state = _sort_nested(ensure_nested_list(final_state))
 
     @property
-    def initial_state(self) -> Optional[List[List[str]]]:
+    def initial_state(self) -> list[list[str]] | None:
         return self.__initial_state
 
     @property
-    def final_state(self) -> Optional[List[List[str]]]:
+    def final_state(self) -> list[list[str]] | None:
         return self.__final_state
 
     def __eq__(self, other: object) -> bool:
@@ -89,8 +91,8 @@ class _KinematicRepresentation:  # noqa: PLW1641
         """
 
         def is_sublist(
-            sub_representation: Optional[List[List[str]]],
-            main_representation: Optional[List[List[str]]],
+            sub_representation: list[list[str]] | None,
+            main_representation: list[list[str]] | None,
         ) -> bool:
             if main_representation is None:
                 if sub_representation is None:
@@ -114,13 +116,13 @@ class _KinematicRepresentation:  # noqa: PLW1641
         raise ValueError(msg)
 
 
-def _sort_nested(nested_list: List[List[str]]) -> List[List[str]]:
+def _sort_nested(nested_list: list[list[str]]) -> list[list[str]]:
     return sorted(sorted(sub_list) for sub_list in nested_list)
 
 
 def ensure_nested_list(
-    nested_list: Union[List[str], List[List[str]]],
-) -> List[List[str]]:
+    nested_list: list[str] | list[list[str]],
+) -> list[list[str]]:
     if any(not isinstance(item, list) for item in nested_list):
         nested_list = [nested_list]  # type: ignore[assignment]
     if any(not isinstance(i, str) for lst in nested_list for i in lst):
@@ -169,12 +171,12 @@ def _get_kinematic_representation(
     length and element content) for comparisons.
     """
 
-    def get_state_groupings(get_edge: Callable[[int], Set[int]]) -> List[List[int]]:
+    def get_state_groupings(get_edge: Callable[[int], set[int]]) -> list[list[int]]:
         return [sorted(get_edge(i)) for i in topology.nodes]
 
     def fill_groupings(
         edge_id_groupings: Iterable[Iterable[int]],
-    ) -> List[List[str]]:
+    ) -> list[list[str]]:
         return [
             [particle_names[edge_id] for edge_id in group]
             for group in edge_id_groupings
@@ -197,7 +199,7 @@ def create_initial_facts(
     initial_state: Sequence[StateDefinition],
     final_state: Sequence[StateDefinition],
     particle_db: ParticleCollection,
-) -> List[InitialFacts]:
+) -> list[InitialFacts]:
     states = __create_states_with_spin_projections(
         list(topology.incoming_edge_ids) + list(topology.outgoing_edge_ids),
         list(initial_state) + list(final_state),
@@ -211,7 +213,7 @@ def __create_states_with_spin_projections(
     edge_ids: Sequence[int],
     state_definitions: Sequence[StateDefinition],
     particle_db: ParticleCollection,
-) -> Dict[int, StateWithSpins]:
+) -> dict[int, StateWithSpins]:
     if len(edge_ids) != len(state_definitions):
         msg = "Number of state definitions is not same as number of edge IDs"
         raise ValueError(msg)
@@ -237,14 +239,14 @@ def __safe_set_spin_projections(
 
 
 def __generate_spin_combinations(
-    states_with_spin_projections: Dict[int, StateWithSpins],
+    states_with_spin_projections: dict[int, StateWithSpins],
     particle_db: ParticleCollection,
-) -> List[Dict[int, ParticleWithSpin]]:
+) -> list[dict[int, ParticleWithSpin]]:
     def populate_edge_with_spin_projections(
-        permutation: Dict[int, ParticleWithSpin],
+        permutation: dict[int, ParticleWithSpin],
         edge_id: int,
         state: StateWithSpins,
-    ) -> List[Dict[int, ParticleWithSpin]]:
+    ) -> list[dict[int, ParticleWithSpin]]:
         particle_name, spin_projections = state
         particle = particle_db[particle_name]
         new_permutations = []
@@ -254,7 +256,7 @@ def __generate_spin_combinations(
             new_permutations.append(temp_permutation)
         return new_permutations
 
-    initial_facts_permutations: List[Dict[int, ParticleWithSpin]] = [{}]
+    initial_facts_permutations: list[dict[int, ParticleWithSpin]] = [{}]
     for edge_id, state in states_with_spin_projections.items():
         temp_permutations = initial_facts_permutations
         initial_facts_permutations = []
@@ -268,12 +270,13 @@ def __generate_spin_combinations(
 
 def permutate_topology_kinematically(
     topology: Topology,
-    initial_state: List[StateDefinition],
-    final_state: List[StateDefinition],
-    final_state_groupings: Optional[
-        Union[List[List[List[str]]], List[List[str]], List[str]]
-    ] = None,
-) -> List[Topology]:
+    initial_state: list[StateDefinition],
+    final_state: list[StateDefinition],
+    final_state_groupings: list[list[list[str]]]
+    | list[list[str]]
+    | list[str]
+    | None = None,
+) -> list[Topology]:
     def strip_spin(state: StateDefinition) -> str:
         if isinstance(state, tuple):
             return state[0]
@@ -290,9 +293,9 @@ def permutate_topology_kinematically(
 
 def _generate_kinematic_permutations(
     topology: Topology,
-    particle_names: Dict[int, str],
-    allowed_kinematic_groupings: Optional[List[_KinematicRepresentation]] = None,
-) -> List[Topology]:
+    particle_names: dict[int, str],
+    allowed_kinematic_groupings: list[_KinematicRepresentation] | None = None,
+) -> list[Topology]:
     def is_allowed_grouping(kinematic_representation: _KinematicRepresentation) -> bool:
         if allowed_kinematic_groupings is None:
             return True
@@ -301,8 +304,8 @@ def _generate_kinematic_permutations(
                 return True
         return False
 
-    permuted_topologies: List[Topology] = []
-    kinematic_representations: List[_KinematicRepresentation] = []
+    permuted_topologies: list[Topology] = []
+    kinematic_representations: list[_KinematicRepresentation] = []
     for permutation in _permutate_outer_edges(topology):
         kinematic_representation = _get_kinematic_representation(
             permutation, particle_names
@@ -316,7 +319,7 @@ def _generate_kinematic_permutations(
     return permuted_topologies
 
 
-def _permutate_outer_edges(topology: Topology) -> List[Topology]:
+def _permutate_outer_edges(topology: Topology) -> list[Topology]:
     initial_state_ids = sorted(topology.incoming_edge_ids)
     final_state_ids = sorted(topology.outgoing_edge_ids)
     topologies = set()
@@ -332,17 +335,12 @@ def _permutate_outer_edges(topology: Topology) -> List[Topology]:
 
 
 def __get_kinematic_groupings(
-    final_state_groupings: Union[
-        List[List[List[str]]],
-        List[List[str]],
-        List[str],
-        None,
-    ],
-) -> Optional[List[_KinematicRepresentation]]:
+    final_state_groupings: list[list[list[str]]] | list[list[str]] | list[str] | None,
+) -> list[_KinematicRepresentation] | None:
     if final_state_groupings is None:
         return None
 
-    def embed_in_list(some_list: List[Any]) -> List[List[Any]]:
+    def embed_in_list(some_list: list[Any]) -> list[list[Any]]:
         if not isinstance(some_list[0], list):
             return [some_list]
         return some_list
@@ -353,7 +351,7 @@ def __get_kinematic_groupings(
 
 
 def match_external_edges(
-    graphs: "List[MutableTransition[ParticleWithSpin, InteractionProperties]]",
+    graphs: list[MutableTransition[ParticleWithSpin, InteractionProperties]],
 ) -> None:
     if not isinstance(graphs, list):
         msg = "graphs argument is not of type list"
@@ -366,9 +364,9 @@ def match_external_edges(
 
 
 def _match_external_edge_ids(
-    graphs: "List[MutableTransition[ParticleWithSpin, InteractionProperties]]",
+    graphs: list[MutableTransition[ParticleWithSpin, InteractionProperties]],
     ref_graph_id: int,
-    external_edge_getter_function: "Callable[[MutableTransition], Iterable[int]]",
+    external_edge_getter_function: Callable[[MutableTransition], Iterable[int]],
 ) -> None:
     ref_graph = graphs[ref_graph_id]
     # create external edge to particle mapping
@@ -401,20 +399,20 @@ def _match_external_edge_ids(
 
 
 def __get_initial_state_edge_ids(
-    graph: "MutableTransition[ParticleWithSpin, InteractionProperties]",
+    graph: MutableTransition[ParticleWithSpin, InteractionProperties],
 ) -> Iterable[int]:
     return graph.topology.incoming_edge_ids
 
 
 def __get_final_state_edge_ids(
-    graph: "MutableTransition[ParticleWithSpin, InteractionProperties]",
+    graph: MutableTransition[ParticleWithSpin, InteractionProperties],
 ) -> Iterable[int]:
     return graph.topology.outgoing_edge_ids
 
 
 def perform_external_edge_identical_particle_combinatorics(
     graph: MutableTransition,
-) -> List[MutableTransition]:
+) -> list[MutableTransition]:
     """Create combinatorics clones of the `.MutableTransition`.
 
     In case of identical particles in the initial or final state. Only identical
@@ -437,14 +435,14 @@ def perform_external_edge_identical_particle_combinatorics(
 
 
 def _external_edge_identical_particle_combinatorics(
-    graph: "MutableTransition[ParticleWithSpin, InteractionProperties]",
+    graph: MutableTransition[ParticleWithSpin, InteractionProperties],
     external_edge_getter_function: Callable[[MutableTransition], Iterable[int]],
-) -> List[MutableTransition]:
+) -> list[MutableTransition]:
     new_graphs = [graph]
     edge_particle_mapping = _create_edge_id_particle_mapping(
         graph, external_edge_getter_function(graph)
     )
-    identical_particle_groups: Dict[str, Set[int]] = {}
+    identical_particle_groups: dict[str, set[int]] = {}
     for key, value in edge_particle_mapping.items():
         if value not in identical_particle_groups:
             identical_particle_groups[value] = set()
@@ -475,7 +473,7 @@ def _external_edge_identical_particle_combinatorics(
     return new_graphs
 
 
-def _calculate_swappings(id_mapping: Dict[int, int]) -> OrderedDict:
+def _calculate_swappings(id_mapping: dict[int, int]) -> OrderedDict:
     """Calculate edge id swappings.
 
     Its important to use an ordered dict as the swappings do not commute!
@@ -492,7 +490,7 @@ def _calculate_swappings(id_mapping: Dict[int, int]) -> OrderedDict:
 
 
 def _create_edge_id_particle_mapping(
-    graph: "MutableTransition[ParticleWithSpin, InteractionProperties]",
+    graph: MutableTransition[ParticleWithSpin, InteractionProperties],
     edge_ids: Iterable[int],
-) -> Dict[int, str]:
+) -> dict[int, str]:
     return {i: graph.states[i][0].name for i in edge_ids}

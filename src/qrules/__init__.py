@@ -15,8 +15,10 @@ Finally, the `.io` module provides tools that can read and write the objects of 
 framework.
 """
 
+from __future__ import annotations
+
 from itertools import product
-from typing import Dict, FrozenSet, Iterable, List, Optional, Sequence, Set, Union
+from typing import Iterable, Sequence
 
 import attrs
 
@@ -57,13 +59,13 @@ from .transition import EdgeSettings, ProblemSet, ReactionInfo, StateTransitionM
 
 
 def check_reaction_violations(  # noqa: C901, PLR0917
-    initial_state: Union[StateDefinition, Sequence[StateDefinition]],
+    initial_state: StateDefinition | Sequence[StateDefinition],
     final_state: Sequence[StateDefinition],
-    mass_conservation_factor: Optional[float] = 3.0,
-    particle_db: Optional[ParticleCollection] = None,
+    mass_conservation_factor: float | None = 3.0,
+    particle_db: ParticleCollection | None = None,
     max_angular_momentum: int = 1,
     max_spin_magnitude: float = 2.0,
-) -> Set[FrozenSet[str]]:
+) -> set[frozenset[str]]:
     """Determine violated interaction rules for a given particle reaction.
 
     .. warning:: This function only guarantees to find P, C and G parity
@@ -108,9 +110,9 @@ def check_reaction_violations(  # noqa: C901, PLR0917
         particle_db = load_pdg()
 
     def _check_violations(
-        facts: "InitialFacts",
-        node_rules: Dict[int, Set[Rule]],
-        edge_rules: Dict[int, Set[GraphElementRule]],
+        facts: InitialFacts,
+        node_rules: dict[int, set[Rule]],
+        edge_rules: dict[int, set[GraphElementRule]],
     ) -> QNResult:
         problem_set = ProblemSet(
             topology=topology,
@@ -130,7 +132,7 @@ def check_reaction_violations(  # noqa: C901, PLR0917
         return validate_full_solution(problem_set.to_qn_problem_set())
 
     def check_pure_edge_rules() -> None:
-        pure_edge_rules: Set[GraphElementRule] = {
+        pure_edge_rules: set[GraphElementRule] = {
             gellmann_nishijima,
             isospin_validity,
         }
@@ -147,14 +149,14 @@ def check_reaction_violations(  # noqa: C901, PLR0917
             msg = f"Some edges violate {edge_check_result.violated_edge_rules.values()}"
             raise ValueError(msg)
 
-    def check_edge_qn_conservation() -> Set[FrozenSet[str]]:
+    def check_edge_qn_conservation() -> set[frozenset[str]]:
         """Check if edge quantum numbers are conserved.
 
         Those rules give the same results, independent on the node and spin props. Note
         they are also independent of the topology and hence their results are always
         correct.
         """
-        edge_qn_conservation_rules: Set[Rule] = {
+        edge_qn_conservation_rules: set[Rule] = {
             BaryonNumberConservation(),  # type: ignore[abstract]
             BottomnessConservation(),  # type: ignore[abstract]
             ChargeConservation(),  # type: ignore[abstract]
@@ -212,7 +214,7 @@ def check_reaction_violations(  # noqa: C901, PLR0917
     # Verify each graph with the interaction rules.
     # Spin projection rules are skipped as they can only be checked reliably
     # for a isobar topology (too difficult to solve)
-    conservation_rules: Dict[int, Set[Rule]] = {
+    conservation_rules: dict[int, set[Rule]] = {
         node_id: {
             c_parity_conservation,
             clebsch_gordan_helicity_to_canonical,
@@ -223,7 +225,7 @@ def check_reaction_violations(  # noqa: C901, PLR0917
         }
     }
 
-    conservation_rule_violations: List[Set[str]] = []
+    conservation_rule_violations: list[set[str]] = []
     for facts in initial_facts_list:
         rule_violations = _check_violations(
             facts=facts, node_rules=conservation_rules, edge_rules={}
@@ -244,7 +246,7 @@ def check_reaction_violations(  # noqa: C901, PLR0917
     # if there is not non-violated graph with the remaining violations then
     # the collection of violations also violate everything as a group.
     if all(map(len, conservation_rule_violations)):
-        rule_group: Set[str] = set()
+        rule_group: set[str] = set()
         for graph_violations in conservation_rule_violations:
             rule_group.update(graph_violations)
         violations.add(frozenset(rule_group))
@@ -253,17 +255,17 @@ def check_reaction_violations(  # noqa: C901, PLR0917
 
 
 def generate_transitions(  # noqa: PLR0917
-    initial_state: Union[StateDefinition, Sequence[StateDefinition]],
+    initial_state: StateDefinition | Sequence[StateDefinition],
     final_state: Sequence[StateDefinition],
-    allowed_intermediate_particles: Optional[List[str]] = None,
-    allowed_interaction_types: Optional[Union[str, Iterable[str]]] = None,
+    allowed_intermediate_particles: list[str] | None = None,
+    allowed_interaction_types: str | Iterable[str] | None = None,
     formalism: str = "canonical-helicity",
-    particle_db: Optional[ParticleCollection] = None,
-    mass_conservation_factor: Optional[float] = 3.0,
+    particle_db: ParticleCollection | None = None,
+    mass_conservation_factor: float | None = 3.0,
     max_angular_momentum: int = 2,
     max_spin_magnitude: float = 2.0,
     topology_building: str = "isobar",
-    number_of_threads: Optional[int] = None,
+    number_of_threads: int | None = None,
 ) -> ReactionInfo:
     """Generate allowed transitions between an initial and final state.
 
