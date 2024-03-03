@@ -1,4 +1,5 @@
 import logging
+from typing import TYPE_CHECKING
 
 import pytest
 from _pytest.fixtures import SubRequest
@@ -7,12 +8,15 @@ import qrules
 from qrules import ReactionInfo
 from qrules.topology import Edge, Topology
 
+if TYPE_CHECKING:
+    from qrules.transition import SpinFormalism
+
 logging.basicConfig(level=logging.ERROR)
 
 
 @pytest.fixture(scope="session", params=["canonical-helicity", "helicity"])
 def reaction(request: SubRequest) -> ReactionInfo:
-    formalism: str = request.param
+    formalism: SpinFormalism = request.param
     return qrules.generate_transitions(
         initial_state=[("J/psi(1S)", [-1, 1])],
         final_state=["gamma", "pi0", "pi0"],

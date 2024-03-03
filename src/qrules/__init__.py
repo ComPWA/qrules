@@ -59,6 +59,7 @@ from qrules.transition import (
     EdgeSettings,
     ProblemSet,
     ReactionInfo,
+    SpinFormalism,
     StateTransitionManager,
 )
 
@@ -264,7 +265,7 @@ def generate_transitions(  # noqa: PLR0917
     final_state: Sequence[StateDefinition],
     allowed_intermediate_particles: list[str] | None = None,
     allowed_interaction_types: str | Iterable[str] | None = None,
-    formalism: str = "canonical-helicity",
+    formalism: SpinFormalism = "canonical-helicity",
     particle_db: ParticleCollection | None = None,
     mass_conservation_factor: float | None = 3.0,
     max_angular_momentum: int = 2,

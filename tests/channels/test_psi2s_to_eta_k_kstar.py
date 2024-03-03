@@ -4,6 +4,7 @@ import pytest
 
 import qrules
 from qrules.particle import ParticleCollection
+from qrules.transition import SpinFormalism
 
 
 @pytest.mark.parametrize("formalism", ["helicity", "canonical-helicity"])
@@ -15,7 +16,7 @@ from qrules.particle import ParticleCollection
         ["h(1)(1415)", "omega(1650)"],
     ],
 )
-def test_resonances(formalism, resonances, modified_pdg):
+def test_resonances(formalism: SpinFormalism, resonances, modified_pdg):
     reaction = qrules.generate_transitions(
         initial_state=("psi(2S)", [+1, -1]),
         final_state=["eta", "K-", "K*(892)+"],

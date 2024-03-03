@@ -11,7 +11,7 @@ from qrules.topology import (
     create_isobar_topologies,
     create_n_body_topology,
 )
-from qrules.transition import ReactionInfo
+from qrules.transition import ReactionInfo, SpinFormalism
 
 
 def test_asdot(reaction: ReactionInfo):
@@ -116,7 +116,7 @@ def test_asdot_no_label_overwriting(reaction: ReactionInfo):
     "formalism",
     ["canonical", "canonical-helicity", "helicity"],
 )
-def test_asdot_problemset(formalism: str):
+def test_asdot_problemset(formalism: SpinFormalism):
     stm = qrules.StateTransitionManager(
         initial_state=[("J/psi(1S)", [+1])],
         final_state=["gamma", "pi0", "pi0"],

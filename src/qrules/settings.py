@@ -50,6 +50,7 @@ from qrules.solving import EdgeSettings, NodeSettings
 
 if TYPE_CHECKING:
     from qrules.particle import Particle, ParticleCollection
+    from qrules.transition import SpinFormalism
 
 __QRULES_PATH = dirname(realpath(__file__))
 ADDITIONAL_PARTICLES_DEFINITIONS_PATH: str = join(
@@ -118,7 +119,7 @@ DEFAULT_INTERACTION_TYPES = [
 
 
 def create_interaction_settings(  # noqa: PLR0917
-    formalism: str,
+    formalism: SpinFormalism,
     particle_db: ParticleCollection,
     nbody_topology: bool = False,
     mass_conservation_factor: float | None = 3.0,
