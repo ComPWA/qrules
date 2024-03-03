@@ -10,7 +10,7 @@ from collections import defaultdict
 from copy import copy, deepcopy
 from enum import Enum, auto
 from multiprocessing import Pool
-from typing import TYPE_CHECKING, Iterable, Literal, Sequence, overload
+from typing import TYPE_CHECKING, Iterable, Sequence, overload
 
 import attrs
 from attrs import define, field, frozen
@@ -73,6 +73,11 @@ from qrules.topology import (
     create_isobar_topologies,
     create_n_body_topology,
 )
+
+if sys.version_info >= (3, 8):
+    from typing import Literal
+else:
+    from typing_extensions import Literal
 
 if sys.version_info >= (3, 10):
     from typing import TypeAlias
