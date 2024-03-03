@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import inspect
 import logging
-import sys
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from copy import copy
@@ -36,11 +35,6 @@ from qrules.quantum_numbers import (
     NodeQuantumNumber,
 )
 from qrules.topology import MutableTransition, Topology
-
-if sys.version_info >= (3, 10):
-    from typing import TypeAlias
-else:
-    from typing_extensions import TypeAlias
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -76,11 +70,9 @@ class NodeSettings:
     interaction_strength: float = 1.0
 
 
-GraphSettings: TypeAlias = "MutableTransition[EdgeSettings, NodeSettings]"
+GraphSettings = MutableTransition[EdgeSettings, NodeSettings]
 """(Mutable) mapping of settings on a `.Topology`."""
-GraphElementProperties: TypeAlias = (
-    "MutableTransition[GraphEdgePropertyMap, GraphNodePropertyMap]"
-)
+GraphElementProperties = MutableTransition[GraphEdgePropertyMap, GraphNodePropertyMap]
 """(Mutable) mapping of edge and node properties on a `.Topology`."""
 
 
@@ -103,9 +95,7 @@ class QNProblemSet:
         return self.initial_facts.topology
 
 
-QuantumNumberSolution: TypeAlias = (
-    "MutableTransition[GraphEdgePropertyMap, GraphNodePropertyMap]"
-)
+QuantumNumberSolution = MutableTransition[GraphEdgePropertyMap, GraphNodePropertyMap]
 
 
 def _convert_violated_rules_to_names(

@@ -8,7 +8,6 @@ node properties.
 from __future__ import annotations
 
 import itertools
-import sys
 from collections import OrderedDict
 from copy import deepcopy
 from typing import (
@@ -22,21 +21,18 @@ from typing import (
     Union,
 )
 
+from qrules.particle import ParticleWithSpin
 from qrules.quantum_numbers import InteractionProperties, arange
 from qrules.topology import MutableTransition, Topology, get_originating_node_list
 
 if TYPE_CHECKING:
-    from qrules.particle import ParticleCollection, ParticleWithSpin
+    from qrules.particle import ParticleCollection
 
-if sys.version_info >= (3, 10):
-    from typing import TypeAlias
-else:
-    from typing_extensions import TypeAlias
 
 StateWithSpins = Tuple[str, Sequence[float]]
 StateDefinition = Union[str, StateWithSpins]
 """Particle name, optionally with a list of spin projections."""
-InitialFacts: TypeAlias = "MutableTransition[ParticleWithSpin, InteractionProperties]"
+InitialFacts = MutableTransition[ParticleWithSpin, InteractionProperties]
 """A `.Transition` with only initial and final state information."""
 
 
