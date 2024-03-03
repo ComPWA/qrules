@@ -168,10 +168,6 @@ class _SolutionContainer:
             self.execution_info.extend(other.execution_info, intersect_violations)
 
 
-if sys.version_info >= (3, 10):
-    attrs.resolve_types(_SolutionContainer, globals(), locals())  # type: ignore[type-var]
-
-
 @implement_pretty_repr
 @define
 class ProblemSet:
@@ -197,10 +193,6 @@ class ProblemSet:
             initial_facts=MutableTransition(self.topology, states, interactions),
             solving_settings=self.solving_settings,
         )
-
-
-if sys.version_info >= (3, 10):
-    attrs.resolve_types(ProblemSet, globals(), locals())  # type: ignore[type-var]
 
 
 def _group_by_strength(
