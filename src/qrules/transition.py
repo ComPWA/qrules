@@ -10,7 +10,7 @@ from collections import defaultdict
 from copy import copy, deepcopy
 from enum import Enum, auto
 from multiprocessing import Pool
-from typing import TYPE_CHECKING, Iterable, Sequence, overload
+from typing import Iterable, Sequence, overload
 
 import attrs
 from attrs import define, field, frozen
@@ -68,6 +68,7 @@ from qrules.system_control import (
 )
 from qrules.topology import (
     FrozenDict,
+    FrozenTransition,
     MutableTransition,
     Topology,
     create_isobar_topologies,
@@ -79,12 +80,6 @@ if sys.version_info >= (3, 8):
 else:
     from typing_extensions import Literal
 
-if sys.version_info >= (3, 10):
-    from typing import TypeAlias
-else:
-    from typing_extensions import TypeAlias
-if TYPE_CHECKING:
-    from qrules.topology import FrozenTransition
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -741,7 +736,7 @@ class State:
     spin_projection: float = field(converter=_to_float)
 
 
-StateTransition: TypeAlias = "FrozenTransition[State, InteractionProperties]"
+StateTransition = FrozenTransition[State, InteractionProperties]
 """Transition of some initial `.State` to a final `.State`."""
 
 

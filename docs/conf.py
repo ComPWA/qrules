@@ -77,8 +77,6 @@ api_target_substitutions: dict[str, str | tuple[str, str]] = {
     "qrules.topology.NodeType": "typing.TypeVar",
     "SpinFormalism": ("obj", "qrules.transition.SpinFormalism"),
     "StateDefinition": ("obj", "qrules.combinatorics.StateDefinition"),
-    "TypeAlias": "typing.TypeAlias",
-    "typing_extensions.TypeAlias": "typing.TypeAlias",
 }
 api_target_types: dict[str, str | tuple[str, str]] = {
     "qrules.combinatorics.InitialFacts": "obj",
@@ -109,7 +107,6 @@ api_target_types: dict[str, str | tuple[str, str]] = {
     "qrules.solving.GraphElementProperties": "obj",
     "qrules.solving.GraphSettings": "obj",
     "qrules.transition.StateTransition": "obj",
-    "typing.TypeAlias": "obj",
 }
 author = "Common Partial Wave Analysis"
 autodoc_default_options = {
