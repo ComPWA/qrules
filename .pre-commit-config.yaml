@@ -51,7 +51,6 @@ repos:
           - --repo-title=QRules
       - id: colab-toc-visible
       - id: fix-nbformat-version
-      - id: format-setup-cfg
       - id: set-nb-cells
         args:
           - --add-install-cell

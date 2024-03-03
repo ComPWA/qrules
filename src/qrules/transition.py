@@ -178,8 +178,7 @@ class _SolutionContainer:
             self.execution_info.extend(other.execution_info, intersect_violations)
 
 
-if sys.version_info >= (3, 7):
-    attrs.resolve_types(_SolutionContainer, globals(), locals())  # type: ignore[type-var]
+attrs.resolve_types(_SolutionContainer, globals(), locals())  # type: ignore[type-var]
 
 
 @implement_pretty_repr
