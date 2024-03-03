@@ -64,8 +64,8 @@ api_github_repo = f"{ORGANIZATION}/{REPO_NAME}"
 api_target_substitutions: dict[str, str | tuple[str, str]] = {
     "EdgeType": "typing.TypeVar",
     "GraphEdgePropertyMap": ("obj", "qrules.argument_handling.GraphEdgePropertyMap"),
-    "GraphNodePropertyMap": ("obj", "qrules.argument_handling.GraphNodePropertyMap"),
     "GraphElementProperties": ("obj", "qrules.solving.GraphElementProperties"),
+    "GraphNodePropertyMap": ("obj", "qrules.argument_handling.GraphNodePropertyMap"),
     "GraphSettings": ("obj", "qrules.solving.GraphSettings"),
     "InitialFacts": ("obj", "qrules.combinatorics.InitialFacts"),
     "NewEdgeType": "typing.TypeVar",
@@ -75,6 +75,7 @@ api_target_substitutions: dict[str, str | tuple[str, str]] = {
     "ParticleWithSpin": ("obj", "qrules.particle.ParticleWithSpin"),
     "qrules.topology.EdgeType": "typing.TypeVar",
     "qrules.topology.NodeType": "typing.TypeVar",
+    "SpinFormalism": ("obj", "qrules.transition.SpinFormalism"),
     "StateDefinition": ("obj", "qrules.combinatorics.StateDefinition"),
     "TypeAlias": "typing.TypeAlias",
     "typing_extensions.TypeAlias": "typing.TypeAlias",

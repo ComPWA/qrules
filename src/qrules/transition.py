@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Iterable, Sequence, overload
 
 import attrs
 from attrs import define, field, frozen
-from attrs.validators import instance_of
+from attrs.validators import in_, instance_of
 from tqdm.auto import tqdm
 
 from qrules._implementers import implement_pretty_repr
@@ -74,6 +74,11 @@ from qrules.topology import (
     create_n_body_topology,
 )
 
+if sys.version_info >= (3, 8):
+    from typing import Literal
+else:
+    from typing_extensions import Literal
+
 if sys.version_info >= (3, 10):
     from typing import TypeAlias
 else:
@@ -82,6 +87,19 @@ if TYPE_CHECKING:
     from qrules.topology import FrozenTransition
 
 _LOGGER = logging.getLogger(__name__)
+
+SpinFormalism = Literal[
+    "helicity",
+    "canonical-helicity",
+    "canonical",
+]
+"""Name for the spin formalism to be used.
+
+The options :code:`"helicity"`, :code:`"canonical-helicity"`, and :code:`"canonical"`
+are all used for the helicity formalism, but :code:`"canonical-helicity"` and
+:code:`"canonical"` generate angular momentum and coupled spins as well on the
+interaction nodes.
+"""
 
 
 class SolvingMode(Enum):
@@ -226,7 +244,7 @@ class StateTransitionManager:
             InteractionType, tuple[EdgeSettings, NodeSettings]
         ]
         | None = None,
-        formalism: str = "helicity",
+        formalism: SpinFormalism = "helicity",
         topology_building: str = "isobar",
         solving_mode: SolvingMode = SolvingMode.FAST,
         reload_pdg: bool = False,
@@ -240,18 +258,13 @@ class StateTransitionManager:
         self.__number_of_threads = NumberOfThreads.get()
         if interaction_type_settings is None:
             interaction_type_settings = {}
-        allowed_formalisms = [
-            "helicity",
-            "canonical-helicity",
-            "canonical",
-        ]
-        if formalism not in allowed_formalisms:
+        if formalism not in set(SpinFormalism.__args__):  # type: ignore[attr-defined]
             msg = (
                 f'Formalism "{formalism}" not implemented. Use one of'
-                f" {allowed_formalisms} instead."
+                f" {', '.join(SpinFormalism.__args__)} instead."  # type: ignore[attr-defined]
             )
             raise NotImplementedError(msg)
-        self.__formalism = str(formalism)
+        self.__formalism = formalism
         self.__particles = ParticleCollection()
         if particle_db is not None:
             self.__particles = particle_db
@@ -343,7 +356,7 @@ class StateTransitionManager:
         self.__intermediate_particle_filters = selected_particles.names
 
     @property
-    def formalism(self) -> str:
+    def formalism(self) -> SpinFormalism:
         return self.__formalism
 
     def add_final_state_grouping(self, fs_group: list[str] | list[list[str]]) -> None:
@@ -744,7 +757,7 @@ class ReactionInfo:
     """Ordered collection of `StateTransition` instances."""
 
     transitions: tuple[StateTransition, ...] = field(converter=_sort_tuple)
-    formalism: str = field(validator=instance_of(str))
+    formalism: SpinFormalism = field(validator=in_(SpinFormalism.__args__))  # type: ignore[attr-defined]
 
     initial_state: FrozenDict[int, Particle] = field(init=False, repr=False, eq=False)
     final_state: FrozenDict[int, Particle] = field(init=False, repr=False, eq=False)

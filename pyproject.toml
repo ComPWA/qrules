@@ -33,7 +33,7 @@ dependencies = [
     "particle",
     "python-constraint",
     "tqdm >=4.24.0", # autonotebook
-    'typing-extensions; python_version <"3.10.0"', # typing.TypeAlias
+    'typing-extensions; python_version <"3.10.0"', # Literal, Protocol, TypeAlias
 ]
 description = "Rule-based particle reaction problem solver on a quantum number level"
 dynamic = ["version"]

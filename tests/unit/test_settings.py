@@ -9,6 +9,7 @@ from qrules.settings import (
     _int_domain,
     create_interaction_settings,
 )
+from qrules.transition import SpinFormalism
 
 
 class TestInteractionType:
@@ -60,7 +61,7 @@ def test_create_interaction_settings(
     particle_database: ParticleCollection,
     interaction_type: InteractionType,
     nbody_topology: bool,
-    formalism: str,
+    formalism: SpinFormalism,
 ):
     settings = create_interaction_settings(
         formalism,
