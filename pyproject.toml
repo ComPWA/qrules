@@ -383,6 +383,7 @@ split-on-trailing-comma = false
     "D100",
 ]
 "setup.py" = ["D100"]
+"src/qrules/conservation_rules.py" = ["FA100"]
 "tests/*" = [
     "D",
     "INP001",
