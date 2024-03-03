@@ -261,19 +261,7 @@ class RuleArgumentHandler:
             rule not in self.__rule_to_requirements_check
             or rule not in self.__rule_to_argument_builder
         ):
-            rule_annotations = []
-            rule_func_signature = inspect.signature(rule)
-            if not rule_func_signature.return_annotation:
-                msg = f"missing return type annotation for rule {rule!s}"
-                raise TypeError(msg)
-            for par in rule_func_signature.parameters.values():
-                if not par.annotation:
-                    msg = (
-                        f"missing type annotations for argument {par.name} of rule"
-                        f" {rule!s}"
-                    )
-                    raise TypeError(msg)
-                rule_annotations.append(par.annotation)
+            rule_annotations = _resolve_argument_type_hints(rule)
 
             # check type annotations are legal
             try:
@@ -296,6 +284,28 @@ class RuleArgumentHandler:
             self.__rule_to_requirements_check[rule],
             self.__rule_to_argument_builder[rule],
         )
+
+
+def _resolve_argument_type_hints(rule: Rule) -> list:
+    """Get the signature of a rule, with resolved type hints.
+
+    >>> from qrules.conservation_rules import gellmann_nishijima, MassConservation
+    >>> _resolve_argument_type_hints(gellmann_nishijima)
+    [<class 'qrules.conservation_rules.GellMannNishijimaInput'>]
+    >>> _resolve_argument_type_hints(MassConservation(width_factor=1.0))
+    [typing.List[qrules.conservation_rules.MassEdgeInput], typing.List[qrules.conservation_rules.MassEdgeInput]]
+    """
+    func_signature = inspect.signature(rule)
+    if not func_signature.return_annotation:
+        msg = f"Missing return type annotation for rule {rule!s}"
+        raise TypeError(msg)
+    rule_annotations = []
+    for par in func_signature.parameters.values():
+        if not par.annotation:
+            msg = f"missing type annotations for argument {par.name} of rule {rule!s}"
+            raise TypeError(msg)
+        rule_annotations.append(par.annotation)
+    return rule_annotations
 
 
 def get_required_qns(
