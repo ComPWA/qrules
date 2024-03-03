@@ -88,6 +88,13 @@ SpinFormalism = Literal[
     "canonical-helicity",
     "canonical",
 ]
+"""Name for the spin formalism to be used.
+
+The options :code:`"helicity"`, :code:`"canonical-helicity"`, and :code:`"canonical"`
+are all used for the helicity formalism, but :code:`"canonical-helicity"` and
+:code:`"canonical"` generate angular momentum and coupled spins as well on the
+interaction nodes.
+"""
 
 
 class SolvingMode(Enum):
