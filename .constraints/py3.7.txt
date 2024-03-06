@@ -124,7 +124,7 @@ pydantic==1.10.14
 pydata-sphinx-theme==0.13.3
 pydot==1.4.2
 pygments==2.17.2
-pyparsing==3.1.1
+pyparsing==3.1.2
 pyproject-api==1.5.3
 pyrsistent==0.19.3
 pytest==7.4.4
