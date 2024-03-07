@@ -94,7 +94,7 @@ nbclient==0.6.8
 nbconvert==7.16.2
 nbdime==4.0.1
 nbformat==5.9.2
-nbmake==1.5.2
+nbmake==1.5.3
 nest-asyncio==1.6.0
 nodeenv==1.8.0
 notebook-shim==0.2.4
@@ -140,7 +140,7 @@ rfc3339-validator==0.1.4
 rfc3986-validator==0.1.1
 rope==1.12.0
 rpds-py==0.18.0
-ruff==0.3.0
+ruff==0.3.1
 send2trash==1.8.2
 six==1.16.0
 smmap==5.0.1
