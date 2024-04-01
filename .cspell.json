@@ -22,6 +22,8 @@
   "ignorePaths": [
     "**/*.bib",
     "**/.cspell.json",
+    "*.ico",
+    "*particle*.*ml",
     ".constraints/*.txt",
     ".editorconfig",
     ".gitignore",
