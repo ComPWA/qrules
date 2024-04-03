@@ -39,7 +39,7 @@ fastjsonschema==2.19.1
 filelock==3.12.2
 fqdn==1.5.1
 gitdb==4.0.11
-gitpython==3.1.42
+gitpython==3.1.43
 gprof2dot==2022.7.29
 graphviz==0.20.1
 greenlet==3.0.3
@@ -102,7 +102,7 @@ nest-asyncio==1.6.0
 nodeenv==1.8.0
 notebook==6.5.6
 notebook-shim==0.2.4
-packaging==23.2
+packaging==24.0
 pandocfilters==1.5.1
 parso==0.8.3
 particle==0.23.1
@@ -120,7 +120,7 @@ ptyprocess==0.7.0
 pybtex==0.24.0
 pybtex-docutils==1.0.3
 pycparser==2.21
-pydantic==1.10.14
+pydantic==1.10.15
 pydata-sphinx-theme==0.13.3
 pydot==1.4.2
 pygments==2.17.2
