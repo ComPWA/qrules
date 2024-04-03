@@ -190,6 +190,7 @@
     "mypy",
     "nishijima",
     "pydot",
+    "PyPA",
     "pyplot",
     "pytest",
     "qrules",

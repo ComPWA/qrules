@@ -44,12 +44,10 @@ GraphNodePropertyMap = GraphElementPropertyMap[NodeQuantumNumber]
 
 
 def _is_optional(field_type: type | None) -> bool:
-    if (
+    return (
         getattr(field_type, "__origin__", None) is Union
         and type(None) in field_type.__args__  # type: ignore[union-attr]
-    ):
-        return True
-    return False
+    )
 
 
 def _is_sequence_type(input_type: type) -> bool:

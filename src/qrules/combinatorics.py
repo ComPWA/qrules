@@ -91,9 +91,7 @@ class _KinematicRepresentation:  # noqa: PLW1641
             main_representation: list[list[str]] | None,
         ) -> bool:
             if main_representation is None:
-                if sub_representation is None:
-                    return True
-                return False
+                return sub_representation is None
             if sub_representation is None:
                 return True
             return all(group in main_representation for group in sub_representation)
