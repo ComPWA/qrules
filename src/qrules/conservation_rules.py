@@ -452,9 +452,7 @@ def _is_clebsch_gordan_coefficient_zero(
         return True
     if j_1 == mag and m_1 == -proj and abs(j_2 - j_1 - mag) % 2 == 1:
         return True
-    if j_2 == mag and m_2 == -proj and abs(j_1 - j_2 - mag) % 2 == 1:
-        return True
-    return False
+    return j_2 == mag and m_2 == -proj and abs(j_1 - j_2 - mag) % 2 == 1
 
 
 @frozen
@@ -519,9 +517,7 @@ def _check_magnitude(
     out_tot_spins = couple_magnitudes(out_part, interaction_qns)
     matching_spins = in_tot_spins.intersection(out_tot_spins)
 
-    if len(matching_spins) > 0:
-        return True
-    return False
+    return len(matching_spins) > 0
 
 
 def _check_spin_couplings(
@@ -532,9 +528,7 @@ def _check_spin_couplings(
     in_tot_spins = __calculate_total_spins(in_part, interaction_qns)
     out_tot_spins = __calculate_total_spins(out_part, interaction_qns)
     matching_spins = in_tot_spins & out_tot_spins
-    if len(matching_spins) > 0:
-        return True
-    return False
+    return len(matching_spins) > 0
 
 
 def __calculate_total_spins(
@@ -869,9 +863,7 @@ def gellmann_nishijima(edge_qns: GellMannNishijimaInput) -> bool:
     isospin_3 = 0.0
     if edge_qns.isospin_projection:
         isospin_3 = edge_qns.isospin_projection
-    if float(edge_qns.charge) != (isospin_3 + 0.5 * calculate_hypercharge(edge_qns)):
-        return False
-    return True
+    return float(edge_qns.charge) == isospin_3 + 0.5 * calculate_hypercharge(edge_qns)
 
 
 @frozen
