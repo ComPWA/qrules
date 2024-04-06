@@ -104,7 +104,7 @@ notebook==6.5.6
 notebook-shim==0.2.4
 packaging==24.0
 pandocfilters==1.5.1
-parso==0.8.3
+parso==0.8.4
 particle==0.23.1
 pathspec==0.11.2
 pexpect==4.9.0
