@@ -180,7 +180,7 @@ class Particle:
                 f" Q[{self.charge}] !="
                 f" Iz[{self.isospin.projection if self.isospin else 0}] + 1/2"
                 f" (B[{self.baryon_number}] +  S[{self.strangeness}] + "
-                f" C[{self.charmness}] + B'[{self.bottomness}] + T[{self.strangeness}])"
+                f" C[{self.charmness}] + B'[{self.bottomness}] + T[{self.topness}])"
             )
             raise ValueError(msg)
 
