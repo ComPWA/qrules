@@ -8,34 +8,38 @@ as a bridge between the :mod:`.particle` and the :mod:`.conservation_rules` modu
 
 from __future__ import annotations
 
+import sys
 from decimal import Decimal
 from fractions import Fraction
 from functools import total_ordering
 from typing import Any, Generator, NewType, Union
 
-import attrs
 from attrs import field, frozen
-from attrs.validators import instance_of
 
 from qrules._implementers import implement_pretty_repr
 
+if sys.version_info < (3, 8):
+    from typing_extensions import Literal
+else:
+    from typing import Literal
 
-def _check_plus_minus(_: Any, __: attrs.Attribute, value: Any) -> None:
+
+def _to_parity(value: int) -> Literal[-1, 1]:
     if not isinstance(value, int):
-        msg = (
-            f"Input for {Parity.__name__} has to be of type {int.__name__}, not"
-            f" {type(value).__name__}"
-        )
+        msg = f"Parity must be an integer, not {type(value)}"
         raise TypeError(msg)
-    if value not in {-1, +1}:
-        msg = f"Parity can only be +1 or -1, not {value}"
-        raise ValueError(msg)
+    if value == -1:
+        return -1
+    if value == +1:
+        return 1
+    msg = f"Parity can only be +1 or -1, not {value}"
+    raise ValueError(msg)
 
 
 @total_ordering
 @frozen(eq=False, hash=True, order=False, repr=False)
 class Parity:  # noqa: PLW1641
-    value: int = field(validator=[instance_of(int), _check_plus_minus])
+    value: Literal[-1, 1] = field(converter=_to_parity)
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Parity):
@@ -47,7 +51,7 @@ class Parity:  # noqa: PLW1641
             return True
         return self.value > int(other)
 
-    def __int__(self) -> int:
+    def __int__(self) -> Literal[-1, 1]:
         return self.value
 
     def __neg__(self) -> Parity:
