@@ -73,6 +73,7 @@ api_target_substitutions: dict[str, str | tuple[str, str]] = {
     "NodeQuantumNumber": ("obj", "qrules.quantum_numbers.NodeQuantumNumber"),
     "NodeType": "typing.TypeVar",
     "ParticleWithSpin": ("obj", "qrules.particle.ParticleWithSpin"),
+    "Path": "pathlib.Path",
     "qrules.topology.EdgeType": "typing.TypeVar",
     "qrules.topology.NodeType": "typing.TypeVar",
     "SpinFormalism": ("obj", "qrules.transition.SpinFormalism"),
