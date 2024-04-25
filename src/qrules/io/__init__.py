@@ -119,7 +119,7 @@ def asdot(
     return print_dot(instance)
 
 
-def load(filename: str) -> object:
+def load(filename: str | Path) -> object:
     with open(filename) as stream:
         file_extension = _get_file_extension(filename)
         if file_extension == "json":
@@ -170,7 +170,7 @@ def write(instance: object, filename: str) -> None:
     raise NotImplementedError(msg)
 
 
-def _get_file_extension(filename: str) -> str:
+def _get_file_extension(filename: str | Path) -> str:
     path = Path(filename)
     extension = path.suffix.lower()
     if not extension:
