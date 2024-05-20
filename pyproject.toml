@@ -31,8 +31,9 @@ dependencies = [
     "attrs >=20.1.0", # on_setattr and https://www.attrs.org/en/stable/api.html#next-gen
     "jsonschema",
     "particle",
-    "python-constraint2",
     "tqdm >=4.24.0", # autonotebook
+    'python-constraint2; python_version >="3.8.0"',
+    'python-constraint; python_version <"3.8.0"',
     'typing-extensions; python_version <"3.8.0"', # Literal, Protocol
 ]
 description = "Rule-based particle reaction problem solver on a quantum number level"
