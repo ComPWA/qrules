@@ -4,8 +4,8 @@ channels:
 dependencies:
   - python==3.9.*
   - pip
-  - graphviz # for binder
+  - graphviz
   - pip:
       - -c .constraints/py3.9.txt -e .[dev]
 variables:
-  PRETTIER_LEGACY_CLI: "1"
+  PRETTIER_LEGACY_CLI: 1
