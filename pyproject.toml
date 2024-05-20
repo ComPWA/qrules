@@ -31,8 +31,9 @@ dependencies = [
     "attrs >=20.1.0", # on_setattr and https://www.attrs.org/en/stable/api.html#next-gen
     "jsonschema",
     "particle",
-    "python-constraint",
     "tqdm >=4.24.0", # autonotebook
+    'python-constraint2; python_version >="3.8.0"',
+    'python-constraint; python_version <"3.8.0"',
     'typing-extensions; python_version <"3.8.0"', # Literal, Protocol
 ]
 description = "Rule-based particle reaction problem solver on a quantum number level"
@@ -77,7 +78,6 @@ doc = [
     "sphinx-thebe",
     "sphinx-togglebutton",
     "sphinxcontrib-bibtex >=2",
-    "sphobjinv",
     'sphinx-api-relink >=0.0.4',
     'sphinx-pybtex-etal-style',
 ]
@@ -114,7 +114,6 @@ types = [
     "ipython",
     "pydot <2", # problem with pydot.graph_from_dot_data
     "pytest",
-    "sphobjinv",
     "types-PyYAML",
     "types-setuptools",
     'sphinx-api-relink >=0.0.4',
@@ -199,10 +198,6 @@ module = ["pydot.*"]
 [[tool.mypy.overrides]]
 ignore_missing_imports = true
 module = ["sphinx.*"]
-
-[[tool.mypy.overrides]]
-ignore_missing_imports = true
-module = ["sphobjinv.*"]
 
 [[tool.mypy.overrides]]
 ignore_missing_imports = true
