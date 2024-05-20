@@ -3,7 +3,6 @@ from __future__ import annotations
 import os
 import sys
 
-import sphobjinv as soi
 from sphinx_api_relink.helpers import (
     get_branch_name,
     get_execution_mode,
@@ -15,34 +14,6 @@ from sphinx_api_relink.helpers import (
 sys.path.insert(0, os.path.abspath("."))
 from _extend_docstrings import extend_docstrings  # noqa: PLC2701
 
-
-def create_constraints_inventory() -> None:
-    inv = soi.Inventory()
-    inv.project = "constraint"
-    constraint_object_names = [
-        "Constraint",
-        "Domain",
-        "Problem",
-        "Solver",
-        "Variable",
-    ]
-    for object_name in constraint_object_names:
-        inv.objects.append(
-            soi.DataObjStr(
-                name=f"{inv.project}.{object_name}",
-                domain="py",
-                role="class",
-                priority="1",
-                uri=f"{inv.project}.{object_name}-class.html",
-                dispname="-",
-            )
-        )
-    text = inv.data_file(contract=True)
-    ztext = soi.compress(text)
-    soi.writebytes("constraint.inv", ztext)
-
-
-create_constraints_inventory()
 extend_docstrings()
 set_intersphinx_version_remapping({
     "ipython": {
@@ -250,7 +221,7 @@ intersphinx_mapping = {
     "ampform": ("https://ampform.readthedocs.io/en/stable", None),
     "attrs": (f"https://www.attrs.org/en/{pin('attrs')}", None),
     "compwa": ("https://compwa.github.io", None),
-    "constraint": ("https://labix.org/doc/constraint/public", "constraint.inv"),
+    "constraint": ("https://python-constraint.github.io/python-constraint", None),
     "graphviz": ("https://graphviz.readthedocs.io/en/stable", None),
     "IPython": (f"https://ipython.readthedocs.io/en/{pin('IPython')}", None),
     "jsonschema": ("https://python-jsonschema.readthedocs.io/en/stable", None),

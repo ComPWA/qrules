@@ -415,7 +415,7 @@ class _VariableContainer:
 class CSPSolver(Solver):
     """Solver reducing the task to a Constraint Satisfaction Problem.
 
-    Solving this done with the python-constraint module.
+    Solving this done with the :doc:`constraint<constraint:reference>` package.
 
     The variables are the quantum numbers of particles/edges, but also some composite
     quantum numbers which are attributed to the interaction nodes (such as angular
@@ -782,7 +782,7 @@ _QNType = TypeVar("_QNType", EdgeQuantumNumber, NodeQuantumNumber)
 
 
 class _GraphElementConstraint(Generic[_QNType], Constraint):
-    """Wrapper class of the python-constraint Constraint class.
+    """Wrapper class of the `~constraints.Constraint` class.
 
     This allows a customized definition of conservation rules, and hence a cleaner user
     interface.
@@ -903,7 +903,7 @@ class _GraphElementConstraint(Generic[_QNType], Constraint):
 class _ConservationRuleConstraintWrapper(
     Constraint  # pyright: ignore[reportUntypedBaseClass]
 ):
-    """Wrapper class of the python-constraint Constraint class.
+    """Wrapper class of the `~constraints.Constraint` class.
 
     This allows a customized definition of conservation rules, and hence a cleaner user
     interface.
