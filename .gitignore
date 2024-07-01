@@ -34,6 +34,8 @@ __pycache__/
 htmlcov/
 oryx-build-commands.txt
 prof/
+tags
+TAGS
 
 # Virtual environments
 *venv/
