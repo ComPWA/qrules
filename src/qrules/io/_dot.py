@@ -497,6 +497,7 @@ def _collapse_graphs(
         )
         for g in graphs
     }
+
     for transition in graphs:
         topology = transition.topology
         group = transition_groups[topology]
@@ -504,7 +505,7 @@ def _collapse_graphs(
             if isinstance(state, State):
                 particle = state.particle
             else:
-                particle, _ = state
+                particle = state  # ??? convert state to actual particle? || change particle to property?
             group.states[state_id].add(particle)
     collected_graphs: list[FrozenTransition[tuple[Particle, ...], None]] = []
     for topology in sorted(transition_groups):
@@ -513,7 +514,7 @@ def _collapse_graphs(
             FrozenTransition(
                 topology,
                 states={
-                    i: tuple(sorted(particles, key=lambda p: p.name))
+                    i: tuple(sorted(particles))  # ??? make more generic sorting?
                     for i, particles in group.states.items()
                 },
                 interactions=group.interactions,
