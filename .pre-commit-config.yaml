@@ -23,8 +23,10 @@ repos:
           - |
             cell.attachments
             cell.metadata.code_folding
+            cell.metadata.editable
             cell.metadata.id
             cell.metadata.pycharm
+            cell.metadata.slideshow
             cell.metadata.user_expressions
             metadata.celltoolbar
             metadata.colab.name
@@ -40,7 +42,7 @@ repos:
             metadata.vscode
 
   - repo: https://github.com/ComPWA/policy
-    rev: 0.3.9
+    rev: 0.3.10
     hooks:
       - id: check-dev-files
         args:
@@ -51,6 +53,7 @@ repos:
           - --repo-title=QRules
       - id: colab-toc-visible
       - id: fix-nbformat-version
+      - id: remove-empty-tags
       - id: set-nb-cells
         args:
           - --add-install-cell
