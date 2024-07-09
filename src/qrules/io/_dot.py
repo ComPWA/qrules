@@ -6,13 +6,14 @@ See :doc:`/usage/visualize` for more info.
 from __future__ import annotations
 
 import logging
+import operator
 import re
 import string
 from collections import abc
 from functools import singledispatch
 from inspect import isfunction
 from numbers import Number
-from typing import TYPE_CHECKING, Any, Iterable, cast
+from typing import TYPE_CHECKING, Any, Callable, Iterable, cast
 
 import attrs
 from attrs import Attribute, define, field
@@ -429,10 +430,7 @@ def _(obj: tuple) -> str:
         if all(isinstance(o, (float, int)) for o in obj):
             spin = Spin(*obj)
             return _spin_to_str(spin)
-    if all(isinstance(o, Particle) for o in obj):
-        return "\n".join(map(as_string, obj))
-    _LOGGER.warning(f"No DOT render implemented for tuple of size {len(obj)}")
-    return str(obj)
+    return "\n".join(map(as_string, obj))
 
 
 def _get_particle_graphs(
@@ -498,15 +496,13 @@ def _collapse_graphs(
         for g in graphs
     }
 
+    sorting_keys = []
     for transition in graphs:
         topology = transition.topology
         group = transition_groups[topology]
         for state_id, state in transition.states.items():
-            if isinstance(state, State):
-                particle = state.particle
-            else:
-                particle = state  # ??? convert state to actual particle? || change particle to property?
-            group.states[state_id].add(particle)
+            group.states[state_id].add(_strip_properties(state))
+            sorting_keys.append(_gen_sorting_key(state))
     collected_graphs: list[FrozenTransition[tuple[Particle, ...], None]] = []
     for topology in sorted(transition_groups):
         group = transition_groups[topology]
@@ -514,10 +510,34 @@ def _collapse_graphs(
             FrozenTransition(
                 topology,
                 states={
-                    i: tuple(sorted(particles))  # ??? make more generic sorting?
+                    i: tuple(sorted(particles, key=sorting_keys[i]))
                     for i, particles in group.states.items()
                 },
                 interactions=group.interactions,
             )
         )
     return collected_graphs
+
+
+def _strip_properties(state: Any) -> Any:
+    if isinstance(state, State):
+        return state.particle
+    if isinstance(state, str):
+        return state
+    if isinstance(state, list):
+        return tuple(state)
+    if isinstance(state, tuple):
+        return state
+    return state
+
+
+def _gen_sorting_key(obj: Any) -> Callable:
+    if isinstance(obj, State):
+        return lambda part: part.name
+    if isinstance(obj, str):
+        return str.lower
+    if isinstance(obj, list):
+        return _gen_sorting_key(obj[0])
+    if isinstance(obj, tuple):
+        return _gen_sorting_key(obj[0])
+    return operator.__lt__
