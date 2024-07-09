@@ -6,7 +6,6 @@ See :doc:`/usage/visualize` for more info.
 from __future__ import annotations
 
 import logging
-import operator
 import re
 import string
 from collections import abc
@@ -496,13 +495,11 @@ def _collapse_graphs(
         for g in graphs
     }
 
-    sorting_keys = []
     for transition in graphs:
         topology = transition.topology
         group = transition_groups[topology]
         for state_id, state in transition.states.items():
             group.states[state_id].add(_strip_properties(state))
-            sorting_keys.append(_gen_sorting_key(state))
     collected_graphs: list[FrozenTransition[tuple[Particle, ...], None]] = []
     for topology in sorted(transition_groups):
         group = transition_groups[topology]
@@ -510,7 +507,7 @@ def _collapse_graphs(
             FrozenTransition(
                 topology,
                 states={
-                    i: tuple(sorted(particles, key=sorting_keys[i]))
+                    i: tuple(sorted(particles, key=_gen_sorting_key(group.states[i])))
                     for i, particles in group.states.items()
                 },
                 interactions=group.interactions,
@@ -524,20 +521,12 @@ def _strip_properties(state: Any) -> Any:
         return state.particle
     if isinstance(state, str):
         return state
-    if isinstance(state, list):
-        return tuple(state)
-    if isinstance(state, tuple):
-        return state
     return state
 
 
-def _gen_sorting_key(obj: Any) -> Callable:
+def _gen_sorting_key(obj: Any) -> Callable[[Any], str] | None:
     if isinstance(obj, State):
         return lambda part: part.name
     if isinstance(obj, str):
         return str.lower
-    if isinstance(obj, list):
-        return _gen_sorting_key(obj[0])
-    if isinstance(obj, tuple):
-        return _gen_sorting_key(obj[0])
-    return operator.__lt__
+    return None
