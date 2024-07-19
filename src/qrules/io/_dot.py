@@ -494,7 +494,6 @@ def _collapse_graphs(
         )
         for g in graphs
     }
-
     for transition in graphs:
         topology = transition.topology
         group = transition_groups[topology]
