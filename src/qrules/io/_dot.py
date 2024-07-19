@@ -506,7 +506,7 @@ def _collapse_graphs(
             FrozenTransition(
                 topology,
                 states={
-                    i: tuple(sorted(particles, key=_gen_sorting_key))
+                    i: tuple(sorted(particles, key=_sorting_key))
                     for i, particles in group.states.items()
                 },
                 interactions=group.interactions,
@@ -523,7 +523,7 @@ def _strip_properties(state: Any) -> Any:
     return state
 
 
-def _gen_sorting_key(obj: Any) -> Any:
+def _sorting_key(obj: Any) -> Any:
     if isinstance(obj, State):
         return obj.particle.name
     if isinstance(obj, str):
