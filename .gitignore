@@ -21,6 +21,7 @@ version.py
 
 # Temporary files
 *.pyc
+*.swp
 *.tmp
 *condaenv.*
 .coverage
@@ -36,7 +37,6 @@ oryx-build-commands.txt
 prof/
 tags
 TAGS
-*.swp
 
 # Virtual environments
 *venv/
