@@ -429,10 +429,7 @@ def _(obj: tuple) -> str:
         if all(isinstance(o, (float, int)) for o in obj):
             spin = Spin(*obj)
             return _spin_to_str(spin)
-    if all(isinstance(o, Particle) for o in obj):
-        return "\n".join(map(as_string, obj))
-    _LOGGER.warning(f"No DOT render implemented for tuple of size {len(obj)}")
-    return str(obj)
+    return "\n".join(map(as_string, obj))
 
 
 def _get_particle_graphs(
@@ -487,8 +484,8 @@ def __to_particle(state: Any) -> Particle:
 
 
 def _collapse_graphs(
-    graphs: Iterable[Transition[ParticleWithSpin, InteractionProperties]],
-) -> list[FrozenTransition[tuple[Particle, ...], None]]:
+    graphs: Iterable[Transition[Any, Any]],
+) -> list[FrozenTransition[tuple, None]]:
     transition_groups: dict[Topology, MutableTransition[set[Particle], None]] = {
         g.topology: MutableTransition(
             g.topology,
@@ -501,11 +498,7 @@ def _collapse_graphs(
         topology = transition.topology
         group = transition_groups[topology]
         for state_id, state in transition.states.items():
-            if isinstance(state, State):
-                particle = state.particle
-            else:
-                particle, _ = state
-            group.states[state_id].add(particle)
+            group.states[state_id].add(_strip_properties(state))
     collected_graphs: list[FrozenTransition[tuple[Particle, ...], None]] = []
     for topology in sorted(transition_groups):
         group = transition_groups[topology]
@@ -513,10 +506,26 @@ def _collapse_graphs(
             FrozenTransition(
                 topology,
                 states={
-                    i: tuple(sorted(particles, key=lambda p: p.name))
+                    i: tuple(sorted(particles, key=_sorting_key))
                     for i, particles in group.states.items()
                 },
                 interactions=group.interactions,
             )
         )
     return collected_graphs
+
+
+def _strip_properties(state: Any) -> Any:
+    if isinstance(state, State):
+        return state.particle
+    if isinstance(state, str):
+        return state
+    return state
+
+
+def _sorting_key(obj: Any) -> Any:
+    if isinstance(obj, State):
+        return obj.particle.name
+    if isinstance(obj, str):
+        return obj.lower()
+    return obj
