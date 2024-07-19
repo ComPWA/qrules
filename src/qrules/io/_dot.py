@@ -12,7 +12,7 @@ from collections import abc
 from functools import singledispatch
 from inspect import isfunction
 from numbers import Number
-from typing import TYPE_CHECKING, Any, Callable, Iterable, cast
+from typing import TYPE_CHECKING, Any, Iterable, cast
 
 import attrs
 from attrs import Attribute, define, field
@@ -507,7 +507,7 @@ def _collapse_graphs(
             FrozenTransition(
                 topology,
                 states={
-                    i: tuple(sorted(particles, key=_gen_sorting_key(group.states[i])))
+                    i: tuple(sorted(particles, key=_gen_sorting_key))
                     for i, particles in group.states.items()
                 },
                 interactions=group.interactions,
@@ -524,9 +524,9 @@ def _strip_properties(state: Any) -> Any:
     return state
 
 
-def _gen_sorting_key(obj: Any) -> Callable[[Any], str] | None:
+def _gen_sorting_key(obj: Any) -> Any:
     if isinstance(obj, State):
-        return lambda part: part.name
+        return obj.particle.name
     if isinstance(obj, str):
-        return str.lower
-    return None
+        return obj.lower()
+    return obj
