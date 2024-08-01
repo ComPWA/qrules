@@ -21,6 +21,7 @@ version.py
 
 # Temporary files
 *.pyc
+*.swp
 *.tmp
 *condaenv.*
 .coverage
@@ -34,6 +35,8 @@ __pycache__/
 htmlcov/
 oryx-build-commands.txt
 prof/
+tags
+TAGS
 
 # Virtual environments
 *venv/
