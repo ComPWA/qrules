@@ -323,11 +323,11 @@ class TestParticleCollection:
         ):
             particle_database += create_particle(gamma, name="gamma_new")
         with pytest.raises(NotImplementedError):
-            particle_database.find(3.14)  # type: ignore[arg-type]
+            particle_database.find(3.12)  # type: ignore[arg-type]
         with pytest.raises(NotImplementedError):
-            particle_database += 3.14  # type: ignore[arg-type]
+            particle_database += 3.12  # type: ignore[arg-type]
         with pytest.raises(NotImplementedError):
-            assert 3.14 in particle_database
+            assert 3.12 in particle_database
         with pytest.raises(AssertionError):
             assert gamma == "gamma"
 
@@ -383,7 +383,7 @@ class TestSpin:
         [(0.3, 0.3), (1.0, 0.5), (0.5, 0.0), (-0.5, 0.5)],
     )
     def test_exceptions(self, magnitude, projection):
-        regex_pattern = "|".join([
+        regex_pattern = "|".join([  # noqa: FLY002
             r"Spin magnitude \d\.\d has to be a multitude of \d\.[05]",
             r"\(projection - magnitude\) should be integer",
             r"Spin magnitude has to be positive",
@@ -479,7 +479,7 @@ def test_create_particle_isospin():
         name="some particle",
         pid=0,
         spin=0,
-        mass=3.14,
+        mass=3.12,
     )
     new_isospin = Spin(0, 0)
     new_particle = create_particle(

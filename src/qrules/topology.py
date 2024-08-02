@@ -79,7 +79,7 @@ class FrozenDict(abc.Hashable, abc.Mapping, Generic[KT, VT]):
         :meth:`~object.__lt__` method.
     """
 
-    def __init__(self, mapping: Mapping | None = None):
+    def __init__(self, mapping: Mapping | None = None) -> None:
         self.__mapping: dict[KT, VT] = {}
         if mapping is not None:
             self.__mapping = dict(mapping)
@@ -753,7 +753,7 @@ def _attach_node_to_edges(
     ingoing_edge_ids: Iterable[int],
 ) -> tuple[MutableTopology, list[int]]:
     temp_graph = copy.deepcopy(graph[0])
-    new_open_end_lines = list(copy.deepcopy(graph[1]))
+    new_open_end_lines = list(graph[1])
 
     # add node
     new_node_id = len(temp_graph.nodes)
@@ -775,10 +775,9 @@ def _attach_node_to_edges(
     )
     temp_graph.add_edges(new_edge_ids)
     temp_graph.attach_edges_to_node_outgoing(new_edge_ids, new_node_id)
-    for edge_id in new_edge_ids:
-        new_open_end_lines.append(edge_id)
+    new_open_end_lines.extend(new_edge_ids)
 
-    return (temp_graph, new_open_end_lines)
+    return temp_graph, new_open_end_lines
 
 
 EdgeType = TypeVar("EdgeType")

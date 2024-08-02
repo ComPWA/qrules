@@ -45,6 +45,7 @@ has been defined to provide type checks on `.parity_conservation_helicity`.
 .. seealso:: :doc:`/usage/conservation`
 """
 
+import operator
 import sys
 from copy import deepcopy
 from functools import reduce
@@ -113,7 +114,7 @@ def additive_quantum_number_rule(
 
     def decorator(rule_class: Any) -> EdgeQNConservationRule:
         def new_call(
-            self: Type[EdgeQNConservationRule],
+            self: Type[EdgeQNConservationRule],  # noqa: ARG001
             ingoing_edge_qns: List[quantum_number],  # type: ignore[valid-type]
             outgoing_edge_qns: List[quantum_number],  # type: ignore[valid-type]
         ) -> bool:
@@ -259,7 +260,7 @@ def c_parity_conservation(
         c_parities_part = [x.c_parity.value for x in part_qns if x.c_parity]
         # if all states have C parity defined, then just multiply them
         if len(c_parities_part) == len(part_qns):
-            return reduce(lambda x, y: x * y, c_parities_part, 1)
+            return reduce(operator.mul, c_parities_part, 1)
 
         # two particle case
         if len(part_qns) == 2:  # noqa: SIM102
@@ -875,7 +876,7 @@ class MassEdgeInput:
 class MassConservation:
     """Mass conservation rule."""
 
-    def __init__(self, width_factor: float):
+    def __init__(self, width_factor: float) -> None:
         self.__width_factor = width_factor
 
     def __call__(

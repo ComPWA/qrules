@@ -28,7 +28,7 @@ def from_attrs_decorated(inst: Any) -> dict:
     )
 
 
-def _value_serializer(inst: type, field: attrs.Attribute, value: Any) -> Any:
+def _value_serializer(inst: type, field: attrs.Attribute, value: Any) -> Any:  # noqa: ARG001
     if isinstance(value, abc.Mapping):
         if all(isinstance(p, Particle) for p in value.values()):
             return {k: v.name for k, v in value.items()}

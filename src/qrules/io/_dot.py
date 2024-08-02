@@ -30,7 +30,7 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-def _check_booleans(instance: GraphPrinter, attribute: Attribute, value: bool) -> None:
+def _check_booleans(instance: GraphPrinter, attribute: Attribute, value: bool) -> None:  # noqa: ARG001
     if instance.strip_spin and instance.collapse_graphs:
         msg = "Cannot both strip spin and collapse graphs"
         raise ValueError(msg)

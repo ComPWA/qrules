@@ -61,7 +61,7 @@ class Parity:  # noqa: PLW1641
         return f"{type(self).__name__}({_to_fraction(self.value)})"
 
 
-def _to_fraction(value: float | int, render_plus: bool = False) -> str:
+def _to_fraction(value: float, render_plus: bool = False) -> str:
     label = str(Fraction(value))
     if render_plus and value > 0:
         return f"+{label}"

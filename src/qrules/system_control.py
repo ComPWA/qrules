@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import operator
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Callable, Dict, Iterable, List, Tuple
 
@@ -160,7 +161,7 @@ class GammaCheck(InteractionDeterminator):
         self,
         in_states: list[ParticleWithSpin],
         out_states: list[ParticleWithSpin],
-        interactions: InteractionProperties,
+        interactions: InteractionProperties,  # noqa: ARG002
     ) -> list[InteractionType]:
         int_types = list(InteractionType)
         for particle, _ in in_states + out_states:
@@ -177,7 +178,7 @@ class LeptonCheck(InteractionDeterminator):
         self,
         in_states: list[ParticleWithSpin],
         out_states: list[ParticleWithSpin],
-        interactions: InteractionProperties,
+        interactions: InteractionProperties,  # noqa: ARG002
     ) -> list[InteractionType]:
         node_interaction_types = list(InteractionType)
         for particle, _ in in_states + out_states:
@@ -253,7 +254,7 @@ def _check_equal_ignoring_qns(
     for graph in solutions:
         if isinstance(graph, MutableTransition) and graph.compare(
             ref_graph,
-            state_comparator=lambda e1, e2: e1 == e2,
+            state_comparator=operator.eq,
             interaction_comparator=interaction_comparator,
         ):
             found_graph = graph
@@ -267,7 +268,7 @@ class NodePropertyComparator:
     def __init__(
         self, ignored_qn_list: set[type[NodeQuantumNumber]] | None = None
     ) -> None:
-        self.__ignored_qn_list = ignored_qn_list if ignored_qn_list else set()
+        self.__ignored_qn_list = ignored_qn_list or set()
 
     def __call__(
         self,
