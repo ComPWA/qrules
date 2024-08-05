@@ -321,6 +321,9 @@ ignore = [
 select = ["ALL"]
 task-tags = ["cspell"]
 
+[tool.ruff.lint.flake8-builtins]
+builtins-ignorelist = ["display"]
+
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
 
