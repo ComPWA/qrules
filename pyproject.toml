@@ -254,6 +254,7 @@ addopts = [
 ]
 filterwarnings = [
     "error",
+    "ignore: The `hash` argument is deprecated in favor of `unsafe_hash` and will be removed in or after August 2025.:DeprecationWarning",
     "ignore:'importlib.abc.Traversable' is deprecated and slated for removal in Python 3.14:DeprecationWarning",
     "ignore:Passing a schema to Validator.iter_errors is deprecated.*:DeprecationWarning",
     "ignore:datetime.datetime.utcfromtimestamp\\(\\) is deprecated and scheduled for removal in a future version.*:DeprecationWarning",
