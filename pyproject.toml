@@ -324,6 +324,9 @@ task-tags = ["cspell"]
 [tool.ruff.lint.flake8-builtins]
 builtins-ignorelist = ["display"]
 
+[tool.ruff.lint.flake8-comprehensions]
+allow-dict-calls-with-keyword-arguments = true
+
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
 
@@ -336,6 +339,7 @@ split-on-trailing-comma = false
     "B018",
     "C90",
     "D",
+    "E303",
     "E402",
     "E703",
     "N806",
