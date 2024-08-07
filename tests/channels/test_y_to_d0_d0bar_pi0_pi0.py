@@ -23,7 +23,7 @@ def test_simple(formalism, n_solutions, particle_database):
     assert len(reaction.transitions) == n_solutions
 
 
-@pytest.mark.slow()
+@pytest.mark.slow
 @pytest.mark.parametrize(
     ("formalism", "n_solutions"),
     [

@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import logging
 import re
+import sys
 from collections import abc
 from difflib import get_close_matches
 from functools import total_ordering
@@ -35,6 +36,10 @@ from attrs.validators import instance_of
 from qrules.conservation_rules import GellMannNishijimaInput, gellmann_nishijima
 from qrules.quantum_numbers import Parity, _to_fraction
 
+if sys.version_info < (3, 11):
+    from typing_extensions import Self
+else:
+    from typing import Self
 if TYPE_CHECKING:
     from IPython.lib.pretty import PrettyPrinter
     from particle import Particle as PdgDatabase
@@ -289,7 +294,7 @@ class ParticleCollection(abc.MutableSet):  # noqa: PLW1641
     def __len__(self) -> int:
         return len(self.__particles)
 
-    def __iadd__(self, other: Particle | ParticleCollection) -> ParticleCollection:
+    def __iadd__(self, other: Particle | ParticleCollection) -> Self:
         if isinstance(other, Particle):
             self.add(other)
         elif isinstance(other, ParticleCollection):
@@ -422,35 +427,23 @@ def create_particle(  # noqa: PLR0917
     g_parity: int | None = None,
 ) -> Particle:
     return Particle(
-        name=name if name else template_particle.name,
-        pid=pid if pid else template_particle.pid,
-        latex=latex if latex else template_particle.latex,
+        name=name or template_particle.name,
+        pid=pid or template_particle.pid,
+        latex=latex or template_particle.latex,
         mass=mass if mass is not None else template_particle.mass,
-        width=width if width else template_particle.width,
-        spin=spin if spin else template_particle.spin,
-        charge=charge if charge else template_particle.charge,
-        strangeness=strangeness if strangeness else template_particle.strangeness,
-        charmness=charmness if charmness else template_particle.charmness,
-        bottomness=bottomness if bottomness else template_particle.bottomness,
-        topness=topness if topness else template_particle.topness,
-        baryon_number=(
-            baryon_number if baryon_number else template_particle.baryon_number
-        ),
+        width=width or template_particle.width,
+        spin=spin or template_particle.spin,
+        charge=charge or template_particle.charge,
+        strangeness=strangeness or template_particle.strangeness,
+        charmness=charmness or template_particle.charmness,
+        bottomness=bottomness or template_particle.bottomness,
+        topness=topness or template_particle.topness,
+        baryon_number=(baryon_number or template_particle.baryon_number),
         electron_lepton_number=(
-            electron_lepton_number
-            if electron_lepton_number
-            else template_particle.electron_lepton_number
+            electron_lepton_number or template_particle.electron_lepton_number
         ),
-        muon_lepton_number=(
-            muon_lepton_number
-            if muon_lepton_number
-            else template_particle.muon_lepton_number
-        ),
-        tau_lepton_number=(
-            tau_lepton_number
-            if tau_lepton_number
-            else template_particle.tau_lepton_number
-        ),
+        muon_lepton_number=(muon_lepton_number or template_particle.muon_lepton_number),
+        tau_lepton_number=(tau_lepton_number or template_particle.tau_lepton_number),
         isospin=template_particle.isospin if isospin is None else isospin,
         parity=template_particle.parity if parity is None else Parity(parity),
         c_parity=template_particle.c_parity if c_parity is None else Parity(c_parity),
@@ -473,9 +466,9 @@ def create_antiparticle(
         else:
             parity = -template_particle.parity
     return Particle(
-        name=new_name if new_name else "anti-" + template_particle.name,
+        name=new_name or "anti-" + template_particle.name,
         pid=-template_particle.pid,
-        latex=new_latex if new_latex else Rf"\overline{{{template_particle.latex}}}",
+        latex=new_latex or Rf"\overline{{{template_particle.latex}}}",
         mass=template_particle.mass,
         width=template_particle.width,
         charge=-template_particle.charge,
@@ -526,7 +519,7 @@ __skip_particles = {
 }
 
 
-def __sign(value: float | int) -> int:
+def __sign(value: float) -> int:
     return int(copysign(1, value))
 
 

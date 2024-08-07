@@ -18,7 +18,7 @@ def reduce_violated_rules(
     return reduced_violations
 
 
-@pytest.mark.slow()
+@pytest.mark.slow
 @pytest.mark.parametrize(
     ("test_input", "expected"),
     [
