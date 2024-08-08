@@ -35,7 +35,7 @@ def test_solve(
 ) -> None:
     solver = CSPSolver(all_particles)
     result = solver.find_solutions(quantum_number_problem_set)
-    assert len(result.solutions) != 0
+    assert len(result.solutions) == 19
 
 
 def test_solve_with_filtered_quantum_number_problem_set(
@@ -370,6 +370,8 @@ def quantum_number_problem_set(request) -> QNProblemSet:
     )
     problem_sets = stm.create_problem_sets()
     qn_problem_sets = [
-        p.to_qn_problem_set() for pl in problem_sets.values() for p in pl
+        p.to_qn_problem_set()
+        for strength in sorted(problem_sets)
+        for p in problem_sets[strength]
     ]
     return qn_problem_sets[0]
