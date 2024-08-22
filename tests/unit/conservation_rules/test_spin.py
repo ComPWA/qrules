@@ -11,8 +11,13 @@ from qrules.conservation_rules import (
     spin_magnitude_conservation,
 )
 from qrules.particle import Spin
+from qrules.quantum_numbers import EdgeQuantumNumbers
 
-_SpinRuleInputType = Tuple[List[SpinEdgeInput], List[SpinEdgeInput], SpinNodeInput]
+_SpinRuleInputType = Tuple[
+    List[EdgeQuantumNumbers.spin_magnitude],
+    List[EdgeQuantumNumbers.spin_magnitude],
+    SpinNodeInput,
+]
 
 
 def __create_two_body_decay_spin_data(
