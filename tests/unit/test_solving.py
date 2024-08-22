@@ -77,13 +77,13 @@ def test_solve_with_filtered_quantum_number_problem_set(
             parity_conservation,
             c_parity_conservation,
         },
-        edge_properties_and_domains=(
+        edge_properties_and_domains={
             EdgeQuantumNumbers.pid,  # had to be added for c_parity_conservation to work
             EdgeQuantumNumbers.spin_magnitude,
             EdgeQuantumNumbers.spin_projection,  # had to be added for spin_magnitude_conservation to work
             EdgeQuantumNumbers.parity,
             EdgeQuantumNumbers.c_parity,
-        ),
+        },
         node_properties_and_domains=(
             NodeQuantumNumbers.l_magnitude,
             NodeQuantumNumbers.s_magnitude,
