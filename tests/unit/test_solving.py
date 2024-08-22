@@ -80,7 +80,7 @@ def test_solve_with_filtered_quantum_number_problem_set(
         edge_properties_and_domains={
             EdgeQuantumNumbers.pid,  # had to be added for c_parity_conservation to work
             EdgeQuantumNumbers.spin_magnitude,
-            EdgeQuantumNumbers.spin_projection,  # had to be added for spin_magnitude_conservation to work
+            # EdgeQuantumNumbers.spin_projection,  # can be removed to cut down the number of solutions
             EdgeQuantumNumbers.parity,
             EdgeQuantumNumbers.c_parity,
         },
