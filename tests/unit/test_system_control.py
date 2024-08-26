@@ -273,15 +273,12 @@ class TestSolutionFilter:
     )
     def test_remove_duplicates(self, ls_pairs, result, particle_database):
         pi0 = particle_database["pi0"]
-        graphs = []
-        for ls_pair in ls_pairs:
-            graphs.append(make_ls_test_graph(ls_pair[0], ls_pair[1], pi0))
+        graphs = [make_ls_test_graph(L, S, pi0) for L, S in ls_pairs]
 
         results = remove_duplicate_solutions(graphs)
         assert len(results) == result
 
-        for ls_pair in ls_pairs:
-            graphs.append(make_ls_test_graph_scrambled(ls_pair[0], ls_pair[1], pi0))
+        graphs.extend(make_ls_test_graph_scrambled(L, S, pi0) for L, S in ls_pairs)
         results = remove_duplicate_solutions(graphs)
         assert len(results) == result
 
@@ -389,7 +386,7 @@ def test_edge_swap(particle_database, initial_state, final_state):
 
     problem_sets = stm.create_problem_sets()
     init_graphs: list[MutableTransition[ParticleWithSpin, InteractionProperties]] = []
-    for _, problem_set_list in problem_sets.items():
+    for problem_set_list in problem_sets.values():
         init_graphs.extend([_create_graph(x) for x in problem_set_list])
 
     for graph in init_graphs:
@@ -435,7 +432,7 @@ def test_match_external_edges(particle_database, initial_state, final_state):
 
     problem_sets = stm.create_problem_sets()
     init_graphs: list[MutableTransition[ParticleWithSpin, InteractionProperties]] = []
-    for _, problem_set_list in problem_sets.items():
+    for problem_set_list in problem_sets.values():
         init_graphs.extend([_create_graph(x) for x in problem_set_list])
 
     match_external_edges(init_graphs)
@@ -518,7 +515,7 @@ def test_external_edge_identical_particle_combinatorics(
     problem_sets = stm.create_problem_sets()
 
     init_graphs = []
-    for _, problem_set_list in problem_sets.items():
+    for problem_set_list in problem_sets.values():
         init_graphs.extend([_create_graph(x) for x in problem_set_list])
 
     match_external_edges(init_graphs)

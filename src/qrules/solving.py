@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import inspect
 import logging
+import operator
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from copy import copy
@@ -125,15 +126,10 @@ def _convert_non_executed_rules_to_names(
             return rule
         return type(rule).__name__
 
-    converted_dict = defaultdict(set)
-    for node_id, rule_set in rules.items():
-        rule_name_set = set()
-        for rule_tuple in rule_set:
-            rule_name_set.add(get_name(rule_tuple))
-
-        converted_dict[node_id] = rule_name_set
-
-    return converted_dict
+    return {
+        node_id: {get_name(rule) for rule in rule_set}
+        for node_id, rule_set in rules.items()
+    }
 
 
 @implement_pretty_repr
@@ -239,11 +235,7 @@ def __get_candidate_states(
     state: GraphEdgePropertyMap,
     allowed_states: Iterable[GraphEdgePropertyMap],
 ) -> list[GraphEdgePropertyMap]:
-    candidates = []
-    for candidate in allowed_states:
-        if __is_sub_mapping(state, candidate):
-            candidates.append(candidate)
-    return candidates
+    return [s for s in allowed_states if __is_sub_mapping(state, s)]
 
 
 def __is_sub_mapping(
@@ -397,7 +389,7 @@ _NodeVariableInfo = Tuple[int, Type[NodeQuantumNumber]]
 
 def _create_variable_string(
     element_id: int,
-    qn_type: type[EdgeQuantumNumber] | type[NodeQuantumNumber],
+    qn_type: type[EdgeQuantumNumber | NodeQuantumNumber],
 ) -> str:
     return str(element_id) + "-" + qn_type.__name__
 
@@ -423,7 +415,9 @@ class CSPSolver(Solver):
     wrapper class serves as an adapter.
     """
 
-    def __init__(self, allowed_intermediate_states: Iterable[GraphEdgePropertyMap]):
+    def __init__(
+        self, allowed_intermediate_states: Iterable[GraphEdgePropertyMap]
+    ) -> None:
         self.__variables: set[_EdgeVariableInfo | _NodeVariableInfo] = set()
         self.__var_string_to_data: dict[str, _EdgeVariableInfo | _NodeVariableInfo] = {}
         self.__node_rules: dict[int, set[Rule]] = defaultdict(set)
@@ -549,7 +543,9 @@ class CSPSolver(Solver):
                 for x in graph_element_settings.conservation_rules
             ]
             # then sort according to priority
-            sorted_list = sorted(priority_list, key=lambda x: x[1], reverse=True)
+            sorted_list = sorted(
+                priority_list, key=operator.itemgetter(1), reverse=True
+            )
             # and strip away the priorities again
             return [x[0] for x in sorted_list]
 
@@ -781,7 +777,7 @@ class Scoresheet:
 _QNType = TypeVar("_QNType", EdgeQuantumNumber, NodeQuantumNumber)
 
 
-class _GraphElementConstraint(Generic[_QNType], Constraint):
+class _GraphElementConstraint(Constraint, Generic[_QNType]):
     """Wrapper class of the `~constraints.Constraint` class.
 
     This allows a customized definition of conservation rules, and hence a cleaner user
@@ -836,9 +832,9 @@ class _GraphElementConstraint(Generic[_QNType], Constraint):
     def __call__(
         self,
         variables: set[str],
-        domains: dict,
+        domains: dict,  # noqa: ARG002
         assignments: dict,
-        forwardcheck: bool = False,
+        forwardcheck: bool = False,  # noqa: ARG002
         _unassigned: Variable = Unassigned,
     ) -> bool:
         """Perform the constraint checking.
@@ -977,9 +973,9 @@ class _ConservationRuleConstraintWrapper(
     def __call__(
         self,
         variables: set[str],
-        domains: dict,
+        domains: dict,  # noqa: ARG002
         assignments: dict,
-        forwardcheck: bool = False,
+        forwardcheck: bool = False,  # noqa: ARG002
         _unassigned: Variable = Unassigned,
     ) -> bool:
         """Perform the constraint checking.

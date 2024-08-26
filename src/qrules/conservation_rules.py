@@ -45,6 +45,7 @@ has been defined to provide type checks on `.parity_conservation_helicity`.
 .. seealso:: :doc:`/usage/conservation`
 """
 
+import operator
 import sys
 from copy import deepcopy
 from functools import reduce
@@ -113,7 +114,7 @@ def additive_quantum_number_rule(
 
     def decorator(rule_class: Any) -> EdgeQNConservationRule:
         def new_call(
-            self: Type[EdgeQNConservationRule],
+            self: Type[EdgeQNConservationRule],  # noqa: ARG001
             ingoing_edge_qns: List[quantum_number],  # type: ignore[valid-type]
             outgoing_edge_qns: List[quantum_number],  # type: ignore[valid-type]
         ) -> bool:
@@ -259,7 +260,7 @@ def c_parity_conservation(
         c_parities_part = [x.c_parity.value for x in part_qns if x.c_parity]
         # if all states have C parity defined, then just multiply them
         if len(c_parities_part) == len(part_qns):
-            return reduce(lambda x, y: x * y, c_parities_part, 1)
+            return reduce(operator.mul, c_parities_part, 1)
 
         # two particle case
         if len(part_qns) == 2:  # noqa: SIM102
@@ -691,8 +692,8 @@ def spin_conservation(
 
 
 def spin_magnitude_conservation(
-    ingoing_spins: List[SpinEdgeInput],
-    outgoing_spins: List[SpinEdgeInput],
+    ingoing_spin_magnitudes: List[EdgeQN.spin_magnitude],
+    outgoing_spin_magnitudes: List[EdgeQN.spin_magnitude],
     interaction_qns: SpinMagnitudeNodeInput,
 ) -> bool:
     r"""Check for spin conservation.
@@ -710,20 +711,20 @@ def spin_magnitude_conservation(
     # L and S can only be used if one side is a single state
     # and the other side contains of two states (isobar)
     # So do a full check if this is the case
-    if (len(ingoing_spins) == 1 and len(outgoing_spins) == 2) or (
-        len(ingoing_spins) == 2 and len(outgoing_spins) == 1
+    if (len(ingoing_spin_magnitudes) == 1 and len(outgoing_spin_magnitudes) == 2) or (
+        len(ingoing_spin_magnitudes) == 2 and len(outgoing_spin_magnitudes) == 1
     ):
         return _check_magnitude(
-            [x.spin_magnitude for x in ingoing_spins],
-            [x.spin_magnitude for x in outgoing_spins],
+            [float(x) for x in ingoing_spin_magnitudes],
+            [float(x) for x in outgoing_spin_magnitudes],
             interaction_qns,
         )
 
     # otherwise don't use S and L and just check magnitude
     # are integral or non integral on both sides
     return (
-        sum(float(x.spin_magnitude) for x in ingoing_spins).is_integer()  # type: ignore[union-attr]
-        == sum(float(x.spin_magnitude) for x in outgoing_spins).is_integer()  # type: ignore[union-attr]
+        sum(float(x) for x in ingoing_spin_magnitudes).is_integer()  # type: ignore[union-attr]
+        == sum(float(x) for x in outgoing_spin_magnitudes).is_integer()  # type: ignore[union-attr]
     )
 
 
@@ -875,7 +876,7 @@ class MassEdgeInput:
 class MassConservation:
     """Mass conservation rule."""
 
-    def __init__(self, width_factor: float):
+    def __init__(self, width_factor: float) -> None:
         self.__width_factor = width_factor
 
     def __call__(

@@ -80,7 +80,7 @@ class _CompositeArgumentCheck:
 
 
 def _direct_qn_check(
-    qn_type: type[EdgeQuantumNumber] | type[NodeQuantumNumber],
+    qn_type: type[EdgeQuantumNumber | NodeQuantumNumber],
 ) -> Callable[[GraphElementPropertyMap], bool]:
     def wrapper(props: GraphElementPropertyMap) -> bool:
         return qn_type in props

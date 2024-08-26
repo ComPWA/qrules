@@ -11,8 +11,18 @@ from qrules.conservation_rules import (
     spin_magnitude_conservation,
 )
 from qrules.particle import Spin
+from qrules.quantum_numbers import EdgeQuantumNumbers
 
-_SpinRuleInputType = Tuple[List[SpinEdgeInput], List[SpinEdgeInput], SpinNodeInput]
+_SpinMagnitudeRuleInputType = Tuple[
+    List[EdgeQuantumNumbers.spin_magnitude],
+    List[EdgeQuantumNumbers.spin_magnitude],
+    SpinNodeInput,
+]
+_SpinRuleInputType = Tuple[
+    List[SpinEdgeInput],
+    List[SpinEdgeInput],
+    SpinNodeInput,
+]
 
 
 def __create_two_body_decay_spin_data(
@@ -119,13 +129,7 @@ def test_spin_all_defined(rule_input: _SpinRuleInputType, expected: bool) -> Non
     ("rule_input", "expected"),
     [
         (
-            __create_two_body_decay_spin_data(
-                in_spin=Spin(1, 1),
-                out_spin1=Spin(spin2_mag, 0),
-                out_spin2=Spin(1, -1),
-                angular_momentum=Spin(ang_mom_mag, 0),
-                coupled_spin=Spin(coupled_spin_mag, -1),
-            ),
+            ([1], [spin2_mag, 1], SpinNodeInput(ang_mom_mag, 0, coupled_spin_mag, -1)),
             True,
         )
         for spin2_mag, ang_mom_mag, coupled_spin_mag in zip(
@@ -134,13 +138,7 @@ def test_spin_all_defined(rule_input: _SpinRuleInputType, expected: bool) -> Non
     ]
     + [
         (
-            __create_two_body_decay_spin_data(
-                in_spin=Spin(1, 1),
-                out_spin1=Spin(spin2_mag, 0),
-                out_spin2=Spin(1, -1),
-                angular_momentum=Spin(ang_mom_mag, 0),
-                coupled_spin=Spin(coupled_spin_mag, 0),
-            ),
+            ([1], [spin2_mag, 1], SpinNodeInput(ang_mom_mag, 0, coupled_spin_mag, 0)),
             False,
         )
         for spin2_mag, ang_mom_mag, coupled_spin_mag in zip(
@@ -149,6 +147,6 @@ def test_spin_all_defined(rule_input: _SpinRuleInputType, expected: bool) -> Non
     ],
 )
 def test_spin_ignore_z_component(
-    rule_input: _SpinRuleInputType, expected: bool
+    rule_input: _SpinMagnitudeRuleInputType, expected: bool
 ) -> None:
     assert spin_magnitude_conservation(*rule_input) is expected  # type: ignore[arg-type]
