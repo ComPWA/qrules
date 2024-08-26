@@ -19,7 +19,6 @@ class Input(NamedTuple):
     (
         "test_input",
         "ingoing_state",
-        "related_component_names",
         "relative_parity_prefactor",
     ),
     [
@@ -31,10 +30,6 @@ class Input(NamedTuple):
                 ["pi0", "pi0"],
             ),
             "J/psi(1S)",
-            (
-                "J/psi(1S)_1_to_f(0)(980)_0+gamma_1;f(0)(980)_0_to_pi0_0+pi0_0;",
-                "J/psi(1S)_1_to_f(0)(980)_0+gamma_-1;f(0)(980)_0_to_pi0_0+pi0_0;",
-            ),
             1.0,
         ),
         (
@@ -45,10 +40,6 @@ class Input(NamedTuple):
                 ["pi+", "pi-"],
             ),
             "J/psi(1S)",
-            (
-                "J/psi(1S)_1_to_pi0_0+rho(770)0_1;rho(770)0_1_to_pi+_0+pi-_0;",
-                "J/psi(1S)_1_to_pi0_0+rho(770)0_-1;rho(770)0_-1_to_pi+_0+pi-_0;",
-            ),
             -1.0,
         ),
     ],
@@ -56,7 +47,6 @@ class Input(NamedTuple):
 def test_parity_prefactor(
     test_input: Input,
     ingoing_state: str,
-    related_component_names: tuple[str, str],
     relative_parity_prefactor: float,
 ) -> None:
     stm = StateTransitionManager(
