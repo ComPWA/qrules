@@ -80,7 +80,7 @@ def test_solve_with_filtered_quantum_number_problem_set(
         edge_properties_and_domains={
             EdgeQuantumNumbers.pid,  # had to be added for c_parity_conservation to work
             EdgeQuantumNumbers.spin_magnitude,
-            EdgeQuantumNumbers.spin_projection,  # had to be added for spin_magnitude_conservation to work
+            # EdgeQuantumNumbers.spin_projection,  # can be left out to reduce the number of solutions
             EdgeQuantumNumbers.parity,
             EdgeQuantumNumbers.c_parity,
         },
@@ -171,7 +171,7 @@ def all_particles():
 
 
 @pytest.fixture(scope="session")
-def quantum_number_problem_set(request) -> QNProblemSet:
+def quantum_number_problem_set() -> QNProblemSet:
     stm = qrules.StateTransitionManager(
         initial_state=["psi(2S)"],
         final_state=["gamma", "eta", "eta"],
