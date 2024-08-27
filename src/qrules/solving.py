@@ -47,8 +47,7 @@ _LOGGER = logging.getLogger(__name__)
 class EdgeSettings:
     """Solver settings for a specific edge of a graph."""
 
-    conservation_rules: set[GraphElementRule] = field(factory=set)
-    rule_priorities: dict[GraphElementRule, int] = field(factory=dict)
+    conservation_rules_and_priorities: dict[GraphElementRule, int] = field(factory=dict)
     qn_domains: dict[EdgeQuantumNumberTypes, list] = field(factory=dict)
 
 
@@ -67,8 +66,7 @@ class NodeSettings:
       - strength scale parameter (higher value means stronger force)
     """
 
-    conservation_rules: set[Rule] = field(factory=set)
-    rule_priorities: dict[Rule, int] = field(factory=dict)
+    conservation_rules_and_priorities: dict[Rule, int] = field(factory=dict)
     qn_domains: dict[NodeQuantumNumberTypes, list] = field(factory=dict)
     interaction_strength: float = 1.0
 
