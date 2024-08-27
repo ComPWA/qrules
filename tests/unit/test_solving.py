@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterable, Union
+from typing import TYPE_CHECKING, Iterable
 
 import attrs
 import pytest
@@ -16,43 +16,17 @@ from qrules.conservation_rules import (
     spin_magnitude_conservation,
     spin_validity,
 )
-from qrules.quantum_numbers import EdgeQuantumNumbers, NodeQuantumNumbers
+from qrules.quantum_numbers import (
+    EdgeQuantumNumbers,
+    EdgeQuantumNumberTypes,
+    NodeQuantumNumbers,
+    NodeQuantumNumberTypes,
+)
 from qrules.solving import CSPSolver, EdgeSettings, NodeSettings, QNProblemSet
 from qrules.topology import MutableTransition
 
 if TYPE_CHECKING:
     from qrules.argument_handling import Rule
-
-
-EdgeQuantumNumberTypes = Union[
-    type[EdgeQuantumNumbers.pid],
-    type[EdgeQuantumNumbers.mass],
-    type[EdgeQuantumNumbers.width],
-    type[EdgeQuantumNumbers.spin_magnitude],
-    type[EdgeQuantumNumbers.spin_projection],
-    type[EdgeQuantumNumbers.charge],
-    type[EdgeQuantumNumbers.isospin_magnitude],
-    type[EdgeQuantumNumbers.isospin_projection],
-    type[EdgeQuantumNumbers.strangeness],
-    type[EdgeQuantumNumbers.charmness],
-    type[EdgeQuantumNumbers.bottomness],
-    type[EdgeQuantumNumbers.topness],
-    type[EdgeQuantumNumbers.baryon_number],
-    type[EdgeQuantumNumbers.electron_lepton_number],
-    type[EdgeQuantumNumbers.muon_lepton_number],
-    type[EdgeQuantumNumbers.tau_lepton_number],
-    type[EdgeQuantumNumbers.parity],
-    type[EdgeQuantumNumbers.c_parity],
-    type[EdgeQuantumNumbers.g_parity],
-]
-
-NodeQuantumNumberTypes = Union[
-    type[NodeQuantumNumbers.l_magnitude],
-    type[NodeQuantumNumbers.l_projection],
-    type[NodeQuantumNumbers.s_magnitude],
-    type[NodeQuantumNumbers.s_projection],
-    type[NodeQuantumNumbers.parity_prefactor],
-]
 
 
 def test_solve(
