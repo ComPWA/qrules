@@ -417,8 +417,10 @@ def test_create_antiparticle_tilde(
         assert len(anti_particles) == 165
     elif skh_particle_version < "0.16":
         assert len(anti_particles) == 172
-    else:
+    elif skh_particle_version < "0.25":
         assert len(anti_particles) == 175
+    else:
+        assert len(anti_particles) == 176
     for anti_particle in anti_particles:
         particle_name = anti_particle.name.replace("~", "")
         if "+" in particle_name:
@@ -447,8 +449,10 @@ def test_create_antiparticle_by_pid(
         assert n_particles_with_neg_pid == 428
     elif skh_particle_version < "0.16":
         assert n_particles_with_neg_pid == 442
-    else:
+    elif skh_particle_version < "0.25":
         assert n_particles_with_neg_pid == 454
+    else:
+        assert n_particles_with_neg_pid == 456
 
 
 @pytest.mark.parametrize(
