@@ -9,6 +9,7 @@
     "github.vscode-github-actions",
     "github.vscode-pull-request-github",
     "joaompinto.vscode-graphviz",
+    "mhutchie.git-graph",
     "ms-python.mypy-type-checker",
     "ms-python.python",
     "ms-python.vscode-pylance",
