@@ -33,7 +33,9 @@ from qrules.argument_handling import (
 from qrules.quantum_numbers import (
     EdgeQuantumNumber,
     EdgeQuantumNumbers,
+    EdgeQuantumNumberTypes,
     NodeQuantumNumber,
+    NodeQuantumNumberTypes,
 )
 from qrules.topology import MutableTransition, Topology
 
@@ -47,7 +49,7 @@ class EdgeSettings:
 
     conservation_rules: set[GraphElementRule] = field(factory=set)
     rule_priorities: dict[GraphElementRule, int] = field(factory=dict)
-    qn_domains: dict[Any, list] = field(factory=dict)
+    qn_domains: dict[EdgeQuantumNumberTypes, list] = field(factory=dict)
 
 
 @implement_pretty_repr
@@ -67,7 +69,7 @@ class NodeSettings:
 
     conservation_rules: set[Rule] = field(factory=set)
     rule_priorities: dict[Rule, int] = field(factory=dict)
-    qn_domains: dict[Any, list] = field(factory=dict)
+    qn_domains: dict[NodeQuantumNumberTypes, list] = field(factory=dict)
     interaction_strength: float = 1.0
 
 
