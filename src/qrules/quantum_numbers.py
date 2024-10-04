@@ -58,14 +58,14 @@ class Parity:  # noqa: PLW1641
         return Parity(-self.value)
 
     def __repr__(self) -> str:
-        return f"{type(self).__name__}({_to_fraction(self.value)})"
+        return f"{type(self).__name__}({_float_as_signed_str(self.value)})"
 
 
-def _to_fraction(value: float, render_plus: bool = False) -> str:
-    label = str(Fraction(value))
-    if render_plus and value > 0:
-        return f"+{label}"
-    return label
+def _float_as_signed_str(value: float) -> str:
+    string_representation = str(value)
+    if value > 0:
+        return f"+{string_representation}"
+    return string_representation
 
 
 @frozen(init=False)
@@ -83,11 +83,11 @@ class EdgeQuantumNumbers:
     pid = NewType("pid", int)
     mass = NewType("mass", float)
     width = NewType("width", float)
-    spin_magnitude = NewType("spin_magnitude", float)
-    spin_projection = NewType("spin_projection", float)
+    spin_magnitude = NewType("spin_magnitude", Fraction)
+    spin_projection = NewType("spin_projection", Fraction)
     charge = NewType("charge", int)
-    isospin_magnitude = NewType("isospin_magnitude", float)
-    isospin_projection = NewType("isospin_projection", float)
+    isospin_magnitude = NewType("isospin_magnitude", Fraction)
+    isospin_projection = NewType("isospin_projection", Fraction)
     strangeness = NewType("strangeness", int)
     charmness = NewType("charmness", int)
     bottomness = NewType("bottomness", int)
