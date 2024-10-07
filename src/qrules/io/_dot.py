@@ -9,6 +9,7 @@ import logging
 import re
 import string
 from collections import abc
+from fractions import Fraction
 from functools import singledispatch
 from inspect import isfunction
 from numbers import Number
@@ -18,8 +19,14 @@ import attrs
 from attrs import Attribute, define, field
 from attrs.converters import default_if_none
 
-from qrules.particle import Particle, ParticleWithSpin, Spin
-from qrules.quantum_numbers import InteractionProperties, _to_fraction
+from qrules.particle import (
+    Particle,
+    ParticleWithSpin,
+    Spin,
+    _float_as_signed_fraction_str,
+    _to_signed_fraction,
+)
+from qrules.quantum_numbers import InteractionProperties
 from qrules.solving import EdgeSettings, NodeSettings, QNProblemSet, QNResult
 from qrules.topology import FrozenTransition, MutableTransition, Topology, Transition
 from qrules.transition import ProblemSet, ReactionInfo, State
@@ -339,18 +346,18 @@ def _(obj: InteractionProperties) -> str:
     lines = []
     if obj.l_magnitude is not None:
         if obj.l_projection is None:
-            l_label = _to_fraction(obj.l_magnitude)
+            l_label = _to_signed_fraction(Fraction(obj.l_magnitude))
         else:
             l_label = _spin_to_str(Spin(obj.l_magnitude, obj.l_projection))
         lines.append(f"L={l_label}")
     if obj.s_magnitude is not None:
         if obj.s_projection is None:
-            s_label = _to_fraction(obj.s_magnitude)
+            s_label = _to_signed_fraction(Fraction(obj.s_magnitude))
         else:
             s_label = _spin_to_str(Spin(obj.s_magnitude, obj.s_projection))
         lines.append(f"S={s_label}")
     if obj.parity_prefactor is not None:
-        label = _to_fraction(obj.parity_prefactor, render_plus=True)
+        label = _to_signed_fraction(Fraction(obj.parity_prefactor), render_plus=True)
         lines.append(f"P={label}")
     return "\n".join(lines)
 
@@ -408,15 +415,19 @@ def _(particle: Particle) -> str:
 
 @as_string.register(Spin)
 def _spin_to_str(spin: Spin) -> str:
-    spin_magnitude = _to_fraction(spin.magnitude)
-    spin_projection = _to_fraction(spin.projection, render_plus=True)
+    spin_magnitude = _float_as_signed_fraction_str(float(spin.magnitude))
+    spin_projection = _float_as_signed_fraction_str(
+        float(spin.projection), render_plus=True
+    )
     return f"|{spin_magnitude},{spin_projection}⟩"
 
 
 @as_string.register(State)
 def _state_to_str(state: State) -> str:
     particle = state.particle.name
-    spin_projection = _to_fraction(state.spin_projection, render_plus=True)
+    spin_projection = _float_as_signed_fraction_str(
+        state.spin_projection, render_plus=True
+    )
     return f"{particle}[{spin_projection}]"
 
 

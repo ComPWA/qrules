@@ -3,7 +3,8 @@ from copy import deepcopy
 
 import pytest
 
-from qrules.quantum_numbers import Parity, _to_fraction
+from qrules.particle import _float_as_signed_fraction_str
+from qrules.quantum_numbers import Parity
 
 
 class TestParity:
@@ -68,4 +69,4 @@ class TestParity:
     ],
 )
 def test_to_fraction(value, render_plus: bool, expected: str):
-    assert _to_fraction(value, render_plus) == expected
+    assert _float_as_signed_fraction_str(value, render_plus) == expected

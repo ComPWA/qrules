@@ -48,6 +48,7 @@ has been defined to provide type checks on `.parity_conservation_helicity`.
 import operator
 import sys
 from copy import deepcopy
+from fractions import Fraction
 from functools import reduce
 from textwrap import dedent
 from typing import Any, Callable, List, Optional, Set, Tuple, Type, Union
@@ -65,7 +66,7 @@ else:
     from typing_extensions import Protocol
 
 
-def _is_boson(spin_magnitude: float) -> bool:
+def _is_boson(spin_magnitude: Fraction) -> bool:
     return abs(spin_magnitude % 1) < 0.01
 
 
@@ -240,6 +241,7 @@ class CParityEdgeInput:
 
 @frozen
 class CParityNodeInput:
+    # These converters currently do not do anything, as "NewType"s do not have constructors
     l_magnitude: NodeQN.l_magnitude = field(converter=NodeQN.l_magnitude)
     s_magnitude: NodeQN.s_magnitude = field(converter=NodeQN.s_magnitude)
 
@@ -269,8 +271,8 @@ def c_parity_conservation(
                 # if boson
                 if _is_boson(part_qns[0].spin_magnitude):
                     return (-1) ** int(ang_mom)
-                coupled_spin = interaction_qns.s_magnitude
-                if isinstance(coupled_spin, int) or coupled_spin.is_integer():
+                coupled_spin = Fraction(interaction_qns.s_magnitude)
+                if isinstance(coupled_spin, int) or coupled_spin.denominator == 1:
                     return (-1) ** int(ang_mom + coupled_spin)
         return None
 
@@ -319,12 +321,12 @@ def g_parity_conservation(  # noqa: C901
             double_state_qns[0].pid, double_state_qns[1].pid
         ):
             ang_mom = interaction_qns.l_magnitude
-            if isinstance(isospin, int) or isospin.is_integer():
+            if isinstance(isospin, int) or isospin.denominator == 1:
                 # if boson
                 if _is_boson(double_state_qns[0].spin_magnitude):
                     return (-1) ** int(ang_mom + isospin)
                 coupled_spin = interaction_qns.s_magnitude
-                if isinstance(coupled_spin, int) or coupled_spin.is_integer():
+                if isinstance(coupled_spin, int) or coupled_spin.denominator == 1:
                     return (-1) ** int(ang_mom + coupled_spin + isospin)
         return None
 

@@ -9,7 +9,6 @@ as a bridge between the :mod:`.particle` and the :mod:`.conservation_rules` modu
 from __future__ import annotations
 
 import sys
-from decimal import Decimal
 from fractions import Fraction
 from functools import total_ordering
 from typing import Any, Generator, NewType, Union
@@ -135,11 +134,11 @@ EdgeQuantumNumber = Union[
 class NodeQuantumNumbers:
     """Definition of quantum numbers for interaction nodes."""
 
-    l_magnitude = NewType("l_magnitude", float)
-    l_projection = NewType("l_projection", float)
-    s_magnitude = NewType("s_magnitude", float)
-    s_projection = NewType("s_projection", float)
-    parity_prefactor = NewType("parity_prefactor", float)
+    l_magnitude = NewType("l_magnitude", Fraction)
+    l_projection = NewType("l_projection", Fraction)
+    s_magnitude = NewType("s_magnitude", Fraction)
+    s_projection = NewType("s_projection", Fraction)
+    parity_prefactor = NewType("parity_prefactor", Fraction)
 
 
 for node_qn_name, node_qn_type in NodeQuantumNumbers.__dict__.items():
@@ -198,8 +197,11 @@ class InteractionProperties:
     parity_prefactor: float | None = field(default=None, converter=_to_optional_float)
 
 
-def arange(x_1: float, x_2: float, delta: float = 1.0) -> Generator[float, None, None]:
-    current = Decimal(x_1)
+def arange(
+    x_1: float, x_2: float, delta: float = 1.0
+) -> Generator[Fraction, None, None]:
+    current = Fraction(x_1)
+    delta = Fraction(delta)
     while current < x_2:
-        yield float(current)
-        current += Decimal(delta)
+        yield current
+        current += delta

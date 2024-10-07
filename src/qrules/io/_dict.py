@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from collections import abc
+from fractions import Fraction
 from os.path import dirname, realpath
 from typing import Any
 
@@ -43,6 +44,8 @@ def _value_serializer(inst: type, field: attrs.Attribute, value: Any) -> Any:  #
             "magnitude": value.magnitude,
             "projection": value.projection,
         }
+    if isinstance(value, Fraction):
+        return float(value)
     return value
 
 

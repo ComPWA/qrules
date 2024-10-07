@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import sys
 from copy import deepcopy
+from fractions import Fraction
 
 import pytest
 from attrs.exceptions import FrozenInstanceError
@@ -31,8 +32,10 @@ else:
 class TestParticle:
     @pytest.mark.parametrize("repr_method", [repr, pretty])
     def test_repr(self, particle_database: ParticleCollection, repr_method):
+        local_namespace = locals()
+        local_namespace["Fraction"] = Fraction
         for instance in particle_database:
-            from_repr = eval(repr_method(instance))
+            from_repr = eval(repr_method(instance), None, local_namespace)
             assert from_repr == instance
 
     @pytest.mark.parametrize(
@@ -340,8 +343,8 @@ class TestSpin:
         assert isospin.magnitude == 1.5
         assert isospin.projection == -0.5
         isospin = Spin(1, -0.0)
-        assert isinstance(isospin.magnitude, float)
-        assert isinstance(isospin.projection, float)
+        assert isinstance(isospin.magnitude, Fraction)
+        assert isinstance(isospin.projection, Fraction)
         assert isospin.magnitude == 1.0
         assert isospin.projection == 0.0
 
@@ -383,10 +386,9 @@ class TestSpin:
         [(0.3, 0.3), (1.0, 0.5), (0.5, 0.0), (-0.5, 0.5)],
     )
     def test_exceptions(self, magnitude, projection):
-        regex_pattern = "|".join([  # noqa: FLY002
-            r"Spin magnitude \d\.\d has to be a multitude of \d\.[05]",
-            r"\(projection - magnitude\) should be integer",
-            r"Spin magnitude has to be positive",
+        regex_pattern = "|".join([
+            r"Spin magnitude \d/\d has to be",
+            r"greater than abs\(projection\) = \d/\d",
         ])
         regex_pattern = f"({regex_pattern})"
         with pytest.raises(ValueError, match=regex_pattern):

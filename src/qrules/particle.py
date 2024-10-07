@@ -60,7 +60,7 @@ def _to_fraction(value: SupportsFloat) -> Fraction:
 def _validate_fraction_for_spin(
     instance: Spin, attribute: Attribute, value: Fraction
 ) -> Any:
-    if value.denominator != 1 or value.denominator != 2:
+    if value % Fraction(1, 2) != 0:
         msg = f"Spin magnitude/projection {value} has to have a denominator of 1 or 2"
         raise ValueError(msg)
 
@@ -265,7 +265,9 @@ class Particle:
                         p.text(f"{attribute.name}=")
                         if isinstance(value, Parity):
                             p.text(
-                                _as_signed_fraction_str(int(value), render_plus=True)
+                                _float_as_signed_fraction_str(
+                                    int(value), render_plus=True
+                                )
                             )
                         else:
                             p.pretty(value)  # type: ignore[attr-defined]
@@ -274,7 +276,7 @@ class Particle:
             p.text(")")
 
 
-def _as_signed_fraction_str(value: float, render_plus: bool = False) -> str:
+def _float_as_signed_fraction_str(value: float, render_plus: bool = False) -> str:
     label = str(Fraction(value))
     if render_plus and value > 0:
         return f"+{label}"
