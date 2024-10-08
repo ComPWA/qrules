@@ -30,7 +30,6 @@ from typing import (
 )
 
 import attrs
-from attr import Attribute
 from attrs import field, frozen
 from attrs.converters import optional
 from attrs.validators import instance_of
@@ -43,6 +42,7 @@ if sys.version_info < (3, 11):
 else:
     from typing import Self
 if TYPE_CHECKING:
+    from attr import Attribute
     from IPython.lib.pretty import PrettyPrinter
     from particle import Particle as PdgDatabase
     from particle.particle import enums
@@ -58,18 +58,27 @@ def _to_fraction(value: SupportsFloat) -> Fraction:
 
 
 def _validate_fraction_for_spin(
-    instance: Spin, attribute: Attribute, value: Fraction
+    instance: Spin,
+    attribute: Attribute,  # noqa: ARG001
+    value: Fraction,  # noqa: ARG001
 ) -> Any:
-    if value % Fraction(1, 2) != 0:
-        msg = f"Spin magnitude/projection {value} has to have a denominator of 1 or 2"
+    if instance.magnitude % Fraction(1, 2) != Fraction(0, 1):
+        msg = f"Spin magnitude {instance.magnitude} has to be a multitude of 0.5"
         raise ValueError(msg)
-
-
-def _validate_spin_magnitude_projection_integrity(
-    instance: Spin, attribute: Attribute, value: Fraction
-) -> None:
     if abs(instance.projection) > instance.magnitude:
-        msg = f"Spin magnitude {instance.magnitude} has to be greater than abs(projection) = {abs(instance.projection)}"
+        if instance.magnitude < Fraction(0, 1):
+            msg = f"Spin magnitude has to be positive, but is {instance.magnitude}"
+            raise ValueError(msg)
+        msg = (
+            "Absolute value of spin projection cannot be larger than its"
+            f" magnitude:\n abs({instance.projection}) > {instance.magnitude}"
+        )
+        raise ValueError(msg)
+    if (instance.projection - instance.magnitude).denominator != 1:
+        msg = (
+            f"{type(instance).__name__}{(instance.magnitude, instance.projection)}: (projection -"
+            " magnitude) should be integer"
+        )
         raise ValueError(msg)
 
 
@@ -80,38 +89,12 @@ class Spin:  # noqa: PLW1641
 
     magnitude: Fraction = field(
         converter=_to_fraction,
-        validator=[
-            _validate_fraction_for_spin,
-            _validate_spin_magnitude_projection_integrity,
-        ],
+        validator=_validate_fraction_for_spin,
     )
     projection: Fraction = field(
         converter=_to_fraction,
-        validator=[
-            _validate_fraction_for_spin,
-            _validate_spin_magnitude_projection_integrity,
-        ],
+        validator=_validate_fraction_for_spin,
     )
-
-    def __attrs_post_init__(self) -> None:
-        if self.magnitude % 0.5 != 0.0:
-            msg = f"Spin magnitude {self.magnitude} has to be a multitude of 0.5"
-            raise ValueError(msg)
-        if abs(self.projection) > self.magnitude:
-            if self.magnitude < 0.0:
-                msg = f"Spin magnitude has to be positive, but is {self.magnitude}"
-                raise ValueError(msg)
-            msg = (
-                "Absolute value of spin projection cannot be larger than its"
-                f" magnitude:\n abs({self.projection}) > {self.magnitude}"
-            )
-            raise ValueError(msg)
-        if (self.projection - self.magnitude).denominator != 1:
-            msg = (
-                f"{type(self).__name__}{self.magnitude, self.projection}: (projection -"
-                " magnitude) should be integer"
-            )
-            raise ValueError(msg)
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Spin):

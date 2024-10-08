@@ -29,13 +29,17 @@ else:
     from importlib.metadata import version
 
 
+NAMESPACE_WITH_FRACTIONS = globals()
+NAMESPACE_WITH_FRACTIONS["Fraction"] = Fraction
+
+
 class TestParticle:
     @pytest.mark.parametrize("repr_method", [repr, pretty])
     def test_repr(self, particle_database: ParticleCollection, repr_method):
         local_namespace = locals()
         local_namespace["Fraction"] = Fraction
         for instance in particle_database:
-            from_repr = eval(repr_method(instance), None, local_namespace)
+            from_repr = eval(repr_method(instance), NAMESPACE_WITH_FRACTIONS)
             assert from_repr == instance
 
     @pytest.mark.parametrize(
@@ -61,7 +65,7 @@ class TestParticle:
             width=0.1,
             spin=1,
             charge=0,
-            isospin=(1, 0),
+            isospin=(Fraction(1), Fraction(0)),
         )
         with pytest.raises(FrozenInstanceError):
             test_state.charge = 1  # type: ignore[misc]
@@ -78,7 +82,7 @@ class TestParticle:
                 parity=-1,
                 c_parity=-1,
                 g_parity=-1,
-                isospin=(0, 0),
+                isospin=(Fraction(0), Fraction(0)),
                 charmness=1,
             )
 
@@ -89,7 +93,7 @@ class TestParticle:
             mass=1.2,
             spin=1,
             charge=0,
-            isospin=(1, 0),
+            isospin=(Fraction(1), Fraction(0)),
         )
         assert particle != Particle(
             name="MyParticle", pid=123, mass=1.5, width=0.2, spin=1
@@ -104,7 +108,7 @@ class TestParticle:
             mass=1.2,
             spin=1,
             charge=0,
-            isospin=(1, 0),
+            isospin=(Fraction(1), Fraction(0)),
         )
         assert particle == different_labels
         assert hash(particle) == hash(different_labels)
@@ -179,7 +183,9 @@ class TestParticleCollection:
     @pytest.mark.parametrize("repr_method", [repr, pretty])
     def test_repr(self, particle_database: ParticleCollection, repr_method):
         instance = particle_database
-        from_repr = eval(repr_method(instance))
+        local_namespace = locals()
+        local_namespace["Fraction"] = Fraction
+        from_repr = eval(repr_method(instance), NAMESPACE_WITH_FRACTIONS)
         assert from_repr == instance
 
     def test_add(self, particle_database: ParticleCollection):
@@ -313,7 +319,7 @@ class TestParticleCollection:
             list_str = message.strip("?")
             *_, list_str = list_str.split("Did you mean ")
             *_, list_str = list_str.split("one of these? ")
-            found_particles = eval(list_str)
+            found_particles = eval(list_str, NAMESPACE_WITH_FRACTIONS)
             assert found_particles == expected
 
     def test_exceptions(self, particle_database: ParticleCollection):
@@ -378,7 +384,7 @@ class TestSpin:
         "instance", [Spin(2.5, -0.5), Spin(1, 0), Spin(3, -1), Spin(0, 0)]
     )
     def test_repr(self, instance: Spin, repr_method):
-        from_repr = eval(repr_method(instance))
+        from_repr = eval(repr_method(instance), NAMESPACE_WITH_FRACTIONS)
         assert from_repr == instance
 
     @pytest.mark.parametrize(
@@ -387,10 +393,11 @@ class TestSpin:
     )
     def test_exceptions(self, magnitude, projection):
         regex_pattern = "|".join([
-            r"Spin magnitude \d/\d has to be",
-            r"greater than abs\(projection\) = \d/\d",
+            r"Spin magnitude \d*/\d* has to be a multitude of \d\.[05]",
+            r"\(projection - magnitude\) should be integer",
+            r"Spin magnitude has to be positive",
+            r"Absolute value of spin projection cannot be larger than its",
         ])
-        regex_pattern = f"({regex_pattern})"
         with pytest.raises(ValueError, match=regex_pattern):
             print(Spin(magnitude, projection))
 
