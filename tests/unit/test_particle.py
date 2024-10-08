@@ -321,7 +321,7 @@ class TestParticleCollection:
             list_str = message.strip("?")
             *_, list_str = list_str.split("Did you mean ")
             *_, list_str = list_str.split("one of these? ")
-            found_particles = eval(list_str, None), gen_namespace_with_fraction()
+            found_particles = eval(list_str, None, gen_namespace_with_fraction())
             assert found_particles == expected
 
     def test_exceptions(self, particle_database: ParticleCollection):
@@ -386,7 +386,7 @@ class TestSpin:
         "instance", [Spin(2.5, -0.5), Spin(1, 0), Spin(3, -1), Spin(0, 0)]
     )
     def test_repr(self, instance: Spin, repr_method):
-        from_repr = eval(repr_method(instance), None), gen_namespace_with_fraction()
+        from_repr = eval(repr_method(instance), None, gen_namespace_with_fraction())
         assert from_repr == instance
 
     @pytest.mark.parametrize(
