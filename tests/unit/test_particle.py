@@ -29,8 +29,10 @@ else:
     from importlib.metadata import version
 
 
-NAMESPACE_WITH_FRACTIONS = globals()
-NAMESPACE_WITH_FRACTIONS["Fraction"] = Fraction
+def gen_namespace_with_fraction():
+    namespace = globals()
+    namespace["Fraction"] = Fraction
+    return namespace
 
 
 class TestParticle:
@@ -39,7 +41,7 @@ class TestParticle:
         local_namespace = locals()
         local_namespace["Fraction"] = Fraction
         for instance in particle_database:
-            from_repr = eval(repr_method(instance), NAMESPACE_WITH_FRACTIONS)
+            from_repr = eval(repr_method(instance), None, gen_namespace_with_fraction())
             assert from_repr == instance
 
     @pytest.mark.parametrize(
@@ -185,7 +187,7 @@ class TestParticleCollection:
         instance = particle_database
         local_namespace = locals()
         local_namespace["Fraction"] = Fraction
-        from_repr = eval(repr_method(instance), NAMESPACE_WITH_FRACTIONS)
+        from_repr = eval(repr_method(instance), None, gen_namespace_with_fraction())
         assert from_repr == instance
 
     def test_add(self, particle_database: ParticleCollection):
@@ -319,7 +321,7 @@ class TestParticleCollection:
             list_str = message.strip("?")
             *_, list_str = list_str.split("Did you mean ")
             *_, list_str = list_str.split("one of these? ")
-            found_particles = eval(list_str, NAMESPACE_WITH_FRACTIONS)
+            found_particles = eval(list_str, None), gen_namespace_with_fraction()
             assert found_particles == expected
 
     def test_exceptions(self, particle_database: ParticleCollection):
@@ -384,7 +386,7 @@ class TestSpin:
         "instance", [Spin(2.5, -0.5), Spin(1, 0), Spin(3, -1), Spin(0, 0)]
     )
     def test_repr(self, instance: Spin, repr_method):
-        from_repr = eval(repr_method(instance), NAMESPACE_WITH_FRACTIONS)
+        from_repr = eval(repr_method(instance), None), gen_namespace_with_fraction()
         assert from_repr == instance
 
     @pytest.mark.parametrize(
