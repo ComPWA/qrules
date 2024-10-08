@@ -321,12 +321,12 @@ def _(obj: dict) -> str:
             key_repr = key
         if value != 0 or any(s in key_repr for s in ["magnitude", "projection"]):
             pm = not any(s in key_repr for s in ["pid", "mass", "width", "magnitude"])
-            value_repr = __render_fraction(value, pm)
+            value_repr = __render_as_fraction(value, pm)
             lines.append(f"{key_repr} = {value_repr}")
     return "\n".join(lines)
 
 
-def __render_fraction(value: Any, plusminus: bool) -> str:
+def __render_as_fraction(value: Any, plusminus: bool) -> str:
     plusminus &= isinstance(value, Number) and bool(value)
     if isinstance(value, float):
         if value.is_integer():
@@ -336,9 +336,19 @@ def __render_fraction(value: Any, plusminus: bool) -> str:
             if plusminus:
                 return f"{nom:+}/{denom}"
             return f"{nom}/{denom}"
+    if isinstance(value, Fraction):
+        return _render_fraction(value, plusminus)
     if plusminus:
         return f"{value:+}"
     return str(value)
+
+
+def _render_fraction(fraction: Fraction, plusminus: bool) -> str:
+    if fraction.denominator == 1:
+        return str(int(fraction))
+    if plusminus:
+        return f"{fraction.numerator:+}/{fraction.denominator}"
+    return f"{fraction.numerator}/{fraction.denominator}"
 
 
 @as_string.register(InteractionProperties)
