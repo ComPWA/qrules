@@ -40,6 +40,7 @@ TAGS
 
 # Virtual environments
 *venv/
+.pixi/
 .tox/
 pyvenv*/
 
@@ -51,7 +52,6 @@ pyvenv*/
 !.cspell.json
 !.github/*.yml
 !.github/*/*.yml
-!.gitpod.yml
 !.pre-commit-config.yaml
 !.readthedocs.yml
 !.vscode/*.json
