@@ -9,7 +9,6 @@ as a bridge between the :mod:`.particle` and the :mod:`.conservation_rules` modu
 from __future__ import annotations
 
 import sys
-from decimal import Decimal
 from fractions import Fraction
 from functools import total_ordering
 from typing import Any, Generator, NewType, Union
@@ -58,14 +57,14 @@ class Parity:  # noqa: PLW1641
         return Parity(-self.value)
 
     def __repr__(self) -> str:
-        return f"{type(self).__name__}({_to_fraction(self.value)})"
+        return f"{type(self).__name__}({_float_as_signed_str(self.value)})"
 
 
-def _to_fraction(value: float, render_plus: bool = False) -> str:
-    label = str(Fraction(value))
-    if render_plus and value > 0:
-        return f"+{label}"
-    return label
+def _float_as_signed_str(value: float) -> str:
+    string_representation = str(value)
+    if value > 0:
+        return f"+{string_representation}"
+    return string_representation
 
 
 @frozen(init=False)
@@ -83,11 +82,11 @@ class EdgeQuantumNumbers:
     pid = NewType("pid", int)
     mass = NewType("mass", float)
     width = NewType("width", float)
-    spin_magnitude = NewType("spin_magnitude", float)
-    spin_projection = NewType("spin_projection", float)
+    spin_magnitude = NewType("spin_magnitude", Fraction)
+    spin_projection = NewType("spin_projection", Fraction)
     charge = NewType("charge", int)
-    isospin_magnitude = NewType("isospin_magnitude", float)
-    isospin_projection = NewType("isospin_projection", float)
+    isospin_magnitude = NewType("isospin_magnitude", Fraction)
+    isospin_projection = NewType("isospin_projection", Fraction)
     strangeness = NewType("strangeness", int)
     charmness = NewType("charmness", int)
     bottomness = NewType("bottomness", int)
@@ -135,11 +134,11 @@ EdgeQuantumNumber = Union[
 class NodeQuantumNumbers:
     """Definition of quantum numbers for interaction nodes."""
 
-    l_magnitude = NewType("l_magnitude", float)
-    l_projection = NewType("l_projection", float)
-    s_magnitude = NewType("s_magnitude", float)
-    s_projection = NewType("s_projection", float)
-    parity_prefactor = NewType("parity_prefactor", float)
+    l_magnitude = NewType("l_magnitude", Fraction)
+    l_projection = NewType("l_projection", Fraction)
+    s_magnitude = NewType("s_magnitude", Fraction)
+    s_projection = NewType("s_projection", Fraction)
+    parity_prefactor = NewType("parity_prefactor", Fraction)
 
 
 for node_qn_name, node_qn_type in NodeQuantumNumbers.__dict__.items():
@@ -198,8 +197,11 @@ class InteractionProperties:
     parity_prefactor: float | None = field(default=None, converter=_to_optional_float)
 
 
-def arange(x_1: float, x_2: float, delta: float = 1.0) -> Generator[float, None, None]:
-    current = Decimal(x_1)
+def arange(
+    x_1: float, x_2: float, delta: float = 1.0
+) -> Generator[Fraction, None, None]:
+    current = Fraction(x_1)
+    delta = Fraction(delta)
     while current < x_2:
-        yield float(current)
-        current += Decimal(delta)
+        yield current
+        current += delta

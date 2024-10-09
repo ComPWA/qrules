@@ -319,7 +319,8 @@ def _halves_domain(start: float, stop: float) -> list[float]:
         msg = f"Stop value {stop} needs to be multiple of 0.5"
         raise ValueError(msg)
     return [
-        int(v) if v.is_integer() else v for v in arange(start, stop + 0.25, delta=0.5)
+        int(v) if v.denominator == 1 else v
+        for v in arange(start, stop + 0.25, delta=0.5)
     ]
 
 

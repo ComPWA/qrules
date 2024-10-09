@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from collections import abc
+from fractions import Fraction
 from os.path import dirname, realpath
 from typing import Any
 
@@ -28,7 +29,7 @@ def from_attrs_decorated(inst: Any) -> dict:
     )
 
 
-def _value_serializer(inst: type, field: attrs.Attribute, value: Any) -> Any:  # noqa: ARG001
+def _value_serializer(inst: type, field: attrs.Attribute, value: Any) -> Any:  # noqa: ARG001, PLR0911
     if isinstance(value, abc.Mapping):
         if all(isinstance(p, Particle) for p in value.values()):
             return {k: v.name for k, v in value.items()}
@@ -43,6 +44,8 @@ def _value_serializer(inst: type, field: attrs.Attribute, value: Any) -> Any:  #
             "magnitude": value.magnitude,
             "projection": value.projection,
         }
+    if isinstance(value, Fraction):
+        return float(value)
     return value
 
 

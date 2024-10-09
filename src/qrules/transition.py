@@ -30,7 +30,7 @@ from qrules.particle import (
     Particle,
     ParticleCollection,
     ParticleWithSpin,
-    _to_float,
+    _to_fraction,
     load_pdg,
 )
 from qrules.quantum_numbers import (
@@ -733,7 +733,7 @@ def _strip_spin(state_definition: Sequence[StateDefinition]) -> list[str]:
 @frozen(order=True)
 class State:
     particle: Particle = field(validator=instance_of(Particle))
-    spin_projection: float = field(converter=_to_float)
+    spin_projection: float = field(converter=_to_fraction)
 
 
 StateTransition = FrozenTransition[State, InteractionProperties]
