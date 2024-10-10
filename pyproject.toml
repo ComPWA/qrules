@@ -30,9 +30,7 @@ dependencies = [
     "jsonschema",
     "particle",
     "tqdm >=4.24.0", # autonotebook
-    'python-constraint2; python_version >="3.9.0"',
-    'python-constraint; python_version <"3.9.0"',
-    'typing-extensions; python_version <"3.9.0"', # Literal, Protocol
+    'python-constraint2',
 ]
 description = "Rule-based particle reaction problem solver on a quantum number level"
 dynamic = ["version"]
@@ -103,8 +101,7 @@ test = [
     "pytest-cov",
     "pytest-profiling",
     "pytest-xdist",
-    'importlib-metadata; python_version <"3.9.0"',
-    'nbmake <1.3; python_version=="3.9.*"',
+    'nbmake <1.3',
 ]
 types = [
     "ipython",
