@@ -49,7 +49,7 @@ import operator
 from copy import deepcopy
 from functools import reduce
 from textwrap import dedent
-from typing import Any, Callable, List, Optional, Protocol, Union
+from typing import Any, Callable, Optional, Protocol, Union
 
 from attrs import define, field, frozen
 from attrs.converters import optional
@@ -876,8 +876,8 @@ class MassConservation:
 
     def __call__(
         self,
-        ingoing_edge_qns: List[MassEdgeInput],
-        outgoing_edge_qns: List[MassEdgeInput],
+        ingoing_edge_qns: list[MassEdgeInput],
+        outgoing_edge_qns: list[MassEdgeInput],
     ) -> bool:
         r"""Implements mass conservation.
 
