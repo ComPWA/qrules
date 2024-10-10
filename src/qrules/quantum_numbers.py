@@ -9,10 +9,11 @@ as a bridge between the :mod:`.particle` and the :mod:`.conservation_rules` modu
 from __future__ import annotations
 
 import sys
+from collections.abc import Generator
 from decimal import Decimal
 from fractions import Fraction
 from functools import total_ordering
-from typing import Any, Generator, NewType, Union
+from typing import Any, NewType, Union
 
 from attrs import field, frozen
 

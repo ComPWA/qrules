@@ -9,10 +9,11 @@ import logging
 import re
 import string
 from collections import abc
+from collections.abc import Iterable
 from functools import singledispatch
 from inspect import isfunction
 from numbers import Number
-from typing import TYPE_CHECKING, Any, Iterable, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import attrs
 from attrs import Attribute, define, field

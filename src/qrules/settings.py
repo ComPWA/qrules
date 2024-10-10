@@ -10,10 +10,11 @@ It is possible to change some settings from the outside, for instance:
 from __future__ import annotations
 
 import multiprocessing
+from collections.abc import Iterable
 from copy import deepcopy
 from enum import Enum, auto
 from os.path import dirname, join, realpath
-from typing import TYPE_CHECKING, Any, Callable, Iterable
+from typing import TYPE_CHECKING, Any, Callable
 
 from qrules.conservation_rules import (
     BaryonNumberConservation,

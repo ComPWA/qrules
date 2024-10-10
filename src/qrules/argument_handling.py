@@ -8,18 +8,8 @@ annotations of the rules.
 from __future__ import annotations
 
 import inspect
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Generic,
-    List,
-    Sequence,
-    Tuple,
-    Type,
-    TypeVar,
-    Union,
-)
+from collections.abc import Sequence
+from typing import Any, Callable, Dict, Generic, List, Tuple, Type, TypeVar, Union
 
 import attrs
 
