@@ -875,8 +875,8 @@ class MassConservation:
 
     def __call__(
         self,
-        ingoing_edge_qns: list[MassEdgeInput],
-        outgoing_edge_qns: list[MassEdgeInput],
+        ingoing_edge_qns: typing.List[MassEdgeInput],
+        outgoing_edge_qns: typing.List[MassEdgeInput],
     ) -> bool:
         r"""Implements mass conservation.
 
