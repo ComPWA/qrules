@@ -44,7 +44,7 @@ def _is_optional(field_type: type | None) -> bool:
 
 def _is_sequence_type(input_type: type) -> bool:
     origin = getattr(input_type, "__origin__", None)
-    return origin in {list, tuple, list, tuple}
+    return origin in {list, tuple}
 
 
 def _is_edge_quantum_number(qn_type: Any) -> bool:
