@@ -1,4 +1,3 @@
-
 import pytest
 
 from qrules.conservation_rules import (
