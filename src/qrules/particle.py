@@ -15,11 +15,10 @@ import logging
 import re
 import sys
 from collections import abc
-from collections.abc import Iterable, Iterator
 from difflib import get_close_matches
 from functools import total_ordering
 from math import copysign
-from typing import TYPE_CHECKING, Any, Callable, SupportsFloat, Tuple
+from typing import TYPE_CHECKING, Any, Callable, SupportsFloat
 
 import attrs
 from attrs import field, frozen
@@ -34,6 +33,8 @@ if sys.version_info < (3, 11):
 else:
     from typing import Self
 if TYPE_CHECKING:
+    from collections.abc import Iterable, Iterator
+
     from IPython.lib.pretty import PrettyPrinter
     from particle import Particle as PdgDatabase
     from particle.particle import enums
@@ -235,7 +236,7 @@ def _get_name_root(name: str) -> str:
     return re.sub(r"[\*\+\-~\d']", "", name_root)
 
 
-ParticleWithSpin = Tuple[Particle, float]
+ParticleWithSpin = tuple[Particle, float]
 """A particle and its spin projection."""
 
 

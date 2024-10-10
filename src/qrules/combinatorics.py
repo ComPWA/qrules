@@ -11,7 +11,7 @@ import itertools
 from collections import OrderedDict
 from collections.abc import Iterable, Mapping, Sequence
 from copy import deepcopy
-from typing import TYPE_CHECKING, Any, Callable, Tuple, Union
+from typing import TYPE_CHECKING, Any, Callable, Union
 
 from qrules.particle import ParticleWithSpin
 from qrules.quantum_numbers import InteractionProperties, arange
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from qrules.particle import ParticleCollection
 
 
-StateWithSpins = Tuple[str, Sequence[float]]
+StateWithSpins = tuple[str, Sequence[float]]
 StateDefinition = Union[str, StateWithSpins]
 """Particle name, optionally with a list of spin projections."""
 InitialFacts = MutableTransition[ParticleWithSpin, InteractionProperties]

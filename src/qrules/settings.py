@@ -10,7 +10,6 @@ It is possible to change some settings from the outside, for instance:
 from __future__ import annotations
 
 import multiprocessing
-from collections.abc import Iterable
 from copy import deepcopy
 from enum import Enum, auto
 from os.path import dirname, join, realpath
@@ -50,6 +49,8 @@ from qrules.quantum_numbers import arange
 from qrules.solving import EdgeSettings, NodeSettings
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from qrules.particle import Particle, ParticleCollection
     from qrules.transition import SpinFormalism
 

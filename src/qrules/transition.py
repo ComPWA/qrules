@@ -4,14 +4,12 @@ from __future__ import annotations
 
 import logging
 import re
-import sys
 import warnings
 from collections import defaultdict
-from collections.abc import Iterable, Sequence
 from copy import copy, deepcopy
 from enum import Enum, auto
 from multiprocessing import Pool
-from typing import overload
+from typing import TYPE_CHECKING, overload
 
 import attrs
 from attrs import define, field, frozen
@@ -76,11 +74,10 @@ from qrules.topology import (
     create_n_body_topology,
 )
 
-if sys.version_info >= (3, 8):
-    from typing import Literal
-else:
-    from typing_extensions import Literal
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Sequence
 
+from typing import Literal
 
 _LOGGER = logging.getLogger(__name__)
 

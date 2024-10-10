@@ -5,8 +5,7 @@ from __future__ import annotations
 import logging
 import operator
 from abc import ABC, abstractmethod
-from collections.abc import Iterable
-from typing import TYPE_CHECKING, Callable, Dict, List, Tuple
+from typing import TYPE_CHECKING, Callable
 
 import attrs
 
@@ -23,13 +22,15 @@ from qrules.solving import GraphEdgePropertyMap, GraphNodePropertyMap, GraphSett
 from qrules.topology import MutableTransition
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from qrules.particle import Particle, ParticleCollection, ParticleWithSpin
 
 _LOGGER = logging.getLogger(__name__)
 
 Strength = float
 
-GraphSettingsGroups = Dict[Strength, List[Tuple[MutableTransition, GraphSettings]]]
+GraphSettingsGroups = dict[Strength, list[tuple[MutableTransition, GraphSettings]]]
 
 
 def create_edge_properties(

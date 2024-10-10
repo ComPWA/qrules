@@ -8,8 +8,7 @@ annotations of the rules.
 from __future__ import annotations
 
 import inspect
-from collections.abc import Sequence
-from typing import Any, Callable, Dict, Generic, List, Tuple, Type, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Callable, Generic, TypeVar, Union
 
 import attrs
 
@@ -20,13 +19,16 @@ from qrules.conservation_rules import (
 )
 from qrules.quantum_numbers import EdgeQuantumNumber, NodeQuantumNumber, Parity
 
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
 Scalar = Union[int, float]
 
 Rule = Union[GraphElementRule, EdgeQNConservationRule, ConservationRule]
 
 _ElementType = TypeVar("_ElementType")
 
-GraphElementPropertyMap = Dict[Type[_ElementType], Scalar]
+GraphElementPropertyMap = dict[type[_ElementType], Scalar]
 GraphEdgePropertyMap = GraphElementPropertyMap[EdgeQuantumNumber]
 """Type alias for a graph edge property map."""
 GraphNodePropertyMap = GraphElementPropertyMap[NodeQuantumNumber]
@@ -42,7 +44,7 @@ def _is_optional(field_type: type | None) -> bool:
 
 def _is_sequence_type(input_type: type) -> bool:
     origin = getattr(input_type, "__origin__", None)
-    return origin in {list, tuple, List, Tuple}
+    return origin in {list, tuple, list, tuple}
 
 
 def _is_edge_quantum_number(qn_type: Any) -> bool:
