@@ -101,7 +101,6 @@ test = [
     "pytest-cov",
     "pytest-profiling",
     "pytest-xdist",
-    'nbmake <1.3',
 ]
 types = [
     "ipython",
