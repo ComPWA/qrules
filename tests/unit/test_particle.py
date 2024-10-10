@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import logging
-import sys
 from copy import deepcopy
+from importlib.metadata import version
 
 import pytest
 from attrs.exceptions import FrozenInstanceError
@@ -21,11 +21,6 @@ from qrules.particle import (
 from qrules.quantum_numbers import (
     Parity,  # noqa: F401 # pyright: ignore[reportUnusedImport]
 )
-
-if sys.version_info < (3, 8):
-    from importlib_metadata import version
-else:
-    from importlib.metadata import version
 
 
 class TestParticle:

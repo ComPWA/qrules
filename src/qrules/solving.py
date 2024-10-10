@@ -14,7 +14,7 @@ import operator
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from copy import copy
-from typing import Any, Callable, Generic, Iterable, Tuple, Type, TypeVar
+from typing import TYPE_CHECKING, Any, Callable, Generic, TypeVar
 
 import attrs
 from attrs import define, field, frozen
@@ -36,6 +36,9 @@ from qrules.quantum_numbers import (
     NodeQuantumNumber,
 )
 from qrules.topology import MutableTransition, Topology
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -383,8 +386,8 @@ def validate_full_solution(problem_set: QNProblemSet) -> QNResult:  # noqa: C901
     )
 
 
-_EdgeVariableInfo = Tuple[int, Type[EdgeQuantumNumber]]
-_NodeVariableInfo = Tuple[int, Type[NodeQuantumNumber]]
+_EdgeVariableInfo = tuple[int, type[EdgeQuantumNumber]]
+_NodeVariableInfo = tuple[int, type[NodeQuantumNumber]]
 
 
 def _create_variable_string(

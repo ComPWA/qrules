@@ -13,7 +13,7 @@ import multiprocessing
 from copy import deepcopy
 from enum import Enum, auto
 from os.path import dirname, join, realpath
-from typing import TYPE_CHECKING, Any, Callable, Iterable
+from typing import TYPE_CHECKING, Any, Callable
 
 from qrules.conservation_rules import (
     BaryonNumberConservation,
@@ -49,6 +49,8 @@ from qrules.quantum_numbers import arange
 from qrules.solving import EdgeSettings, NodeSettings
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from qrules.particle import Particle, ParticleCollection
     from qrules.transition import SpinFormalism
 

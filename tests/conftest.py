@@ -1,15 +1,10 @@
-import sys
+from importlib.metadata import version
 
 import pytest
 
 from qrules import load_default_particles
 from qrules.particle import ParticleCollection
 from qrules.settings import NumberOfThreads
-
-if sys.version_info < (3, 8):
-    from importlib_metadata import version
-else:
-    from importlib.metadata import version
 
 # Ensure consistent test coverage when running pytest multithreaded
 # https://github.com/ComPWA/qrules/issues/11

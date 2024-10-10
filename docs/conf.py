@@ -49,6 +49,7 @@ api_target_substitutions: dict[str, str | tuple[str, str]] = {
     "qrules.topology.NodeType": "typing.TypeVar",
     "SpinFormalism": ("obj", "qrules.transition.SpinFormalism"),
     "StateDefinition": ("obj", "qrules.combinatorics.StateDefinition"),
+    "StateTransition": ("obj", "qrules.transition.StateTransition"),
     "typing.Literal[-1, 1]": "typing.Literal",
 }
 api_target_types: dict[str, str | tuple[str, str]] = {
