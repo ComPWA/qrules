@@ -49,7 +49,7 @@ import operator
 from copy import deepcopy
 from functools import reduce
 from textwrap import dedent
-from typing import Any, Callable, List, Optional, Protocol, Union
+from typing import Any, Callable, Optional, Protocol, Union
 
 from attrs import define, field, frozen
 from attrs.converters import optional
@@ -70,12 +70,12 @@ def _is_particle_antiparticle_pair(pid1: int, pid2: int) -> bool:
 
 
 class GraphElementRule(Protocol):
-    def __call__(self, qns: Any ,/) -> bool: ...
+    def __call__(self, qns: Any, /) -> bool: ...
 
 
 class EdgeQNConservationRule(Protocol):
     def __call__(
-        self, ingoing_edge_qns: list[Any], outgoing_edge_qns: list[Any] ,/
+        self, ingoing_edge_qns: list[Any], outgoing_edge_qns: list[Any], /
     ) -> bool: ...
 
 
@@ -84,7 +84,8 @@ class ConservationRule(Protocol):
         self,
         ingoing_edge_qns: list[Any],
         outgoing_edge_qns: list[Any],
-        node_qns: Any, /
+        node_qns: Any,
+        /,
     ) -> bool: ...
 
 
