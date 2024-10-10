@@ -15,18 +15,11 @@ import logging
 import re
 import sys
 from collections import abc
+from collections.abc import Iterable, Iterator
 from difflib import get_close_matches
 from functools import total_ordering
 from math import copysign
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Iterable,
-    Iterator,
-    SupportsFloat,
-    Tuple,
-)
+from typing import TYPE_CHECKING, Any, Callable, SupportsFloat, Tuple
 
 import attrs
 from attrs import field, frozen

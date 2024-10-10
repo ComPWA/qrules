@@ -22,22 +22,17 @@ import logging
 import sys
 from abc import ABC, abstractmethod
 from collections import abc
-from functools import total_ordering
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Generic,
+from collections.abc import (
     ItemsView,
     Iterable,
     Iterator,
     KeysView,
     Mapping,
     Sequence,
-    TypeVar,
     ValuesView,
-    overload,
 )
+from functools import total_ordering
+from typing import TYPE_CHECKING, Any, Callable, Generic, TypeVar, overload
 
 import attrs
 from attrs import define, field, frozen

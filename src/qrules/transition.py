@@ -7,10 +7,11 @@ import re
 import sys
 import warnings
 from collections import defaultdict
+from collections.abc import Iterable, Sequence
 from copy import copy, deepcopy
 from enum import Enum, auto
 from multiprocessing import Pool
-from typing import Iterable, Sequence, overload
+from typing import overload
 
 import attrs
 from attrs import define, field, frozen

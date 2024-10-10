@@ -13,8 +13,9 @@ import logging
 import operator
 from abc import ABC, abstractmethod
 from collections import defaultdict
+from collections.abc import Iterable
 from copy import copy
-from typing import Any, Callable, Generic, Iterable, Tuple, Type, TypeVar
+from typing import Any, Callable, Generic, Tuple, Type, TypeVar
 
 import attrs
 from attrs import define, field, frozen

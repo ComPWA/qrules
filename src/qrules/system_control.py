@@ -5,7 +5,8 @@ from __future__ import annotations
 import logging
 import operator
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Callable, Dict, Iterable, List, Tuple
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Callable, Dict, List, Tuple
 
 import attrs
 
