@@ -283,7 +283,7 @@ def _resolve_argument_type_hints(rule: Rule) -> list:
     >>> _resolve_argument_type_hints(gellmann_nishijima)
     [<class 'qrules.conservation_rules.GellMannNishijimaInput'>]
     >>> _resolve_argument_type_hints(MassConservation(width_factor=1.0))
-    [typing.List[qrules.conservation_rules.MassEdgeInput], typing.List[qrules.conservation_rules.MassEdgeInput]]
+    [list[qrules.conservation_rules.MassEdgeInput], list[qrules.conservation_rules.MassEdgeInput]]
     """
     func_signature = inspect.signature(rule)
     if not func_signature.return_annotation:
