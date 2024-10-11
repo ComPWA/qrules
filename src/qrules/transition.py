@@ -9,7 +9,7 @@ from collections import defaultdict
 from copy import copy, deepcopy
 from enum import Enum, auto
 from multiprocessing import Pool
-from typing import TYPE_CHECKING, overload
+from typing import TYPE_CHECKING, Literal, overload
 
 import attrs
 from attrs import define, field, frozen
@@ -77,7 +77,6 @@ from qrules.topology import (
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
 
-from typing import Literal
 
 _LOGGER = logging.getLogger(__name__)
 

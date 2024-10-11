@@ -11,7 +11,7 @@ from __future__ import annotations
 from decimal import Decimal
 from fractions import Fraction
 from functools import total_ordering
-from typing import TYPE_CHECKING, Any, NewType, Union
+from typing import TYPE_CHECKING, Any, Literal, NewType, Union
 
 from attrs import field, frozen
 
@@ -19,8 +19,6 @@ from qrules._implementers import implement_pretty_repr
 
 if TYPE_CHECKING:
     from collections.abc import Generator
-
-from typing import Literal
 
 
 def _to_parity(value: int) -> Literal[-1, 1]:
