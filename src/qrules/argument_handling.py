@@ -8,18 +8,7 @@ annotations of the rules.
 from __future__ import annotations
 
 import inspect
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Generic,
-    List,
-    Sequence,
-    Tuple,
-    Type,
-    TypeVar,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, Callable, Generic, TypeVar, Union
 
 import attrs
 
@@ -30,13 +19,16 @@ from qrules.conservation_rules import (
 )
 from qrules.quantum_numbers import EdgeQuantumNumber, NodeQuantumNumber, Parity
 
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
 Scalar = Union[int, float]
 
 Rule = Union[GraphElementRule, EdgeQNConservationRule, ConservationRule]
 
 _ElementType = TypeVar("_ElementType")
 
-GraphElementPropertyMap = Dict[Type[_ElementType], Scalar]
+GraphElementPropertyMap = dict[type[_ElementType], Scalar]
 GraphEdgePropertyMap = GraphElementPropertyMap[EdgeQuantumNumber]
 """Type alias for a graph edge property map."""
 GraphNodePropertyMap = GraphElementPropertyMap[NodeQuantumNumber]
@@ -52,7 +44,7 @@ def _is_optional(field_type: type | None) -> bool:
 
 def _is_sequence_type(input_type: type) -> bool:
     origin = getattr(input_type, "__origin__", None)
-    return origin in {list, tuple, List, Tuple}
+    return origin in {list, tuple}
 
 
 def _is_edge_quantum_number(qn_type: Any) -> bool:
@@ -291,7 +283,7 @@ def _resolve_argument_type_hints(rule: Rule) -> list:
     >>> _resolve_argument_type_hints(gellmann_nishijima)
     [<class 'qrules.conservation_rules.GellMannNishijimaInput'>]
     >>> _resolve_argument_type_hints(MassConservation(width_factor=1.0))
-    [typing.List[qrules.conservation_rules.MassEdgeInput], typing.List[qrules.conservation_rules.MassEdgeInput]]
+    [list[qrules.conservation_rules.MassEdgeInput], list[qrules.conservation_rules.MassEdgeInput]]
     """
     func_signature = inspect.signature(rule)
     if not func_signature.return_annotation:

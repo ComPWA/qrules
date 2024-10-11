@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import sys
 from copy import deepcopy
+from importlib.metadata import version
 
 import attrs
 import pytest
@@ -25,11 +25,6 @@ from qrules.system_control import (
     require_interaction_property,
 )
 from qrules.topology import Edge, MutableTransition, Topology
-
-if sys.version_info < (3, 8):
-    from importlib_metadata import version
-else:
-    from importlib.metadata import version
 
 
 @pytest.mark.parametrize(

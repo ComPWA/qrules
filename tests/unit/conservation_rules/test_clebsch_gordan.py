@@ -1,5 +1,3 @@
-from typing import List, Tuple
-
 import pytest
 
 from qrules.conservation_rules import (
@@ -13,7 +11,7 @@ from qrules.conservation_rules import (
 from qrules.particle import Spin
 from tests.unit.conservation_rules.test_spin import __create_two_body_decay_spin_data
 
-_SpinRuleInputType = Tuple[List[SpinEdgeInput], List[SpinEdgeInput], SpinNodeInput]
+_SpinRuleInputType = tuple[list[SpinEdgeInput], list[SpinEdgeInput], SpinNodeInput]
 
 
 @pytest.mark.parametrize(

@@ -18,8 +18,6 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python",
     "Topic :: Scientific/Engineering :: Physics",
@@ -31,10 +29,8 @@ dependencies = [
     "attrs >=20.1.0", # on_setattr and https://www.attrs.org/en/stable/api.html#next-gen
     "jsonschema",
     "particle",
+    "python-constraint2",
     "tqdm >=4.24.0", # autonotebook
-    'python-constraint2; python_version >="3.8.0"',
-    'python-constraint; python_version <"3.8.0"',
-    'typing-extensions; python_version <"3.8.0"', # Literal, Protocol
 ]
 description = "Rule-based particle reaction problem solver on a quantum number level"
 dynamic = ["version"]
@@ -50,7 +46,7 @@ keywords = [
 license = {file = "LICENSE"}
 maintainers = [{email = "compwa-admin@ep1.rub.de"}]
 name = "qrules"
-requires-python = ">=3.7"
+requires-python = ">=3.9"
 
 [project.optional-dependencies]
 all = [
@@ -69,33 +65,33 @@ doc = [
     "Sphinx >=3",
     "myst-nb", # nb_ configuration prefixes
     "qrules[viz]",
+    "sphinx-api-relink >=0.0.4",
     "sphinx-book-theme",
     "sphinx-codeautolink[ipython]",
     "sphinx-comments",
     "sphinx-copybutton",
     "sphinx-design",
     "sphinx-hep-pdgref",
+    "sphinx-pybtex-etal-style",
     "sphinx-thebe",
     "sphinx-togglebutton",
     "sphinxcontrib-bibtex >=2",
-    'sphinx-api-relink >=0.0.4',
-    'sphinx-pybtex-etal-style',
 ]
 jupyter = [
     "ipywidgets",
     "jupyterlab",
     "jupyterlab-code-formatter >=3.0.0",
+    "jupyterlab-git",
     "jupyterlab-lsp",
+    "jupyterlab-myst",
+    "python-lsp-ruff",
     "python-lsp-server[rope]",
-    'jupyterlab-git',
-    'jupyterlab-myst',
-    'python-lsp-ruff',
 ]
 sty = [
     "mypy >=0.730", # attrs and error code support
     "pre-commit >=1.4.0",
     "qrules[types]",
-    'ruff',
+    "ruff",
 ]
 test = [
     "ipython",
@@ -105,16 +101,14 @@ test = [
     "pytest-cov",
     "pytest-profiling",
     "pytest-xdist",
-    'importlib-metadata; python_version <"3.8.0"',
-    'nbmake <1.3; python_version=="3.7.*"',
 ]
 types = [
     "ipython",
     "pydot <2", # problem with pydot.graph_from_dot_data
     "pytest",
+    "sphinx-api-relink >=0.0.4",
     "types-PyYAML",
     "types-setuptools",
-    'sphinx-api-relink >=0.0.4',
 ]
 viz = [
     "graphviz",
