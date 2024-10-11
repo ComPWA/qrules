@@ -19,25 +19,10 @@ from __future__ import annotations
 import copy
 import itertools
 import logging
-import sys
 from abc import ABC, abstractmethod
 from collections import abc
 from functools import total_ordering
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Generic,
-    ItemsView,
-    Iterable,
-    Iterator,
-    KeysView,
-    Mapping,
-    Sequence,
-    TypeVar,
-    ValuesView,
-    overload,
-)
+from typing import TYPE_CHECKING, Any, Callable, Generic, Protocol, TypeVar, overload
 
 import attrs
 from attrs import define, field, frozen
@@ -45,12 +30,17 @@ from attrs.validators import deep_iterable, deep_mapping, instance_of
 
 from qrules._implementers import implement_pretty_repr
 
-if sys.version_info >= (3, 8):
-    from typing import Protocol
-else:
-    from typing_extensions import Protocol
-
 if TYPE_CHECKING:
+    from collections.abc import (
+        ItemsView,
+        Iterable,
+        Iterator,
+        KeysView,
+        Mapping,
+        Sequence,
+        ValuesView,
+    )
+
     from IPython.lib.pretty import PrettyPrinter
 
 _LOGGER = logging.getLogger(__name__)
