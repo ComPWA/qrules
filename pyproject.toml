@@ -273,11 +273,11 @@ env = {EXECUTE_NB = "yes", FORCE_COLOR = "yes"}
 
 [tool.pixi.feature.dev.tasks.docnb-force]
 cmd = "pixi run doc"
-env = {FORCE_COLOR = "yes", FORCE_EXECUTE_NB = "yes", PYTHONHASHSEED = "0"}
+env = {FORCE_COLOR = "yes", FORCE_EXECUTE_NB = "yes"}
 
 [tool.pixi.feature.dev.tasks.docnblive]
 cmd = "pixi run doclive"
-env = {EXECUTE_NB = "yes", FORCE_COLOR = "yes", PYTHONHASHSEED = "0"}
+env = {EXECUTE_NB = "yes", FORCE_COLOR = "yes"}
 
 [tool.pixi.feature.dev.tasks.linkcheck]
 cmd = """
@@ -632,7 +632,6 @@ description = Set up a server to directly preview changes to the HTML pages
 setenv =
     EXECUTE_NB = yes
     FORCE_COLOR = yes
-    PYTHONHASHSEED = 0
 
 [testenv:docnb-force]
 allowlist_externals =
@@ -647,7 +646,6 @@ description = Execute ALL Jupyter notebooks and build documentation with Sphinx
 setenv =
     FORCE_COLOR = yes
     FORCE_EXECUTE_NB = yes
-    PYTHONHASHSEED = 0
 
 [testenv:jcache]
 allowlist_externals =
