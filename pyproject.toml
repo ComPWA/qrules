@@ -690,7 +690,7 @@ description = Visualize module dependencies
 allowlist_externals =
     pre-commit
 commands =
-    pre-commit run {posargs} -a
+    pre-commit run --all-files {posargs}
 description = Perform all linting, formatting, and spelling checks
 setenv =
     SKIP = pyright
