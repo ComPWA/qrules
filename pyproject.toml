@@ -536,6 +536,7 @@ commands =
     pytest src {posargs:tests/unit}
 description =
     Run all fast unit tests and doctests
+passenv = *
 
 [testenv:cov]
 allowlist_externals =
@@ -561,7 +562,6 @@ commands =
         docs/ docs/_build/html
 description =
     Build documentation and API through Sphinx
-passenv = *
 setenv =
     FORCE_COLOR = yes
 
@@ -591,7 +591,6 @@ commands =
         docs/ docs/_build/html
 description =
     Set up a server to directly preview changes to the HTML pages
-passenv = *
 setenv =
     FORCE_COLOR = yes
 
@@ -606,7 +605,6 @@ commands =
         docs/ docs/_build/html
 description =
     Build documentation through Sphinx WITH output of Jupyter notebooks
-passenv = *
 setenv =
     EXECUTE_NB = yes
     FORCE_COLOR = yes
@@ -637,7 +635,6 @@ commands =
         docs/ docs/_build/html
 description =
     Set up a server to directly preview changes to the HTML pages
-passenv = *
 setenv =
     EXECUTE_NB = yes
     FORCE_COLOR = yes
@@ -654,7 +651,6 @@ commands =
         docs/ docs/_build/html
 description =
     Execute ALL Jupyter notebooks and build documentation with Sphinx
-passenv = *
 setenv =
     FORCE_COLOR = yes
     FORCE_EXECUTE_NB = yes
@@ -679,7 +675,6 @@ commands =
         docs/ docs/_build/linkcheck
 description =
     Check external links in the documentation (requires internet connection)
-passenv = *
 setenv =
     FORCE_COLOR = yes
 
@@ -703,7 +698,6 @@ deps =
     pydeps
 description =
     Visualize module dependencies
-passenv = *
 
 [testenv:sty]
 allowlist_externals =
