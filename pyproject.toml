@@ -534,8 +534,7 @@ allowlist_externals =
     pytest
 commands =
     pytest src {posargs:tests/unit}
-description =
-    Run all fast unit tests and doctests
+description = Run all fast unit tests and doctests
 passenv = *
 
 [testenv:cov]
@@ -547,8 +546,7 @@ commands =
         --cov-report=html \
         --cov-report=xml \
         --cov=qrules
-description =
-    Compute the test coverage of all unit tests
+description = Compute the test coverage of all unit tests
 
 [testenv:doc]
 allowlist_externals =
@@ -560,8 +558,7 @@ commands =
         --keep-going \
         --show-traceback \
         docs/ docs/_build/html
-description =
-    Build documentation and API through Sphinx
+description = Build documentation and API through Sphinx
 setenv =
     FORCE_COLOR = yes
 
@@ -589,8 +586,7 @@ commands =
         --watch docs \
         --watch src \
         docs/ docs/_build/html
-description =
-    Set up a server to directly preview changes to the HTML pages
+description = Set up a server to directly preview changes to the HTML pages
 setenv =
     FORCE_COLOR = yes
 
@@ -603,8 +599,7 @@ commands =
         --keep-going \
         --show-traceback --fail-on-warning \
         docs/ docs/_build/html
-description =
-    Build documentation through Sphinx WITH output of Jupyter notebooks
+description = Build documentation through Sphinx WITH output of Jupyter notebooks
 setenv =
     EXECUTE_NB = yes
     FORCE_COLOR = yes
@@ -633,8 +628,7 @@ commands =
         --watch docs \
         --watch src \
         docs/ docs/_build/html
-description =
-    Set up a server to directly preview changes to the HTML pages
+description = Set up a server to directly preview changes to the HTML pages
 setenv =
     EXECUTE_NB = yes
     FORCE_COLOR = yes
@@ -649,8 +643,7 @@ commands =
         --fail-on-warning \
         --keep-going \
         docs/ docs/_build/html
-description =
-    Execute ALL Jupyter notebooks and build documentation with Sphinx
+description = Execute ALL Jupyter notebooks and build documentation with Sphinx
 setenv =
     FORCE_COLOR = yes
     FORCE_EXECUTE_NB = yes
@@ -662,8 +655,7 @@ allowlist_externals =
 changedir = docs/_build
 commands =
     jcache {posargs:notebook list}
-description =
-    Inspect Jupyter cache
+description = Inspect Jupyter cache
 
 [testenv:linkcheck]
 allowlist_externals =
@@ -673,8 +665,7 @@ commands =
         --builder linkcheck \
         --show-traceback \
         docs/ docs/_build/linkcheck
-description =
-    Check external links in the documentation (requires internet connection)
+description = Check external links in the documentation (requires internet connection)
 setenv =
     FORCE_COLOR = yes
 
@@ -683,8 +674,7 @@ allowlist_externals =
     pytest
 commands =
     pytest --nbmake {posargs:docs}
-description =
-    Run all notebooks with pytest
+description = Run all notebooks with pytest
 
 [testenv:pydeps]
 changedir = src
@@ -696,16 +686,14 @@ commands =
         --noshow
 deps =
     pydeps
-description =
-    Visualize module dependencies
+description = Visualize module dependencies
 
 [testenv:sty]
 allowlist_externals =
     pre-commit
 commands =
     pre-commit run {posargs} -a
-description =
-    Perform all linting, formatting, and spelling checks
+description = Perform all linting, formatting, and spelling checks
 setenv =
     SKIP = pyright
 
@@ -718,6 +706,5 @@ commands =
         --cov-report=html \
         --cov-report=xml \
         --cov=qrules
-description =
-    Run ALL tests, including the slow channel tests, and compute coverage
+description = Run ALL tests, including the slow channel tests, and compute coverage
 """
