@@ -288,15 +288,6 @@ sphinx-build \
 [tool.pixi.feature.dev.tasks.nb]
 cmd = "pytest --nbmake docs"
 
-[tool.pixi.feature.dev.tasks.pydeps]
-cmd = """
-pydeps qrules \
-    -o ../module_structure.svg \
-    --exclude *._* \
-    --max-bacon=1 \
-    --noshow
-"""
-
 [tool.pixi.feature.dev.tasks.sty]
 cmd = "pre-commit run  -a"
 env = {SKIP = "pyright"}
@@ -599,14 +590,6 @@ description = Execute Jupyter notebooks without cache and build documentation wi
 setenv =
     FORCE_EXECUTE_NB = yes
 
-[testenv:jcache]
-allowlist_externals =
-    jcache
-changedir = docs/_build
-commands =
-    jcache {posargs:notebook list}
-description = Inspect Jupyter cache
-
 [testenv:linkcheck]
 allowlist_externals =
     sphinx-build
@@ -623,18 +606,6 @@ allowlist_externals =
 commands =
     pytest --nbmake {posargs:docs}
 description = Run all notebooks with pytest
-
-[testenv:pydeps]
-changedir = src
-commands =
-    pydeps qrules \
-        -o ../module_structure.svg \
-        --exclude *._* \
-        --max-bacon=1 \
-        --noshow
-deps =
-    pydeps
-description = Visualize module dependencies
 
 [testenv:sty]
 allowlist_externals =
