@@ -219,7 +219,7 @@ html_theme_options = {
 }
 html_title = REPO_TITLE
 intersphinx_mapping = {
-    "ampform": ("https://ampform.readthedocs.io/en/stable", None),
+    "ampform": ("https://ampform.readthedocs.io/stable", None),
     "attrs": (f"https://www.attrs.org/en/{pin('attrs')}", None),
     "compwa": ("https://compwa.github.io", None),
     "constraint": ("https://python-constraint.github.io/python-constraint", None),
