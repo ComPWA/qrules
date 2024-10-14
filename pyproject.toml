@@ -240,7 +240,6 @@ sphinx-build \
     --show-traceback --fail-on-warning \
     docs/ docs/_build/html
 """
-env = {FORCE_COLOR = "yes"}
 
 [tool.pixi.feature.dev.tasks.doclive]
 cmd = """
@@ -265,19 +264,18 @@ sphinx-autobuild \
     --watch src \
     docs/ docs/_build/html
 """
-env = {FORCE_COLOR = "yes"}
 
 [tool.pixi.feature.dev.tasks.docnb]
 cmd = "pixi run doc"
-env = {EXECUTE_NB = "yes", FORCE_COLOR = "yes"}
+env = {EXECUTE_NB = "yes"}
 
 [tool.pixi.feature.dev.tasks.docnb-force]
 cmd = "pixi run doc"
-env = {FORCE_COLOR = "yes", FORCE_EXECUTE_NB = "yes"}
+env = {FORCE_EXECUTE_NB = "yes"}
 
 [tool.pixi.feature.dev.tasks.docnblive]
 cmd = "pixi run doclive"
-env = {EXECUTE_NB = "yes", FORCE_COLOR = "yes"}
+env = {EXECUTE_NB = "yes"}
 
 [tool.pixi.feature.dev.tasks.linkcheck]
 cmd = """
@@ -286,7 +284,6 @@ sphinx-build \
     --show-traceback \
     docs/ docs/_build/linkcheck
 """
-env = {FORCE_COLOR = "yes"}
 
 [tool.pixi.feature.dev.tasks.nb]
 cmd = "pytest --nbmake docs"
@@ -559,8 +556,6 @@ commands =
         --show-traceback \
         docs/ docs/_build/html
 description = Build documentation and API through Sphinx
-setenv =
-    FORCE_COLOR = yes
 
 [testenv:doclive]
 allowlist_externals =
@@ -587,8 +582,6 @@ commands =
         --watch src \
         docs/ docs/_build/html
 description = Set up a server to directly preview changes to the HTML pages
-setenv =
-    FORCE_COLOR = yes
 
 [testenv:docnb]
 base = doc
@@ -623,8 +616,6 @@ commands =
         --show-traceback \
         docs/ docs/_build/linkcheck
 description = Check external links in the documentation (requires internet connection)
-setenv =
-    FORCE_COLOR = yes
 
 [testenv:nb]
 allowlist_externals =
