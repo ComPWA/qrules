@@ -557,6 +557,7 @@ commands =
     sphinx-autobuild \
         --builder=html \
         --open-browser \
+        --port=0 \
         --re-ignore='.*/__pycache__/.*' \
         --re-ignore='.*/.ipynb_checkpoints/.*' \
         --re-ignore='.*\\.tmp' \
