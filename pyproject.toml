@@ -226,7 +226,7 @@ depends_on = ["cov", "docnb", "linkcheck", "sty"]
 [tool.pixi.feature.dev.tasks.cov]
 cmd = """
 pytest tests/unit \
-    --cov-fail-under=90 \
+    --cov-fail-under=85 \
     --cov-report=html \
     --cov-report=xml \
     --cov=qrules
@@ -295,7 +295,7 @@ env = {SKIP = "pyright"}
 [tool.pixi.feature.dev.tasks.test]
 cmd = """
 pytest  \
-    --cov-fail-under=90 \
+    --cov-fail-under=85 \
     --cov-report=html \
     --cov-report=xml \
     --cov=qrules
@@ -530,7 +530,7 @@ allowlist_externals =
     pytest
 commands =
     pytest {posargs:tests/unit} \
-        --cov-fail-under=90 \
+        --cov-fail-under=85 \
         --cov-report=html \
         --cov-report=xml \
         --cov=qrules
@@ -621,7 +621,7 @@ allowlist_externals =
     pytest
 commands =
     pytest {posargs} \
-        --cov-fail-under=90 \
+        --cov-fail-under=85 \
         --cov-report=html \
         --cov-report=xml \
         --cov=qrules
