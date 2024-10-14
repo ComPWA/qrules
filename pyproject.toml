@@ -521,7 +521,7 @@ skipsdist = True
 allowlist_externals =
     pytest
 commands =
-    pytest src {posargs:tests/unit}
+    pytest {posargs:src tests/unit}
 description = Run all fast unit tests and doctests
 passenv = *
 
@@ -529,7 +529,7 @@ passenv = *
 allowlist_externals =
     pytest
 commands =
-    pytest {posargs:tests/unit} \
+    pytest {posargs:src tests/unit} \
         --cov-fail-under=85 \
         --cov-report=html \
         --cov-report=xml \
