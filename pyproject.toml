@@ -510,9 +510,10 @@ trailing_comma_inline_array = true
 legacy_tox_ini = """
 [tox]
 envlist =
-    py,
-    doc,
+    docnb-force,
+    linkcheck,
     sty,
+    test,
 skip_install = True
 skip_missing_interpreters = True
 skipsdist = True
