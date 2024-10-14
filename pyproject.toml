@@ -549,6 +549,8 @@ commands =
         --show-traceback \
         docs/ docs/_build/html
 description = Build documentation and API through Sphinx
+setenv =
+    PYTHONWARNINGS =
 
 [testenv:doclive]
 allowlist_externals =
@@ -596,6 +598,7 @@ setenv =
 [testenv:linkcheck]
 allowlist_externals =
     sphinx-build
+base = doc
 commands =
     sphinx-build \
         --builder=linkcheck \
