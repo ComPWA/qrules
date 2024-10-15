@@ -14,13 +14,12 @@ repos:
       - id: check-useless-excludes
 
   - repo: https://github.com/ComPWA/policy
-    rev: 0.5.0rc0
+    rev: 0.5.0rc1
     hooks:
       - id: check-dev-files
         args:
           - --dev-python-version=3.9
           - --doc-apt-packages=graphviz
-          - --no-prettierrc
           - --pin-requirements=monthly
           - --repo-name=qrules
           - --repo-title=QRules
