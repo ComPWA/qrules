@@ -37,6 +37,7 @@ oryx-build-commands.txt
 prof/
 tags
 TAGS
+*.swp
 
 # Virtual environments
 *venv/
