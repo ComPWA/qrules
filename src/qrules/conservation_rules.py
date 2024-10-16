@@ -436,8 +436,8 @@ def identical_particle_symmetrization(
 
 @frozen
 class _Spin:
-    magnitude: float
-    projection: float
+    magnitude: Union[NodeQN.s_magnitude, NodeQN.l_magnitude]
+    projection: Union[NodeQN.s_projection, NodeQN.l_projection]
 
 
 def _is_clebsch_gordan_coefficient_zero(
