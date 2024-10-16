@@ -59,13 +59,13 @@ dev = [
     "qrules[sty]",
     "qrules[test]",
     "sphinx-autobuild",
-    "tox >=1.9", # for skip_install, use_develop
+    "tox",
 ]
 doc = [
-    "Sphinx >=3",
-    "myst-nb", # nb_ configuration prefixes
-    "qrules[viz]",
-    "sphinx-api-relink >=0.0.4",
+    "myst-nb",
+    "qrules[notebooks]",
+    "sphinx",
+    "sphinx-api-relink",
     "sphinx-book-theme",
     "sphinx-codeautolink[ipython]",
     "sphinx-comments",
@@ -87,8 +87,11 @@ jupyter = [
     "python-lsp-ruff",
     "python-lsp-server[rope]",
 ]
+notebooks = [
+    "qrules[viz]",
+]
 sty = [
-    "mypy >=0.730", # attrs and error code support
+    "mypy",
     "pre-commit-uv",
     "qrules[types]",
     "ruff",
@@ -106,7 +109,7 @@ types = [
     "ipython",
     "pydot <2", # problem with pydot.graph_from_dot_data
     "pytest",
-    "sphinx-api-relink >=0.0.4",
+    "sphinx-api-relink",
     "types-PyYAML",
     "types-setuptools",
 ]
