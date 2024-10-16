@@ -8,20 +8,17 @@ as a bridge between the :mod:`.particle` and the :mod:`.conservation_rules` modu
 
 from __future__ import annotations
 
-import sys
 from decimal import Decimal
 from fractions import Fraction
 from functools import total_ordering
-from typing import Any, Generator, NewType, Union
+from typing import TYPE_CHECKING, Any, Literal, NewType, Union
 
 from attrs import field, frozen
 
 from qrules._implementers import implement_pretty_repr
 
-if sys.version_info < (3, 8):
-    from typing_extensions import Literal
-else:
-    from typing import Literal
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 
 def _to_parity(value: int) -> Literal[-1, 1]:

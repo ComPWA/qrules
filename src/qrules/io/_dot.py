@@ -12,7 +12,7 @@ from collections import abc
 from functools import singledispatch
 from inspect import isfunction
 from numbers import Number
-from typing import TYPE_CHECKING, Any, Iterable, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import attrs
 from attrs import Attribute, define, field
@@ -25,6 +25,8 @@ from qrules.topology import FrozenTransition, MutableTransition, Topology, Trans
 from qrules.transition import ProblemSet, ReactionInfo, State
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from qrules.argument_handling import Rule
 
 _LOGGER = logging.getLogger(__name__)

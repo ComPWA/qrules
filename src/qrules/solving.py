@@ -14,7 +14,7 @@ import operator
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from copy import copy
-from typing import Any, Callable, Generic, Iterable, Tuple, Type, TypeVar
+from typing import TYPE_CHECKING, Any, Callable, Generic, TypeVar
 
 import attrs
 from attrs import define, field, frozen
@@ -38,6 +38,9 @@ from qrules.quantum_numbers import (
     NodeQuantumNumberTypes,
 )
 from qrules.topology import MutableTransition, Topology
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -385,8 +388,8 @@ def validate_full_solution(problem_set: QNProblemSet) -> QNResult:  # noqa: C901
     )
 
 
-_EdgeVariableInfo = Tuple[int, Type[EdgeQuantumNumber]]
-_NodeVariableInfo = Tuple[int, Type[NodeQuantumNumber]]
+_EdgeVariableInfo = tuple[int, type[EdgeQuantumNumber]]
+_NodeVariableInfo = tuple[int, type[NodeQuantumNumber]]
 
 
 def _create_variable_string(
@@ -442,16 +445,16 @@ class CSPSolver(Solver):
         edge_not_satisfied_rules: dict[int, set[GraphElementRule]] = defaultdict(set)
         for node_id, rules in self.__node_rules.items():
             for rule in rules:
-                if self.__scoresheet.rule_calls[(node_id, rule)] == 0:
+                if self.__scoresheet.rule_calls[node_id, rule] == 0:
                     node_not_executed_rules[node_id].add(rule)
-                elif self.__scoresheet.rule_passes[(node_id, rule)] == 0:
+                elif self.__scoresheet.rule_passes[node_id, rule] == 0:
                     node_not_satisfied_rules[node_id].add(rule)
 
         for edge_id, edge_rules in self.__edge_rules.items():
             for rule in edge_rules:
-                if self.__scoresheet.rule_calls[(edge_id, rule)] == 0:
+                if self.__scoresheet.rule_calls[edge_id, rule] == 0:
                     edge_not_executed_rules[edge_id].add(rule)
-                elif self.__scoresheet.rule_passes[(edge_id, rule)] == 0:
+                elif self.__scoresheet.rule_passes[edge_id, rule] == 0:
                     edge_not_satisfied_rules[edge_id].add(rule)
 
         solutions = self.__convert_solution_keys(problem_set.topology, solutions)
@@ -752,8 +755,8 @@ class Scoresheet:
     def register_rule(
         self, graph_element_id: int, rule: Rule
     ) -> Callable[[bool], None]:
-        self.__rule_calls[(graph_element_id, rule)] = 0
-        self.__rule_passes[(graph_element_id, rule)] = 0
+        self.__rule_calls[graph_element_id, rule] = 0
+        self.__rule_passes[graph_element_id, rule] = 0
 
         return self.__create_callback(graph_element_id, rule)
 
@@ -762,8 +765,8 @@ class Scoresheet:
     ) -> Callable[[bool], None]:
         def passed_callback(passed: bool) -> None:
             if passed:
-                self.__rule_passes[(graph_element_id, rule)] += 1
-            self.__rule_calls[(graph_element_id, rule)] += 1
+                self.__rule_passes[graph_element_id, rule] += 1
+            self.__rule_calls[graph_element_id, rule] += 1
 
         return passed_callback
 

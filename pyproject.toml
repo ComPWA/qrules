@@ -18,8 +18,6 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python",
     "Topic :: Scientific/Engineering :: Physics",
@@ -31,10 +29,8 @@ dependencies = [
     "attrs >=20.1.0", # on_setattr and https://www.attrs.org/en/stable/api.html#next-gen
     "jsonschema",
     "particle",
+    "python-constraint2",
     "tqdm >=4.24.0", # autonotebook
-    'python-constraint2; python_version >="3.8.0"',
-    'python-constraint; python_version <"3.8.0"',
-    'typing-extensions; python_version <"3.8.0"', # Literal, Protocol
 ]
 description = "Rule-based particle reaction problem solver on a quantum number level"
 dynamic = ["version"]
@@ -50,7 +46,7 @@ keywords = [
 license = {file = "LICENSE"}
 maintainers = [{email = "compwa-admin@ep1.rub.de"}]
 name = "qrules"
-requires-python = ">=3.7"
+requires-python = ">=3.9"
 
 [project.optional-dependencies]
 all = [
@@ -69,33 +65,33 @@ doc = [
     "Sphinx >=3",
     "myst-nb", # nb_ configuration prefixes
     "qrules[viz]",
+    "sphinx-api-relink >=0.0.4",
     "sphinx-book-theme",
     "sphinx-codeautolink[ipython]",
     "sphinx-comments",
     "sphinx-copybutton",
     "sphinx-design",
     "sphinx-hep-pdgref",
+    "sphinx-pybtex-etal-style",
     "sphinx-thebe",
     "sphinx-togglebutton",
     "sphinxcontrib-bibtex >=2",
-    'sphinx-api-relink >=0.0.4',
-    'sphinx-pybtex-etal-style',
 ]
 jupyter = [
     "ipywidgets",
     "jupyterlab",
     "jupyterlab-code-formatter >=3.0.0",
+    "jupyterlab-git",
     "jupyterlab-lsp",
+    "jupyterlab-myst",
+    "python-lsp-ruff",
     "python-lsp-server[rope]",
-    'jupyterlab-git',
-    'jupyterlab-myst',
-    'python-lsp-ruff',
 ]
 sty = [
     "mypy >=0.730", # attrs and error code support
     "pre-commit >=1.4.0",
     "qrules[types]",
-    'ruff',
+    "ruff",
 ]
 test = [
     "ipython",
@@ -105,16 +101,14 @@ test = [
     "pytest-cov",
     "pytest-profiling",
     "pytest-xdist",
-    'importlib-metadata; python_version <"3.8.0"',
-    'nbmake <1.3; python_version=="3.7.*"',
 ]
 types = [
     "ipython",
     "pydot <2", # problem with pydot.graph_from_dot_data
     "pytest",
+    "sphinx-api-relink >=0.0.4",
     "types-PyYAML",
     "types-setuptools",
-    'sphinx-api-relink >=0.0.4',
 ]
 viz = [
     "graphviz",
@@ -146,6 +140,8 @@ namespaces = false
 where = ["src"]
 
 [tool.setuptools_scm]
+local_scheme = "no-local-version"
+version_scheme = "post-release"
 write_to = "src/qrules/version.py"
 
 [tool.coverage.run]
@@ -200,6 +196,128 @@ module = ["sphinx.*"]
 [[tool.mypy.overrides]]
 ignore_missing_imports = true
 module = ["tqdm.*"]
+
+[tool.pixi.project]
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[tool.pixi.activation.env]
+PRETTIER_LEGACY_CLI = "1"
+
+[tool.pixi.dependencies]
+graphviz = "*"
+python = "3.9.*"
+
+[tool.pixi.environments]
+default = {features = [
+    "all",
+    "dev",
+    "doc",
+    "jupyter",
+    "sty",
+    "test",
+    "types",
+    "viz",
+]}
+
+[tool.pixi.feature.dev.tasks.ci]
+depends_on = ["cov", "docnb", "linkcheck", "sty"]
+
+[tool.pixi.feature.dev.tasks.cov]
+cmd = """
+pytest tests/unit \
+    --cov-fail-under=90 \
+    --cov-report=html \
+    --cov-report=xml \
+    --cov=qrules
+"""
+
+[tool.pixi.feature.dev.tasks.doc]
+cmd = """
+sphinx-build \
+    --builder html \
+    --keep-going \
+    --show-traceback --fail-on-warning \
+    docs/ docs/_build/html
+"""
+env = {FORCE_COLOR = "yes"}
+
+[tool.pixi.feature.dev.tasks.doclive]
+cmd = """
+sphinx-autobuild \
+    --builder html \
+    --open-browser \
+    --re-ignore '.*/__pycache__/.*' \
+    --re-ignore '.*/.ipynb_checkpoints/.*' \
+    --re-ignore '.*\\.tmp' \
+    --re-ignore 'docs/_build/.*' \
+    --re-ignore 'docs/_images/.*' \
+    --re-ignore 'docs/_static/logo\\..*' \
+    --re-ignore 'docs/.*\\.csv' \
+    --re-ignore 'docs/.*\\.gv' \
+    --re-ignore 'docs/.*\\.inv' \
+    --re-ignore 'docs/.*\\.json' \
+    --re-ignore 'docs/.*\\.pickle' \
+    --re-ignore 'docs/.*\\.yaml' \
+    --re-ignore 'docs/.*\\.yml' \
+    --re-ignore 'docs/api/.*' \
+    --watch docs \
+    --watch src \
+    docs/ docs/_build/html
+"""
+env = {FORCE_COLOR = "yes"}
+
+[tool.pixi.feature.dev.tasks.docnb]
+cmd = "pixi run doc"
+env = {EXECUTE_NB = "yes", FORCE_COLOR = "yes"}
+
+[tool.pixi.feature.dev.tasks.docnb-force]
+cmd = "pixi run doc"
+env = {FORCE_COLOR = "yes", FORCE_EXECUTE_NB = "yes", PYTHONHASHSEED = "0"}
+
+[tool.pixi.feature.dev.tasks.docnblive]
+cmd = "pixi run doclive"
+env = {EXECUTE_NB = "yes", FORCE_COLOR = "yes", PYTHONHASHSEED = "0"}
+
+[tool.pixi.feature.dev.tasks.linkcheck]
+cmd = """
+sphinx-build \
+    --builder linkcheck \
+    --show-traceback \
+    docs/ docs/_build/linkcheck
+"""
+env = {FORCE_COLOR = "yes"}
+
+[tool.pixi.feature.dev.tasks.nb]
+cmd = "pytest --nbmake docs"
+
+[tool.pixi.feature.dev.tasks.pydeps]
+cmd = """
+pydeps qrules \
+    -o ../module_structure.svg \
+    --exclude *._* \
+    --max-bacon=1 \
+    --noshow
+"""
+
+[tool.pixi.feature.dev.tasks.sty]
+cmd = "pre-commit run  -a"
+env = {SKIP = "pyright"}
+
+[tool.pixi.feature.dev.tasks.test]
+cmd = """
+pytest  \
+    --cov-fail-under=90 \
+    --cov-report=html \
+    --cov-report=xml \
+    --cov=qrules
+"""
+
+[tool.pixi.feature.dev.tasks.tests]
+cmd = "pytest src tests/unit"
+
+[tool.pixi.pypi-dependencies]
+qrules = {path = ".", editable = true}
 
 [tool.pyright]
 exclude = [
@@ -281,7 +399,6 @@ src = [
     "src",
     "tests",
 ]
-target-version = "py37"
 
 [tool.ruff.format]
 docstring-code-format = true
@@ -398,6 +515,5 @@ sort_first = [
     "tool.setuptools",
     "tool.setuptools_scm",
 ]
-sort_table_keys = true
 spaces_indent_inline_array = 4
 trailing_comma_inline_array = true

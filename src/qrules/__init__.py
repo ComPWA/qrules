@@ -18,7 +18,7 @@ framework.
 from __future__ import annotations
 
 from itertools import product
-from typing import Iterable, Sequence
+from typing import TYPE_CHECKING
 
 import attrs
 
@@ -62,6 +62,9 @@ from qrules.transition import (
     SpinFormalism,
     StateTransitionManager,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Sequence
 
 
 def check_reaction_violations(  # noqa: C901, PLR0917
