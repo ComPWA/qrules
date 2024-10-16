@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
 from typing import TYPE_CHECKING
 
 import attrs
@@ -27,6 +26,8 @@ from qrules.solving import CSPSolver, EdgeSettings, NodeSettings, QNProblemSet
 from qrules.topology import MutableTransition
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from qrules.argument_handling import Rule
 
 
