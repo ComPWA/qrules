@@ -28,7 +28,9 @@ PACKAGE = "qrules"
 REPO_NAME = "qrules"
 REPO_TITLE = "Quantum number conservation rules"
 
-BINDER_LINK = f"https://mybinder.org/v2/gh/{ORGANIZATION}/{REPO_NAME}/{BRANCH}?filepath=docs/usage"
+BINDER_LINK = (
+    f"https://mybinder.org/v2/gh/{ORGANIZATION}/{REPO_NAME}/{BRANCH}?urlpath=lab"
+)
 
 add_module_names = False
 api_github_repo = f"{ORGANIZATION}/{REPO_NAME}"
@@ -186,7 +188,7 @@ html_theme_options = {
         },
         {
             "name": "Launch on Binder",
-            "url": f"https://mybinder.org/v2/gh/{ORGANIZATION}/{REPO_NAME}/{BRANCH}?filepath=docs",
+            "url": f"https://mybinder.org/v2/gh/{ORGANIZATION}/{REPO_NAME}/{BRANCH}?urlpath=lab/docs",
             "icon": "https://mybinder.readthedocs.io/en/latest/_static/favicon.png",
             "type": "url",
         },
