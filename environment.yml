@@ -1,9 +1,0 @@
-name: qrules
-channels:
-  - defaults
-dependencies:
-  - python==3.9.*
-  - pip
-  - graphviz
-  - pip:
-      - -c .constraints/py3.9.txt -e .[dev]
