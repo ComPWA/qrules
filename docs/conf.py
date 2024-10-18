@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import os
 import sys
+import typing
 
-import attrs
 from sphinx_api_relink.helpers import (
     get_branch_name,
     get_execution_mode,
@@ -262,9 +262,15 @@ nb_execution_mode = get_execution_mode()
 nb_execution_show_tb = True
 nb_execution_timeout = -1
 nb_output_stderr = "remove"
-nitpick_temp_eqdge_names = list(attrs.fields_dict(EdgeQuantumNumbers))
-nitpick_temp_node_names = list(attrs.fields_dict(NodeQuantumNumbers))
-nitpick_temp_names = [*nitpick_temp_eqdge_names, *nitpick_temp_node_names]
+
+
+def pick_newtype_attrs(some_type: type) -> list:
+    return [attr for attr in dir(some_type) if type(attr) is typing.NewType]
+
+
+nitpick_temp_edge_names = pick_newtype_attrs(EdgeQuantumNumbers)
+nitpick_temp_node_names = pick_newtype_attrs(NodeQuantumNumbers)
+nitpick_temp_names = [*nitpick_temp_edge_names, *nitpick_temp_node_names]
 raise ValueError(nitpick_temp_names)
 nitpick_temp_patterns = [
     (r"py:(class|obj)", r"qrules\.quantum_numbers\." + name)
