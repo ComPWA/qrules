@@ -265,6 +265,7 @@ nb_output_stderr = "remove"
 nitpick_temp_eqdge_names = list(attrs.fields_dict(EdgeQuantumNumbers))
 nitpick_temp_node_names = list(attrs.fields_dict(NodeQuantumNumbers))
 nitpick_temp_names = [*nitpick_temp_eqdge_names, *nitpick_temp_node_names]
+raise ValueError(nitpick_temp_names)
 nitpick_temp_patterns = [
     (r"py:(class|obj)", r"qrules\.quantum_numbers\." + name)
     for name in nitpick_temp_names
@@ -279,7 +280,7 @@ nitpick_ignore_regex = [
     (r"py:(class|obj)", r"qrules\.topology\.VT"),
     *nitpick_temp_patterns,
 ]
-nitpicky = True
+nitpicky = True()
 primary_domain = "py"
 project = "QRules"
 pygments_style = "sphinx"
