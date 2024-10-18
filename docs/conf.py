@@ -265,7 +265,11 @@ nb_output_stderr = "remove"
 
 
 def pick_newtype_attrs(some_type: type) -> list:
-    return [attr for attr in dir(some_type) if type(attr) is typing.NewType]
+    return [
+        attr
+        for attr in dir(some_type)
+        if type(getattr(some_type, attr)) is typing.NewType
+    ]
 
 
 nitpick_temp_edge_names = pick_newtype_attrs(EdgeQuantumNumbers)
