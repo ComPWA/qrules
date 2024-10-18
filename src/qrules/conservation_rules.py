@@ -55,12 +55,8 @@ from attrs import define, field, frozen
 from attrs.converters import optional
 
 from qrules.quantum_numbers import EdgeQuantumNumbers as EdgeQN
-from qrules.quantum_numbers import (
-    EdgeQuantumNumberTypes,
-    NodeQuantumNumberTypes,
-    arange,
-)
 from qrules.quantum_numbers import NodeQuantumNumbers as NodeQN
+from qrules.quantum_numbers import arange
 
 
 def _is_boson(spin_magnitude: float) -> bool:
@@ -79,18 +75,15 @@ class GraphElementRule(Protocol):
 
 class EdgeQNConservationRule(Protocol):
     def __call__(
-        self,
-        ingoing_edge_qns: list[EdgeQuantumNumberTypes],
-        outgoing_edge_qns: list[EdgeQuantumNumberTypes],
-        /,
+        self, ingoing_edge_qns: list[Any], outgoing_edge_qns: list[Any], /
     ) -> bool: ...
 
 
 class ConservationRule(Protocol):
     def __call__(
         self,
-        ingoing_edge_qns: list[EdgeQuantumNumberTypes],
-        outgoing_edge_qns: list[EdgeQuantumNumberTypes],
+        ingoing_edge_qns: list[Any],
+        outgoing_edge_qns: list[Any],
         node_qns: Any,
         /,
     ) -> bool: ...
@@ -100,7 +93,7 @@ class ConservationRule(Protocol):
 # __call__ method in a concrete version of the generic are still containing the
 # TypeVar types. See https://github.com/python/typing/issues/762
 def additive_quantum_number_rule(
-    quantum_number: Union[EdgeQuantumNumberTypes, NodeQuantumNumberTypes],
+    quantum_number: type,
 ) -> Callable[[Any], EdgeQNConservationRule]:
     r"""Class decorator for creating an additive conservation rule.
 
