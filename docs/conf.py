@@ -259,6 +259,36 @@ nb_execution_mode = get_execution_mode()
 nb_execution_show_tb = True
 nb_execution_timeout = -1
 nb_output_stderr = "remove"
+nitpik_temp_names = [
+    "pid",
+    "mass",
+    "width",
+    "spin_magnitude",
+    "spin_projection",
+    "charge",
+    "isospin_magnutude",
+    "isospin_projection",
+    "strangeness",
+    "charmness",
+    "bottomness",
+    "topness",
+    "baryon_number",
+    "electron_lepton_number",
+    "muon_lepton_number",
+    "tau_lepton_number",
+    "parity",
+    "c_parity",
+    "g_parity",
+    "l_magnitude",
+    "l_projection",
+    "s_magnitude",
+    "s_projection",
+    "parity_prefactor",
+]
+nitpick_temp_patterns = [
+    (r"py:(class|obj)", r"qrules\.quantum_numbers\." + name)
+    for name in nitpik_temp_names
+]
 nitpick_ignore_regex = [
     (r"py:(class|obj)", "json.encoder.JSONEncoder"),
     (r"py:(class|obj)", r"qrules\.topology\.EdgeType"),
@@ -267,6 +297,7 @@ nitpick_ignore_regex = [
     (r"py:(class|obj)", r"qrules\.topology\.NewNodeType"),
     (r"py:(class|obj)", r"qrules\.topology\.NodeType"),
     (r"py:(class|obj)", r"qrules\.topology\.VT"),
+    *nitpick_temp_patterns,
 ]
 nitpicky = True
 primary_domain = "py"
