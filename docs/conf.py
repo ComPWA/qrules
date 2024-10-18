@@ -273,8 +273,6 @@ nb_execution_timeout = -1
 nb_output_stderr = "remove"
 
 
-nitpick_temp_edge_names = pick_newtype_attrs(EdgeQuantumNumbers)
-nitpick_temp_node_names = pick_newtype_attrs(NodeQuantumNumbers)
 nitpick_temp_names = [
     *pick_newtype_attrs(EdgeQuantumNumbers),
     *pick_newtype_attrs(NodeQuantumNumbers),
