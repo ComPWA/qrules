@@ -17,6 +17,15 @@ from qrules.quantum_numbers import EdgeQuantumNumbers, NodeQuantumNumbers
 sys.path.insert(0, os.path.abspath("."))
 from _extend_docstrings import extend_docstrings  # noqa: PLC2701
 
+
+def pick_newtype_attrs(some_type: type) -> list:
+    return [
+        attr
+        for attr in dir(some_type)
+        if type(getattr(some_type, attr)) is typing.NewType
+    ]
+
+
 extend_docstrings()
 set_intersphinx_version_remapping({
     "ipython": {
@@ -264,17 +273,12 @@ nb_execution_timeout = -1
 nb_output_stderr = "remove"
 
 
-def pick_newtype_attrs(some_type: type) -> list:
-    return [
-        attr
-        for attr in dir(some_type)
-        if type(getattr(some_type, attr)) is typing.NewType
-    ]
-
-
 nitpick_temp_edge_names = pick_newtype_attrs(EdgeQuantumNumbers)
 nitpick_temp_node_names = pick_newtype_attrs(NodeQuantumNumbers)
-nitpick_temp_names = [*nitpick_temp_edge_names, *nitpick_temp_node_names]
+nitpick_temp_names = [
+    *pick_newtype_attrs(EdgeQuantumNumbers),
+    *pick_newtype_attrs(NodeQuantumNumbers),
+]
 nitpick_temp_patterns = [
     (r"py:(class|obj)", r"qrules\.quantum_numbers\." + name)
     for name in nitpick_temp_names
