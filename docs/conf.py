@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import sys
+import typing
 
 from sphinx_api_relink.helpers import (
     get_branch_name,
@@ -11,8 +12,19 @@ from sphinx_api_relink.helpers import (
     set_intersphinx_version_remapping,
 )
 
+from qrules.quantum_numbers import EdgeQuantumNumbers, NodeQuantumNumbers
+
 sys.path.insert(0, os.path.abspath("."))
 from _extend_docstrings import extend_docstrings  # noqa: PLC2701
+
+
+def pick_newtype_attrs(some_type: type) -> list:
+    return [
+        attr
+        for attr in dir(some_type)
+        if type(getattr(some_type, attr)) is typing.NewType
+    ]
+
 
 extend_docstrings()
 set_intersphinx_version_remapping({
@@ -28,7 +40,9 @@ PACKAGE = "qrules"
 REPO_NAME = "qrules"
 REPO_TITLE = "Quantum number conservation rules"
 
-BINDER_LINK = f"https://mybinder.org/v2/gh/{ORGANIZATION}/{REPO_NAME}/{BRANCH}?filepath=docs/usage"
+BINDER_LINK = (
+    f"https://mybinder.org/v2/gh/{ORGANIZATION}/{REPO_NAME}/{BRANCH}?urlpath=lab"
+)
 
 add_module_names = False
 api_github_repo = f"{ORGANIZATION}/{REPO_NAME}"
@@ -186,7 +200,7 @@ html_theme_options = {
         },
         {
             "name": "Launch on Binder",
-            "url": f"https://mybinder.org/v2/gh/{ORGANIZATION}/{REPO_NAME}/{BRANCH}?filepath=docs",
+            "url": f"https://mybinder.org/v2/gh/{ORGANIZATION}/{REPO_NAME}/{BRANCH}?urlpath=lab/docs",
             "icon": "https://mybinder.readthedocs.io/en/latest/_static/favicon.png",
             "type": "url",
         },
@@ -219,7 +233,7 @@ html_theme_options = {
 }
 html_title = REPO_TITLE
 intersphinx_mapping = {
-    "ampform": ("https://ampform.readthedocs.io/en/stable", None),
+    "ampform": ("https://ampform.readthedocs.io/stable", None),
     "attrs": (f"https://www.attrs.org/en/{pin('attrs')}", None),
     "compwa": ("https://compwa.github.io", None),
     "constraint": ("https://python-constraint.github.io/python-constraint", None),
@@ -259,6 +273,16 @@ nb_execution_mode = get_execution_mode()
 nb_execution_show_tb = True
 nb_execution_timeout = -1
 nb_output_stderr = "remove"
+
+
+nitpick_temp_names = [
+    *pick_newtype_attrs(EdgeQuantumNumbers),
+    *pick_newtype_attrs(NodeQuantumNumbers),
+]
+nitpick_temp_patterns = [
+    (r"py:(class|obj)", r"qrules\.quantum_numbers\." + name)
+    for name in nitpick_temp_names
+]
 nitpick_ignore_regex = [
     (r"py:(class|obj)", "json.encoder.JSONEncoder"),
     (r"py:(class|obj)", r"qrules\.topology\.EdgeType"),
@@ -267,6 +291,7 @@ nitpick_ignore_regex = [
     (r"py:(class|obj)", r"qrules\.topology\.NewNodeType"),
     (r"py:(class|obj)", r"qrules\.topology\.NodeType"),
     (r"py:(class|obj)", r"qrules\.topology\.VT"),
+    *nitpick_temp_patterns,
 ]
 nitpicky = True
 primary_domain = "py"
