@@ -23,7 +23,6 @@ version.py
 *.pyc
 *.swp
 *.tmp
-*condaenv.*
 .coverage
 .coverage.*
 .ipynb_checkpoints/
@@ -41,7 +40,6 @@ TAGS
 
 # Virtual environments
 *venv/
-.pixi/
 .tox/
 pyvenv*/
 
@@ -58,5 +56,4 @@ pyvenv*/
 !.vscode/*.json
 !.zenodo.json
 !codecov.yml
-!environment.yml
 !pyrightconfig.json
