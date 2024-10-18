@@ -275,7 +275,6 @@ def pick_newtype_attrs(some_type: type) -> list:
 nitpick_temp_edge_names = pick_newtype_attrs(EdgeQuantumNumbers)
 nitpick_temp_node_names = pick_newtype_attrs(NodeQuantumNumbers)
 nitpick_temp_names = [*nitpick_temp_edge_names, *nitpick_temp_node_names]
-raise ValueError(nitpick_temp_names)
 nitpick_temp_patterns = [
     (r"py:(class|obj)", r"qrules\.quantum_numbers\." + name)
     for name in nitpick_temp_names
@@ -290,7 +289,7 @@ nitpick_ignore_regex = [
     (r"py:(class|obj)", r"qrules\.topology\.VT"),
     *nitpick_temp_patterns,
 ]
-nitpicky = True()
+nitpicky = True
 primary_domain = "py"
 project = "QRules"
 pygments_style = "sphinx"
