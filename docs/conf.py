@@ -266,7 +266,7 @@ nitpik_temp_names = [
     "spin_magnitude",
     "spin_projection",
     "charge",
-    "isospin_magnutude",
+    "isospin_magnitude",
     "isospin_projection",
     "strangeness",
     "charmness",
