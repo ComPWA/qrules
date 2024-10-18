@@ -526,3 +526,8 @@ commands =
         --cov=qrules
 description = Run ALL tests, including the slow channel tests, and compute coverage
 """
+
+[tool.uv]
+constraint-dependencies = [
+    "pytest-profiling!=1.8.0",
+]
