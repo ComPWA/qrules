@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-import attrs
 import pytest
 
 import qrules.particle
@@ -10,25 +7,13 @@ import qrules.quantum_numbers
 import qrules.system_control
 import qrules.transition
 from qrules.conservation_rules import (
-    GraphElementRule,
     c_parity_conservation,
     parity_conservation,
     spin_magnitude_conservation,
     spin_validity,
 )
-from qrules.quantum_numbers import (
-    EdgeQuantumNumbers,
-    EdgeQuantumNumberTypes,
-    NodeQuantumNumbers,
-    NodeQuantumNumberTypes,
-)
-from qrules.solving import CSPSolver, EdgeSettings, NodeSettings, QNProblemSet
-from qrules.topology import MutableTransition
-
-if TYPE_CHECKING:
-    from collections.abc import Iterable
-
-    from qrules.argument_handling import Rule
+from qrules.quantum_numbers import EdgeQuantumNumbers, NodeQuantumNumbers
+from qrules.solving import CSPSolver, QNProblemSet, filter_quantum_number_problem_set
 
 
 def test_solve(
@@ -68,74 +53,6 @@ def test_solve_with_filtered_quantum_number_problem_set(
     result = solver.find_solutions(new_quantum_number_problem_set)
 
     assert len(result.solutions) == 127
-
-
-def filter_quantum_number_problem_set(
-    quantum_number_problem_set: QNProblemSet,
-    edge_rules: set[GraphElementRule],
-    node_rules: set[Rule],
-    edge_properties_and_domains: Iterable[EdgeQuantumNumberTypes],
-    node_properties_and_domains: Iterable[NodeQuantumNumberTypes],
-) -> QNProblemSet:
-    old_edge_settings = quantum_number_problem_set.solving_settings.states
-    old_node_settings = quantum_number_problem_set.solving_settings.interactions
-    old_edge_properties = quantum_number_problem_set.initial_facts.states
-    old_node_properties = quantum_number_problem_set.initial_facts.interactions
-    new_edge_settings = {
-        edge_id: EdgeSettings(
-            conservation_rules=edge_rules,
-            rule_priorities=edge_setting.rule_priorities,
-            qn_domains=({
-                key: val
-                for key, val in edge_setting.qn_domains.items()
-                if key in set(edge_properties_and_domains)
-            }),
-        )
-        for edge_id, edge_setting in old_edge_settings.items()
-    }
-    new_node_settings = {
-        node_id: NodeSettings(
-            conservation_rules=node_rules,
-            rule_priorities=node_setting.rule_priorities,
-            qn_domains=({
-                key: val
-                for key, val in node_setting.qn_domains.items()
-                if key in set(node_properties_and_domains)
-            }),
-        )
-        for node_id, node_setting in old_node_settings.items()
-    }
-    new_combined_settings = MutableTransition(
-        topology=quantum_number_problem_set.solving_settings.topology,
-        states=new_edge_settings,
-        interactions=new_node_settings,
-    )
-    new_edge_properties = {
-        edge_id: {
-            edge_quantum_number: scalar
-            for edge_quantum_number, scalar in graph_edge_property_map.items()
-            if edge_quantum_number in edge_properties_and_domains
-        }
-        for edge_id, graph_edge_property_map in old_edge_properties.items()
-    }
-    new_node_properties = {
-        node_id: {
-            node_quantum_number: scalar
-            for node_quantum_number, scalar in graph_node_property_map.items()
-            if node_quantum_number in node_properties_and_domains
-        }
-        for node_id, graph_node_property_map in old_node_properties.items()
-    }
-    new_combined_properties = MutableTransition(
-        topology=quantum_number_problem_set.initial_facts.topology,
-        states=new_edge_properties,
-        interactions=new_node_properties,
-    )
-    return attrs.evolve(
-        quantum_number_problem_set,
-        solving_settings=new_combined_settings,
-        initial_facts=new_combined_properties,
-    )
 
 
 @pytest.fixture(scope="session")
