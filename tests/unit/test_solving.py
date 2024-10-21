@@ -67,7 +67,7 @@ def test_solve_with_filtered_quantum_number_problem_set(
     )
     result = solver.find_solutions(new_quantum_number_problem_set)
 
-    assert len(result.solutions) != 0
+    assert len(result.solutions) == 127
 
 
 def filter_quantum_number_problem_set(
