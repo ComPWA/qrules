@@ -1,5 +1,9 @@
 version = 1
 requires-python = ">=3.9"
+resolution-markers = [
+    "python_full_version < '3.12'",
+    "python_full_version >= '3.12'",
+]
 
 [manifest]
 constraints = [{ name = "pytest-profiling", specifier = "!=1.8.0" }]
@@ -2065,7 +2069,7 @@ viz = [
     { name = "graphviz" },
 ]
 
-[package.dependency-groups]
+[package.dev-dependencies]
 dev = [
     { name = "ipython" },
     { name = "ipywidgets" },
@@ -2165,7 +2169,7 @@ requires-dist = [
     { name = "tqdm", specifier = ">=4.24.0" },
 ]
 
-[package.metadata.dependency-groups]
+[package.metadata.requires-dev]
 dev = [
     { name = "ipython" },
     { name = "ipywidgets" },
