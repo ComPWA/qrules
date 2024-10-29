@@ -67,7 +67,9 @@ api_target_substitutions: dict[str, str | tuple[str, str]] = {
     "typing.Literal[-1, 1]": "typing.Literal",
 }
 api_target_types: dict[str, str | tuple[str, str]] = {
+    "qrules.argument_handling.Rules": "class",
     "qrules.combinatorics.InitialFacts": "obj",
+    "qrules.quantum_nubmers.EdgequantumNumberTypes": "class",
     "qrules.quantum_numbers.EdgeQuantumNumbers.baryon_number": "obj",
     "qrules.quantum_numbers.EdgeQuantumNumbers.bottomness": "obj",
     "qrules.quantum_numbers.EdgeQuantumNumbers.c_parity": "obj",
@@ -87,6 +89,7 @@ api_target_types: dict[str, str | tuple[str, str]] = {
     "qrules.quantum_numbers.EdgeQuantumNumbers.tau_lepton_number": "obj",
     "qrules.quantum_numbers.EdgeQuantumNumbers.topness": "obj",
     "qrules.quantum_numbers.EdgeQuantumNumbers.width": "obj",
+    "qrules.quantum_numbers.EdgeQuantumNumberTypes": "class",
     "qrules.quantum_numbers.NodeQuantumNumbers.l_magnitude": "obj",
     "qrules.quantum_numbers.NodeQuantumNumbers.l_projection": "obj",
     "qrules.quantum_numbers.NodeQuantumNumbers.parity_prefactor": "obj",

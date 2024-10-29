@@ -25,11 +25,22 @@ def test_solve(
     assert len(result.solutions) == 19
 
 
+@pytest.mark.parametrize("with_spin_projection", [True, False])
 def test_solve_with_filtered_quantum_number_problem_set(
     all_particles: qrules.particle.ParticleCollection,
     quantum_number_problem_set: QNProblemSet,
+    with_spin_projection: bool,
 ) -> None:
     solver = CSPSolver(all_particles)
+    parametrized_edge_properties_and_domains = {
+        EdgeQuantumNumbers.pid,  # had to be added for c_parity_conservation to work
+        EdgeQuantumNumbers.spin_magnitude,
+        EdgeQuantumNumbers.parity,
+        EdgeQuantumNumbers.c_parity,
+    }
+    if with_spin_projection:
+        parametrized_edge_properties_and_domains.add(EdgeQuantumNumbers.spin_projection)
+
     new_quantum_number_problem_set = filter_quantum_number_problem_set(
         quantum_number_problem_set,
         edge_rules={spin_validity},
