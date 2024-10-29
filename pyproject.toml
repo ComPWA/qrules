@@ -49,12 +49,7 @@ name = "qrules"
 requires-python = ">=3.9"
 
 [project.optional-dependencies]
-all = [
-    "qrules[viz]",
-]
-viz = [
-    "graphviz",
-]
+viz = ["graphviz"]
 
 [project.readme]
 content-type = "text/markdown"
