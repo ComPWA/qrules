@@ -2071,6 +2071,7 @@ viz = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "graphviz" },
     { name = "ipython" },
     { name = "ipywidgets" },
     { name = "jupyterlab" },
@@ -2106,6 +2107,7 @@ dev = [
     { name = "types-setuptools" },
 ]
 doc = [
+    { name = "graphviz" },
     { name = "myst-nb" },
     { name = "sphinx" },
     { name = "sphinx-api-relink" },
@@ -2121,6 +2123,7 @@ doc = [
     { name = "sphinxcontrib-bibtex" },
 ]
 jupyter = [
+    { name = "graphviz" },
     { name = "ipywidgets" },
     { name = "jupyterlab" },
     { name = "jupyterlab-code-formatter" },
@@ -2129,6 +2132,9 @@ jupyter = [
     { name = "jupyterlab-myst" },
     { name = "python-lsp-ruff" },
     { name = "python-lsp-server", extra = ["rope"] },
+]
+notebooks = [
+    { name = "graphviz" },
 ]
 style = [
     { name = "ipython" },
@@ -2188,6 +2194,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-lsp-ruff" },
     { name = "python-lsp-server", extras = ["rope"] },
+    { name = "qrules", extras = ["viz"] },
     { name = "ruff" },
     { name = "sphinx" },
     { name = "sphinx-api-relink" },
@@ -2207,6 +2214,7 @@ dev = [
 ]
 doc = [
     { name = "myst-nb" },
+    { name = "qrules", extras = ["viz"] },
     { name = "sphinx" },
     { name = "sphinx-api-relink" },
     { name = "sphinx-book-theme" },
@@ -2229,7 +2237,9 @@ jupyter = [
     { name = "jupyterlab-myst" },
     { name = "python-lsp-ruff" },
     { name = "python-lsp-server", extras = ["rope"] },
+    { name = "qrules", extras = ["viz"] },
 ]
+notebooks = [{ name = "qrules", extras = ["viz"] }]
 style = [
     { name = "ipython" },
     { name = "mypy" },

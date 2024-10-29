@@ -89,6 +89,7 @@ doc = [
     "sphinx-thebe",
     "sphinx-togglebutton",
     "sphinxcontrib-bibtex >=2",
+    {include-group = "notebooks"},
 ]
 jupyter = [
     "ipywidgets",
@@ -99,7 +100,9 @@ jupyter = [
     "jupyterlab-myst",
     "python-lsp-ruff",
     "python-lsp-server[rope]",
+    {include-group = "notebooks"},
 ]
+notebooks = ["qrules[viz]"]
 style = [
     "mypy",
     {include-group = "types"},
