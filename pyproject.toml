@@ -59,7 +59,6 @@ dev = [
     "qrules[sty]",
     "qrules[test]",
     "sphinx-autobuild",
-    "tox",
 ]
 doc = [
     "myst-nb",
@@ -92,7 +91,6 @@ notebooks = [
 ]
 sty = [
     "mypy",
-    "pre-commit-uv",
     "qrules[types]",
     "ruff",
 ]
