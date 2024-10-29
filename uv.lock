@@ -2066,7 +2066,7 @@ viz = [
     { name = "graphviz" },
 ]
 
-[package.dependency-groups]
+[package.dev-dependencies]
 dev = [
     { name = "graphviz" },
     { name = "ipython" },
@@ -2171,7 +2171,7 @@ requires-dist = [
     { name = "tqdm", specifier = ">=4.24.0" },
 ]
 
-[package.metadata.dependency-groups]
+[package.metadata.requires-dev]
 dev = [
     { name = "ipython" },
     { name = "ipywidgets" },
