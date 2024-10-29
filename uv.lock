@@ -2061,8 +2061,12 @@ dependencies = [
 all = [
     { name = "graphviz" },
 ]
-dev = [
+viz = [
     { name = "graphviz" },
+]
+
+[package.dependency-groups]
+dev = [
     { name = "ipython" },
     { name = "ipywidgets" },
     { name = "jupyterlab" },
@@ -2098,7 +2102,6 @@ dev = [
     { name = "types-setuptools" },
 ]
 doc = [
-    { name = "graphviz" },
     { name = "myst-nb" },
     { name = "sphinx" },
     { name = "sphinx-api-relink" },
@@ -2123,15 +2126,11 @@ jupyter = [
     { name = "python-lsp-ruff" },
     { name = "python-lsp-server", extra = ["rope"] },
 ]
-notebooks = [
-    { name = "graphviz" },
-]
-sty = [
+style = [
     { name = "ipython" },
     { name = "mypy" },
     { name = "pydot" },
     { name = "pytest" },
-    { name = "ruff" },
     { name = "sphinx-api-relink" },
     { name = "types-pyyaml" },
     { name = "types-setuptools" },
@@ -2153,65 +2152,105 @@ types = [
     { name = "types-pyyaml" },
     { name = "types-setuptools" },
 ]
-viz = [
-    { name = "graphviz" },
-]
 
 [package.metadata]
 requires-dist = [
     { name = "attrs", specifier = ">=20.1.0" },
     { name = "graphviz", marker = "extra == 'viz'" },
-    { name = "ipython", marker = "extra == 'test'" },
-    { name = "ipython", marker = "extra == 'types'" },
-    { name = "ipywidgets", marker = "extra == 'jupyter'" },
     { name = "jsonschema" },
-    { name = "jupyterlab", marker = "extra == 'jupyter'" },
-    { name = "jupyterlab-code-formatter", marker = "extra == 'jupyter'", specifier = ">=3.0.0" },
-    { name = "jupyterlab-git", marker = "extra == 'jupyter'" },
-    { name = "jupyterlab-lsp", marker = "extra == 'jupyter'" },
-    { name = "jupyterlab-myst", marker = "extra == 'jupyter'" },
-    { name = "mypy", marker = "extra == 'sty'" },
-    { name = "myst-nb", marker = "extra == 'doc'" },
-    { name = "nbmake", marker = "extra == 'test'" },
     { name = "particle" },
-    { name = "pydot", marker = "extra == 'test'", specifier = "<2" },
-    { name = "pydot", marker = "extra == 'types'", specifier = "<2" },
-    { name = "pytest", marker = "extra == 'test'" },
-    { name = "pytest", marker = "extra == 'types'" },
-    { name = "pytest-cov", marker = "extra == 'test'" },
-    { name = "pytest-profiling", marker = "extra == 'test'" },
-    { name = "pytest-xdist", marker = "extra == 'test'" },
     { name = "python-constraint" },
-    { name = "python-lsp-ruff", marker = "extra == 'jupyter'" },
-    { name = "python-lsp-server", extras = ["rope"], marker = "extra == 'jupyter'" },
     { name = "pyyaml" },
-    { name = "qrules", extras = ["all"], marker = "extra == 'dev'" },
-    { name = "qrules", extras = ["doc"], marker = "extra == 'dev'" },
-    { name = "qrules", extras = ["jupyter"], marker = "extra == 'dev'" },
-    { name = "qrules", extras = ["notebooks"], marker = "extra == 'doc'" },
-    { name = "qrules", extras = ["sty"], marker = "extra == 'dev'" },
-    { name = "qrules", extras = ["test"], marker = "extra == 'dev'" },
-    { name = "qrules", extras = ["types"], marker = "extra == 'sty'" },
     { name = "qrules", extras = ["viz"], marker = "extra == 'all'" },
-    { name = "qrules", extras = ["viz"], marker = "extra == 'notebooks'" },
-    { name = "ruff", marker = "extra == 'sty'" },
-    { name = "sphinx", marker = "extra == 'doc'" },
-    { name = "sphinx-api-relink", marker = "extra == 'doc'" },
-    { name = "sphinx-api-relink", marker = "extra == 'types'" },
-    { name = "sphinx-autobuild", marker = "extra == 'dev'" },
-    { name = "sphinx-book-theme", marker = "extra == 'doc'" },
-    { name = "sphinx-codeautolink", extras = ["ipython"], marker = "extra == 'doc'" },
-    { name = "sphinx-comments", marker = "extra == 'doc'" },
-    { name = "sphinx-copybutton", marker = "extra == 'doc'" },
-    { name = "sphinx-design", marker = "extra == 'doc'" },
-    { name = "sphinx-hep-pdgref", marker = "extra == 'doc'" },
-    { name = "sphinx-pybtex-etal-style", marker = "extra == 'doc'" },
-    { name = "sphinx-thebe", marker = "extra == 'doc'" },
-    { name = "sphinx-togglebutton", marker = "extra == 'doc'" },
-    { name = "sphinxcontrib-bibtex", marker = "extra == 'doc'", specifier = ">=2" },
     { name = "tqdm", specifier = ">=4.24.0" },
-    { name = "types-pyyaml", marker = "extra == 'types'" },
-    { name = "types-setuptools", marker = "extra == 'types'" },
+]
+
+[package.metadata.dependency-groups]
+dev = [
+    { name = "ipython" },
+    { name = "ipywidgets" },
+    { name = "jupyterlab" },
+    { name = "jupyterlab-code-formatter" },
+    { name = "jupyterlab-git" },
+    { name = "jupyterlab-lsp" },
+    { name = "jupyterlab-myst" },
+    { name = "mypy" },
+    { name = "myst-nb" },
+    { name = "nbmake" },
+    { name = "pydot", specifier = "<2" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "pytest-profiling" },
+    { name = "pytest-xdist" },
+    { name = "python-lsp-ruff" },
+    { name = "python-lsp-server", extras = ["rope"] },
+    { name = "ruff" },
+    { name = "sphinx" },
+    { name = "sphinx-api-relink" },
+    { name = "sphinx-autobuild" },
+    { name = "sphinx-book-theme" },
+    { name = "sphinx-codeautolink", extras = ["ipython"] },
+    { name = "sphinx-comments" },
+    { name = "sphinx-copybutton" },
+    { name = "sphinx-design" },
+    { name = "sphinx-hep-pdgref" },
+    { name = "sphinx-pybtex-etal-style" },
+    { name = "sphinx-thebe" },
+    { name = "sphinx-togglebutton" },
+    { name = "sphinxcontrib-bibtex", specifier = ">=2" },
+    { name = "types-pyyaml" },
+    { name = "types-setuptools" },
+]
+doc = [
+    { name = "myst-nb" },
+    { name = "sphinx" },
+    { name = "sphinx-api-relink" },
+    { name = "sphinx-book-theme" },
+    { name = "sphinx-codeautolink", extras = ["ipython"] },
+    { name = "sphinx-comments" },
+    { name = "sphinx-copybutton" },
+    { name = "sphinx-design" },
+    { name = "sphinx-hep-pdgref" },
+    { name = "sphinx-pybtex-etal-style" },
+    { name = "sphinx-thebe" },
+    { name = "sphinx-togglebutton" },
+    { name = "sphinxcontrib-bibtex", specifier = ">=2" },
+]
+jupyter = [
+    { name = "ipywidgets" },
+    { name = "jupyterlab" },
+    { name = "jupyterlab-code-formatter" },
+    { name = "jupyterlab-git" },
+    { name = "jupyterlab-lsp" },
+    { name = "jupyterlab-myst" },
+    { name = "python-lsp-ruff" },
+    { name = "python-lsp-server", extras = ["rope"] },
+]
+style = [
+    { name = "ipython" },
+    { name = "mypy" },
+    { name = "pydot", specifier = "<2" },
+    { name = "pytest" },
+    { name = "sphinx-api-relink" },
+    { name = "types-pyyaml" },
+    { name = "types-setuptools" },
+]
+test = [
+    { name = "ipython" },
+    { name = "nbmake" },
+    { name = "pydot", specifier = "<2" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "pytest-profiling" },
+    { name = "pytest-xdist" },
+]
+types = [
+    { name = "ipython" },
+    { name = "pydot", specifier = "<2" },
+    { name = "pytest" },
+    { name = "sphinx-api-relink" },
+    { name = "types-pyyaml" },
+    { name = "types-setuptools" },
 ]
 
 [[package]]

@@ -52,17 +52,31 @@ requires-python = ">=3.9"
 all = [
     "qrules[viz]",
 ]
+viz = [
+    "graphviz",
+]
+
+[project.readme]
+content-type = "text/markdown"
+file = "README.md"
+
+[project.urls]
+Changelog = "https://github.com/ComPWA/qrules/releases"
+Documentation = "https://qrules.rtfd.io"
+Source = "https://github.com/ComPWA/qrules"
+Tracker = "https://github.com/ComPWA/qrules/issues"
+
+[dependency-groups]
 dev = [
-    "qrules[all]",
-    "qrules[doc]",
-    "qrules[jupyter]",
-    "qrules[sty]",
-    "qrules[test]",
+    "ruff",
     "sphinx-autobuild",
+    {include-group = "doc"},
+    {include-group = "jupyter"},
+    {include-group = "style"},
+    {include-group = "test"},
 ]
 doc = [
     "myst-nb",
-    "qrules[notebooks]",
     "sphinx",
     "sphinx-api-relink",
     "sphinx-book-theme",
@@ -79,25 +93,21 @@ doc = [
 jupyter = [
     "ipywidgets",
     "jupyterlab",
-    "jupyterlab-code-formatter >=3.0.0",
+    "jupyterlab-code-formatter",
     "jupyterlab-git",
     "jupyterlab-lsp",
     "jupyterlab-myst",
     "python-lsp-ruff",
     "python-lsp-server[rope]",
 ]
-notebooks = [
-    "qrules[viz]",
-]
-sty = [
+style = [
     "mypy",
-    "qrules[types]",
-    "ruff",
+    {include-group = "types"},
 ]
 test = [
     "ipython",
     "nbmake",
-    "pydot <2", # problem with pydot.graph_from_dot_data
+    "pydot <2",
     "pytest",
     "pytest-cov",
     "pytest-profiling",
@@ -105,25 +115,12 @@ test = [
 ]
 types = [
     "ipython",
-    "pydot <2", # problem with pydot.graph_from_dot_data
+    "pydot <2",
     "pytest",
     "sphinx-api-relink",
     "types-PyYAML",
     "types-setuptools",
 ]
-viz = [
-    "graphviz",
-]
-
-[project.readme]
-content-type = "text/markdown"
-file = "README.md"
-
-[project.urls]
-Changelog = "https://github.com/ComPWA/qrules/releases"
-Documentation = "https://qrules.rtfd.io"
-Source = "https://github.com/ComPWA/qrules"
-Tracker = "https://github.com/ComPWA/qrules/issues"
 
 [tool.setuptools]
 include-package-data = false
