@@ -250,10 +250,11 @@ class StateTransitionManager:
         self.__number_of_threads = NumberOfThreads.get()
         if interaction_type_settings is None:
             interaction_type_settings = {}
-        if formalism not in set(SpinFormalism.__args__):  # type: ignore[attr-defined]
+        spin_formalisms = SpinFormalism.__args__  # type: ignore[attr-defined]
+        if formalism not in set(spin_formalisms):
             msg = (
                 f'Formalism "{formalism}" not implemented. Use one of'
-                f" {', '.join(SpinFormalism.__args__)} instead."  # type: ignore[attr-defined]
+                f" {', '.join(spin_formalisms)} instead."
             )
             raise NotImplementedError(msg)
         self.__formalism = formalism

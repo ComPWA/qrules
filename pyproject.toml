@@ -49,21 +49,29 @@ name = "qrules"
 requires-python = ">=3.9"
 
 [project.optional-dependencies]
-all = [
-    "qrules[viz]",
-]
+viz = ["graphviz"]
+
+[project.readme]
+content-type = "text/markdown"
+file = "README.md"
+
+[project.urls]
+Changelog = "https://github.com/ComPWA/qrules/releases"
+Documentation = "https://qrules.rtfd.io"
+Source = "https://github.com/ComPWA/qrules"
+Tracker = "https://github.com/ComPWA/qrules/issues"
+
+[dependency-groups]
 dev = [
-    "qrules[all]",
-    "qrules[doc]",
-    "qrules[jupyter]",
-    "qrules[sty]",
-    "qrules[test]",
+    "ruff",
     "sphinx-autobuild",
-    "tox",
+    {include-group = "doc"},
+    {include-group = "jupyter"},
+    {include-group = "style"},
+    {include-group = "test"},
 ]
 doc = [
     "myst-nb",
-    "qrules[notebooks]",
     "sphinx",
     "sphinx-api-relink",
     "sphinx-book-theme",
@@ -76,30 +84,28 @@ doc = [
     "sphinx-thebe",
     "sphinx-togglebutton",
     "sphinxcontrib-bibtex >=2",
+    {include-group = "notebooks"},
 ]
 jupyter = [
     "ipywidgets",
     "jupyterlab",
-    "jupyterlab-code-formatter >=3.0.0",
+    "jupyterlab-code-formatter",
     "jupyterlab-git",
     "jupyterlab-lsp",
     "jupyterlab-myst",
     "python-lsp-ruff",
     "python-lsp-server[rope]",
+    {include-group = "notebooks"},
 ]
-notebooks = [
-    "qrules[viz]",
-]
-sty = [
+notebooks = ["qrules[viz]"]
+style = [
     "mypy",
-    "pre-commit-uv",
-    "qrules[types]",
-    "ruff",
+    {include-group = "types"},
 ]
 test = [
     "ipython",
     "nbmake",
-    "pydot <2", # problem with pydot.graph_from_dot_data
+    "pydot <2",
     "pytest",
     "pytest-cov",
     "pytest-profiling",
@@ -107,25 +113,12 @@ test = [
 ]
 types = [
     "ipython",
-    "pydot <2", # problem with pydot.graph_from_dot_data
+    "pydot <2",
     "pytest",
     "sphinx-api-relink",
     "types-PyYAML",
     "types-setuptools",
 ]
-viz = [
-    "graphviz",
-]
-
-[project.readme]
-content-type = "text/markdown"
-file = "README.md"
-
-[project.urls]
-Changelog = "https://github.com/ComPWA/qrules/releases"
-Documentation = "https://qrules.rtfd.io"
-Source = "https://github.com/ComPWA/qrules"
-Tracker = "https://github.com/ComPWA/qrules/issues"
 
 [tool.setuptools]
 include-package-data = false
@@ -242,6 +235,8 @@ reportUnusedFunction = true
 reportUnusedImport = true
 reportUnusedVariable = true
 typeCheckingMode = "strict"
+venv = ".venv"
+venvPath = "."
 
 [tool.pytest.ini_options]
 addopts = [
@@ -512,8 +507,6 @@ allowlist_externals =
 commands =
     pre-commit run --all-files {posargs}
 description = Perform all linting, formatting, and spelling checks
-setenv =
-    SKIP = pyright
 
 [testenv:test]
 allowlist_externals =
