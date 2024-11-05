@@ -62,6 +62,8 @@ def test_solve_with_filtered_quantum_number_problem_set(
     )
     result = solver.find_solutions(new_quantum_number_problem_set)
 
+    if with_spin_projection:
+        assert len(result.solutions) == 319
     assert len(result.solutions) == 127
 
 
