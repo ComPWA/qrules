@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from fractions import Fraction
-from typing import List, Tuple
 
 import pytest
 
@@ -14,14 +13,14 @@ from qrules.conservation_rules import (
 from qrules.particle import Spin
 from qrules.quantum_numbers import EdgeQuantumNumbers
 
-_SpinMagnitudeRuleInputType = Tuple[
-    List[EdgeQuantumNumbers.spin_magnitude],
-    List[EdgeQuantumNumbers.spin_magnitude],
+_SpinMagnitudeRuleInputType = tuple[
+    list[EdgeQuantumNumbers.spin_magnitude],
+    list[EdgeQuantumNumbers.spin_magnitude],
     SpinNodeInput,
 ]
-_SpinRuleInputType = Tuple[
-    List[SpinEdgeInput],
-    List[SpinEdgeInput],
+_SpinRuleInputType = tuple[
+    list[SpinEdgeInput],
+    list[SpinEdgeInput],
     SpinNodeInput,
 ]
 

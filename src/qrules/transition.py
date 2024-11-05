@@ -4,13 +4,12 @@ from __future__ import annotations
 
 import logging
 import re
-import sys
 import warnings
 from collections import defaultdict
 from copy import copy, deepcopy
 from enum import Enum, auto
 from multiprocessing import Pool
-from typing import Iterable, Sequence, overload
+from typing import TYPE_CHECKING, Literal, overload
 
 import attrs
 from attrs import define, field, frozen
@@ -75,10 +74,8 @@ from qrules.topology import (
     create_n_body_topology,
 )
 
-if sys.version_info >= (3, 8):
-    from typing import Literal
-else:
-    from typing_extensions import Literal
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Sequence
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -253,10 +250,11 @@ class StateTransitionManager:
         self.__number_of_threads = NumberOfThreads.get()
         if interaction_type_settings is None:
             interaction_type_settings = {}
-        if formalism not in set(SpinFormalism.__args__):  # type: ignore[attr-defined]
+        spin_formalisms = SpinFormalism.__args__  # type: ignore[attr-defined]
+        if formalism not in set(spin_formalisms):
             msg = (
                 f'Formalism "{formalism}" not implemented. Use one of'
-                f" {', '.join(SpinFormalism.__args__)} instead."  # type: ignore[attr-defined]
+                f" {', '.join(spin_formalisms)} instead."
             )
             raise NotImplementedError(msg)
         self.__formalism = formalism

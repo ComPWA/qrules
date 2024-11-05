@@ -8,19 +8,16 @@ as a bridge between the :mod:`.particle` and the :mod:`.conservation_rules` modu
 
 from __future__ import annotations
 
-import sys
 from fractions import Fraction
 from functools import total_ordering
-from typing import Any, Generator, NewType, Union
+from typing import TYPE_CHECKING, Any, Literal, NewType, Union
 
 from attrs import field, frozen
 
 from qrules._implementers import implement_pretty_repr
 
-if sys.version_info < (3, 8):
-    from typing_extensions import Literal
-else:
-    from typing import Literal
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 
 def _to_parity(value: int) -> Literal[-1, 1]:
@@ -129,6 +126,29 @@ EdgeQuantumNumber = Union[
     EdgeQuantumNumbers.g_parity,
 ]
 
+# for accessing the keys of the dicts in EdgeSettings
+EdgeQuantumNumberTypes = Union[
+    type[EdgeQuantumNumbers.pid],
+    type[EdgeQuantumNumbers.mass],
+    type[EdgeQuantumNumbers.width],
+    type[EdgeQuantumNumbers.spin_magnitude],
+    type[EdgeQuantumNumbers.spin_projection],
+    type[EdgeQuantumNumbers.charge],
+    type[EdgeQuantumNumbers.isospin_magnitude],
+    type[EdgeQuantumNumbers.isospin_projection],
+    type[EdgeQuantumNumbers.strangeness],
+    type[EdgeQuantumNumbers.charmness],
+    type[EdgeQuantumNumbers.bottomness],
+    type[EdgeQuantumNumbers.topness],
+    type[EdgeQuantumNumbers.baryon_number],
+    type[EdgeQuantumNumbers.electron_lepton_number],
+    type[EdgeQuantumNumbers.muon_lepton_number],
+    type[EdgeQuantumNumbers.tau_lepton_number],
+    type[EdgeQuantumNumbers.parity],
+    type[EdgeQuantumNumbers.c_parity],
+    type[EdgeQuantumNumbers.g_parity],
+]
+
 
 @frozen(init=False)
 class NodeQuantumNumbers:
@@ -156,6 +176,15 @@ NodeQuantumNumber = Union[
     NodeQuantumNumbers.parity_prefactor,
 ]
 """Type hint for quantum numbers of interaction nodes."""
+
+# for accessing the keys of the dicts in NodeSettings
+NodeQuantumNumberTypes = Union[
+    type[NodeQuantumNumbers.l_magnitude],
+    type[NodeQuantumNumbers.l_projection],
+    type[NodeQuantumNumbers.s_magnitude],
+    type[NodeQuantumNumbers.s_projection],
+    type[NodeQuantumNumbers.parity_prefactor],
+]
 
 
 def _to_optional_float(optional_float: float | None) -> float | None:

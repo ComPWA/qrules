@@ -46,12 +46,11 @@ has been defined to provide type checks on `.parity_conservation_helicity`.
 """
 
 import operator
-import sys
 from copy import deepcopy
 from fractions import Fraction
 from functools import reduce
 from textwrap import dedent
-from typing import Any, Callable, List, Optional, Set, Tuple, Type, Union
+from typing import Any, Callable, Optional, Protocol, Union
 
 from attrs import define, field, frozen
 from attrs.converters import optional
@@ -59,11 +58,6 @@ from attrs.converters import optional
 from qrules.quantum_numbers import EdgeQuantumNumbers as EdgeQN
 from qrules.quantum_numbers import NodeQuantumNumbers as NodeQN
 from qrules.quantum_numbers import arange
-
-if sys.version_info >= (3, 8):
-    from typing import Protocol
-else:
-    from typing_extensions import Protocol
 
 
 def _is_boson(spin_magnitude: Fraction) -> bool:
@@ -77,21 +71,22 @@ def _is_particle_antiparticle_pair(pid1: int, pid2: int) -> bool:
 
 
 class GraphElementRule(Protocol):
-    def __call__(self, __qns: Any) -> bool: ...
+    def __call__(self, qns: Any, /) -> bool: ...
 
 
 class EdgeQNConservationRule(Protocol):
     def __call__(
-        self, __ingoing_edge_qns: List[Any], __outgoing_edge_qns: List[Any]
+        self, ingoing_edge_qns: list[Any], outgoing_edge_qns: list[Any], /
     ) -> bool: ...
 
 
 class ConservationRule(Protocol):
     def __call__(
         self,
-        __ingoing_edge_qns: List[Any],
-        __outgoing_edge_qns: List[Any],
-        __node_qns: Any,
+        ingoing_edge_qns: list[Any],
+        outgoing_edge_qns: list[Any],
+        node_qns: Any,
+        /,
     ) -> bool: ...
 
 
@@ -115,9 +110,9 @@ def additive_quantum_number_rule(
 
     def decorator(rule_class: Any) -> EdgeQNConservationRule:
         def new_call(
-            self: Type[EdgeQNConservationRule],  # noqa: ARG001
-            ingoing_edge_qns: List[quantum_number],  # type: ignore[valid-type]
-            outgoing_edge_qns: List[quantum_number],  # type: ignore[valid-type]
+            self: type[EdgeQNConservationRule],  # noqa: ARG001
+            ingoing_edge_qns: list[quantum_number],  # type: ignore[valid-type]
+            outgoing_edge_qns: list[quantum_number],  # type: ignore[valid-type]
         ) -> bool:
             return sum(ingoing_edge_qns) == sum(outgoing_edge_qns)
 
@@ -175,8 +170,8 @@ class BottomnessConservation(EdgeQNConservationRule):
 
 
 def parity_conservation(
-    ingoing_edge_qns: List[EdgeQN.parity],
-    outgoing_edge_qns: List[EdgeQN.parity],
+    ingoing_edge_qns: list[EdgeQN.parity],
+    outgoing_edge_qns: list[EdgeQN.parity],
     l_magnitude: NodeQN.l_magnitude,
 ) -> bool:
     r"""Implement :math:`P_{in} = P_{out} \cdot (-1)^L`."""
@@ -197,8 +192,8 @@ class HelicityParityEdgeInput:
 
 
 def parity_conservation_helicity(
-    ingoing_edge_qns: List[HelicityParityEdgeInput],
-    outgoing_edge_qns: List[HelicityParityEdgeInput],
+    ingoing_edge_qns: list[HelicityParityEdgeInput],
+    outgoing_edge_qns: list[HelicityParityEdgeInput],
     parity_prefactor: NodeQN.parity_prefactor,
 ) -> bool:
     r"""Implements parity conservation for helicity formalism.
@@ -247,8 +242,8 @@ class CParityNodeInput:
 
 
 def c_parity_conservation(
-    ingoing_edge_qns: List[CParityEdgeInput],
-    outgoing_edge_qns: List[CParityEdgeInput],
+    ingoing_edge_qns: list[CParityEdgeInput],
+    outgoing_edge_qns: list[CParityEdgeInput],
     interaction_node_qns: CParityNodeInput,
 ) -> bool:
     """Check for :math:`C`-parity conservation.
@@ -257,7 +252,7 @@ def c_parity_conservation(
     """
 
     def _get_c_parity_multiparticle(
-        part_qns: List[CParityEdgeInput], interaction_qns: CParityNodeInput
+        part_qns: list[CParityEdgeInput], interaction_qns: CParityNodeInput
     ) -> Optional[int]:
         c_parities_part = [x.c_parity.value for x in part_qns if x.c_parity]
         # if all states have C parity defined, then just multiply them
@@ -304,8 +299,8 @@ class GParityNodeInput:
 
 
 def g_parity_conservation(  # noqa: C901
-    ingoing_edge_qns: List[GParityEdgeInput],
-    outgoing_edge_qns: List[GParityEdgeInput],
+    ingoing_edge_qns: list[GParityEdgeInput],
+    outgoing_edge_qns: list[GParityEdgeInput],
     interaction_qns: GParityNodeInput,
 ) -> bool:
     """Check for :math:`G`-parity conservation.
@@ -315,7 +310,7 @@ def g_parity_conservation(  # noqa: C901
 
     def check_multistate_g_parity(
         isospin: EdgeQN.isospin_magnitude,
-        double_state_qns: Tuple[GParityEdgeInput, GParityEdgeInput],
+        double_state_qns: tuple[GParityEdgeInput, GParityEdgeInput],
     ) -> Optional[int]:
         if _is_particle_antiparticle_pair(
             double_state_qns[0].pid, double_state_qns[1].pid
@@ -332,7 +327,7 @@ def g_parity_conservation(  # noqa: C901
 
     def check_g_parity_isobar(
         single_state: GParityEdgeInput,
-        couple_state: Tuple[GParityEdgeInput, GParityEdgeInput],
+        couple_state: tuple[GParityEdgeInput, GParityEdgeInput],
     ) -> bool:
         couple_state_g_parity = check_multistate_g_parity(
             single_state.isospin_magnitude,
@@ -386,8 +381,8 @@ class IdenticalParticleSymmetryOutEdgeInput:
 
 
 def identical_particle_symmetrization(
-    ingoing_parities: List[EdgeQN.parity],
-    outgoing_edge_qns: List[IdenticalParticleSymmetryOutEdgeInput],
+    ingoing_parities: list[EdgeQN.parity],
+    outgoing_edge_qns: list[IdenticalParticleSymmetryOutEdgeInput],
 ) -> bool:
     """Verifies multi particle state symmetrization for identical particles.
 
@@ -403,7 +398,7 @@ def identical_particle_symmetrization(
     """
 
     def _check_particles_identical(
-        particles: List[IdenticalParticleSymmetryOutEdgeInput],
+        particles: list[IdenticalParticleSymmetryOutEdgeInput],
     ) -> bool:
         """Check if pids and spins match."""
         if len(particles) == 1:
@@ -482,19 +477,19 @@ def ls_spin_validity(spin_input: SpinNodeInput) -> bool:
 
 
 def _check_magnitude(
-    in_part: List[float],
-    out_part: List[float],
+    in_part: list[float],
+    out_part: list[float],
     interaction_qns: Optional[Union[SpinMagnitudeNodeInput, SpinNodeInput]],
 ) -> bool:
-    def couple_mags(j_1: float, j_2: float) -> List[float]:
+    def couple_mags(j_1: float, j_2: float) -> list[float]:
         return [
             x / 2.0 for x in range(int(2 * abs(j_1 - j_2)), int(2 * (j_1 + j_2 + 1)), 2)
         ]
 
     def couple_magnitudes(
-        magnitudes: List[float],
+        magnitudes: list[float],
         interaction_qns: Optional[Union[SpinMagnitudeNodeInput, SpinNodeInput]],
-    ) -> Set[float]:
+    ) -> set[float]:
         if len(magnitudes) == 1:
             return set(magnitudes)
 
@@ -524,8 +519,8 @@ def _check_magnitude(
 
 
 def _check_spin_couplings(
-    in_part: List[_Spin],
-    out_part: List[_Spin],
+    in_part: list[_Spin],
+    out_part: list[_Spin],
     interaction_qns: Optional[SpinNodeInput],
 ) -> bool:
     in_tot_spins = __calculate_total_spins(in_part, interaction_qns)
@@ -535,9 +530,9 @@ def _check_spin_couplings(
 
 
 def __calculate_total_spins(
-    spins: List[_Spin],
+    spins: list[_Spin],
     interaction_qns: Optional[SpinNodeInput] = None,
-) -> Set[_Spin]:
+) -> set[_Spin]:
     total_spins = set()
     if len(spins) == 1:
         return set(spins)
@@ -554,9 +549,9 @@ def __calculate_total_spins(
     return total_spins
 
 
-def __create_coupled_spins(spins: List[_Spin]) -> Set[_Spin]:
+def __create_coupled_spins(spins: list[_Spin]) -> set[_Spin]:
     """Creates all combinations of coupled spins."""
-    spins_daughters_coupled: Set[_Spin] = set()
+    spins_daughters_coupled: set[_Spin] = set()
     spin_list = deepcopy(spins)
     while spin_list:
         if spins_daughters_coupled:
@@ -572,7 +567,7 @@ def __create_coupled_spins(spins: List[_Spin]) -> Set[_Spin]:
     return spins_daughters_coupled
 
 
-def __spin_couplings(spin1: _Spin, spin2: _Spin) -> Set[_Spin]:
+def __spin_couplings(spin1: _Spin, spin2: _Spin) -> set[_Spin]:
     r"""Implement the coupling of two spins.
 
     :math:`|S_1 - S_2| \leq S \leq |S_1 + S_2|` and :math:`M_1 + M_2 = M`
@@ -615,8 +610,8 @@ def isospin_validity(isospin: IsoSpinEdgeInput) -> bool:
 
 
 def isospin_conservation(
-    ingoing_isospins: List[IsoSpinEdgeInput],
-    outgoing_isospins: List[IsoSpinEdgeInput],
+    ingoing_isospins: list[IsoSpinEdgeInput],
+    outgoing_isospins: list[IsoSpinEdgeInput],
 ) -> bool:
     r"""Check for isospin conservation.
 
@@ -653,8 +648,8 @@ def spin_validity(spin: SpinEdgeInput) -> bool:
 
 
 def spin_conservation(
-    ingoing_spins: List[SpinEdgeInput],
-    outgoing_spins: List[SpinEdgeInput],
+    ingoing_spins: list[SpinEdgeInput],
+    outgoing_spins: list[SpinEdgeInput],
     interaction_qns: SpinNodeInput,
 ) -> bool:
     r"""Check for spin conservation.
@@ -694,8 +689,8 @@ def spin_conservation(
 
 
 def spin_magnitude_conservation(
-    ingoing_spin_magnitudes: List[EdgeQN.spin_magnitude],
-    outgoing_spin_magnitudes: List[EdgeQN.spin_magnitude],
+    ingoing_spin_magnitudes: list[EdgeQN.spin_magnitude],
+    outgoing_spin_magnitudes: list[EdgeQN.spin_magnitude],
     interaction_qns: SpinMagnitudeNodeInput,
 ) -> bool:
     r"""Check for spin conservation.
@@ -731,8 +726,8 @@ def spin_magnitude_conservation(
 
 
 def clebsch_gordan_helicity_to_canonical(
-    ingoing_spins: List[SpinEdgeInput],
-    outgoing_spins: List[SpinEdgeInput],
+    ingoing_spins: list[SpinEdgeInput],
+    outgoing_spins: list[SpinEdgeInput],
     interaction_qns: SpinNodeInput,
 ) -> bool:
     """Implement Clebsch-Gordan checks.
@@ -777,8 +772,8 @@ def clebsch_gordan_helicity_to_canonical(
 
 
 def helicity_conservation(
-    ingoing_spin_mags: List[EdgeQN.spin_magnitude],
-    outgoing_helicities: List[EdgeQN.spin_projection],
+    ingoing_spin_mags: list[EdgeQN.spin_magnitude],
+    outgoing_helicities: list[EdgeQN.spin_projection],
 ) -> bool:
     r"""Implementation of helicity conservation.
 
@@ -883,8 +878,8 @@ class MassConservation:
 
     def __call__(
         self,
-        ingoing_edge_qns: List[MassEdgeInput],
-        outgoing_edge_qns: List[MassEdgeInput],
+        ingoing_edge_qns: list[MassEdgeInput],
+        outgoing_edge_qns: list[MassEdgeInput],
     ) -> bool:
         r"""Implements mass conservation.
 

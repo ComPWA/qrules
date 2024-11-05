@@ -14,7 +14,7 @@ import operator
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from copy import copy
-from typing import Any, Callable, Generic, Iterable, Tuple, Type, TypeVar
+from typing import TYPE_CHECKING, Any, Callable, Generic, TypeVar
 
 import attrs
 from attrs import define, field, frozen
@@ -33,9 +33,14 @@ from qrules.argument_handling import (
 from qrules.quantum_numbers import (
     EdgeQuantumNumber,
     EdgeQuantumNumbers,
+    EdgeQuantumNumberTypes,
     NodeQuantumNumber,
+    NodeQuantumNumberTypes,
 )
 from qrules.topology import MutableTransition, Topology
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -47,7 +52,7 @@ class EdgeSettings:
 
     conservation_rules: set[GraphElementRule] = field(factory=set)
     rule_priorities: dict[GraphElementRule, int] = field(factory=dict)
-    qn_domains: dict[Any, list] = field(factory=dict)
+    qn_domains: dict[EdgeQuantumNumberTypes, list] = field(factory=dict)
 
 
 @implement_pretty_repr
@@ -67,7 +72,7 @@ class NodeSettings:
 
     conservation_rules: set[Rule] = field(factory=set)
     rule_priorities: dict[Rule, int] = field(factory=dict)
-    qn_domains: dict[Any, list] = field(factory=dict)
+    qn_domains: dict[NodeQuantumNumberTypes, list] = field(factory=dict)
     interaction_strength: float = 1.0
 
 
@@ -383,8 +388,8 @@ def validate_full_solution(problem_set: QNProblemSet) -> QNResult:  # noqa: C901
     )
 
 
-_EdgeVariableInfo = Tuple[int, Type[EdgeQuantumNumber]]
-_NodeVariableInfo = Tuple[int, Type[NodeQuantumNumber]]
+_EdgeVariableInfo = tuple[int, type[EdgeQuantumNumber]]
+_NodeVariableInfo = tuple[int, type[NodeQuantumNumber]]
 
 
 def _create_variable_string(
