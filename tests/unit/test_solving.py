@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
 
 import qrules.particle
@@ -15,6 +17,9 @@ from qrules.conservation_rules import (
 from qrules.quantum_numbers import EdgeQuantumNumbers, NodeQuantumNumbers
 from qrules.solving import CSPSolver, QNProblemSet, filter_quantum_number_problem_set
 
+if TYPE_CHECKING:
+    from qrules.argument_handling import GraphEdgePropertyMap
+
 
 def test_solve(
     all_particles: qrules.particle.ParticleCollection,
@@ -27,7 +32,7 @@ def test_solve(
 
 @pytest.mark.parametrize("with_spin_projection", [True, False])
 def test_solve_with_filtered_quantum_number_problem_set(
-    all_particles: qrules.particle.ParticleCollection,
+    all_particles: list[GraphEdgePropertyMap],
     quantum_number_problem_set: QNProblemSet,
     with_spin_projection: bool,
 ) -> None:
@@ -49,14 +54,8 @@ def test_solve_with_filtered_quantum_number_problem_set(
             parity_conservation,
             c_parity_conservation,
         },
-        edge_properties_and_domains={
-            EdgeQuantumNumbers.pid,  # had to be added for c_parity_conservation to work
-            EdgeQuantumNumbers.spin_magnitude,
-            # EdgeQuantumNumbers.spin_projection,  # can be left out to reduce the number of solutions
-            EdgeQuantumNumbers.parity,
-            EdgeQuantumNumbers.c_parity,
-        },
-        node_properties_and_domains=(
+        edge_properties=parametrized_edge_properties_and_domains,
+        node_properties=(
             NodeQuantumNumbers.l_magnitude,
             NodeQuantumNumbers.s_magnitude,
         ),
@@ -82,9 +81,8 @@ def quantum_number_problem_set() -> QNProblemSet:
         formalism="helicity",
     )
     problem_sets = stm.create_problem_sets()
-    qn_problem_sets = [
+    return next(
         p.to_qn_problem_set()
         for strength in sorted(problem_sets)
         for p in problem_sets[strength]
-    ]
-    return qn_problem_sets[0]
+    )
