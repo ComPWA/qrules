@@ -104,7 +104,6 @@ for edge_qn_name, edge_qn_type in EdgeQuantumNumbers.__dict__.items():
         edge_qn_type.__module__ = __name__
 
 
-# for static typing
 EdgeQuantumNumber = Union[
     EdgeQuantumNumbers.pid,
     EdgeQuantumNumbers.mass,
@@ -126,8 +125,8 @@ EdgeQuantumNumber = Union[
     EdgeQuantumNumbers.c_parity,
     EdgeQuantumNumbers.g_parity,
 ]
+"""Type hint for quantum numbers of edges"""
 
-# for accessing the keys of the dicts in EdgeSettings
 EdgeQuantumNumberTypes = Union[
     type[EdgeQuantumNumbers.pid],
     type[EdgeQuantumNumbers.mass],
@@ -149,6 +148,7 @@ EdgeQuantumNumberTypes = Union[
     type[EdgeQuantumNumbers.c_parity],
     type[EdgeQuantumNumbers.g_parity],
 ]
+"""Type-Union for accessing the keys of the dicts in `.EdgeSettings`"""
 
 
 @frozen(init=False)
@@ -186,6 +186,7 @@ NodeQuantumNumberTypes = Union[
     type[NodeQuantumNumbers.s_projection],
     type[NodeQuantumNumbers.parity_prefactor],
 ]
+"""Type-Union for accessing the keys of the dicts in `.NodeSettings`"""
 
 
 def _to_optional_float(optional_float: float | None) -> float | None:
