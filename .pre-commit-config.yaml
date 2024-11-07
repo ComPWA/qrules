@@ -22,7 +22,7 @@ repos:
           - --doc-apt-packages=graphviz
           - --repo-name=qrules
           - --repo-title=QRules
-          - --update-lock-files=monthly
+          - --update-lock-files=outsource
       - id: colab-toc-visible
       - id: fix-nbformat-version
       - id: remove-empty-tags
