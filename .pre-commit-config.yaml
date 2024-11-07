@@ -20,6 +20,7 @@ repos:
         args:
           - --dev-python-version=3.9
           - --doc-apt-packages=graphviz
+          - --environment-variables=PYTHONHASHSEED=0
           - --repo-name=qrules
           - --repo-title=QRules
           - --update-lock-files=outsource
