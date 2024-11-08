@@ -227,7 +227,7 @@ class InteractionProperties:
 
 
 def arange(
-    x_1: float, x_2: float, delta: float = 1.0
+    x_1: Fraction, x_2: Fraction, delta: Fraction = Fraction(1, 1)
 ) -> Generator[Fraction, None, None]:
     current = Fraction(x_1)
     delta = Fraction(delta)

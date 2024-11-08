@@ -431,8 +431,8 @@ def identical_particle_symmetrization(
 
 @frozen
 class _Spin:
-    magnitude: Union[NodeQN.s_magnitude, NodeQN.l_magnitude]
-    projection: Union[NodeQN.s_projection, NodeQN.l_projection]
+    magnitude: Union[Fraction, NodeQN.s_magnitude, NodeQN.l_magnitude]
+    projection: Union[Fraction, NodeQN.s_projection, NodeQN.l_projection]
 
 
 def _is_clebsch_gordan_coefficient_zero(
@@ -470,26 +470,25 @@ class SpinMagnitudeNodeInput:
 def ls_spin_validity(spin_input: SpinNodeInput) -> bool:
     r"""Check for valid isospin magnitude and projection."""
     return _check_spin_valid(
-        float(spin_input.l_magnitude), float(spin_input.l_projection)
-    ) and _check_spin_valid(
-        float(spin_input.s_magnitude), float(spin_input.s_projection)
-    )
+        spin_input.l_magnitude, spin_input.l_projection
+    ) and _check_spin_valid(spin_input.s_magnitude, spin_input.s_projection)
 
 
 def _check_magnitude(
-    in_part: list[float],
-    out_part: list[float],
+    in_part: list[Fraction],
+    out_part: list[Fraction],
     interaction_qns: Optional[Union[SpinMagnitudeNodeInput, SpinNodeInput]],
 ) -> bool:
-    def couple_mags(j_1: float, j_2: float) -> list[float]:
+    def couple_mags(j_1: Fraction, j_2: Fraction) -> list[Fraction]:
         return [
-            x / 2.0 for x in range(int(2 * abs(j_1 - j_2)), int(2 * (j_1 + j_2 + 1)), 2)
+            Fraction(x, 2)
+            for x in range(int(2 * abs(j_1 - j_2)), int(2 * (j_1 + j_2 + 1)), 2)
         ]
 
     def couple_magnitudes(
-        magnitudes: list[float],
+        magnitudes: list[Fraction],
         interaction_qns: Optional[Union[SpinMagnitudeNodeInput, SpinNodeInput]],
-    ) -> set[float]:
+    ) -> set[Fraction]:
         if len(magnitudes) == 1:
             return set(magnitudes)
 
@@ -572,13 +571,13 @@ def __spin_couplings(spin1: _Spin, spin2: _Spin) -> set[_Spin]:
 
     :math:`|S_1 - S_2| \leq S \leq |S_1 + S_2|` and :math:`M_1 + M_2 = M`
     """
-    s_1 = spin1.magnitude
-    s_2 = spin2.magnitude
-
     sum_proj = spin1.projection + spin2.projection
     return {
-        _Spin(x, sum_proj)
-        for x in arange(abs(s_1 - s_2), s_1 + s_2 + 1, 1.0)
+        _Spin(Fraction(x), Fraction(sum_proj))
+        for x in arange(
+            abs(spin1.magnitude - spin2.magnitude),
+            spin1.magnitude + spin2.magnitude + 1,
+        )
         if x >= abs(sum_proj)
         and not _is_clebsch_gordan_coefficient_zero(spin1, spin2, _Spin(x, sum_proj))
     }
@@ -594,19 +593,17 @@ class IsoSpinEdgeInput:
     )
 
 
-def _check_spin_valid(magnitude: float, projection: float) -> bool:
-    if magnitude % 0.5 != 0.0:
+def _check_spin_valid(magnitude: Fraction, projection: Fraction) -> bool:
+    if magnitude.denominator not in {1, 2}:
         return False
     if abs(projection) > magnitude:
         return False
-    return float(projection - magnitude).is_integer()
+    return (projection - magnitude).denominator == 1
 
 
 def isospin_validity(isospin: IsoSpinEdgeInput) -> bool:
     r"""Check for valid isospin magnitude and projection."""
-    return _check_spin_valid(
-        float(isospin.isospin_magnitude), float(isospin.isospin_projection)
-    )
+    return _check_spin_valid(isospin.isospin_magnitude, isospin.isospin_projection)
 
 
 def isospin_conservation(
@@ -644,7 +641,7 @@ class SpinEdgeInput:
 
 def spin_validity(spin: SpinEdgeInput) -> bool:
     r"""Check for valid spin magnitude and projection."""
-    return _check_spin_valid(float(spin.spin_magnitude), float(spin.spin_projection))
+    return _check_spin_valid(spin.spin_magnitude, spin.spin_projection)
 
 
 def spin_conservation(
@@ -712,8 +709,8 @@ def spin_magnitude_conservation(
         len(ingoing_spin_magnitudes) == 2 and len(outgoing_spin_magnitudes) == 1
     ):
         return _check_magnitude(
-            [float(x) for x in ingoing_spin_magnitudes],
-            [float(x) for x in outgoing_spin_magnitudes],
+            [Fraction(x) for x in ingoing_spin_magnitudes],
+            [Fraction(x) for x in outgoing_spin_magnitudes],
             interaction_qns,
         )
 
@@ -858,7 +855,7 @@ def gellmann_nishijima(edge_qns: GellMannNishijimaInput) -> bool:
         or edge_qns.tau_lepton_number
     ):
         return True
-    isospin_3 = 0.0
+    isospin_3 = Fraction(0, 1)
     if edge_qns.isospin_projection:
         isospin_3 = edge_qns.isospin_projection
     return float(edge_qns.charge) == isospin_3 + 0.5 * calculate_hypercharge(edge_qns)
