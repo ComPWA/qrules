@@ -161,7 +161,7 @@ class Particle:
     pid: int = field(eq=False)
     latex: str | None = field(eq=False, default=None)
     # Unique properties
-    spin: float = field(converter=float)
+    spin: Fraction = field(converter=Fraction)
     mass: float = field(converter=float)
     width: float = field(converter=float, default=0.0)
     charge: int = field(default=0)
@@ -486,7 +486,7 @@ def create_antiparticle(
         isospin = -template_particle.isospin
     parity: Parity | None = None
     if template_particle.parity is not None:
-        if template_particle.spin.is_integer():
+        if template_particle.spin.denominator == 1:
             parity = template_particle.parity
         else:
             parity = -template_particle.parity
