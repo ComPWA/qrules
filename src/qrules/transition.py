@@ -243,7 +243,7 @@ class StateTransitionManager:
         reload_pdg: bool = False,
         mass_conservation_factor: float | None = 3.0,
         max_angular_momentum: int = 1,
-        max_spin_magnitude: Fraction = Fraction(2, 1),
+        max_spin_magnitude: float | Fraction = Fraction(2, 1),
         number_of_threads: int | None = None,
     ) -> None:
         if number_of_threads is not None:
@@ -317,7 +317,7 @@ class StateTransitionManager:
                 nbody_topology=use_nbody_topology,
                 mass_conservation_factor=mass_conservation_factor,
                 max_angular_momentum=max_angular_momentum,
-                max_spin_magnitude=max_spin_magnitude,
+                max_spin_magnitude=Fraction(max_spin_magnitude),
             )
 
         self.__intermediate_particle_filters = allowed_intermediate_particles
