@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import operator
 from abc import ABC, abstractmethod
+from fractions import Fraction
 from typing import TYPE_CHECKING, Callable
 
 import attrs
@@ -35,7 +36,7 @@ GraphSettingsGroups = dict[Strength, list[tuple[MutableTransition, GraphSettings
 
 def create_edge_properties(
     particle: Particle,
-    spin_projection: float | None = None,
+    spin_projection: Fraction | None = None,
 ) -> GraphEdgePropertyMap:
     edge_qn_mapping: dict[str, type[EdgeQuantumNumber]] = {
         qn_name: qn_type
@@ -108,7 +109,7 @@ def find_particle(  # noqa: D417
     if spin_projection is None:
         msg = f"{GraphEdgePropertyMap.__name__} does not contain a spin projection"
         raise ValueError(msg)
-    return particle, spin_projection
+    return particle, Fraction(spin_projection)
 
 
 def create_interaction_properties(
