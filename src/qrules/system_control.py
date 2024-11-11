@@ -36,7 +36,7 @@ GraphSettingsGroups = dict[Strength, list[tuple[MutableTransition, GraphSettings
 
 def create_edge_properties(
     particle: Particle,
-    spin_projection: Fraction | None = None,
+    spin_projection: float | Fraction | None = None,
 ) -> GraphEdgePropertyMap:
     edge_qn_mapping: dict[str, type[EdgeQuantumNumber]] = {
         qn_name: qn_type
