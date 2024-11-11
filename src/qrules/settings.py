@@ -127,7 +127,7 @@ def create_interaction_settings(  # noqa: PLR0917
     nbody_topology: bool = False,
     mass_conservation_factor: float | None = 3.0,
     max_angular_momentum: int = 2,
-    max_spin_magnitude: Fraction = Fraction(2, 1),
+    max_spin_magnitude: float | Fraction = Fraction(2, 1),
 ) -> dict[InteractionType, tuple[EdgeSettings, NodeSettings]]:
     """Create a container that holds the settings for `.InteractionType`."""
     formalism_edge_settings = EdgeSettings(
@@ -144,7 +144,9 @@ def create_interaction_settings(  # noqa: PLR0917
     angular_momentum_domain = __get_ang_mom_magnitudes(
         nbody_topology, max_angular_momentum
     )
-    spin_magnitude_domain = __get_spin_magnitudes(nbody_topology, max_spin_magnitude)
+    spin_magnitude_domain = __get_spin_magnitudes(
+        nbody_topology, Fraction(max_spin_magnitude)
+    )
     if "helicity" in formalism:
         formalism_node_settings.conservation_rules = {
             spin_magnitude_conservation,
