@@ -193,6 +193,12 @@ def _to_optional_float(optional_float: float | None) -> float | None:
     return float(optional_float)
 
 
+def _to_optional_fraction(optional_fraction: Fraction | None) -> Fraction | None:
+    if optional_fraction is None:
+        return None
+    return Fraction(optional_fraction)
+
+
 def _to_optional_int(optional_int: int | None) -> int | None:
     if optional_int is None:
         return None
@@ -221,8 +227,8 @@ class InteractionProperties:
         default=None, converter=_to_optional_int
     )
     l_projection: int | None = field(default=None, converter=_to_optional_int)
-    s_magnitude: float | None = field(default=None, converter=_to_optional_float)
-    s_projection: float | None = field(default=None, converter=_to_optional_float)
+    s_magnitude: Fraction | None = field(default=None, converter=_to_optional_fraction)
+    s_projection: Fraction | None = field(default=None, converter=_to_optional_fraction)
     parity_prefactor: float | None = field(default=None, converter=_to_optional_float)
 
 
