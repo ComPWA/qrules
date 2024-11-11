@@ -221,6 +221,17 @@ def _group_by_strength(
     return strength_sorted_problem_sets
 
 
+def _fractionalize_statedefinitions(definition: StateDefinition) -> StateDefinition:
+    if type(definition) is str:
+        return definition
+    if type(definition) is tuple:
+        name = definition[0]
+        state = definition[1]
+        return name, list(map(Fraction, state))
+    msg = f"value has to be of type {StateDefinition}, got {type(definition)}"
+    raise ValueError(msg)
+
+
 class StateTransitionManager:
     """Main handler for decay topologies.
 
@@ -263,8 +274,8 @@ class StateTransitionManager:
         if particle_db is not None:
             self.__particles = particle_db
         self.reaction_mode = str(solving_mode)
-        self.initial_state = list(initial_state)
-        self.final_state = list(final_state)
+        self.initial_state = list(map(_fractionalize_statedefinitions, initial_state))
+        self.final_state = list(map(_fractionalize_statedefinitions, final_state))
         self.interaction_type_settings = interaction_type_settings
 
         self.interaction_determinators: list[InteractionDeterminator] = [
@@ -732,7 +743,7 @@ def _strip_spin(state_definition: Sequence[StateDefinition]) -> list[str]:
 @frozen(order=True)
 class State:
     particle: Particle = field(validator=instance_of(Particle))
-    spin_projection: float = field(converter=_to_fraction)
+    spin_projection: Fraction = field(converter=_to_fraction)
 
 
 StateTransition = FrozenTransition[State, InteractionProperties]
