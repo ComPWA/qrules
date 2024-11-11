@@ -70,7 +70,7 @@ class TestState:
 class TestStateTransitionManager:
     def test_allowed_intermediate_particles(self):
         stm = StateTransitionManager(
-            initial_state=[("J/psi(1S)", [-1, +1])],
+            initial_state=[("J/psi(1S)", list(map(Fraction, [-1, +1])))],
             final_state=["p", "p~", "eta"],
         )
         particle_name = "N(753)"
