@@ -11,6 +11,7 @@ import itertools
 from collections import OrderedDict
 from collections.abc import Iterable, Mapping, Sequence
 from copy import deepcopy
+from fractions import Fraction
 from typing import TYPE_CHECKING, Any, Callable, Union
 
 from qrules.particle import ParticleWithSpin
@@ -21,7 +22,7 @@ if TYPE_CHECKING:
     from qrules.particle import ParticleCollection
 
 
-StateWithSpins = tuple[str, Sequence[float]]
+StateWithSpins = tuple[str, Sequence[Fraction]]
 StateDefinition = Union[str, StateWithSpins]
 """Particle name, optionally with a list of spin projections."""
 InitialFacts = MutableTransition[ParticleWithSpin, InteractionProperties]
@@ -215,9 +216,9 @@ def __safe_set_spin_projections(
         if isinstance(state, str):
             particle_name = state
             particle = particle_db[particle_name]
-            spin_projections = set(arange(-particle.spin, particle.spin + 1, 1.0))
-            if particle.mass == 0.0 and 0.0 in spin_projections:
-                spin_projections.remove(0.0)
+            spin_projections = set(arange(-particle.spin, particle.spin + 1))
+            if particle.mass == 0.0 and Fraction(0, 1) in spin_projections:
+                spin_projections.remove(Fraction(0, 1))
             return particle_name, sorted(spin_projections)
         return state
 
