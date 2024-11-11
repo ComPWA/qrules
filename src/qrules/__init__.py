@@ -74,7 +74,7 @@ def check_reaction_violations(  # noqa: C901, PLR0917
     mass_conservation_factor: float | None = 3.0,
     particle_db: ParticleCollection | None = None,
     max_angular_momentum: int = 1,
-    max_spin_magnitude: Fraction = Fraction(2, 1),
+    max_spin_magnitude: float | Fraction = Fraction(2, 1),
 ) -> set[frozenset[str]]:
     """Determine violated interaction rules for a given particle reaction.
 
@@ -208,7 +208,7 @@ def check_reaction_violations(  # noqa: C901, PLR0917
         InteractionProperties(l_magnitude=l_magnitude, s_magnitude=s_magnitude)
         for l_magnitude, s_magnitude in product(
             _int_domain(0, max_angular_momentum),
-            _halves_domain(Fraction(0, 1), max_spin_magnitude),
+            _halves_domain(Fraction(0, 1), Fraction(max_spin_magnitude)),
         )
     ]
 
@@ -273,7 +273,7 @@ def generate_transitions(  # noqa: PLR0917
     particle_db: ParticleCollection | None = None,
     mass_conservation_factor: float | None = 3.0,
     max_angular_momentum: int = 2,
-    max_spin_magnitude: Fraction = Fraction(2, 1),
+    max_spin_magnitude: float | Fraction = Fraction(2, 1),
     topology_building: str = "isobar",
     number_of_threads: int | None = None,
 ) -> ReactionInfo:
@@ -361,7 +361,7 @@ def generate_transitions(  # noqa: PLR0917
         formalism=formalism,
         mass_conservation_factor=mass_conservation_factor,
         max_angular_momentum=max_angular_momentum,
-        max_spin_magnitude=max_spin_magnitude,
+        max_spin_magnitude=Fraction(max_spin_magnitude),
         topology_building=topology_building,
         number_of_threads=number_of_threads,
     )
