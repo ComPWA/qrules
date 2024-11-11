@@ -8,6 +8,7 @@ import warnings
 from collections import defaultdict
 from copy import copy, deepcopy
 from enum import Enum, auto
+from fractions import Fraction
 from multiprocessing import Pool
 from typing import TYPE_CHECKING, Literal, overload
 
@@ -242,7 +243,7 @@ class StateTransitionManager:
         reload_pdg: bool = False,
         mass_conservation_factor: float | None = 3.0,
         max_angular_momentum: int = 1,
-        max_spin_magnitude: float = 2.0,
+        max_spin_magnitude: Fraction = Fraction(2, 1),
         number_of_threads: int | None = None,
     ) -> None:
         if number_of_threads is not None:
