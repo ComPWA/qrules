@@ -234,8 +234,8 @@ def __safe_set_spin_projections(
             particle_name = state
             particle = particle_db[particle_name]
             spin_projections = set(arange(-particle.spin, particle.spin + 1))
-            if particle.mass == 0.0 and Fraction(0, 1) in spin_projections:
-                spin_projections.remove(Fraction(0, 1))
+            if particle.mass == 0.0 and Fraction(0) in spin_projections:
+                spin_projections.remove(Fraction(0))
             return particle_name, sorted(spin_projections)
         return state
 

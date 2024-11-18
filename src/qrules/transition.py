@@ -245,7 +245,7 @@ class StateTransitionManager:
         reload_pdg: bool = False,
         mass_conservation_factor: float | None = 3.0,
         max_angular_momentum: int = 1,
-        max_spin_magnitude: float | Fraction = Fraction(2, 1),
+        max_spin_magnitude: float | Fraction = 2,
         number_of_threads: int | None = None,
     ) -> None:
         if number_of_threads is not None:

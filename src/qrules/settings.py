@@ -127,7 +127,7 @@ def create_interaction_settings(  # noqa: PLR0917
     nbody_topology: bool = False,
     mass_conservation_factor: float | None = 3.0,
     max_angular_momentum: int = 2,
-    max_spin_magnitude: float | Fraction = Fraction(2, 1),
+    max_spin_magnitude: float | Fraction = 2,
 ) -> dict[InteractionType, tuple[EdgeSettings, NodeSettings]]:
     """Create a container that holds the settings for `.InteractionType`."""
     formalism_edge_settings = EdgeSettings(
@@ -246,8 +246,8 @@ def __get_spin_magnitudes(
     is_nbody: bool, max_spin_magnitude: Fraction
 ) -> list[Fraction]:
     if is_nbody:
-        return [Fraction(0, 1)]
-    return _halves_domain(Fraction(0, 1), max_spin_magnitude)
+        return [Fraction(0)]
+    return _halves_domain(Fraction(0), max_spin_magnitude)
 
 
 def _create_domains(particle_db: ParticleCollection) -> dict[Any, list]:
@@ -308,7 +308,7 @@ def __positive_halves_domain(
     particle_db: ParticleCollection, attr_getter: Callable[[Particle], Any]
 ) -> list[Fraction]:
     values = set(map(attr_getter, particle_db))
-    return _halves_domain(Fraction(0, 1), max(values))
+    return _halves_domain(Fraction(0), max(values))
 
 
 def __positive_int_domain(

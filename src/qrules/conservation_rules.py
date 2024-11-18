@@ -855,7 +855,7 @@ def gellmann_nishijima(edge_qns: GellMannNishijimaInput) -> bool:
         or edge_qns.tau_lepton_number
     ):
         return True
-    isospin_3 = Fraction(0, 1)
+    isospin_3 = Fraction(0)
     if edge_qns.isospin_projection:
         isospin_3 = edge_qns.isospin_projection
     return float(edge_qns.charge) == isospin_3 + 0.5 * calculate_hypercharge(edge_qns)
