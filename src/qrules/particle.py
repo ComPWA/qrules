@@ -241,11 +241,7 @@ class Particle:
                         p.breakable()
                         p.text(f"{attribute.name}=")
                         if isinstance(value, Parity):
-                            p.text(
-                                _float_as_signed_fraction_str(
-                                    int(value), render_plus=True
-                                )
-                            )
+                            p.text(_int_as_signed_str(int(value), render_plus=True))
                         else:
                             p.pretty(value)  # type: ignore[attr-defined]
                         p.text(",")
@@ -253,8 +249,8 @@ class Particle:
             p.text(")")
 
 
-def _float_as_signed_fraction_str(value: float, render_plus: bool = False) -> str:
-    label = str(Fraction(value))
+def _int_as_signed_str(value: int, render_plus: bool = False) -> str:
+    label = str(value)
     if render_plus and value > 0:
         return f"+{label}"
     return label
