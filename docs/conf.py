@@ -49,7 +49,7 @@ api_github_repo = f"{ORGANIZATION}/{REPO_NAME}"
 api_target_substitutions: dict[str, str | tuple[str, str]] = {
     "EdgeQuantumNumberTypes": ("obj", "qrules.quantum_numbers.EdgeQuantumNumberTypes"),
     "EdgeType": "typing.TypeVar",
-    "Fraction": "fraction.Fraction",
+    "Fraction": ("obj", "fractions.Fraction"),
     "GraphEdgePropertyMap": ("obj", "qrules.argument_handling.GraphEdgePropertyMap"),
     "GraphElementProperties": ("obj", "qrules.solving.GraphElementProperties"),
     "GraphNodePropertyMap": ("obj", "qrules.argument_handling.GraphNodePropertyMap"),
@@ -296,7 +296,6 @@ nitpick_ignore_regex = [
     (r"py:(class|obj)", r"qrules\.topology\.NewNodeType"),
     (r"py:(class|obj)", r"qrules\.topology\.NodeType"),
     (r"py:(class|obj)", r"qrules\.topology\.VT"),
-    (r"py:(class|obj)", r"fraction\.Fraction"),
     *nitpick_temp_patterns,
 ]
 nitpicky = True
