@@ -1,9 +1,10 @@
 import typing
 from copy import deepcopy
+from fractions import Fraction
 
 import pytest
 
-from qrules.particle import _float_as_signed_fraction_str
+from qrules.io._dot import _render_fraction
 from qrules.quantum_numbers import Parity
 
 
@@ -69,4 +70,4 @@ class TestParity:
     ],
 )
 def test_to_fraction(value, render_plus: bool, expected: str):
-    assert _float_as_signed_fraction_str(value, render_plus) == expected
+    assert _render_fraction(Fraction(value), render_plus) == expected

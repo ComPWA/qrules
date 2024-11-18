@@ -1,3 +1,4 @@
+from fractions import Fraction
 from itertools import product
 
 import pytest
@@ -16,7 +17,9 @@ from qrules.conservation_rules import GellMannNishijimaInput, gellmann_nishijima
             ),
             charge == isospin_z + 0.5,
         )
-        for charge, isospin_z in product(range(-1, 1), [-1, 0.5, 0, 0.5, 1])
+        for charge, isospin_z in product(
+            range(-1, 1), list(map(Fraction, [-1, 0.5, 0, 0.5, 1]))
+        )
     ]
     + [
         (
@@ -29,7 +32,7 @@ from qrules.conservation_rules import GellMannNishijimaInput, gellmann_nishijima
             charge == isospin_z + 0.5 * (1 + strangeness),
         )
         for charge, isospin_z, strangeness in product(
-            range(-1, 1), [-1, 0.5, 0, 0.5, 1], [-1, 0, 1]
+            range(-1, 1), list(map(Fraction, [-1, 0.5, 0, 0.5, 1])), [-1, 0, 1]
         )
     ],
 )
