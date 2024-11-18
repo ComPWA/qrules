@@ -26,6 +26,7 @@ if TYPE_CHECKING:
 Scalar = Union[int, float, Fraction]
 
 Rule = Union[GraphElementRule, EdgeQNConservationRule, ConservationRule]
+"""Any type of rule"""
 
 _ElementType = TypeVar("_ElementType")
 

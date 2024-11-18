@@ -47,6 +47,7 @@ BINDER_LINK = (
 add_module_names = False
 api_github_repo = f"{ORGANIZATION}/{REPO_NAME}"
 api_target_substitutions: dict[str, str | tuple[str, str]] = {
+    "EdgeQuantumNumberTypes": ("obj", "qrules.quantum_numbers.EdgeQuantumNumberTypes"),
     "EdgeType": "typing.TypeVar",
     "Fraction": "fraction.Fraction",
     "GraphEdgePropertyMap": ("obj", "qrules.argument_handling.GraphEdgePropertyMap"),
@@ -57,11 +58,13 @@ api_target_substitutions: dict[str, str | tuple[str, str]] = {
     "NewEdgeType": "typing.TypeVar",
     "NewNodeType": "typing.TypeVar",
     "NodeQuantumNumber": ("obj", "qrules.quantum_numbers.NodeQuantumNumber"),
+    "NodeQuantumNumberTypes": ("obj", "qrules.quantum_numbers.NodeQuantumNumberTypes"),
     "NodeType": "typing.TypeVar",
     "ParticleWithSpin": ("obj", "qrules.particle.ParticleWithSpin"),
     "Path": "pathlib.Path",
     "qrules.topology.EdgeType": "typing.TypeVar",
     "qrules.topology.NodeType": "typing.TypeVar",
+    "Rule": ("obj", "qrules.argument_handling.Rule"),
     "SpinFormalism": ("obj", "qrules.transition.SpinFormalism"),
     "StateDefinition": ("obj", "qrules.combinatorics.StateDefinition"),
     "StateDefinitionInput": ("obj", "qrules.combinatorics.StateDefinition"),
