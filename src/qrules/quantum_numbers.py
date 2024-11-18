@@ -158,7 +158,7 @@ class NodeQuantumNumbers:
     l_projection = NewType("l_projection", Fraction)
     s_magnitude = NewType("s_magnitude", Fraction)
     s_projection = NewType("s_projection", Fraction)
-    parity_prefactor = NewType("parity_prefactor", Fraction)
+    parity_prefactor = NewType("parity_prefactor", float)
 
 
 for node_qn_name, node_qn_type in NodeQuantumNumbers.__dict__.items():
