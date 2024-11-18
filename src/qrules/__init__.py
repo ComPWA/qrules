@@ -24,7 +24,12 @@ from typing import TYPE_CHECKING
 import attrs
 
 from qrules import io
-from qrules.combinatorics import InitialFacts, StateDefinition, create_initial_facts
+from qrules.combinatorics import (
+    InitialFacts,
+    StateDefinition,
+    StateDefinitionInput,
+    create_initial_facts,
+)
 from qrules.conservation_rules import (
     BaryonNumberConservation,
     BottomnessConservation,
@@ -265,8 +270,8 @@ def check_reaction_violations(  # noqa: C901, PLR0917
 
 
 def generate_transitions(  # noqa: PLR0917
-    initial_state: StateDefinition | Sequence[StateDefinition],
-    final_state: Sequence[StateDefinition],
+    initial_state: StateDefinitionInput | Sequence[StateDefinitionInput],
+    final_state: Sequence[StateDefinitionInput],
     allowed_intermediate_particles: list[str] | None = None,
     allowed_interaction_types: str | Iterable[str] | None = None,
     formalism: SpinFormalism = "canonical-helicity",

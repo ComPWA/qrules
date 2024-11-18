@@ -21,6 +21,8 @@ from qrules._implementers import implement_pretty_repr
 from qrules.combinatorics import (
     InitialFacts,
     StateDefinition,
+    StateDefinitionInput,
+    as_state_definition,
     create_initial_facts,
     ensure_nested_list,
     match_external_edges,
@@ -221,17 +223,6 @@ def _group_by_strength(
     return strength_sorted_problem_sets
 
 
-def _fractionalize_statedefinitions(definition: StateDefinition) -> StateDefinition:
-    if type(definition) is str:
-        return definition
-    if type(definition) is tuple:
-        name = definition[0]
-        state = definition[1]
-        return name, list(map(Fraction, state))
-    msg = f"value has to be of type {StateDefinition}, got {type(definition)}"
-    raise ValueError(msg)
-
-
 class StateTransitionManager:
     """Main handler for decay topologies.
 
@@ -240,8 +231,8 @@ class StateTransitionManager:
 
     def __init__(  # noqa: C901, PLR0912, PLR0917
         self,
-        initial_state: Sequence[StateDefinition],
-        final_state: Sequence[StateDefinition],
+        initial_state: Sequence[StateDefinitionInput],
+        final_state: Sequence[StateDefinitionInput],
         particle_db: ParticleCollection | None = None,
         allowed_intermediate_particles: list[str] | None = None,
         interaction_type_settings: dict[
@@ -274,8 +265,8 @@ class StateTransitionManager:
         if particle_db is not None:
             self.__particles = particle_db
         self.reaction_mode = str(solving_mode)
-        self.initial_state = list(map(_fractionalize_statedefinitions, initial_state))
-        self.final_state = list(map(_fractionalize_statedefinitions, final_state))
+        self.initial_state = list(map(as_state_definition, initial_state))
+        self.final_state = list(map(as_state_definition, final_state))
         self.interaction_type_settings = interaction_type_settings
 
         self.interaction_determinators: list[InteractionDeterminator] = [
