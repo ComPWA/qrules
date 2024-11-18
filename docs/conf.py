@@ -48,6 +48,7 @@ add_module_names = False
 api_github_repo = f"{ORGANIZATION}/{REPO_NAME}"
 api_target_substitutions: dict[str, str | tuple[str, str]] = {
     "EdgeType": "typing.TypeVar",
+    "Fraction": "fraction.Fraction",
     "GraphEdgePropertyMap": ("obj", "qrules.argument_handling.GraphEdgePropertyMap"),
     "GraphElementProperties": ("obj", "qrules.solving.GraphElementProperties"),
     "GraphNodePropertyMap": ("obj", "qrules.argument_handling.GraphNodePropertyMap"),
@@ -63,6 +64,7 @@ api_target_substitutions: dict[str, str | tuple[str, str]] = {
     "qrules.topology.NodeType": "typing.TypeVar",
     "SpinFormalism": ("obj", "qrules.transition.SpinFormalism"),
     "StateDefinition": ("obj", "qrules.combinatorics.StateDefinition"),
+    "StateDefinitionInput": ("obj", "qrules.combinatorics.StateDefinition"),
     "StateTransition": ("obj", "qrules.transition.StateTransition"),
     "typing.Literal[-1, 1]": "typing.Literal",
 }
@@ -291,6 +293,7 @@ nitpick_ignore_regex = [
     (r"py:(class|obj)", r"qrules\.topology\.NewNodeType"),
     (r"py:(class|obj)", r"qrules\.topology\.NodeType"),
     (r"py:(class|obj)", r"qrules\.topology\.VT"),
+    (r"py:(class|obj)", r"fraction\.Fraction"),
     *nitpick_temp_patterns,
 ]
 nitpicky = True
