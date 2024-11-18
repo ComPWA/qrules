@@ -274,8 +274,8 @@ def __generate_spin_combinations(
 
 def permutate_topology_kinematically(
     topology: Topology,
-    initial_state: list[StateDefinitionInput] | list[StateDefinition],
-    final_state: list[StateDefinitionInput] | list[StateDefinition],
+    initial_state: Sequence[StateDefinitionInput] | Sequence[StateDefinition],
+    final_state: Sequence[StateDefinitionInput] | Sequence[StateDefinition],
     final_state_groupings: list[list[list[str]]]
     | list[list[str]]
     | list[str]
@@ -287,7 +287,7 @@ def permutate_topology_kinematically(
         return state
 
     edge_ids = sorted(topology.incoming_edge_ids) + sorted(topology.outgoing_edge_ids)
-    states = initial_state + final_state
+    states = list(initial_state) + list(final_state)
     return _generate_kinematic_permutations(
         topology,
         particle_names={i: strip_spin(s) for i, s in zip(edge_ids, states)},
