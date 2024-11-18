@@ -27,6 +27,7 @@ StateWithSpins = tuple[str, Sequence[Fraction]]
 StateDefinition = Union[str, StateWithSpins]
 """Particle name, optionally with a list of spin projections."""
 StateDefinitionInput = Union[str, tuple[str, Sequence[Scalar]]]
+"""Input type for `StateDefinition` permitting also `int` and `float`"""
 InitialFacts = MutableTransition[ParticleWithSpin, InteractionProperties]
 """A `.Transition` with only initial and final state information."""
 
