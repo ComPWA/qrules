@@ -390,10 +390,10 @@ class TestSpin:
     )
     def test_exceptions(self, magnitude, projection):
         regex_pattern = "|".join([  # noqa: FLY002
-            r"Spin magnitude \d*/\d* has to be a multitude of \d\.[05]",
+            r"Spin magnitude \d+/\d+ has to be a multitude of \d\.[05]",
             r"\(projection - magnitude\) should be integer",
             r"Spin magnitude has to be positive",
-            r"Absolute value of spin projection cannot be larger than its",
+            r"Absolute value of spin projection cannot be larger than the magnitude",
         ])
         with pytest.raises(ValueError, match=regex_pattern):
             print(Spin(magnitude, projection))
