@@ -56,11 +56,11 @@ def _validate_fraction_for_spin(
     attribute: Attribute,  # noqa: ARG001
     value: Fraction,  # noqa: ARG001
 ) -> Any:
-    if instance.magnitude % Fraction(1, 2) != Fraction(0, 1):
+    if instance.magnitude % Fraction(1, 2) != Fraction(0):
         msg = f"Spin magnitude {instance.magnitude} has to be a multitude of 0.5"
         raise ValueError(msg)
     if abs(instance.projection) > instance.magnitude:
-        if instance.magnitude < Fraction(0, 1):
+        if instance.magnitude < Fraction(0):
             msg = f"Spin magnitude has to be positive, but is {instance.magnitude}"
             raise ValueError(msg)
         msg = (
