@@ -325,13 +325,7 @@ def _(obj: dict) -> str:
 def __render_as_fraction(value: Any, plusminus: bool) -> str:
     plusminus &= isinstance(value, Number) and bool(value)
     if isinstance(value, float):
-        if value.is_integer():
-            return str(int(value))
-        nom, denom = value.as_integer_ratio()
-        if denom == 2:
-            if plusminus:
-                return f"{nom:+}/{denom}"
-            return f"{nom}/{denom}"
+        return _render_fraction(Fraction(value), plusminus)
     if isinstance(value, Fraction):
         return _render_fraction(value, plusminus)
     if plusminus:
