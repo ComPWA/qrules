@@ -114,14 +114,14 @@ class Spin:  # noqa: PLW1641
 
     def _repr_pretty_(self, p: PrettyPrinter, _: bool) -> None:
         class_name = type(self).__name__
-        magnitude = _to_signed_fraction(self.magnitude)
-        projection = _to_signed_fraction(self.projection, render_plus=True)
+        magnitude = _render_fraction(self.magnitude)
+        projection = _render_fraction(self.projection, plusminus=True)
         p.text(f"{class_name}({magnitude}, {projection})")
 
 
-def _to_signed_fraction(fraction: Fraction, render_plus: bool = False) -> str:
+def _render_fraction(fraction: Fraction, plusminus: bool = False) -> str:
     string_representation = str(fraction)
-    if render_plus and fraction.numerator > 0:
+    if plusminus and fraction.numerator > 0:
         return f"+{string_representation}"
     return string_representation
 

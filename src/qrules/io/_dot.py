@@ -18,7 +18,7 @@ import attrs
 from attrs import Attribute, define, field
 from attrs.converters import default_if_none
 
-from qrules.particle import Particle, ParticleWithSpin, Spin
+from qrules.particle import Particle, ParticleWithSpin, Spin, _render_fraction
 from qrules.quantum_numbers import InteractionProperties
 from qrules.solving import EdgeSettings, NodeSettings, QNProblemSet, QNResult
 from qrules.topology import FrozenTransition, MutableTransition, Topology, Transition
@@ -319,16 +319,6 @@ def _(obj: dict) -> str:
             value_repr = _render_fraction(value, pm)
             lines.append(f"{key_repr} = {value_repr}")
     return "\n".join(lines)
-
-
-def _render_fraction(fraction: Fraction, plusminus: bool = False) -> str:
-    if plusminus:
-        if fraction.denominator == 1:
-            if fraction.numerator > 0:
-                return f"{fraction.numerator:+}"
-            return str(fraction)
-        return f"{fraction.numerator:+}/{fraction.denominator}"
-    return str(fraction)
 
 
 @as_string.register(InteractionProperties)
