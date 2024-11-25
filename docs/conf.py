@@ -67,7 +67,7 @@ api_target_substitutions: dict[str, str | tuple[str, str]] = {
     "Rule": ("obj", "qrules.argument_handling.Rule"),
     "SpinFormalism": ("obj", "qrules.transition.SpinFormalism"),
     "StateDefinition": ("obj", "qrules.combinatorics.StateDefinition"),
-    "StateDefinitionInput": ("obj", "qrules.combinatorics.StateDefinition"),
+    "StateDefinitionInput": ("obj", "qrules.combinatorics.StateDefinitionInput"),
     "StateTransition": ("obj", "qrules.transition.StateTransition"),
     "typing.Literal[-1, 1]": "typing.Literal",
 }
