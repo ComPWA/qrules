@@ -340,13 +340,13 @@ def __render_as_fraction(value: Any, plusminus: bool) -> str:
 
 
 def _render_fraction(fraction: Fraction, plusminus: bool = False) -> str:
-    if fraction.denominator == 1:
-        if plusminus and fraction.numerator > 0:
-            return f"{fraction.numerator:+}"
-        return str(fraction.numerator)
     if plusminus:
+        if fraction.denominator == 1:
+            if fraction.numerator > 0:
+                return f"{fraction.numerator:+}"
+            return str(fraction)
         return f"{fraction.numerator:+}/{fraction.denominator}"
-    return f"{fraction.numerator}/{fraction.denominator}"
+    return str(fraction)
 
 
 @as_string.register(InteractionProperties)
