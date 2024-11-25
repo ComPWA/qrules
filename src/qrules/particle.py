@@ -27,7 +27,7 @@ from attrs.converters import optional
 from attrs.validators import instance_of
 
 from qrules.conservation_rules import GellMannNishijimaInput, gellmann_nishijima
-from qrules.quantum_numbers import Parity
+from qrules.quantum_numbers import Parity, _float_as_signed_str
 
 if sys.version_info < (3, 11):
     from typing_extensions import Self
@@ -241,19 +241,12 @@ class Particle:
                         p.breakable()
                         p.text(f"{attribute.name}=")
                         if isinstance(value, Parity):
-                            p.text(_int_as_signed_str(int(value), render_plus=True))
+                            p.text(_float_as_signed_str(int(value), render_plus=True))
                         else:
                             p.pretty(value)  # type: ignore[attr-defined]
                         p.text(",")
             p.breakable()
             p.text(")")
-
-
-def _int_as_signed_str(value: int, render_plus: bool = False) -> str:
-    label = str(value)
-    if render_plus and value > 0:
-        return f"+{label}"
-    return label
 
 
 def _get_name_root(name: str) -> str:
