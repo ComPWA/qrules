@@ -127,7 +127,7 @@ def create_interaction_settings(  # noqa: PLR0917
     nbody_topology: bool = False,
     mass_conservation_factor: float | None = 3.0,
     max_angular_momentum: int = 2,
-    max_spin_magnitude: float | Fraction = Fraction(2, 1),
+    max_spin_magnitude: float = 2,
 ) -> dict[InteractionType, tuple[EdgeSettings, NodeSettings]]:
     """Create a container that holds the settings for `.InteractionType`."""
     formalism_edge_settings = EdgeSettings(
@@ -144,9 +144,7 @@ def create_interaction_settings(  # noqa: PLR0917
     angular_momentum_domain = __get_ang_mom_magnitudes(
         nbody_topology, max_angular_momentum
     )
-    spin_magnitude_domain = __get_spin_magnitudes(
-        nbody_topology, Fraction(max_spin_magnitude)
-    )
+    spin_magnitude_domain = __get_spin_magnitudes(nbody_topology, max_spin_magnitude)
     if "helicity" in formalism:
         formalism_node_settings.conservation_rules = {
             spin_magnitude_conservation,
@@ -242,12 +240,10 @@ def __get_ang_mom_magnitudes(is_nbody: bool, max_angular_momentum: int) -> list[
     return _int_domain(0, max_angular_momentum)  # type: ignore[return-value]
 
 
-def __get_spin_magnitudes(
-    is_nbody: bool, max_spin_magnitude: Fraction
-) -> list[Fraction]:
+def __get_spin_magnitudes(is_nbody: bool, max_spin_magnitude: float) -> list[Fraction]:
     if is_nbody:
-        return [Fraction(0, 1)]
-    return _halves_domain(Fraction(0, 1), max_spin_magnitude)
+        return [Fraction(0)]
+    return _halves_domain(0, max_spin_magnitude)
 
 
 def _create_domains(particle_db: ParticleCollection) -> dict[Any, list]:
@@ -308,7 +304,7 @@ def __positive_halves_domain(
     particle_db: ParticleCollection, attr_getter: Callable[[Particle], Any]
 ) -> list[Fraction]:
     values = set(map(attr_getter, particle_db))
-    return _halves_domain(Fraction(0, 1), max(values))
+    return _halves_domain(0, max(values))
 
 
 def __positive_int_domain(
@@ -318,14 +314,16 @@ def __positive_int_domain(
     return _int_domain(0, max(values))
 
 
-def _halves_domain(start: Fraction, stop: Fraction) -> list[Fraction]:
-    if start.denominator not in {1, 2}:
+def _halves_domain(start: float, stop: float) -> list[Fraction]:
+    start_frac = Fraction(start)
+    stop_frac = Fraction(stop)
+    if start_frac.denominator not in {1, 2}:
         msg = f"Start value {start} needs to be multiple of 0.5"
         raise ValueError(msg)
-    if stop.denominator not in {1, 2}:
+    if stop_frac.denominator not in {1, 2}:
         msg = f"Stop value {stop} needs to be multiple of 0.5"
         raise ValueError(msg)
-    return list(arange(start, stop + Fraction(1, 4), delta=Fraction(1, 2)))
+    return list(arange(start_frac, stop_frac + Fraction(1, 4), delta=Fraction(1, 2)))
 
 
 def _int_domain(start: int, stop: int) -> list[int]:
