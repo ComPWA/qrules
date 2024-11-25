@@ -79,7 +79,7 @@ class TestParticle:
                 parity=-1,
                 c_parity=-1,
                 g_parity=-1,
-                isospin=(Fraction(0), Fraction(0)),
+                isospin=(0, 0),
                 charmness=1,
             )
 

@@ -130,7 +130,7 @@ def _to_parity(value: Parity | int) -> Parity:
     return Parity(int(value))
 
 
-def _to_spin(value: Spin | tuple[Fraction, Fraction]) -> Spin:
+def _to_spin(value: Spin | tuple[Fraction, Fraction] | tuple[float, float]) -> Spin:
     if isinstance(value, tuple):
         return Spin(*value)
     return value
