@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from fractions import Fraction
 from typing import TYPE_CHECKING
 
 import pytest
@@ -89,11 +88,11 @@ def test_create_interaction_settings(
         "parity": [-1, +1],
         "c_parity": [-1, +1, None],
         "g_parity": [-1, +1, None],
-        "spin_magnitude": _halves_domain(*tuple(map(Fraction, (0, 4)))),
-        "spin_projection": _halves_domain(*tuple(map(Fraction, (-4, +4)))),
+        "spin_magnitude": _halves_domain(0, 4),
+        "spin_projection": _halves_domain(-4, 4),
         "charge": _int_domain(-2, 2),
-        "isospin_magnitude": _halves_domain(*tuple(map(Fraction, (0, 1.5)))),
-        "isospin_projection": _halves_domain(*tuple(map(Fraction, (-1.5, +1.5)))),
+        "isospin_magnitude": _halves_domain(0, 1.5),
+        "isospin_projection": _halves_domain(-1.5, +1.5),
         "strangeness": _int_domain(-3, +3),
         "charmness": _int_domain(-1, 1),
         "bottomness": _int_domain(-1, 1),
@@ -101,11 +100,11 @@ def test_create_interaction_settings(
 
     expected = {
         "l_magnitude": _int_domain(0, 2),
-        "s_magnitude": _halves_domain(*tuple(map(Fraction, (0, 2)))),
+        "s_magnitude": _halves_domain(0, 2),
     }
     if "canonical" in formalism:
         expected["l_projection"] = [-2, -1, 0, 1, 2]
-        expected["s_projection"] = _halves_domain(*tuple(map(Fraction, (-2, 2))))
+        expected["s_projection"] = _halves_domain(-2, 2)
     if formalism == "canonical-helicity":
         expected["l_projection"] = [0]
     if "helicity" in formalism and interaction_type != InteractionType.WEAK:
@@ -134,6 +133,6 @@ def test_create_interaction_settings(
 def test_halves_range(start: float, stop: float, expected: list | None):
     if expected is None:
         with pytest.raises(ValueError, match=r"needs to be multiple of 0.5"):
-            _halves_domain(Fraction(start), Fraction(stop))
+            _halves_domain(start, stop)
     else:
-        assert _halves_domain(Fraction(start), Fraction(stop)) == expected
+        assert _halves_domain(start, stop) == expected
