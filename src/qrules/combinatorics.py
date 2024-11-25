@@ -38,8 +38,7 @@ def as_state_definition(
     if type(definition) is str:
         return definition
     if type(definition) is tuple:
-        name = definition[0]
-        state = definition[1]
+        name, state = definition
         return name, list(map(Fraction, state))  # type: ignore  # noqa: PGH003
     msg = f"value has to be of type {StateDefinitionInput}, got {type(definition)}"
     raise ValueError(msg)
