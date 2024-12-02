@@ -229,7 +229,6 @@ class InitialProblem:
         particle_db: ParticleCollection,
         topology_builder: str,
     ) -> None:
-        self.particle_db = particle_db
         for i_state_def in initial_state:
             if isinstance(i_state_def, tuple):
                 i_state_def = i_state_def[0]
@@ -244,23 +243,26 @@ class InitialProblem:
             if f_state_def not in particle_db:
                 msg = f"final particle {i_state_def} not in provided particle database"
                 raise ValueError(msg)
-        self.initial_state = list(initial_state)
-        self.final_state = list(final_state)
 
         allowed_builders = {"isobar", "n-body", "nbody"}
         if topology_builder not in allowed_builders:
             msg = f"Argument 'topology_builder' has to be one of {allowed_builders}\nn-body and nbody are equivalent"
             raise ValueError(msg)
-        self.topology_builder = topology_builder
         if topology_builder == "isobar":
-            self.topologies = create_isobar_topologies(len(final_state))
+            topologies = create_isobar_topologies(len(final_state))
         else:
-            self.topologies = (
+            topologies = (
                 create_n_body_topology(
                     len(initial_state),
                     len(final_state),
                 ),
             )
+
+        self.particle_db = particle_db
+        self.initial_state = list(initial_state)
+        self.final_state = list(final_state)
+        self.topology_builder = topology_builder
+        self.topologies = topologies
 
 
 class StateTransitionManager:
