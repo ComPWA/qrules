@@ -220,6 +220,49 @@ def _group_by_strength(
     return strength_sorted_problem_sets
 
 
+@frozen
+class InitialProblem:
+    def __init__(
+        self,
+        initial_state: Sequence[StateDefinition],
+        final_state: Sequence[StateDefinition],
+        particle_db: ParticleCollection,
+        topology_builder: str,
+    ) -> None:
+        self.particle_db = particle_db
+        for i_state_def in initial_state:
+            if isinstance(i_state_def, tuple):
+                i_state_def = i_state_def[0]
+            if i_state_def not in particle_db:
+                msg = (
+                    f"initial particle {i_state_def} not in provided particle database"
+                )
+                raise ValueError(msg)
+        for f_state_def in final_state:
+            if isinstance(f_state_def, tuple):
+                f_state_def = f_state_def[0]
+            if f_state_def not in particle_db:
+                msg = f"final particle {i_state_def} not in provided particle database"
+                raise ValueError(msg)
+        self.initial_state = list(initial_state)
+        self.final_state = list(final_state)
+
+        allowed_builders = {"isobar", "n-body", "nbody"}
+        if topology_builder not in allowed_builders:
+            msg = f"Argument 'topology_builder' has to be one of {allowed_builders}\nn-body and nbody are equivalent"
+            raise ValueError(msg)
+        self.topology_builder = topology_builder
+        if topology_builder == "isobar":
+            self.topologies = create_isobar_topologies(len(final_state))
+        else:
+            self.topologies = (
+                create_n_body_topology(
+                    len(initial_state),
+                    len(final_state),
+                ),
+            )
+
+
 class StateTransitionManager:
     """Main handler for decay topologies.
 
