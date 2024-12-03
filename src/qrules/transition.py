@@ -258,11 +258,78 @@ class InitialProblem:
                 ),
             )
 
-        self.particle_db = particle_db
-        self.initial_state = list(initial_state)
-        self.final_state = list(final_state)
-        self.topology_builder = topology_builder
-        self.topologies = topologies
+        self.particle_db: ParticleCollection = particle_db
+        self.initial_state: list[StateDefinition] = list(initial_state)
+        self.final_state: list[StateDefinition] = list(final_state)
+        self.topology_builder: str = topology_builder
+        self.topologies: tuple[Topology, ...] | tuple[Topology] = topologies
+
+
+@frozen
+class InteractionSettings:
+    def __init__(
+        self,
+        formalism: SpinFormalism,
+        initial_problem: InitialProblem,
+        mass_conservation_factor: float | None = 3.0,
+        max_angular_momentum: int = 1,
+        max_spin_magnitude: float = 2.0,
+    ) -> None:
+        using_nbody = False
+        if initial_problem.topology_builder in {"n-body", "nbody"}:
+            using_nbody = True
+        interaction_type_settings = create_interaction_settings(
+            formalism,
+            initial_problem.particle_db,
+            using_nbody,
+            mass_conservation_factor,
+            max_angular_momentum,
+            max_spin_magnitude,
+        )
+
+        self.interaction_type_settings: dict[
+            InteractionType, tuple[EdgeSettings, NodeSettings]
+        ] = interaction_type_settings
+
+
+class IntermediateStates:
+    def __init__(
+        self,
+        allowed_intermediate_particles: list[str] | str | None,
+        initial_problem: InitialProblem,
+        regex: bool = False,
+    ) -> None:
+        if allowed_intermediate_particles is None:
+            allowed_intermediate_states = [
+                create_edge_properties(particle)
+                for particle in initial_problem.particle_db
+            ]
+            use_weak_qn_domains_only = True
+        else:
+            if isinstance(allowed_intermediate_particles, str):
+                allowed_intermediate_particles = [allowed_intermediate_particles]
+            selected_particles = ParticleCollection()
+            for pattern in allowed_intermediate_particles:
+                matches = _filter_by_name_pattern(
+                    initial_problem.particle_db, pattern, regex
+                )
+                if len(matches) == 0:
+                    msg = (
+                        "Could not find any matches for allowed intermediate particle"
+                        f' pattern "{pattern}"'
+                    )
+                    raise LookupError(msg)
+                selected_particles.update(matches)
+            allowed_intermediate_states = [
+                create_edge_properties(x)
+                for x in sorted(selected_particles, key=lambda p: p.name)
+            ]
+            use_weak_qn_domains_only = False
+
+        self.allowed_intermediate_states: list[GraphEdgePropertyMap] = (
+            allowed_intermediate_states
+        )
+        self._use_weak_qn_domains_only: bool = use_weak_qn_domains_only
 
 
 class StateTransitionManager:
