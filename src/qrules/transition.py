@@ -258,9 +258,9 @@ class InitialProblem:
                 ),
             )
 
-        self.particle_db: ParticleCollection = particle_db
         self.initial_state: list[StateDefinition] = list(initial_state)
         self.final_state: list[StateDefinition] = list(final_state)
+        self.particle_db: ParticleCollection = particle_db
         self.topology_builder: str = topology_builder
         self.topologies: tuple[Topology, ...] | tuple[Topology] = topologies
 
@@ -271,6 +271,10 @@ class InteractionSettings:
         self,
         formalism: SpinFormalism,
         initial_problem: InitialProblem,
+        allowed_interaction_types: list[InteractionType]
+        | dict[int, list[InteractionType]]
+        | None = None,
+        *,
         mass_conservation_factor: float | None = 3.0,
         max_angular_momentum: int = 1,
         max_spin_magnitude: float = 2.0,
@@ -278,6 +282,8 @@ class InteractionSettings:
         using_nbody = False
         if initial_problem.topology_builder in {"n-body", "nbody"}:
             using_nbody = True
+            if len(initial_problem.initial_state) > 1:
+                mass_conservation_factor = None
         interaction_type_settings = create_interaction_settings(
             formalism,
             initial_problem.particle_db,
@@ -286,10 +292,19 @@ class InteractionSettings:
             max_angular_momentum,
             max_spin_magnitude,
         )
+        if allowed_interaction_types is None:
+            allowed_interaction_types = DEFAULT_INTERACTION_TYPES
 
         self.interaction_type_settings: dict[
             InteractionType, tuple[EdgeSettings, NodeSettings]
         ] = interaction_type_settings
+        self.allowed_interaction_types: (
+            list[InteractionType] | dict[int, list[InteractionType]]
+        ) = allowed_interaction_types
+        self.interaction_determinators: list[InteractionDeterminator] = [
+            LeptonCheck(),
+            GammaCheck(),
+        ]
 
 
 class IntermediateStates:
