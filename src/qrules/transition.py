@@ -220,7 +220,6 @@ def _group_by_strength(
     return strength_sorted_problem_sets
 
 
-@frozen
 class InitialProblem:
     def __init__(
         self,
@@ -228,6 +227,8 @@ class InitialProblem:
         final_state: Sequence[StateDefinition],
         particle_db: ParticleCollection,
         topology_builder: str,
+        *,
+        final_state_groupings: list[list[list[str]]] | None = None,
     ) -> None:
         for i_state_def in initial_state:
             if isinstance(i_state_def, tuple):
@@ -263,6 +264,7 @@ class InitialProblem:
         self.particle_db: ParticleCollection = particle_db
         self.topology_builder: str = topology_builder
         self.topologies: tuple[Topology, ...] | tuple[Topology] = topologies
+        self.final_state_groupings: list[list[list[str]]] | None = final_state_groupings
 
 
 @frozen
@@ -344,7 +346,165 @@ class IntermediateStates:
         self.allowed_intermediate_states: list[GraphEdgePropertyMap] = (
             allowed_intermediate_states
         )
-        self._use_weak_qn_domains_only: bool = use_weak_qn_domains_only
+        self.use_weak_qn_domains_only: bool = use_weak_qn_domains_only
+
+
+def create_problem_sets(
+    initial_problem: InitialProblem,
+    allowed_intermediate_states: IntermediateStates,
+    interaction_settings: InteractionSettings,
+) -> dict[float, list[ProblemSet]]:
+    problem_sets = [
+        ProblemSet(permutation, initial_facts, settings)
+        for topology in initial_problem.topologies
+        for permutation in permutate_topology_kinematically(
+            topology,
+            initial_problem.initial_state,
+            initial_problem.final_state,
+            initial_problem.final_state_groupings,
+        )
+        for initial_facts in create_initial_facts(
+            permutation,
+            initial_problem.initial_state,
+            initial_problem.final_state,
+            initial_problem.particle_db,
+        )
+        for settings in __determine_graph_settings(
+            permutation,
+            initial_facts,
+            interaction_settings,
+            allowed_intermediate_states,
+        )
+    ]
+    return _group_by_strength(problem_sets)
+
+
+def __determine_graph_settings(  # noqa: C901, PLR0914
+    topology: Topology,
+    initial_facts: InitialFacts,
+    interaction_settings: InteractionSettings,
+    intermediate_states: IntermediateStates,
+) -> list[GraphSettings]:
+    weak_edge_settings, _ = interaction_settings.interaction_type_settings[
+        InteractionType.WEAK
+    ]
+
+    def create_intermediate_edge_qn_domains() -> dict:
+        if intermediate_states.use_weak_qn_domains_only is True:
+            return weak_edge_settings.qn_domains
+
+        # if a list of intermediate states is given by user,
+        # built a domain based on these states
+        intermediate_edge_domains: dict[type[EdgeQuantumNumber], set] = defaultdict(set)
+        intermediate_edge_domains[EdgeQuantumNumbers.spin_projection].update(
+            weak_edge_settings.qn_domains[EdgeQuantumNumbers.spin_projection]
+        )
+        for particle_props in intermediate_states.allowed_intermediate_states:
+            for edge_qn, qn_value in particle_props.items():
+                if edge_qn in {
+                    EdgeQuantumNumbers.pid,
+                    EdgeQuantumNumbers.mass,
+                    EdgeQuantumNumbers.width,
+                }:
+                    continue
+                intermediate_edge_domains[edge_qn].add(qn_value)
+
+        return {k: list(v) for k, v in intermediate_edge_domains.items()}
+
+    intermediate_state_edges = topology.intermediate_edge_ids
+    int_edge_domains = create_intermediate_edge_qn_domains()
+
+    def create_edge_settings(edge_id: int) -> EdgeSettings:
+        settings = copy(weak_edge_settings)
+        if edge_id in intermediate_state_edges:
+            settings.qn_domains = int_edge_domains
+        else:
+            settings.qn_domains = {}
+        return settings
+
+    final_state_edges = topology.outgoing_edge_ids
+    initial_state_edges = topology.incoming_edge_ids
+
+    graph_settings: list[GraphSettings] = [
+        MutableTransition(
+            topology,
+            states={
+                edge_id: create_edge_settings(edge_id)  # type: ignore[misc]
+                for edge_id in topology.edges
+            },
+        )
+    ]
+
+    for node_id in topology.nodes:
+        interaction_types: list[InteractionType] = []
+        out_edge_ids = topology.get_edge_ids_outgoing_from_node(node_id)
+        in_edge_ids = topology.get_edge_ids_outgoing_from_node(node_id)
+        in_states = [
+            initial_facts.states[edge_id]
+            for edge_id in [x for x in in_edge_ids if x in initial_state_edges]
+        ]
+        out_states = [
+            initial_facts.states[edge_id]
+            for edge_id in [x for x in out_edge_ids if x in final_state_edges]
+        ]
+        interactions = InteractionProperties()
+        if node_id in initial_facts.interactions:
+            interactions = initial_facts.interactions[node_id]
+        for int_det in interaction_settings.interaction_determinators:
+            determined_interactions = int_det.check(in_states, out_states, interactions)
+            if interaction_types:
+                interaction_types = list(
+                    set(determined_interactions) & set(interaction_types)
+                )
+            else:
+                interaction_types = determined_interactions
+        allowed_interaction_types = get_allowed_interaction_types(
+            interaction_settings, node_id
+        )
+        interaction_types = filter_interaction_types(
+            interaction_types, allowed_interaction_types
+        )
+        _LOGGER.debug(
+            "using %s interaction order for node: %s",
+            str(interaction_types),
+            str(node_id),
+        )
+
+        temp_graph_settings: list[GraphSettings] = graph_settings
+        graph_settings = []
+        for temp_setting in temp_graph_settings:
+            for int_type in interaction_types:
+                updated_setting = deepcopy(temp_setting)
+                updated_setting.interactions[node_id] = deepcopy(
+                    interaction_settings.interaction_type_settings[int_type][1]
+                )
+                graph_settings.append(updated_setting)
+
+    return graph_settings
+
+
+@overload
+def get_allowed_interaction_types(
+    interaction_settings: InteractionSettings,
+) -> list[InteractionType] | dict[int, list[InteractionType]]: ...
+
+
+@overload
+def get_allowed_interaction_types(
+    interaction_settings: InteractionSettings, node_id: int
+) -> list[InteractionType]: ...
+
+
+def get_allowed_interaction_types(  # type: ignore[no-untyped-def]
+    interaction_settings: InteractionSettings, node_id: int | None = None
+):
+    if node_id is None:
+        return interaction_settings.allowed_interaction_types
+    if isinstance(interaction_settings.allowed_interaction_types, list):
+        return interaction_settings.allowed_interaction_types
+    return interaction_settings.allowed_interaction_types.get(
+        node_id, DEFAULT_INTERACTION_TYPES
+    )
 
 
 class StateTransitionManager:
