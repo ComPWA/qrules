@@ -36,7 +36,7 @@ else:
 if TYPE_CHECKING:
     from collections.abc import Iterable, Iterator
 
-    from attr import Attribute
+    from attrs import Attribute
     from IPython.lib.pretty import PrettyPrinter
     from particle import Particle as PdgDatabase
     from particle.particle import enums
