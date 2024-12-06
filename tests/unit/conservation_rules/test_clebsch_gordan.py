@@ -1,3 +1,5 @@
+from fractions import Fraction
+
 import pytest
 
 from qrules.conservation_rules import (
@@ -213,10 +215,10 @@ def test_isospin_clebsch_gordan_zeros(
 ) -> None:
     assert (
         isospin_conservation(
-            [IsoSpinEdgeInput(coupled_isospin_mag, 0)],
+            [IsoSpinEdgeInput(Fraction(coupled_isospin_mag), Fraction(0))],
             [
-                IsoSpinEdgeInput(isospin_mag1, 0),
-                IsoSpinEdgeInput(isospin_mag2, 0),
+                IsoSpinEdgeInput(Fraction(isospin_mag1), Fraction(0)),
+                IsoSpinEdgeInput(Fraction(isospin_mag2), Fraction(0)),
             ],
         )
         is expected

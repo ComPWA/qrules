@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from fractions import Fraction
 from importlib.metadata import version
 
 import attrs
@@ -226,7 +227,9 @@ def test_create_edge_properties(
     assert skh_particle_version is not None  # dummy for skip tests
 
 
-def make_ls_test_graph(angular_momentum_magnitude, coupled_spin_magnitude, particle):
+def make_ls_test_graph(
+    angular_momentum_magnitude, coupled_spin_magnitude, particle: Particle
+):
     topology = Topology(
         nodes={0},
         edges={-1: Edge(None, 0)},
@@ -237,12 +240,12 @@ def make_ls_test_graph(angular_momentum_magnitude, coupled_spin_magnitude, parti
             l_magnitude=angular_momentum_magnitude,
         )
     }
-    states: dict[int, ParticleWithSpin] = {-1: (particle, 0)}
+    states: dict[int, ParticleWithSpin] = {-1: (particle, Fraction(0))}
     return MutableTransition(topology, states, interactions)  # type: ignore[arg-type,var-annotated]
 
 
 def make_ls_test_graph_scrambled(
-    angular_momentum_magnitude, coupled_spin_magnitude, particle
+    angular_momentum_magnitude, coupled_spin_magnitude, particle: Particle
 ):
     topology = Topology(
         nodes={0},
@@ -254,7 +257,7 @@ def make_ls_test_graph_scrambled(
             s_magnitude=coupled_spin_magnitude,
         )
     }
-    states: dict[int, ParticleWithSpin] = {-1: (particle, 0)}
+    states: dict[int, ParticleWithSpin] = {-1: (particle, Fraction(0))}
     return MutableTransition(topology, states, interactions)  # type: ignore[arg-type,var-annotated]
 
 

@@ -11,8 +11,10 @@ import itertools
 from collections import OrderedDict
 from collections.abc import Iterable, Mapping, Sequence
 from copy import deepcopy
+from fractions import Fraction
 from typing import TYPE_CHECKING, Any, Callable, Union
 
+from qrules.argument_handling import Scalar
 from qrules.particle import ParticleWithSpin
 from qrules.quantum_numbers import InteractionProperties, arange
 from qrules.topology import MutableTransition, Topology, get_originating_node_list
@@ -21,11 +23,25 @@ if TYPE_CHECKING:
     from qrules.particle import ParticleCollection
 
 
-StateWithSpins = tuple[str, Sequence[float]]
+StateWithSpins = tuple[str, Sequence[Fraction]]
 StateDefinition = Union[str, StateWithSpins]
 """Particle name, optionally with a list of spin projections."""
+StateDefinitionInput = Union[str, tuple[str, Sequence[Scalar]]]
+"""Input type for `StateDefinition` permitting also `int` and `float`"""
 InitialFacts = MutableTransition[ParticleWithSpin, InteractionProperties]
 """A `.Transition` with only initial and final state information."""
+
+
+def as_state_definition(
+    definition: StateDefinitionInput,
+) -> StateDefinition:
+    if type(definition) is str:
+        return definition
+    if type(definition) is tuple:
+        name, state = definition
+        return name, list(map(Fraction, state))  # type: ignore  # noqa: PGH003
+    msg = f"value has to be of type {StateDefinitionInput}, got {type(definition)}"
+    raise ValueError(msg)
 
 
 class _KinematicRepresentation:  # noqa: PLW1641
@@ -182,13 +198,14 @@ def _get_kinematic_representation(
 
 def create_initial_facts(
     topology: Topology,
-    initial_state: Sequence[StateDefinition],
-    final_state: Sequence[StateDefinition],
+    initial_state: Sequence[StateDefinitionInput],
+    final_state: Sequence[StateDefinitionInput],
     particle_db: ParticleCollection,
 ) -> list[InitialFacts]:
     states = __create_states_with_spin_projections(
         list(topology.incoming_edge_ids) + list(topology.outgoing_edge_ids),
-        list(initial_state) + list(final_state),
+        list(map(as_state_definition, initial_state))
+        + list(map(as_state_definition, final_state)),
         particle_db,
     )
     spin_states = __generate_spin_combinations(states, particle_db)
@@ -215,9 +232,9 @@ def __safe_set_spin_projections(
         if isinstance(state, str):
             particle_name = state
             particle = particle_db[particle_name]
-            spin_projections = set(arange(-particle.spin, particle.spin + 1, 1.0))
-            if particle.mass == 0.0 and 0.0 in spin_projections:
-                spin_projections.remove(0.0)
+            spin_projections = set(arange(-particle.spin, particle.spin + 1))
+            if particle.mass == 0.0 and Fraction(0) in spin_projections:
+                spin_projections.remove(Fraction(0))
             return particle_name, sorted(spin_projections)
         return state
 
@@ -256,20 +273,20 @@ def __generate_spin_combinations(
 
 def permutate_topology_kinematically(
     topology: Topology,
-    initial_state: list[StateDefinition],
-    final_state: list[StateDefinition],
+    initial_state: Sequence[StateDefinitionInput] | Sequence[StateDefinition],
+    final_state: Sequence[StateDefinitionInput] | Sequence[StateDefinition],
     final_state_groupings: list[list[list[str]]]
     | list[list[str]]
     | list[str]
     | None = None,
 ) -> list[Topology]:
-    def strip_spin(state: StateDefinition) -> str:
+    def strip_spin(state: StateDefinitionInput) -> str:
         if isinstance(state, tuple):
             return state[0]
         return state
 
     edge_ids = sorted(topology.incoming_edge_ids) + sorted(topology.outgoing_edge_ids)
-    states = initial_state + final_state
+    states = list(initial_state) + list(final_state)
     return _generate_kinematic_permutations(
         topology,
         particle_names={i: strip_spin(s) for i, s in zip(edge_ids, states)},

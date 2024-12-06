@@ -23,7 +23,12 @@ from typing import TYPE_CHECKING
 import attrs
 
 from qrules import io
-from qrules.combinatorics import InitialFacts, StateDefinition, create_initial_facts
+from qrules.combinatorics import (
+    InitialFacts,
+    StateDefinition,
+    StateDefinitionInput,
+    create_initial_facts,
+)
 from qrules.conservation_rules import (
     BaryonNumberConservation,
     BottomnessConservation,
@@ -73,7 +78,7 @@ def check_reaction_violations(  # noqa: C901, PLR0917
     mass_conservation_factor: float | None = 3.0,
     particle_db: ParticleCollection | None = None,
     max_angular_momentum: int = 1,
-    max_spin_magnitude: float = 2.0,
+    max_spin_magnitude: float = 2,
 ) -> set[frozenset[str]]:
     """Determine violated interaction rules for a given particle reaction.
 
@@ -264,15 +269,15 @@ def check_reaction_violations(  # noqa: C901, PLR0917
 
 
 def generate_transitions(  # noqa: PLR0917
-    initial_state: StateDefinition | Sequence[StateDefinition],
-    final_state: Sequence[StateDefinition],
+    initial_state: StateDefinitionInput | Sequence[StateDefinitionInput],
+    final_state: Sequence[StateDefinitionInput],
     allowed_intermediate_particles: list[str] | None = None,
     allowed_interaction_types: str | Iterable[str] | None = None,
     formalism: SpinFormalism = "canonical-helicity",
     particle_db: ParticleCollection | None = None,
     mass_conservation_factor: float | None = 3.0,
     max_angular_momentum: int = 2,
-    max_spin_magnitude: float = 2.0,
+    max_spin_magnitude: float = 2,
     topology_building: str = "isobar",
     number_of_threads: int | None = None,
 ) -> ReactionInfo:

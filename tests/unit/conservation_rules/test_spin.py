@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from fractions import Fraction
+
 import pytest
 
 from qrules.conservation_rules import (
@@ -127,7 +129,16 @@ def test_spin_all_defined(rule_input: _SpinRuleInputType, expected: bool) -> Non
     ("rule_input", "expected"),
     [
         (
-            ([1], [spin2_mag, 1], SpinNodeInput(ang_mom_mag, 0, coupled_spin_mag, -1)),
+            (
+                [1],
+                [spin2_mag, 1],
+                SpinNodeInput(
+                    Fraction(ang_mom_mag),
+                    Fraction(0),
+                    Fraction(coupled_spin_mag),
+                    Fraction(-1),
+                ),
+            ),
             True,
         )
         for spin2_mag, ang_mom_mag, coupled_spin_mag in zip(
@@ -136,7 +147,16 @@ def test_spin_all_defined(rule_input: _SpinRuleInputType, expected: bool) -> Non
     ]
     + [
         (
-            ([1], [spin2_mag, 1], SpinNodeInput(ang_mom_mag, 0, coupled_spin_mag, 0)),
+            (
+                [1],
+                [spin2_mag, 1],
+                SpinNodeInput(
+                    Fraction(ang_mom_mag),
+                    Fraction(0),
+                    Fraction(coupled_spin_mag),
+                    Fraction(0),
+                ),
+            ),
             False,
         )
         for spin2_mag, ang_mom_mag, coupled_spin_mag in zip(

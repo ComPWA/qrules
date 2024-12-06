@@ -1,6 +1,9 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import pytest
 
-from qrules.particle import ParticleCollection
 from qrules.quantum_numbers import EdgeQuantumNumbers as EdgeQN
 from qrules.settings import (
     InteractionType,
@@ -9,7 +12,10 @@ from qrules.settings import (
     _int_domain,
     create_interaction_settings,
 )
-from qrules.transition import SpinFormalism
+
+if TYPE_CHECKING:
+    from qrules.particle import ParticleCollection
+    from qrules.transition import SpinFormalism
 
 
 class TestInteractionType:
@@ -83,7 +89,7 @@ def test_create_interaction_settings(
         "c_parity": [-1, +1, None],
         "g_parity": [-1, +1, None],
         "spin_magnitude": _halves_domain(0, 4),
-        "spin_projection": _halves_domain(-4, +4),
+        "spin_projection": _halves_domain(-4, 4),
         "charge": _int_domain(-2, 2),
         "isospin_magnitude": _halves_domain(0, 1.5),
         "isospin_projection": _halves_domain(-1.5, +1.5),
@@ -124,7 +130,7 @@ def test_create_interaction_settings(
         (-1, +1, [-1, -0.5, 0, 0.5, +1]),
     ],
 )
-def test_halves_range(start: float, stop: float, expected: list):
+def test_halves_range(start: float, stop: float, expected: list | None):
     if expected is None:
         with pytest.raises(ValueError, match=r"needs to be multiple of 0.5"):
             _halves_domain(start, stop)

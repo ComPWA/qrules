@@ -8,6 +8,7 @@ annotations of the rules.
 from __future__ import annotations
 
 import inspect
+from fractions import Fraction
 from typing import TYPE_CHECKING, Any, Callable, Generic, TypeVar, Union
 
 import attrs
@@ -22,7 +23,7 @@ from qrules.quantum_numbers import EdgeQuantumNumber, NodeQuantumNumber, Parity
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-Scalar = Union[int, float]
+Scalar = Union[int, float, Fraction]
 
 Rule = Union[GraphElementRule, EdgeQNConservationRule, ConservationRule]
 """Any type of rule"""

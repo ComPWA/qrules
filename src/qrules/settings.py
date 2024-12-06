@@ -12,6 +12,7 @@ from __future__ import annotations
 import multiprocessing
 from copy import deepcopy
 from enum import Enum, auto
+from fractions import Fraction
 from os.path import dirname, join, realpath
 from typing import TYPE_CHECKING, Any, Callable
 
@@ -126,7 +127,7 @@ def create_interaction_settings(  # noqa: PLR0917
     nbody_topology: bool = False,
     mass_conservation_factor: float | None = 3.0,
     max_angular_momentum: int = 2,
-    max_spin_magnitude: float = 2.0,
+    max_spin_magnitude: float = 2,
 ) -> dict[InteractionType, tuple[EdgeSettings, NodeSettings]]:
     """Create a container that holds the settings for `.InteractionType`."""
     formalism_edge_settings = EdgeSettings(
@@ -233,15 +234,15 @@ def create_interaction_settings(  # noqa: PLR0917
     return interaction_type_settings
 
 
-def __get_ang_mom_magnitudes(is_nbody: bool, max_angular_momentum: int) -> list[float]:
+def __get_ang_mom_magnitudes(is_nbody: bool, max_angular_momentum: int) -> list[int]:
     if is_nbody:
         return [0]
     return _int_domain(0, max_angular_momentum)  # type: ignore[return-value]
 
 
-def __get_spin_magnitudes(is_nbody: bool, max_spin_magnitude: float) -> list[float]:
+def __get_spin_magnitudes(is_nbody: bool, max_spin_magnitude: float) -> list[Fraction]:
     if is_nbody:
-        return [0]
+        return [Fraction(0)]
     return _halves_domain(0, max_spin_magnitude)
 
 
@@ -301,7 +302,7 @@ class NumberOfThreads:
 
 def __positive_halves_domain(
     particle_db: ParticleCollection, attr_getter: Callable[[Particle], Any]
-) -> list[float]:
+) -> list[Fraction]:
     values = set(map(attr_getter, particle_db))
     return _halves_domain(0, max(values))
 
@@ -313,16 +314,16 @@ def __positive_int_domain(
     return _int_domain(0, max(values))
 
 
-def _halves_domain(start: float, stop: float) -> list[float]:
-    if start % 0.5 != 0.0:
+def _halves_domain(start: float, stop: float) -> list[Fraction]:
+    start_frac = Fraction(start)
+    stop_frac = Fraction(stop)
+    if start_frac.denominator not in {1, 2}:
         msg = f"Start value {start} needs to be multiple of 0.5"
         raise ValueError(msg)
-    if stop % 0.5 != 0.0:
+    if stop_frac.denominator not in {1, 2}:
         msg = f"Stop value {stop} needs to be multiple of 0.5"
         raise ValueError(msg)
-    return [
-        int(v) if v.is_integer() else v for v in arange(start, stop + 0.25, delta=0.5)
-    ]
+    return list(arange(start_frac, stop_frac + Fraction(1, 4), delta=Fraction(1, 2)))
 
 
 def _int_domain(start: int, stop: int) -> list[int]:
@@ -330,6 +331,6 @@ def _int_domain(start: int, stop: int) -> list[int]:
 
 
 def __extend_negative(
-    magnitudes: Iterable[int | float],
-) -> list[int | float]:
+    magnitudes: Iterable[int | Fraction],
+) -> list[int | Fraction]:
     return sorted(list(magnitudes) + [-x for x in magnitudes if x > 0])

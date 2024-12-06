@@ -1,5 +1,6 @@
 # pyright: reportUnusedImport=false
 from copy import deepcopy
+from fractions import Fraction
 
 import pytest
 from IPython.lib.pretty import pretty
@@ -15,6 +16,9 @@ from qrules.topology import (  # noqa: F401
     Topology,
 )
 from qrules.transition import ReactionInfo, State, StateTransitionManager
+
+NAMESPACE_WITH_FRACTIONS = globals()
+NAMESPACE_WITH_FRACTIONS["Fraction"] = Fraction
 
 
 class TestReactionInfo:
@@ -34,7 +38,7 @@ class TestReactionInfo:
     @pytest.mark.parametrize("repr_method", [repr, pretty])
     def test_repr(self, repr_method, reaction: ReactionInfo):
         instance = reaction
-        from_repr = eval(repr_method(instance))
+        from_repr = eval(repr_method(instance), NAMESPACE_WITH_FRACTIONS)
         assert from_repr == instance
 
     def test_hash(self, reaction: ReactionInfo):
@@ -66,7 +70,7 @@ class TestState:
 class TestStateTransitionManager:
     def test_allowed_intermediate_particles(self):
         stm = StateTransitionManager(
-            initial_state=[("J/psi(1S)", [-1, +1])],
+            initial_state=[("J/psi(1S)", list(map(Fraction, [-1, +1])))],
             final_state=["p", "p~", "eta"],
         )
         particle_name = "N(753)"

@@ -9,17 +9,17 @@ import logging
 import re
 import string
 from collections import abc
+from fractions import Fraction
 from functools import singledispatch
 from inspect import isfunction
-from numbers import Number
 from typing import TYPE_CHECKING, Any, cast
 
 import attrs
 from attrs import Attribute, define, field
 from attrs.converters import default_if_none
 
-from qrules.particle import Particle, ParticleWithSpin, Spin
-from qrules.quantum_numbers import InteractionProperties, _to_fraction
+from qrules.particle import Particle, ParticleWithSpin, Spin, _render_fraction
+from qrules.quantum_numbers import InteractionProperties
 from qrules.solving import EdgeSettings, NodeSettings, QNProblemSet, QNResult
 from qrules.topology import FrozenTransition, MutableTransition, Topology, Transition
 from qrules.transition import ProblemSet, ReactionInfo, State
@@ -316,24 +316,9 @@ def _(obj: dict) -> str:
             key_repr = key
         if value != 0 or any(s in key_repr for s in ["magnitude", "projection"]):
             pm = not any(s in key_repr for s in ["pid", "mass", "width", "magnitude"])
-            value_repr = __render_fraction(value, pm)
+            value_repr = _render_fraction(value, pm)
             lines.append(f"{key_repr} = {value_repr}")
     return "\n".join(lines)
-
-
-def __render_fraction(value: Any, plusminus: bool) -> str:
-    plusminus &= isinstance(value, Number) and bool(value)
-    if isinstance(value, float):
-        if value.is_integer():
-            return str(int(value))
-        nom, denom = value.as_integer_ratio()
-        if denom == 2:
-            if plusminus:
-                return f"{nom:+}/{denom}"
-            return f"{nom}/{denom}"
-    if plusminus:
-        return f"{value:+}"
-    return str(value)
 
 
 @as_string.register(InteractionProperties)
@@ -341,18 +326,18 @@ def _(obj: InteractionProperties) -> str:
     lines = []
     if obj.l_magnitude is not None:
         if obj.l_projection is None:
-            l_label = _to_fraction(obj.l_magnitude)
+            l_label = _render_fraction(Fraction(obj.l_magnitude))
         else:
             l_label = _spin_to_str(Spin(obj.l_magnitude, obj.l_projection))
         lines.append(f"L={l_label}")
     if obj.s_magnitude is not None:
         if obj.s_projection is None:
-            s_label = _to_fraction(obj.s_magnitude)
+            s_label = _render_fraction(Fraction(obj.s_magnitude))
         else:
             s_label = _spin_to_str(Spin(obj.s_magnitude, obj.s_projection))
         lines.append(f"S={s_label}")
     if obj.parity_prefactor is not None:
-        label = _to_fraction(obj.parity_prefactor, render_plus=True)
+        label = _render_fraction(Fraction(obj.parity_prefactor), plusminus=True)
         lines.append(f"P={label}")
     return "\n".join(lines)
 
@@ -410,15 +395,15 @@ def _(particle: Particle) -> str:
 
 @as_string.register(Spin)
 def _spin_to_str(spin: Spin) -> str:
-    spin_magnitude = _to_fraction(spin.magnitude)
-    spin_projection = _to_fraction(spin.projection, render_plus=True)
+    spin_magnitude = _render_fraction(spin.magnitude)
+    spin_projection = _render_fraction(spin.projection, plusminus=True)
     return f"|{spin_magnitude},{spin_projection}⟩"
 
 
 @as_string.register(State)
 def _state_to_str(state: State) -> str:
     particle = state.particle.name
-    spin_projection = _to_fraction(state.spin_projection, render_plus=True)
+    spin_projection = _render_fraction(state.spin_projection, plusminus=True)
     return f"{particle}[{spin_projection}]"
 
 

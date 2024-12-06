@@ -20,6 +20,8 @@ from qrules._implementers import implement_pretty_repr
 from qrules.combinatorics import (
     InitialFacts,
     StateDefinition,
+    StateDefinitionInput,
+    as_state_definition,
     create_initial_facts,
     ensure_nested_list,
     match_external_edges,
@@ -29,7 +31,7 @@ from qrules.particle import (
     Particle,
     ParticleCollection,
     ParticleWithSpin,
-    _to_float,
+    _to_fraction,
     load_pdg,
 )
 from qrules.quantum_numbers import (
@@ -76,6 +78,7 @@ from qrules.topology import (
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
+    from fractions import Fraction
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -228,8 +231,8 @@ class StateTransitionManager:
 
     def __init__(  # noqa: C901, PLR0912, PLR0917
         self,
-        initial_state: Sequence[StateDefinition],
-        final_state: Sequence[StateDefinition],
+        initial_state: Sequence[StateDefinitionInput],
+        final_state: Sequence[StateDefinitionInput],
         particle_db: ParticleCollection | None = None,
         allowed_intermediate_particles: list[str] | None = None,
         interaction_type_settings: dict[
@@ -242,7 +245,7 @@ class StateTransitionManager:
         reload_pdg: bool = False,
         mass_conservation_factor: float | None = 3.0,
         max_angular_momentum: int = 1,
-        max_spin_magnitude: float = 2.0,
+        max_spin_magnitude: float = 2,
         number_of_threads: int | None = None,
     ) -> None:
         if number_of_threads is not None:
@@ -262,8 +265,8 @@ class StateTransitionManager:
         if particle_db is not None:
             self.__particles = particle_db
         self.reaction_mode = str(solving_mode)
-        self.initial_state = list(initial_state)
-        self.final_state = list(final_state)
+        self.initial_state = list(map(as_state_definition, initial_state))
+        self.final_state = list(map(as_state_definition, final_state))
         self.interaction_type_settings = interaction_type_settings
 
         self.interaction_determinators: list[InteractionDeterminator] = [
@@ -731,7 +734,7 @@ def _strip_spin(state_definition: Sequence[StateDefinition]) -> list[str]:
 @frozen(order=True)
 class State:
     particle: Particle = field(validator=instance_of(Particle))
-    spin_projection: float = field(converter=_to_float)
+    spin_projection: Fraction = field(converter=_to_fraction)
 
 
 StateTransition = FrozenTransition[State, InteractionProperties]
