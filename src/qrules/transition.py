@@ -267,7 +267,6 @@ class InitialProblem:
         self.final_state_groupings: list[list[list[str]]] | None = final_state_groupings
 
 
-@frozen
 class InteractionSettings:
     def __init__(
         self,
