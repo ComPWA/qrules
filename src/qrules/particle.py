@@ -120,10 +120,9 @@ class Spin:  # noqa: PLW1641
 
 
 def _render_fraction(fraction: Fraction, plusminus: bool = False) -> str:
-    string_representation = str(fraction)
     if plusminus and fraction.numerator > 0:
-        return f"+{string_representation}"
-    return string_representation
+        return f"+{fraction}"
+    return str(fraction)
 
 
 def _to_parity(value: Parity | int) -> Parity:

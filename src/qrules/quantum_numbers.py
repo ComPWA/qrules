@@ -58,10 +58,9 @@ class Parity:  # noqa: PLW1641
 
 
 def _float_as_signed_str(value: float, render_plus: bool = False) -> str:
-    string_representation = str(value)
     if value > 0 or render_plus:
-        return f"+{string_representation}"
-    return string_representation
+        return f"+{value}"
+    return str(value)
 
 
 @frozen(init=False)
