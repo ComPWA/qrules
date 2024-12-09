@@ -270,8 +270,8 @@ class InitialProblem:
 class InteractionSettings:
     def __init__(
         self,
-        formalism: SpinFormalism,
         initial_problem: InitialProblem,
+        formalism: SpinFormalism,
         allowed_interaction_types: list[InteractionType]
         | dict[int, list[InteractionType]]
         | None = None,
@@ -296,6 +296,7 @@ class InteractionSettings:
         if allowed_interaction_types is None:
             allowed_interaction_types = DEFAULT_INTERACTION_TYPES
 
+        self.initial_problem: InitialProblem = initial_problem
         self.interaction_type_settings: dict[
             InteractionType, tuple[EdgeSettings, NodeSettings]
         ] = interaction_type_settings
@@ -311,8 +312,8 @@ class InteractionSettings:
 class IntermediateStates:
     def __init__(
         self,
-        allowed_intermediate_particles: list[str] | str | None,
         initial_problem: InitialProblem,
+        allowed_intermediate_particles: list[str] | str | None,
         regex: bool = False,
     ) -> None:
         if allowed_intermediate_particles is None:
@@ -342,6 +343,7 @@ class IntermediateStates:
             ]
             use_weak_qn_domains_only = False
 
+        self.initial_problem: InitialProblem = initial_problem
         self.allowed_intermediate_states: list[GraphEdgePropertyMap] = (
             allowed_intermediate_states
         )
@@ -353,6 +355,19 @@ def create_problem_sets(
     allowed_intermediate_states: IntermediateStates,
     interaction_settings: InteractionSettings,
 ) -> dict[float, list[ProblemSet]]:
+    stub_msg = " has been generated with a different 'initial_problem'\n"
+    msg = ""
+    allowed_intermediate_states_error = False
+    intermediate_states_error = False
+    if allowed_intermediate_states.initial_problem != initial_problem:
+        allowed_intermediate_states_error = True
+        msg += "'allowed_intermediate_states'" + stub_msg
+    if interaction_settings.initial_problem != initial_problem:
+        intermediate_states_error = True
+        msg += "'interaction_settings'" + stub_msg
+    if allowed_intermediate_states_error or intermediate_states_error:
+        raise ValueError(msg)
+
     problem_sets = [
         ProblemSet(permutation, initial_facts, settings)
         for topology in initial_problem.topologies
