@@ -220,57 +220,55 @@ def _group_by_strength(
     return strength_sorted_problem_sets
 
 
-class InitialProblem:
-    def __init__(
-        self,
-        initial_state: Sequence[StateDefinition],
-        final_state: Sequence[StateDefinition],
-        particle_db: ParticleCollection,
-        topology_builder: str,
-        *,
-        final_state_groupings: list[list[list[str]]] | None = None,
+@frozen
+class InitialConfig:
+    initial_state: list[StateDefinition] = field()
+    final_state: list[StateDefinition] = field()
+    particle_db: ParticleCollection = field()
+    topology_builder: str = field()
+    final_state_groupings: list[list[list[str]]] | None = field(
+        default=None, kw_only=True
+    )
+
+    @initial_state.validator
+    def _check_initial_state(
+        self, attribute: list[StateDefinition], value: Sequence[StateDefinition]
     ) -> None:
-        for i_state_def in initial_state:
+        _ = attribute
+        for i_state_def in value:
             if isinstance(i_state_def, tuple):
                 i_state_def = i_state_def[0]
-            if i_state_def not in particle_db:
+            if i_state_def not in self.particle_db:
                 msg = (
                     f"initial particle {i_state_def} not in provided particle database"
                 )
                 raise ValueError(msg)
-        for f_state_def in final_state:
+
+    @final_state.validator
+    def _check_final_state(
+        self, attribute: list[StateDefinition], value: Sequence[StateDefinition]
+    ) -> None:
+        _ = attribute
+        for f_state_def in value:
             if isinstance(f_state_def, tuple):
                 f_state_def = f_state_def[0]
-            if f_state_def not in particle_db:
-                msg = f"final particle {i_state_def} not in provided particle database"
+            if f_state_def not in self.particle_db:
+                msg = f"final particle {f_state_def} not in provided particle database"
                 raise ValueError(msg)
 
+    @topology_builder.validator
+    def _check_topology_builder(self, attribute: str, value: str) -> None:
+        _ = attribute
         allowed_builders = {"isobar", "n-body", "nbody"}
-        if topology_builder not in allowed_builders:
+        if value not in allowed_builders:
             msg = f"Argument 'topology_builder' has to be one of {allowed_builders}\nn-body and nbody are equivalent"
             raise ValueError(msg)
-        if topology_builder == "isobar":
-            topologies = create_isobar_topologies(len(final_state))
-        else:
-            topologies = (
-                create_n_body_topology(
-                    len(initial_state),
-                    len(final_state),
-                ),
-            )
-
-        self.initial_state: list[StateDefinition] = list(initial_state)
-        self.final_state: list[StateDefinition] = list(final_state)
-        self.particle_db: ParticleCollection = particle_db
-        self.topology_builder: str = topology_builder
-        self.topologies: tuple[Topology, ...] | tuple[Topology] = topologies
-        self.final_state_groupings: list[list[list[str]]] | None = final_state_groupings
 
 
 class InteractionSettings:
     def __init__(
         self,
-        initial_problem: InitialProblem,
+        initial_problem: InitialConfig,
         formalism: SpinFormalism,
         allowed_interaction_types: list[InteractionType]
         | dict[int, list[InteractionType]]
@@ -296,7 +294,7 @@ class InteractionSettings:
         if allowed_interaction_types is None:
             allowed_interaction_types = DEFAULT_INTERACTION_TYPES
 
-        self.initial_problem: InitialProblem = initial_problem
+        self.initial_problem: InitialConfig = initial_problem
         self.interaction_type_settings: dict[
             InteractionType, tuple[EdgeSettings, NodeSettings]
         ] = interaction_type_settings
@@ -312,17 +310,18 @@ class InteractionSettings:
 class IntermediateStates:
     def __init__(
         self,
-        initial_problem: InitialProblem,
+        initial_problem: InitialConfig,
         allowed_intermediate_particles: list[str] | str | None,
         regex: bool = False,
     ) -> None:
         if allowed_intermediate_particles is None:
+            use_weak_qn_domains_only = True
             allowed_intermediate_states = [
                 create_edge_properties(particle)
                 for particle in initial_problem.particle_db
             ]
-            use_weak_qn_domains_only = True
         else:
+            use_weak_qn_domains_only = False
             if isinstance(allowed_intermediate_particles, str):
                 allowed_intermediate_particles = [allowed_intermediate_particles]
             selected_particles = ParticleCollection()
@@ -341,9 +340,8 @@ class IntermediateStates:
                 create_edge_properties(x)
                 for x in sorted(selected_particles, key=lambda p: p.name)
             ]
-            use_weak_qn_domains_only = False
 
-        self.initial_problem: InitialProblem = initial_problem
+        self.initial_problem: InitialConfig = initial_problem
         self.allowed_intermediate_states: list[GraphEdgePropertyMap] = (
             allowed_intermediate_states
         )
@@ -351,7 +349,7 @@ class IntermediateStates:
 
 
 def create_problem_sets(
-    initial_problem: InitialProblem,
+    initial_problem: InitialConfig,
     allowed_intermediate_states: IntermediateStates,
     interaction_settings: InteractionSettings,
 ) -> dict[float, list[ProblemSet]]:
@@ -368,9 +366,18 @@ def create_problem_sets(
     if allowed_intermediate_states_error or intermediate_states_error:
         raise ValueError(msg)
 
+    if initial_problem.topology_builder == "isobar":
+        topologies = create_isobar_topologies(len(initial_problem.final_state))
+    else:
+        topologies = (
+            create_n_body_topology(
+                len(initial_problem.initial_state),
+                len(initial_problem.final_state),
+            ),
+        )
     problem_sets = [
         ProblemSet(permutation, initial_facts, settings)
-        for topology in initial_problem.topologies
+        for topology in topologies
         for permutation in permutate_topology_kinematically(
             topology,
             initial_problem.initial_state,
