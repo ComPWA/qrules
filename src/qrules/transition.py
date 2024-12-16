@@ -286,7 +286,7 @@ class InteractionSettings:
     formalism: SpinFormalism = field()
     allowed_interaction_types: (
         list[InteractionType] | dict[int, list[InteractionType]]
-    ) = field(default=None)
+    ) = field(default=DEFAULT_INTERACTION_TYPES)
     mass_conservation_factor: float | None = field(default=3.0, kw_only=True)
     max_angular_momentum: int = field(default=1, kw_only=True)
     max_spin_magnitude: float = field(default=2.0, kw_only=True)
@@ -311,8 +311,6 @@ class InteractionSettings:
             self.max_angular_momentum,
             self.max_spin_magnitude,
         )
-        if self.allowed_interaction_types is None:
-            self.allowed_interaction_types = DEFAULT_INTERACTION_TYPES
 
 
 class IntermediateStates:
