@@ -224,11 +224,24 @@ def _group_by_strength(
 class InitialConfig:
     initial_state: list[StateDefinition] = field()
     final_state: list[StateDefinition] = field()
-    particle_db: ParticleCollection = field()
     topology_builder: str = field()
+    particle_db: ParticleCollection = field(default=load_pdg())
+    topologies: tuple[Topology, ...] | tuple[Topology] = field(init=False)
     final_state_groupings: list[list[list[str]]] | None = field(
         default=None, kw_only=True
     )
+
+    def __attrs_post_init__(self) -> None:
+        if self.topology_builder == "isobar":
+            topologies = create_isobar_topologies(len(self.final_state))
+        else:
+            topologies = (
+                create_n_body_topology(
+                    len(self.initial_state),
+                    len(self.final_state),
+                ),
+            )
+        object.__setattr__(self, "topologies", topologies)
 
     @initial_state.validator
     def _check_initial_state(
@@ -265,52 +278,47 @@ class InitialConfig:
             raise ValueError(msg)
 
 
+@define
 class InteractionSettings:
-    def __init__(
-        self,
-        initial_problem: InitialConfig,
-        formalism: SpinFormalism,
-        allowed_interaction_types: list[InteractionType]
-        | dict[int, list[InteractionType]]
-        | None = None,
-        *,
-        mass_conservation_factor: float | None = 3.0,
-        max_angular_momentum: int = 1,
-        max_spin_magnitude: float = 2.0,
-    ) -> None:
-        using_nbody = False
-        if initial_problem.topology_builder in {"n-body", "nbody"}:
-            using_nbody = True
-            if len(initial_problem.initial_state) > 1:
-                mass_conservation_factor = None
-        interaction_type_settings = create_interaction_settings(
-            formalism,
-            initial_problem.particle_db,
-            using_nbody,
-            mass_conservation_factor,
-            max_angular_momentum,
-            max_spin_magnitude,
-        )
-        if allowed_interaction_types is None:
-            allowed_interaction_types = DEFAULT_INTERACTION_TYPES
+    initial_config: InitialConfig = field(
+        validator=attrs.validators.instance_of(InitialConfig)
+    )
+    formalism: SpinFormalism = field()
+    allowed_interaction_types: (
+        list[InteractionType] | dict[int, list[InteractionType]]
+    ) = field(default=None)
+    mass_conservation_factor: float | None = field(default=3.0, kw_only=True)
+    max_angular_momentum: int = field(default=1, kw_only=True)
+    max_spin_magnitude: float = field(default=2.0, kw_only=True)
+    interaction_type_settings: dict[
+        InteractionType, tuple[EdgeSettings, NodeSettings]
+    ] = field(init=False)
+    interaction_determinators: list[InteractionDeterminator] = field(
+        default=[LeptonCheck, GammaCheck], init=False
+    )
 
-        self.initial_problem: InitialConfig = initial_problem
-        self.interaction_type_settings: dict[
-            InteractionType, tuple[EdgeSettings, NodeSettings]
-        ] = interaction_type_settings
-        self.allowed_interaction_types: (
-            list[InteractionType] | dict[int, list[InteractionType]]
-        ) = allowed_interaction_types
-        self.interaction_determinators: list[InteractionDeterminator] = [
-            LeptonCheck(),
-            GammaCheck(),
-        ]
+    def __attrs_post_init__(self) -> None:
+        using_nbody = False
+        if self.initial_config.topology_builder in {"n-body", "nbody"}:
+            using_nbody = True
+            if len(self.initial_config.initial_state) > 1:
+                self.mass_conservation_factor = None
+        self.interaction_type_settings = create_interaction_settings(
+            self.formalism,
+            self.initial_config.particle_db,
+            using_nbody,
+            self.mass_conservation_factor,
+            self.max_angular_momentum,
+            self.max_spin_magnitude,
+        )
+        if self.allowed_interaction_types is None:
+            self.allowed_interaction_types = DEFAULT_INTERACTION_TYPES
 
 
 class IntermediateStates:
     def __init__(
         self,
-        initial_problem: InitialConfig,
+        initial_config: InitialConfig,
         allowed_intermediate_particles: list[str] | str | None,
         regex: bool = False,
     ) -> None:
@@ -318,7 +326,7 @@ class IntermediateStates:
             use_weak_qn_domains_only = True
             allowed_intermediate_states = [
                 create_edge_properties(particle)
-                for particle in initial_problem.particle_db
+                for particle in initial_config.particle_db
             ]
         else:
             use_weak_qn_domains_only = False
@@ -327,7 +335,7 @@ class IntermediateStates:
             selected_particles = ParticleCollection()
             for pattern in allowed_intermediate_particles:
                 matches = _filter_by_name_pattern(
-                    initial_problem.particle_db, pattern, regex
+                    initial_config.particle_db, pattern, regex
                 )
                 if len(matches) == 0:
                     msg = (
@@ -341,7 +349,7 @@ class IntermediateStates:
                 for x in sorted(selected_particles, key=lambda p: p.name)
             ]
 
-        self.initial_problem: InitialConfig = initial_problem
+        self.initial_config: InitialConfig = initial_config
         self.allowed_intermediate_states: list[GraphEdgePropertyMap] = (
             allowed_intermediate_states
         )
@@ -349,46 +357,37 @@ class IntermediateStates:
 
 
 def create_problem_sets(
-    initial_problem: InitialConfig,
+    initial_config: InitialConfig,
     allowed_intermediate_states: IntermediateStates,
     interaction_settings: InteractionSettings,
 ) -> dict[float, list[ProblemSet]]:
-    stub_msg = " has been generated with a different 'initial_problem'\n"
+    stub_msg = " has been generated with a different 'initial_config'\n"
     msg = ""
     allowed_intermediate_states_error = False
     intermediate_states_error = False
-    if allowed_intermediate_states.initial_problem != initial_problem:
+    if allowed_intermediate_states.initial_config != initial_config:
         allowed_intermediate_states_error = True
         msg += "'allowed_intermediate_states'" + stub_msg
-    if interaction_settings.initial_problem != initial_problem:
+    if interaction_settings.initial_config != initial_config:
         intermediate_states_error = True
         msg += "'interaction_settings'" + stub_msg
     if allowed_intermediate_states_error or intermediate_states_error:
         raise ValueError(msg)
 
-    if initial_problem.topology_builder == "isobar":
-        topologies = create_isobar_topologies(len(initial_problem.final_state))
-    else:
-        topologies = (
-            create_n_body_topology(
-                len(initial_problem.initial_state),
-                len(initial_problem.final_state),
-            ),
-        )
     problem_sets = [
         ProblemSet(permutation, initial_facts, settings)
-        for topology in topologies
+        for topology in initial_config.topologies
         for permutation in permutate_topology_kinematically(
             topology,
-            initial_problem.initial_state,
-            initial_problem.final_state,
-            initial_problem.final_state_groupings,
+            initial_config.initial_state,
+            initial_config.final_state,
+            initial_config.final_state_groupings,
         )
         for initial_facts in create_initial_facts(
             permutation,
-            initial_problem.initial_state,
-            initial_problem.final_state,
-            initial_problem.particle_db,
+            initial_config.initial_state,
+            initial_config.final_state,
+            initial_config.particle_db,
         )
         for settings in __determine_graph_settings(
             permutation,
