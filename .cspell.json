@@ -201,5 +201,6 @@
     "venv",
     "weisskopf",
     "Zenodo"
-  ]
+  ],
+  "useGitignore": true
 }
