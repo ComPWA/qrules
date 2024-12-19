@@ -1,10 +1,10 @@
 # pyright: reportUnusedImport=false
+import hashlib
 import pickle  # noqa: S403
 from copy import deepcopy
 from fractions import Fraction
 
 import pytest
-import xxhash
 from IPython.lib.pretty import pretty
 
 from qrules.particle import Parity, Particle, ParticleCollection, Spin  # noqa: F401
@@ -46,10 +46,10 @@ class TestReactionInfo:
     def test_hash(self, reaction: ReactionInfo):
         assert hash(deepcopy(reaction)) == hash(reaction)
 
-    def test_xxhash(self, reaction: ReactionInfo):
+    def test_hash_value(self, reaction: ReactionInfo):
         expected_hash = {
-            "canonical-helicity": "de995528a15267dd3a72fe6c5dfa6136",
-            "helicity": "61c08ea813390cfbae8b083a89a5673a",
+            "canonical-helicity": "65106a44301f9340e633d09f66ad7d17",
+            "helicity": "9646d3ee5c5e8534deb8019435161f2e",
         }[reaction.formalism]
         assert _compute_hash(reaction) == expected_hash
 
@@ -119,7 +119,7 @@ class TestStateTransitionManager:
 
 def _compute_hash(obj) -> str:
     b = _to_bytes(obj)
-    h = xxhash.xxh128(b)
+    h = hashlib.md5(b)  # noqa: S324
     return h.hexdigest()
 
 

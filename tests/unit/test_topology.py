@@ -1,8 +1,8 @@
+import hashlib
 import pickle  # noqa: S403
 import typing
 
 import pytest
-import xxhash
 from attrs.exceptions import FrozenInstanceError
 from IPython.lib.pretty import pretty
 
@@ -44,10 +44,10 @@ class TestEdge:
 class TestFrozenDict:
     def test_hash(self):
         obj: FrozenDict = FrozenDict({})
-        assert _compute_hash(obj) == "458fa667e2b581f54c06f5d6f85a0329"
+        assert _compute_hash(obj) == "067705e70d037311d05daae1e32e1fce"
 
         obj = FrozenDict({"key1": "value1"})
-        assert _compute_hash(obj) == "ebbfce37fe77355d4e07479243089a6f"
+        assert _compute_hash(obj) == "56b0520e2a3af550c0f488cd5de2d474"
 
         obj = FrozenDict({
             "key1": "value1",
@@ -55,7 +55,7 @@ class TestFrozenDict:
             "key3": (1, 2, 3),
             "key4": FrozenDict({"nested_key": "nested_value"}),
         })
-        assert _compute_hash(obj) == "309fd50095a37aa32e31f1068d7a9b4e"
+        assert _compute_hash(obj) == "8568f73c07fce099311f010061f070c6"
 
 
 class TestInteractionNode:
@@ -208,7 +208,7 @@ class TestTopology:
             assert Topology(nodes, edges)
 
     def test_hash(self, two_to_three_decay: Topology):
-        assert _compute_hash(two_to_three_decay) == "5f55e8b64bcb177cf0984c985d8673fa"
+        assert _compute_hash(two_to_three_decay) == "cbaea5d94038a3ad30888014a7b3ae20"
 
     @pytest.mark.parametrize("repr_method", [repr, pretty])
     def test_repr_and_eq(self, repr_method, two_to_three_decay: Topology):
@@ -325,7 +325,7 @@ def test_create_n_body_topology(n_initial: int, n_final: int, exception):
 
 def _compute_hash(obj) -> str:
     b = _to_bytes(obj)
-    h = xxhash.xxh128(b)
+    h = hashlib.md5(b)  # noqa: S324
     return h.hexdigest()
 
 
