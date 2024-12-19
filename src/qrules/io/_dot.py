@@ -325,6 +325,16 @@ def _(obj: dict) -> str:
     return "\n".join(lines)
 
 
+@as_string.register(Fraction)
+def _(obj: Fraction) -> str:
+    return _render_fraction(obj, plusminus=True)
+
+
+@as_string.register(list)
+def _(obj: list) -> str:
+    return "[" + ", ".join(as_string(o) for o in obj) + "]"
+
+
 @as_string.register(InteractionProperties)
 def _(obj: InteractionProperties) -> str:
     lines = []
@@ -362,7 +372,8 @@ def _(settings: EdgeSettings | NodeSettings) -> str:
         if output:
             output += "\n"
         domains = sorted(
-            f"{qn.__name__} ∊ {domain}" for qn, domain in settings.qn_domains.items()
+            f"{qn.__name__} ∊ {as_string(domain)}"
+            for qn, domain in settings.qn_domains.items()
         )
         output += "DOMAINS\n"
         output += "\n".join(domains)
