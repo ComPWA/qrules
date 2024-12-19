@@ -1,3 +1,5 @@
+import hashlib
+import pickle  # noqa: S403
 import typing
 
 import pytest
@@ -6,7 +8,7 @@ from IPython.lib.pretty import pretty
 
 from qrules.topology import (
     Edge,
-    FrozenDict,  # noqa: F401  # pyright: ignore[reportUnusedImport]
+    FrozenDict,  # pyright: ignore[reportUnusedImport]
     InteractionNode,
     MutableTopology,
     SimpleStateTransitionTopologyBuilder,
@@ -37,6 +39,23 @@ class TestEdge:
             edge.ending_node_id = None
         with pytest.raises(FrozenInstanceError):
             edge.ending_node_id += 1
+
+
+class TestFrozenDict:
+    def test_hash(self):
+        obj: FrozenDict = FrozenDict({})
+        assert _compute_hash(obj) == "067705e70d037311d05daae1e32e1fce"
+
+        obj = FrozenDict({"key1": "value1"})
+        assert _compute_hash(obj) == "56b0520e2a3af550c0f488cd5de2d474"
+
+        obj = FrozenDict({
+            "key1": "value1",
+            "key2": 2,
+            "key3": (1, 2, 3),
+            "key4": FrozenDict({"nested_key": "nested_value"}),
+        })
+        assert _compute_hash(obj) == "8568f73c07fce099311f010061f070c6"
 
 
 class TestInteractionNode:
@@ -188,6 +207,9 @@ class TestTopology:
         ):
             assert Topology(nodes, edges)
 
+    def test_hash(self, two_to_three_decay: Topology):
+        assert _compute_hash(two_to_three_decay) == "cbaea5d94038a3ad30888014a7b3ae20"
+
     @pytest.mark.parametrize("repr_method", [repr, pretty])
     def test_repr_and_eq(self, repr_method, two_to_three_decay: Topology):
         topology = eval(repr_method(two_to_three_decay))
@@ -299,3 +321,15 @@ def test_create_n_body_topology(n_initial: int, n_final: int, exception):
         assert len(topology.outgoing_edge_ids) == n_final
         assert len(topology.intermediate_edge_ids) == 0
         assert len(topology.nodes) == 1
+
+
+def _compute_hash(obj) -> str:
+    b = _to_bytes(obj)
+    h = hashlib.md5(b)  # noqa: S324
+    return h.hexdigest()
+
+
+def _to_bytes(obj) -> bytes:
+    if isinstance(obj, bytes | bytearray):
+        return obj
+    return pickle.dumps(obj)

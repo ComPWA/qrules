@@ -1,4 +1,6 @@
 # pyright: reportUnusedImport=false
+import hashlib
+import pickle  # noqa: S403
 from copy import deepcopy
 from fractions import Fraction
 
@@ -43,6 +45,13 @@ class TestReactionInfo:
 
     def test_hash(self, reaction: ReactionInfo):
         assert hash(deepcopy(reaction)) == hash(reaction)
+
+    def test_hash_value(self, reaction: ReactionInfo):
+        expected_hash = {
+            "canonical-helicity": "65106a44301f9340e633d09f66ad7d17",
+            "helicity": "9646d3ee5c5e8534deb8019435161f2e",
+        }[reaction.formalism]
+        assert _compute_hash(reaction) == expected_hash
 
 
 class TestState:
@@ -106,3 +115,15 @@ class TestStateTransitionManager:
             "Delta(1900)++",
             "Delta(1920)++",
         ]
+
+
+def _compute_hash(obj) -> str:
+    b = _to_bytes(obj)
+    h = hashlib.md5(b)  # noqa: S324
+    return h.hexdigest()
+
+
+def _to_bytes(obj) -> bytes:
+    if isinstance(obj, bytes | bytearray):
+        return obj
+    return pickle.dumps(obj)

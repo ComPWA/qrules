@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath("."))
 from _extend_docstrings import extend_docstrings  # noqa: PLC2701
 
 
-def pick_newtype_attrs(some_type: type) -> list:
+def __get_newtypes(some_type: type) -> list:
     return [
         attr
         for attr in dir(some_type)
@@ -278,25 +278,20 @@ nb_execution_mode = get_execution_mode()
 nb_execution_show_tb = True
 nb_execution_timeout = -1
 nb_output_stderr = "remove"
-
-
-nitpick_temp_names = [
-    *pick_newtype_attrs(EdgeQuantumNumbers),
-    *pick_newtype_attrs(NodeQuantumNumbers),
-]
-nitpick_temp_patterns = [
-    (r"py:(class|obj)", r"qrules\.quantum_numbers\." + name)
-    for name in nitpick_temp_names
-]
 nitpick_ignore_regex = [
     (r"py:(class|obj)", "json.encoder.JSONEncoder"),
+    (r"py:(class|obj)", r"frozendict(\.frozendict)?"),
     (r"py:(class|obj)", r"qrules\.topology\.EdgeType"),
     (r"py:(class|obj)", r"qrules\.topology\.KT"),
     (r"py:(class|obj)", r"qrules\.topology\.NewEdgeType"),
     (r"py:(class|obj)", r"qrules\.topology\.NewNodeType"),
     (r"py:(class|obj)", r"qrules\.topology\.NodeType"),
     (r"py:(class|obj)", r"qrules\.topology\.VT"),
-    *nitpick_temp_patterns,
+    *[
+        (r"py:(class|obj)", r"qrules\.quantum_numbers\." + name)
+        for name in __get_newtypes(EdgeQuantumNumbers)
+        + __get_newtypes(NodeQuantumNumbers)
+    ],
 ]
 nitpicky = True
 primary_domain = "py"
