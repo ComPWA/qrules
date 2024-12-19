@@ -120,6 +120,7 @@ types = [
     "sphinx-api-relink",
     "types-PyYAML",
     "types-setuptools",
+    "xxhash",
 ]
 
 [tool.setuptools]

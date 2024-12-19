@@ -2248,6 +2248,7 @@ style = [
     { name = "sphinx-api-relink" },
     { name = "types-pyyaml" },
     { name = "types-setuptools" },
+    { name = "xxhash" },
 ]
 test = [
     { name = "ipython", version = "8.18.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
@@ -2268,6 +2269,7 @@ types = [
     { name = "sphinx-api-relink" },
     { name = "types-pyyaml" },
     { name = "types-setuptools" },
+    { name = "xxhash" },
 ]
 
 [package.metadata]
@@ -2356,6 +2358,7 @@ style = [
     { name = "sphinx-api-relink" },
     { name = "types-pyyaml" },
     { name = "types-setuptools" },
+    { name = "xxhash" },
 ]
 test = [
     { name = "ipython" },
@@ -2374,6 +2377,7 @@ types = [
     { name = "sphinx-api-relink" },
     { name = "types-pyyaml" },
     { name = "types-setuptools" },
+    { name = "xxhash" },
 ]
 
 [[package]]
