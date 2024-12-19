@@ -178,9 +178,10 @@ def test_as_string_dict(
     problem_set = problem_sets[3600.0][0]
     interaction = qn_result.solutions[1].interactions[1]
     intermediate_state, *_ = qn_result.solutions[0].intermediate_states.values()
-    solving_settings, *_ = problem_set.solving_settings.intermediate_states.values()
+    node_setting = problem_set.solving_settings.interactions[0]
+    intermediate_setting, *_ = problem_set.solving_settings.intermediate_states.values()
 
-    dot = as_string(solving_settings).strip()
+    dot = as_string(intermediate_setting).strip()
     expected_dot = dedent("""
         RULES
         spin_validity - 62
@@ -203,6 +204,37 @@ def test_as_string_dict(
         strangeness ∊ [-1, +1]
         tau_lepton_number ∊ [0]
         topness ∊ [0]
+    """).strip()
+    assert dot == expected_dot
+
+    dot = as_string(node_setting).strip()
+    expected_dot = dedent("""
+        RULES
+        clebsch_gordan_helicity_to_canonical - NA
+        BaryonNumberConservation - 90
+        ls_spin_validity - 89
+        spin_magnitude_conservation - 8
+        CharmConservation - 70
+        helicity_conservation - 7
+        StrangenessConservation - 69
+        BottomnessConservation - 68
+        isospin_conservation - 60
+        parity_conservation - 6
+        c_parity_conservation - 5
+        ElectronLNConservation - 45
+        MuonLNConservation - 44
+        TauLNConservation - 43
+        parity_conservation_helicity - 4
+        g_parity_conservation - 3
+        identical_particle_symmetrization - 2
+        ChargeConservation - 100
+        MassConservation - 10
+        DOMAINS
+        l_magnitude ∊ [0, 1]
+        l_projection ∊ [0]
+        parity_prefactor ∊ [-1, +1]
+        s_magnitude ∊ [0, 1/2, 1, 3/2, 2]
+        s_projection ∊ [-2, -3/2, -1, -1/2, 0, +1/2, +1, +3/2, +2]
     """).strip()
     assert dot == expected_dot
 
