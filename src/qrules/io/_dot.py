@@ -12,6 +12,7 @@ from collections import abc
 from fractions import Fraction
 from functools import singledispatch
 from inspect import isfunction
+from types import NoneType
 from typing import TYPE_CHECKING, Any, cast
 
 import attrs
@@ -303,7 +304,12 @@ def as_string(obj: Any) -> str:
     return str(obj)
 
 
-as_string.register(str, lambda _: _)  # avoid warning for str type
+@as_string.register(NoneType)
+@as_string.register(int)
+@as_string.register(float)
+@as_string.register(str)
+def _(obj: Any) -> str:
+    return str(obj)
 
 
 @as_string.register(dict)
@@ -314,11 +320,19 @@ def _(obj: dict) -> str:
             key_repr = key.__name__
         else:
             key_repr = key
-        if value != 0 or any(s in key_repr for s in ["magnitude", "projection"]):
-            pm = not any(s in key_repr for s in ["pid", "mass", "width", "magnitude"])
-            value_repr = _render_fraction(value, pm)
-            lines.append(f"{key_repr} = {value_repr}")
+        if not value and not key_repr.endswith(("magnitude", "projection")):
+            continue
+        value_repr = __render_key_and_value(key_repr, value)
+        lines.append(f"{key_repr} = {value_repr}")
     return "\n".join(lines)
+
+
+def __render_key_and_value(key: str, value: Any) -> str:
+    if isinstance(value, (Fraction, int)):
+        fraction = Fraction(value)
+        no_pm = key.endswith("magnitude") or key == "pid"
+        return _render_fraction(fraction, plusminus=not no_pm)
+    return as_string(value)
 
 
 @as_string.register(InteractionProperties)
@@ -358,7 +372,8 @@ def _(settings: EdgeSettings | NodeSettings) -> str:
         if output:
             output += "\n"
         domains = sorted(
-            f"{qn.__name__} ∊ {domain}" for qn, domain in settings.qn_domains.items()
+            f"{qn.__name__} ∊ {__render_domain(domain, key=qn.__name__)}"
+            for qn, domain in settings.qn_domains.items()
         )
         output += "DOMAINS\n"
         output += "\n".join(domains)
@@ -388,6 +403,22 @@ def __extract_priority(description: str) -> str:
     return matches[1]
 
 
+def __render_domain(domain: list[Any], key: str) -> str:
+    """Render a domain as a `str`.
+
+    >>> half = Fraction(0.5)
+    >>> __render_domain([-half, +half], key="spin_projection")
+    '[-1/2, +1/2]'
+    >>> __render_domain([0, 1], key="l_magnitude")
+    '[0, 1]'
+    >>> __render_domain([None, +1, -1], key="parity")
+    '[-1, +1, None]'
+    """
+    domain = sorted(domain, key=lambda x: +9999 if x is None else x)
+    domain_str = [__render_key_and_value(key, x) for x in domain]
+    return "[" + ", ".join(domain_str) + "]"
+
+
 @as_string.register(Particle)
 def _(particle: Particle) -> str:
     return particle.name
@@ -410,10 +441,10 @@ def _state_to_str(state: State) -> str:
 @as_string.register(tuple)
 def _(obj: tuple) -> str:
     if len(obj) == 2:
-        if isinstance(obj[0], Particle) and isinstance(obj[1], (float, int)):
+        if isinstance(obj[0], Particle) and isinstance(obj[1], (Fraction, float, int)):
             state = State(*obj)
             return _state_to_str(state)
-        if all(isinstance(o, (float, int)) for o in obj):
+        if all(isinstance(o, (Fraction, float, int)) for o in obj):
             spin = Spin(*obj)
             return _spin_to_str(spin)
     return "\n".join(map(as_string, obj))
