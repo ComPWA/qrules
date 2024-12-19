@@ -380,7 +380,7 @@ def _(settings: EdgeSettings | NodeSettings) -> str:
         if output:
             output += "\n"
         domains = sorted(
-            f"{qn.__name__} ∊ {as_string(domain)}"
+            f"{qn.__name__} ∊ {__render_domain(domain)}"
             for qn, domain in settings.qn_domains.items()
         )
         output += "DOMAINS\n"
@@ -409,6 +409,18 @@ def __extract_priority(description: str) -> str:
         msg = f"{description} does not contain a priority number"
         raise ValueError(msg)
     return matches[1]
+
+
+def __render_domain(domain: list[Any]) -> str:
+    """Render a domain as a `str`.
+
+    >>> __render_domain([-0.5, +0.5])
+    '[-1/2, +1/2]'
+    >>> __render_domain([None, +1, -1])
+    '[-1, +1, None]'
+    """
+    domain = sorted(domain, key=lambda x: +9999 if x is None else x)
+    return as_string([None if i is None else Fraction(i) for i in domain])
 
 
 @as_string.register(Particle)

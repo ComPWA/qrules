@@ -187,20 +187,20 @@ def test_as_string_dict(
         isospin_validity - 61
         gellmann_nishijima - 50
         DOMAINS
-        baryon_number ∊ [1, -1]
+        baryon_number ∊ [-1, +1]
         bottomness ∊ [0]
         c_parity ∊ [None]
-        charge ∊ [0, 1, -1]
+        charge ∊ [-1, 0, +1]
         charmness ∊ [0]
         electron_lepton_number ∊ [0]
         g_parity ∊ [None]
         isospin_magnitude ∊ [+1]
-        isospin_projection ∊ [0, +1, -1]
+        isospin_projection ∊ [-1, 0, +1]
         muon_lepton_number ∊ [0]
-        parity ∊ [1, -1]
+        parity ∊ [-1, +1]
         spin_magnitude ∊ [+1/2]
-        spin_projection ∊ [-1/2, 0, +1/2, +1, +3/2, +2, +5/2, +3, +7/2, +4, -7/2, -2, -1, -4, -3, -5/2, -3/2]
-        strangeness ∊ [1, -1]
+        spin_projection ∊ [-4, -7/2, -3, -5/2, -2, -3/2, -1, -1/2, 0, +1/2, +1, +3/2, +2, +5/2, +3, +7/2, +4]
+        strangeness ∊ [-1, +1]
         tau_lepton_number ∊ [0]
         topness ∊ [0]
     """).strip()
