@@ -176,7 +176,7 @@ def test_as_string_dict(
 ):
     _, qn_result = qn_problem_and_result
     problem_set = problem_sets[3600.0][0]
-    interaction = qn_result.solutions[0].interactions[0]
+    interaction = qn_result.solutions[1].interactions[1]
     intermediate_state, *_ = qn_result.solutions[0].intermediate_states.values()
     solving_settings, *_ = problem_set.solving_settings.intermediate_states.values()
 
@@ -187,7 +187,7 @@ def test_as_string_dict(
         isospin_validity - 61
         gellmann_nishijima - 50
         DOMAINS
-        baryon_number ∊ [+1, -1]
+        baryon_number ∊ [1, -1]
         bottomness ∊ [0]
         c_parity ∊ [None]
         charge ∊ [0, 1, -1]
@@ -208,11 +208,11 @@ def test_as_string_dict(
 
     dot = as_string(interaction).strip()
     expected_dot = dedent("""
-        l_magnitude = 1
-        s_magnitude = 0
+        l_magnitude = 0
+        s_magnitude = 1/2
         l_projection = 0
-        s_projection = 0
-        parity_prefactor = -1
+        s_projection = -1/2
+        parity_prefactor = +1
     """).strip()
     assert dot == expected_dot
 
@@ -220,7 +220,7 @@ def test_as_string_dict(
     expected_dot = dedent("""
         spin_magnitude = 1/2
         spin_projection = +1/2
-        parity = 1
+        parity = +1
         isospin_magnitude = 1
         isospin_projection = -1
         c_parity = None
@@ -231,7 +231,7 @@ def test_as_string_dict(
         charmness = 0
         electron_lepton_number = 0
         muon_lepton_number = 0
-        strangeness = 1
+        strangeness = +1
         tau_lepton_number = 0
         topness = 0
         pid = -23222
