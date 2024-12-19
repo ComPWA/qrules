@@ -316,18 +316,15 @@ def _(obj: Any) -> str:
 def _(obj: dict) -> str:
     lines = []
     for key, value in obj.items():
-        if value == 0:
-            continue
-        if value is None:
-            continue
         if isinstance(key, type) or callable(key):
             key_repr = key.__name__
         else:
             key_repr = key
-        if any(s in key_repr for s in ["magnitude", "projection"]):
-            pm = not any(s in key_repr for s in ["pid", "mass", "width", "magnitude"])
-            value_repr = _render_fraction(value, pm)
-            lines.append(f"{key_repr} = {value_repr}")
+        if isinstance(value, (Fraction)):
+            value_repr = _render_fraction(value, plusminus="projection" in key_repr)
+        else:
+            value_repr = as_string(value)
+        lines.append(f"{key_repr} = {value_repr}")
     return "\n".join(lines)
 
 
