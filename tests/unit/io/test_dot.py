@@ -223,8 +223,6 @@ def test_as_string_dict(
         parity = +1
         isospin_magnitude = 1
         isospin_projection = -1
-        c_parity = None
-        g_parity = None
         baryon_number = -1
         charge = -1
         strangeness = +1
