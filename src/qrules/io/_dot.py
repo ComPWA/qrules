@@ -333,16 +333,6 @@ def __render_key_and_value(key: str, value: Any) -> str:
     return as_string(value)
 
 
-@as_string.register(Fraction)
-def _(obj: Fraction) -> str:
-    return _render_fraction(obj, plusminus=True)
-
-
-@as_string.register(list)
-def _(obj: list) -> str:
-    return "[" + ", ".join(as_string(o) for o in obj) + "]"
-
-
 @as_string.register(InteractionProperties)
 def _(obj: InteractionProperties) -> str:
     lines = []
@@ -380,7 +370,7 @@ def _(settings: EdgeSettings | NodeSettings) -> str:
         if output:
             output += "\n"
         domains = sorted(
-            f"{qn.__name__} ∊ {__render_domain(domain)}"
+            f"{qn.__name__} ∊ {__render_domain(domain, key=qn.__name__)}"
             for qn, domain in settings.qn_domains.items()
         )
         output += "DOMAINS\n"
@@ -411,16 +401,20 @@ def __extract_priority(description: str) -> str:
     return matches[1]
 
 
-def __render_domain(domain: list[Any]) -> str:
+def __render_domain(domain: list[Any], key: str) -> str:
     """Render a domain as a `str`.
 
-    >>> __render_domain([-0.5, +0.5])
+    >>> half = Fraction(0.5)
+    >>> __render_domain([-half, +half], key="spin_projection")
     '[-1/2, +1/2]'
-    >>> __render_domain([None, +1, -1])
+    >>> __render_domain([0, 1], key="l_magnitude")
+    '[0, 1]'
+    >>> __render_domain([None, +1, -1], key="parity")
     '[-1, +1, None]'
     """
     domain = sorted(domain, key=lambda x: +9999 if x is None else x)
-    return as_string([None if i is None else Fraction(i) for i in domain])
+    domain_str = [__render_key_and_value(key, x) for x in domain]
+    return "[" + ", ".join(domain_str) + "]"
 
 
 @as_string.register(Particle)
