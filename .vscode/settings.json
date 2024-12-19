@@ -58,7 +58,12 @@
   "python.analysis.autoImportCompletions": false,
   "python.analysis.inlayHints.pytestParameters": true,
   "python.terminal.activateEnvironment": false,
-  "python.testing.pytestArgs": ["--color=no", "--no-cov"],
+  "python.testing.pytestArgs": [
+    "--color=no",
+    "--no-cov",
+    "--verbose",
+    "--verbose"
+  ],
   "python.testing.pytestEnabled": true,
   "python.testing.unittestEnabled": false,
   "redhat.telemetry.enabled": false,
