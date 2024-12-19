@@ -19,7 +19,6 @@ repos:
       - id: check-dev-files
         args:
           - --doc-apt-packages=graphviz
-          - --environment-variables=PYTHONHASHSEED=0
           - --repo-name=qrules
           - --repo-title=QRules
           - --update-lock-files=outsource
