@@ -320,6 +320,8 @@ def _(obj: dict) -> str:
             key_repr = key.__name__
         else:
             key_repr = key
+        if value == 0 and not key_repr.endswith(("magnitude", "projection")):
+            continue
         value_repr = __render_key_and_value(key_repr, value)
         lines.append(f"{key_repr} = {value_repr}")
     return "\n".join(lines)

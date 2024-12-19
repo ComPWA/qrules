@@ -226,14 +226,8 @@ def test_as_string_dict(
         c_parity = None
         g_parity = None
         baryon_number = -1
-        bottomness = 0
         charge = -1
-        charmness = 0
-        electron_lepton_number = 0
-        muon_lepton_number = 0
         strangeness = +1
-        tau_lepton_number = 0
-        topness = 0
         pid = -23222
         mass = 1.75
         width = 0.15
