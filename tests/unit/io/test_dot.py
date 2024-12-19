@@ -1,4 +1,5 @@
 from fractions import Fraction
+from textwrap import dedent
 
 import pydot
 import pytest
@@ -13,6 +14,7 @@ from qrules.io._dot import (
 )
 from qrules.particle import Particle, ParticleCollection
 from qrules.settings import InteractionType
+from qrules.solving import QNProblemSet, QNResult
 from qrules.topology import (
     Edge,
     Topology,
@@ -93,20 +95,65 @@ def test_asdot_graphviz_attrs(reaction: ReactionInfo):
     assert "bgcolor=none" not in dot_data
 
 
-def test_asdot_qn_problem_set():
+@pytest.fixture
+def qn_problem_and_result() -> tuple[QNProblemSet, QNResult]:
     stm = qrules.StateTransitionManager(
         initial_state=[("J/psi(1S)", [+1])],
         final_state=["K0", ("Sigma+", [+0.5]), ("p~", [+0.5])],
-        allowed_intermediate_particles=["Sigma(1670)~-"],
+        allowed_intermediate_particles=["Sigma(1750)"],
         formalism="canonical-helicity",
     )
     stm.set_allowed_interaction_types([InteractionType.STRONG, InteractionType.EM])
     problem_sets = stm.create_problem_sets()
     qn_solutions = stm.find_quantum_number_transitions(problem_sets)
     strong_qn_solutions = qn_solutions[3600.0]
-    qn_problem_set, _ = strong_qn_solutions[0]
+    return strong_qn_solutions[1]
+
+
+def test_asdot_qn_problem_set(qn_problem_and_result: tuple[QNProblemSet, QNResult]):
+    qn_problem_set, _ = qn_problem_and_result
     dot_data = qrules.io.asdot(qn_problem_set, render_node=True)
     assert pydot.graph_from_dot_data(dot_data) is not None
+
+
+def test_as_string_dict(qn_problem_and_result: tuple[QNProblemSet, QNResult]):
+    _, qn_result = qn_problem_and_result
+    interaction = qn_result.solutions[0].interactions[0]
+    intermediate_state, *_ = qn_result.solutions[0].intermediate_states.values()
+
+    dot = as_string(interaction).strip()
+    expected_dot = dedent("""
+        l_magnitude = 1
+        s_magnitude = 0
+        l_projection = 0
+        s_projection = 0
+        parity_prefactor = -1
+    """).strip()
+    assert dot == expected_dot
+
+    dot = as_string(intermediate_state).strip()
+    expected_dot = dedent("""
+        spin_magnitude = 1/2
+        spin_projection = +1/2
+        parity = 1
+        isospin_magnitude = 1
+        isospin_projection = -1
+        c_parity = None
+        g_parity = None
+        baryon_number = -1
+        bottomness = 0
+        charge = -1
+        charmness = 0
+        electron_lepton_number = 0
+        muon_lepton_number = 0
+        strangeness = 1
+        tau_lepton_number = 0
+        topness = 0
+        pid = -23222
+        mass = 1.75
+        width = 0.15
+    """).strip()
+    assert dot == expected_dot
 
 
 def test_asdot_with_styled_edges_and_nodes(reaction: ReactionInfo, output_dir):
