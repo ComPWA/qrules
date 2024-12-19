@@ -48,8 +48,8 @@ class TestReactionInfo:
 
     def test_xxhash(self, reaction: ReactionInfo):
         expected_hash = {
-            "canonical-helicity": "aec1f862660cf20e802d68c59d1a06ff",
-            "helicity": "c5b8b4c9bd3f50ed5e987443c277391c",
+            "canonical-helicity": "de995528a15267dd3a72fe6c5dfa6136",
+            "helicity": "61c08ea813390cfbae8b083a89a5673a",
         }[reaction.formalism]
         assert _compute_hash(reaction) == expected_hash
 

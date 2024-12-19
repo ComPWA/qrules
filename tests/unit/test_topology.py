@@ -44,10 +44,10 @@ class TestEdge:
 class TestFrozenDict:
     def test_hash(self):
         obj: FrozenDict = FrozenDict({})
-        assert _compute_hash(obj) == "023f1d9cf3576a46b278007d6e5cb0fa"
+        assert _compute_hash(obj) == "458fa667e2b581f54c06f5d6f85a0329"
 
         obj = FrozenDict({"key1": "value1"})
-        assert _compute_hash(obj) == "1f57a8e372e93eeacabfe613606e4589"
+        assert _compute_hash(obj) == "ebbfce37fe77355d4e07479243089a6f"
 
         obj = FrozenDict({
             "key1": "value1",
@@ -55,7 +55,7 @@ class TestFrozenDict:
             "key3": (1, 2, 3),
             "key4": FrozenDict({"nested_key": "nested_value"}),
         })
-        assert _compute_hash(obj) == "b74cfc0efac6a26f73b541fab5c090d7"
+        assert _compute_hash(obj) == "309fd50095a37aa32e31f1068d7a9b4e"
 
 
 class TestInteractionNode:
@@ -208,7 +208,7 @@ class TestTopology:
             assert Topology(nodes, edges)
 
     def test_hash(self, two_to_three_decay: Topology):
-        assert _compute_hash(two_to_three_decay) == "dc775dcdd565524839511b0160f5f769"
+        assert _compute_hash(two_to_three_decay) == "5f55e8b64bcb177cf0984c985d8673fa"
 
     @pytest.mark.parametrize("repr_method", [repr, pretty])
     def test_repr_and_eq(self, repr_method, two_to_three_decay: Topology):
