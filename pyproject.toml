@@ -110,6 +110,7 @@ test = [
     "pytest-cov",
     "pytest-profiling",
     "pytest-xdist",
+    "xxhash",
 ]
 types = [
     "ipython",
