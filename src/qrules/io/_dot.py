@@ -414,10 +414,10 @@ def _state_to_str(state: State) -> str:
 @as_string.register(tuple)
 def _(obj: tuple) -> str:
     if len(obj) == 2:
-        if isinstance(obj[0], Particle) and isinstance(obj[1], (float, int)):
+        if isinstance(obj[0], Particle) and isinstance(obj[1], (Fraction, float, int)):
             state = State(*obj)
             return _state_to_str(state)
-        if all(isinstance(o, (float, int)) for o in obj):
+        if all(isinstance(o, (Fraction, float, int)) for o in obj):
             spin = Spin(*obj)
             return _spin_to_str(spin)
     return "\n".join(map(as_string, obj))
