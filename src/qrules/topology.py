@@ -50,7 +50,7 @@ VT = TypeVar("VT")
 
 @total_ordering
 class FrozenDict(frozendict, Generic[KT, VT]):
-    """A sortable version of `frozendict <https://pypi.org/project/frozendict>_`."""
+    """A sortable version of :code:`frozendict`."""
 
     def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
         class_name = type(self).__name__
