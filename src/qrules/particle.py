@@ -29,10 +29,10 @@ from attrs.validators import instance_of
 from qrules.conservation_rules import GellMannNishijimaInput, gellmann_nishijima
 from qrules.quantum_numbers import Parity, _float_as_signed_str
 
-if sys.version_info < (3, 11):
-    from typing_extensions import Self
-else:
+if sys.version_info >= (3, 11):
     from typing import Self
+else:
+    from typing_extensions import Self
 if TYPE_CHECKING:
     from collections.abc import Iterable, Iterator
 
