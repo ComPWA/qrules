@@ -5,6 +5,7 @@ import qrules
 from qrules import io
 from qrules.io._dot import _collapse_graphs, _get_particle_graphs, _strip_projections
 from qrules.particle import Particle, ParticleCollection
+from qrules.settings import InteractionType
 from qrules.topology import (
     Edge,
     Topology,
@@ -83,6 +84,22 @@ def test_asdot_graphviz_attrs(reaction: ReactionInfo):
     assert '\n    bgcolor="red"\n' in dot_data
     assert "\n    size=12\n" in dot_data
     assert "bgcolor=none" not in dot_data
+
+
+def test_asdot_qn_problem_set():
+    stm = qrules.StateTransitionManager(
+        initial_state=[("J/psi(1S)", [+1])],
+        final_state=["K0", ("Sigma+", [+0.5]), ("p~", [+0.5])],
+        allowed_intermediate_particles=["Sigma(1670)~-"],
+        formalism="canonical-helicity",
+    )
+    stm.set_allowed_interaction_types([InteractionType.STRONG, InteractionType.EM])
+    problem_sets = stm.create_problem_sets()
+    qn_solutions = stm.find_quantum_number_transitions(problem_sets)
+    strong_qn_solutions = qn_solutions[3600.0]
+    qn_problem_set, _ = strong_qn_solutions[0]
+    dot_data = qrules.io.asdot(qn_problem_set, render_node=True)
+    assert pydot.graph_from_dot_data(dot_data) is not None
 
 
 def test_asdot_with_styled_edges_and_nodes(reaction: ReactionInfo, output_dir):
