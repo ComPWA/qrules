@@ -145,6 +145,7 @@
     "ylim"
   ],
   "language": "en-US",
+  "useGitignore": true,
   "version": "0.2",
   "words": [
     "blatt",
@@ -201,6 +202,5 @@
     "venv",
     "weisskopf",
     "Zenodo"
-  ],
-  "useGitignore": true
+  ]
 }
