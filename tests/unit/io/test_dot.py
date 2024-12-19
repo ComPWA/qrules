@@ -1,9 +1,16 @@
+from fractions import Fraction
+
 import pydot
 import pytest
 
 import qrules
 from qrules import io
-from qrules.io._dot import _collapse_graphs, _get_particle_graphs, _strip_projections
+from qrules.io._dot import (
+    _collapse_graphs,
+    _get_particle_graphs,
+    _strip_projections,
+    as_string,
+)
 from qrules.particle import Particle, ParticleCollection
 from qrules.settings import InteractionType
 from qrules.topology import (
@@ -164,6 +171,25 @@ def test_asdot_topology():
     assert pydot.graph_from_dot_data(dot_data) is not None
     dot_data = io.asdot(create_isobar_topologies(4))
     assert pydot.graph_from_dot_data(dot_data) is not None
+
+
+def test_as_string_spin_tuple(particle_database: ParticleCollection):
+    # non-spin
+    src = as_string(("a", "b", "c"))
+    assert src == "a\nb\nc"
+    src = as_string(("a", "b"))
+    assert src == "a\nb"
+
+    # spin
+    src = as_string((2, 1))
+    assert src == "|2,+1⟩"
+
+    # particle with spin projection
+    pion = particle_database["J/psi(1S)"]
+    src = as_string((pion, 1))
+    assert src == "J/psi(1S)[+1]"
+    src = as_string((pion, Fraction(-1)))
+    assert src == "J/psi(1S)[-1]"
 
 
 class TestWrite:
