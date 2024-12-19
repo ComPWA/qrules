@@ -21,7 +21,12 @@ from qrules.topology import (
     create_isobar_topologies,
     create_n_body_topology,
 )
-from qrules.transition import ReactionInfo, SpinFormalism
+from qrules.transition import (
+    ProblemSet,
+    ReactionInfo,
+    SpinFormalism,
+    StateTransitionManager,
+)
 
 
 def test_asdot(reaction: ReactionInfo):
@@ -133,7 +138,7 @@ def test_asdot_no_label_overwriting(reaction: ReactionInfo):
     ["canonical", "canonical-helicity", "helicity"],
 )
 def test_asdot_problemset(formalism: SpinFormalism):
-    stm = qrules.StateTransitionManager(
+    stm = StateTransitionManager(
         initial_state=[("J/psi(1S)", [+1])],
         final_state=["gamma", "pi0", "pi0"],
         formalism=formalism,
@@ -165,10 +170,41 @@ def test_asdot_topology():
     assert pydot.graph_from_dot_data(dot_data) is not None
 
 
-def test_as_string_dict(qn_problem_and_result: tuple[QNProblemSet, QNResult]):
+def test_as_string_dict(
+    problem_sets: dict[float, list[ProblemSet]],
+    qn_problem_and_result: tuple[QNProblemSet, QNResult],
+):
     _, qn_result = qn_problem_and_result
+    problem_set = problem_sets[3600.0][0]
     interaction = qn_result.solutions[0].interactions[0]
     intermediate_state, *_ = qn_result.solutions[0].intermediate_states.values()
+    solving_settings, *_ = problem_set.solving_settings.intermediate_states.values()
+
+    dot = as_string(solving_settings).strip()
+    expected_dot = dedent("""
+        RULES
+        spin_validity - 62
+        isospin_validity - 61
+        gellmann_nishijima - 50
+        DOMAINS
+        baryon_number ∊ [+1, -1]
+        bottomness ∊ [0]
+        c_parity ∊ [None]
+        charge ∊ [0, 1, -1]
+        charmness ∊ [0]
+        electron_lepton_number ∊ [0]
+        g_parity ∊ [None]
+        isospin_magnitude ∊ [+1]
+        isospin_projection ∊ [0, +1, -1]
+        muon_lepton_number ∊ [0]
+        parity ∊ [1, -1]
+        spin_magnitude ∊ [+1/2]
+        spin_projection ∊ [-1/2, 0, +1/2, +1, +3/2, +2, +5/2, +3, +7/2, +4, -7/2, -2, -1, -4, -3, -5/2, -3/2]
+        strangeness ∊ [1, -1]
+        tau_lepton_number ∊ [0]
+        topness ∊ [0]
+    """).strip()
+    assert dot == expected_dot
 
     dot = as_string(interaction).strip()
     expected_dot = dedent("""
@@ -335,15 +371,27 @@ def test_strip_projections(skh_particle_version: str):
 
 
 @pytest.fixture
-def qn_problem_and_result() -> tuple[QNProblemSet, QNResult]:
-    stm = qrules.StateTransitionManager(
+def stm() -> StateTransitionManager:
+    stm = StateTransitionManager(
         initial_state=[("J/psi(1S)", [+1])],
         final_state=["K0", ("Sigma+", [+0.5]), ("p~", [+0.5])],
         allowed_intermediate_particles=["Sigma(1750)"],
         formalism="canonical-helicity",
     )
     stm.set_allowed_interaction_types([InteractionType.STRONG, InteractionType.EM])
-    problem_sets = stm.create_problem_sets()
+    return stm
+
+
+@pytest.fixture
+def problem_sets(stm: StateTransitionManager) -> dict[float, list[ProblemSet]]:
+    return stm.create_problem_sets()
+
+
+@pytest.fixture
+def qn_problem_and_result(
+    stm: StateTransitionManager,
+    problem_sets: dict[float, list[ProblemSet]],
+) -> tuple[QNProblemSet, QNResult]:
     qn_solutions = stm.find_quantum_number_transitions(problem_sets)
     strong_qn_solutions = qn_solutions[3600.0]
     return strong_qn_solutions[1]
