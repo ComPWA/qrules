@@ -184,8 +184,7 @@ class GraphPrinter:
         self, from_node: str, to_node: str, label: str = ""
     ) -> str:
         style = dict(self.edge_style)  # copy
-        if "label" in style:
-            del style["label"]
+        style.pop("label", None)
         if label:
             style["label"] = label
         styling = _create_graphviz_styling(style)
