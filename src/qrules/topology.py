@@ -27,19 +27,12 @@ from typing import TYPE_CHECKING, Any, Callable, Generic, Protocol, TypeVar, ove
 import attrs
 from attrs import define, field, frozen
 from attrs.validators import deep_iterable, deep_mapping, instance_of
+from frozendict import frozendict
 
 from qrules._implementers import implement_pretty_repr
 
 if TYPE_CHECKING:
-    from collections.abc import (
-        ItemsView,
-        Iterable,
-        Iterator,
-        KeysView,
-        Mapping,
-        Sequence,
-        ValuesView,
-    )
+    from collections.abc import Iterable, Mapping, Sequence
 
     from IPython.lib.pretty import PrettyPrinter
 
@@ -56,31 +49,8 @@ VT = TypeVar("VT")
 
 
 @total_ordering
-class FrozenDict(abc.Hashable, abc.Mapping, Generic[KT, VT]):
-    """An **immutable** and **hashable** version of a `dict`.
-
-    `FrozenDict` makes it possible to make classes hashable if they are decorated with
-    :func:`attr.frozen` and contain `~typing.Mapping`-like attributes. If these
-    attributes were to be implemented with a normal `dict`, the instance is strictly
-    speaking still mutable (even if those attributes are a `property`) and the class is
-    therefore not safely hashable.
-
-    .. warning:: The keys have to be comparable, that is, they need to have a
-        :meth:`~object.__lt__` method.
-    """
-
-    def __init__(self, mapping: Mapping | None = None) -> None:
-        self.__mapping: dict[KT, VT] = {}
-        if mapping is not None:
-            self.__mapping = dict(mapping)
-        self.__hash = hash(None)
-        if len(self.__mapping) != 0:
-            self.__hash = 0
-            for key_value_pair in self.items():
-                self.__hash ^= hash(key_value_pair)
-
-    def __repr__(self) -> str:
-        return f"{type(self).__name__}({self.__mapping})"
+class FrozenDict(frozendict, Generic[KT, VT]):
+    """A sortable version of :code:`frozendict`."""
 
     def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
         class_name = type(self).__name__
@@ -96,15 +66,6 @@ class FrozenDict(abc.Hashable, abc.Mapping, Generic[KT, VT]):
             p.breakable()
             p.text("})")
 
-    def __iter__(self) -> Iterator[KT]:
-        return iter(self.__mapping)
-
-    def __len__(self) -> int:
-        return len(self.__mapping)
-
-    def __getitem__(self, key: KT) -> VT:
-        return self.__mapping[key]
-
     def __gt__(self, other: Any) -> bool:
         if isinstance(other, abc.Mapping):
             sorted_self = _convert_mapping_to_sorted_tuple(self)
@@ -116,18 +77,6 @@ class FrozenDict(abc.Hashable, abc.Mapping, Generic[KT, VT]):
             f" {type(other).__name__}"
         )
         raise NotImplementedError(msg)
-
-    def __hash__(self) -> int:
-        return self.__hash
-
-    def keys(self) -> KeysView[KT]:
-        return self.__mapping.keys()
-
-    def items(self) -> ItemsView[KT, VT]:
-        return self.__mapping.items()
-
-    def values(self) -> ValuesView[VT]:
-        return self.__mapping.values()
 
 
 def _convert_mapping_to_sorted_tuple(
