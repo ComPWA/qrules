@@ -523,5 +523,6 @@ description = Run ALL tests, including the slow channel tests, and compute cover
 
 [tool.uv]
 constraint-dependencies = [
+    "pygments!=2.19.*", # https://github.com/felix-hilden/sphinx-codeautolink/issues/152
     "pytest-profiling!=1.8.0",
 ]
