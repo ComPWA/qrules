@@ -14,7 +14,7 @@ repos:
       - id: check-useless-excludes
 
   - repo: https://github.com/ComPWA/policy
-    rev: 0.5.8
+    rev: 0.5.10
     hooks:
       - id: check-dev-files
         args:
@@ -109,7 +109,7 @@ repos:
           - --in-place
 
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0.30.0
+    rev: 0.31.0
     hooks:
       - id: check-jsonschema
         name: Check CITATION.cff
@@ -153,6 +153,6 @@ repos:
       - id: pyright
 
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.5.14
+    rev: 0.5.16
     hooks:
       - id: uv-lock
