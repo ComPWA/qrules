@@ -2157,7 +2157,6 @@ wheels = [
 
 [[package]]
 name = "qrules"
-version = "0.10.4"
 source = { editable = "." }
 dependencies = [
     { name = "attrs" },
