@@ -8,11 +8,11 @@ from __future__ import annotations
 import logging
 import re
 import string
+import sys
 from collections import abc
 from fractions import Fraction
 from functools import singledispatch
 from inspect import isfunction
-from types import NoneType
 from typing import TYPE_CHECKING, Any, cast
 
 import attrs
@@ -24,6 +24,10 @@ from qrules.quantum_numbers import InteractionProperties
 from qrules.solving import EdgeSettings, NodeSettings, QNProblemSet, QNResult
 from qrules.topology import FrozenTransition, MutableTransition, Topology, Transition
 from qrules.transition import ProblemSet, ReactionInfo, State
+
+if sys.version_info >= (3, 10):
+    from types import NoneType
+
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -299,19 +303,26 @@ def as_string(obj: Any) -> str:
     >>> as_string(10)
     'new int rendering'
     """
-    _LOGGER.warning(f"No DOT renderer implemented type {type(obj).__name__}")
+    if obj is not None:
+        _LOGGER.warning(f"No DOT renderer implemented type {type(obj).__name__}")
     return str(obj)
 
 
-@as_string.register(NoneType)
-@as_string.register(int)
+if sys.version_info >= (3, 10):
+
+    @as_string.register(NoneType)
+    def _(obj: Any) -> str:
+        return str(obj)
+
+
+@as_string.register(int)  # type: ignore[no-redef]
 @as_string.register(float)
 @as_string.register(str)
 def _(obj: Any) -> str:
     return str(obj)
 
 
-@as_string.register(dict)
+@as_string.register(dict)  # type: ignore[no-redef]
 def _(obj: dict) -> str:
     lines = []
     for key, value in obj.items():
@@ -334,7 +345,7 @@ def __render_key_and_value(key: str, value: Any) -> str:
     return as_string(value)
 
 
-@as_string.register(InteractionProperties)
+@as_string.register(InteractionProperties)  # type: ignore[no-redef]
 def _(obj: InteractionProperties) -> str:
     lines = []
     if obj.l_magnitude is not None:
@@ -355,7 +366,7 @@ def _(obj: InteractionProperties) -> str:
     return "\n".join(lines)
 
 
-@as_string.register(EdgeSettings)
+@as_string.register(EdgeSettings)  # type: ignore[no-redef]
 @as_string.register(NodeSettings)
 def _(settings: EdgeSettings | NodeSettings) -> str:
     output = ""
@@ -418,7 +429,7 @@ def __render_domain(domain: list[Any], key: str) -> str:
     return "[" + ", ".join(domain_str) + "]"
 
 
-@as_string.register(Particle)
+@as_string.register(Particle)  # type: ignore[no-redef]
 def _(particle: Particle) -> str:
     return particle.name
 
@@ -437,7 +448,7 @@ def _state_to_str(state: State) -> str:
     return f"{particle}[{spin_projection}]"
 
 
-@as_string.register(tuple)
+@as_string.register(tuple)  # type: ignore[no-redef]
 def _(obj: tuple) -> str:
     if len(obj) == 2:
         if isinstance(obj[0], Particle) and isinstance(obj[1], (Fraction, float, int)):
