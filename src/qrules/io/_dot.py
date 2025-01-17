@@ -12,7 +12,6 @@ from collections import abc
 from fractions import Fraction
 from functools import singledispatch
 from inspect import isfunction
-from types import NoneType
 from typing import TYPE_CHECKING, Any, cast
 
 import attrs
@@ -299,11 +298,11 @@ def as_string(obj: Any) -> str:
     >>> as_string(10)
     'new int rendering'
     """
-    _LOGGER.warning(f"No DOT renderer implemented type {type(obj).__name__}")
+    if obj is not None:
+        _LOGGER.warning(f"No DOT renderer implemented type {type(obj).__name__}")
     return str(obj)
 
 
-@as_string.register(NoneType)
 @as_string.register(int)
 @as_string.register(float)
 @as_string.register(str)
