@@ -48,7 +48,7 @@ class TestReactionInfo:
         assert hash(deepcopy(reaction)) == hash(reaction)
 
     def test_hash_value(self, reaction: ReactionInfo):
-        if sys.version_info >= (3, 10):
+        if sys.version_info >= (3, 11):
             expected_hash = {
                 "canonical-helicity": "65106a44301f9340e633d09f66ad7d17",
                 "helicity": "9646d3ee5c5e8534deb8019435161f2e",
