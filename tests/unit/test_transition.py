@@ -1,6 +1,7 @@
 # pyright: reportUnusedImport=false
 import hashlib
 import pickle  # noqa: S403
+import sys
 from copy import deepcopy
 from fractions import Fraction
 
@@ -47,10 +48,17 @@ class TestReactionInfo:
         assert hash(deepcopy(reaction)) == hash(reaction)
 
     def test_hash_value(self, reaction: ReactionInfo):
-        expected_hash = {
-            "canonical-helicity": "65106a44301f9340e633d09f66ad7d17",
-            "helicity": "9646d3ee5c5e8534deb8019435161f2e",
-        }[reaction.formalism]
+        if sys.version_info >= (3, 10):
+            expected_hash = {
+                "canonical-helicity": "65106a44301f9340e633d09f66ad7d17",
+                "helicity": "9646d3ee5c5e8534deb8019435161f2e",
+            }[reaction.formalism]
+        else:
+            expected_hash = {
+                "canonical-helicity": "0d8bc378677986e0dc2d3b02f5627e0b",
+                "helicity": "71404ad43550850a02109e8db044bd28",
+            }[reaction.formalism]
+
         assert _compute_hash(reaction) == expected_hash
 
 
