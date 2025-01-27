@@ -403,6 +403,11 @@ trailing_comma_inline_array = true
 
 [tool.tox]
 env_list = [
+    "3.9",
+    "3.10",
+    "3.11",
+    "3.12",
+    "3.13",
     "cov",
     "docnb-force",
     "linkcheck",
@@ -415,15 +420,16 @@ skip_install = true
 skip_missing_interpreters = true
 
 [tool.tox.env_run_base]
-allowlist_externals = ["pytest"]
-commands = [
-    ["pytest", {replace = "posargs", default = ["src tests/unit"], extend = true}],
-]
-description = "Run all fast unit tests and doctests"
+commands = [["pytest", {replace = "posargs", extend = true}]]
+dependency_groups = ["test"]
+description = "Run test suite on Python {env_name}"
+no_package = false
 pass_env = ["*"]
+runner = "uv-venv-lock-runner"
+skip_install = false
+skip_missing_interpreters = false
 
 [tool.tox.env.cov]
-allowlist_externals = ["pytest"]
 commands = [
     [
         "pytest",
@@ -438,6 +444,7 @@ description = "Compute the test coverage of all unit tests"
 
 [tool.tox.env.doc]
 allowlist_externals = ["sphinx-build"]
+base = []
 commands = [
     [
         "sphinx-build",
@@ -454,6 +461,7 @@ set_env.PYTHONWARNINGS = ""
 
 [tool.tox.env.doclive]
 allowlist_externals = ["sphinx-autobuild"]
+base = []
 commands = [
     [
         "sphinx-autobuild",
@@ -483,14 +491,14 @@ commands = [
 description = "Set up a server to directly preview changes to the HTML pages"
 
 [tool.tox.env.docnb]
-base = ["tool.tox.env.doc", "tool.tox.env_run_base"]
+base = ["tool.tox.env.doc"]
 set_env = [
     {replace = "ref", of = ["tool.tox.env.doc.set_env"]},
     {EXECUTE_NB = "yes"},
 ]
 
 [tool.tox.env.docnb-force]
-base = ["tool.tox.env.doc", "tool.tox.env_run_base"]
+base = ["tool.tox.env.doc"]
 description = "Execute Jupyter notebooks without cache and build documentation with Sphinx"
 set_env = [
     {replace = "ref", of = ["tool.tox.env.doc.set_env"]},
@@ -498,15 +506,14 @@ set_env = [
 ]
 
 [tool.tox.env.docnblive]
-base = ["tool.tox.env.doclive", "tool.tox.env_run_base"]
+base = ["tool.tox.env.doclive"]
 set_env = [
     {replace = "ref", of = ["tool.tox.env.doclive.set_env"]},
     {EXECUTE_NB = "yes"},
 ]
 
 [tool.tox.env.linkcheck]
-allowlist_externals = ["sphinx-build"]
-base = ["tool.tox.env.doc", "tool.tox.env_run_base"]
+base = ["tool.tox.env.doc"]
 commands = [
     [
         "sphinx-build",
@@ -519,17 +526,17 @@ commands = [
 description = "Check external links in the documentation (requires internet connection)"
 
 [tool.tox.env.nb]
-allowlist_externals = ["pytest"]
 commands = [["pytest", "--nbmake", "{posargs:docs}"]]
 description = "Run all notebooks with pytest"
+with_dev = true
 
 [tool.tox.env.sty]
 allowlist_externals = ["pre-commit"]
+base = []
 commands = [["pre-commit", "run", "--all-files", {replace = "posargs", extend = true}]]
 description = "Perform all linting, formatting, and spelling checks"
 
 [tool.tox.env.test]
-allowlist_externals = ["pytest"]
 commands = [
     [
         "pytest",
@@ -541,3 +548,16 @@ commands = [
     ],
 ]
 description = "Run ALL tests, including the slow channel tests, and compute coverage"
+
+[tool.tox.labels]
+doc = [
+    "docnb-force",
+    "linkcheck",
+]
+test = [
+    "3.9",
+    "3.10",
+    "3.11",
+    "3.12",
+    "3.13",
+]
