@@ -1,12 +1,11 @@
 [build-system]
 build-backend = "setuptools.build_meta"
-requires = [
-    "setuptools>=61.2",
-    "setuptools_scm",
-]
+requires = ["setuptools>=61.2", "setuptools_scm"]
 
 [project]
-authors = [{name = "Common Partial Wave Analysis", email = "compwa-admin@ep1.rub.de"}]
+authors = [
+    {name = "Common Partial Wave Analysis", email = "compwa-admin@ep1.rub.de"},
+]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -100,10 +99,7 @@ jupyter = [
     {include-group = "notebooks"},
 ]
 notebooks = ["qrules[viz]"]
-style = [
-    "mypy",
-    {include-group = "types"},
-]
+style = ["mypy", {include-group = "types"}]
 test = [
     "ipython",
     "nbmake",
@@ -127,11 +123,7 @@ include-package-data = false
 package-dir = {"" = "src"}
 
 [tool.setuptools.package-data]
-qrules = [
-    "additional_definitions.yml",
-    "particle-validation.json",
-    "py.typed",
-]
+qrules = ["additional_definitions.yml", "particle-validation.json", "py.typed"]
 
 [tool.setuptools.packages.find]
 namespaces = false
@@ -141,9 +133,7 @@ where = ["src"]
 write_to = "src/qrules/version.py"
 
 [tool.coverage.report]
-exclude_also = [
-    "if TYPE_CHECKING:",
-]
+exclude_also = ["if TYPE_CHECKING:"]
 
 [tool.coverage.run]
 branch = true
@@ -261,26 +251,15 @@ filterwarnings = [
     "ignore:unclosed .*:ResourceWarning",
 ]
 markers = ["slow: marks tests as slow (deselect with '-m \"not slow\"')"]
-norecursedirs = [
-    ".ipynb_checkpoints",
-    ".virtual_documents",
-    "_build",
-]
-testpaths = [
-    "docs",
-    "src",
-    "tests",
-]
+norecursedirs = [".ipynb_checkpoints", ".virtual_documents", "_build"]
+testpaths = ["docs", "src", "tests"]
 
 [tool.ruff]
 extend-exclude = ["typings"]
 extend-include = ["*.ipynb"]
 preview = true
 show-fixes = true
-src = [
-    "src",
-    "tests",
-]
+src = ["src", "tests"]
 
 [tool.ruff.format]
 docstring-code-format = true
@@ -350,22 +329,9 @@ split-on-trailing-comma = false
     "T20",
     "TC00",
 ]
-"docs/*" = [
-    "E402",
-    "INP001",
-    "S101",
-    "S113",
-    "T201",
-]
-"docs/_extend_docstrings.py" = [
-    "A002",
-    "PLC0415",
-]
-"docs/conf.py" = [
-    "A001",
-    "D100",
-    "FLY002",
-]
+"docs/*" = ["E402", "INP001", "S101", "S113", "T201"]
+"docs/_extend_docstrings.py" = ["A002", "PLC0415"]
+"docs/conf.py" = ["A001", "D100", "FLY002"]
 "setup.py" = ["D100"]
 "src/qrules/conservation_rules.py" = ["FA100"]
 "tests/*" = [
@@ -433,7 +399,9 @@ skip_missing_interpreters = false
 commands = [
     [
         "pytest",
-        {replace = "posargs", default = ["src tests/unit"], extend = true},
+        {replace = "posargs", default = [
+            "src tests/unit",
+        ], extend = true},
         "--cov-fail-under=85",
         "--cov-report=html",
         "--cov-report=xml",
@@ -453,7 +421,7 @@ commands = [
         "--keep-going",
         "--show-traceback",
         "docs/",
-        "docs/_build/html",
+        "docs/_build/html/",
     ],
 ]
 description = "Build documentation and API through Sphinx"
@@ -465,27 +433,34 @@ base = []
 commands = [
     [
         "sphinx-autobuild",
-        "--builder=html",
-        "--ignore=docs/_build/",
-        "--ignore=docs/_images/",
-        "--ignore=docs/_static/logo.*",
-        "--ignore=docs/api/",
-        "--open-browser",
         "--port=0",
-        "--re-ignore='.*/__pycache__/.*'",
-        "--re-ignore='.*/.ipynb_checkpoints/.*'",
-        "--re-ignore='.*/.virtual_documents/.*'",
-        "--re-ignore='.*\\.csv'",
-        "--re-ignore='.*\\.gv'",
-        "--re-ignore='.*\\.inv'",
-        "--re-ignore='.*\\.json'",
-        "--re-ignore='.*\\.pickle'",
-        "--re-ignore='.*\\.tmp'",
-        "--re-ignore='.*\\.ya?ml'",
-        "--watch=docs",
+        "--re-ignore=/__pycache__(/.*)?$",
+        "--re-ignore=/_build(/.*)?$",
+        "--re-ignore=/_images(/.*)?$",
+        "--re-ignore=/\\.cache(/.*)?$",
+        "--re-ignore=/\\.egg-info(/.*)?$",
+        "--re-ignore=/\\.ipynb_checkpoints(/.*)?$",
+        "--re-ignore=/\\.virtual_documents(/.*)?$",
+        "--re-ignore=/api(/.*)?$",
+        "--re-ignore=/docs$",
+        "--re-ignore=/version\\.py$",
+        "--re-ignore=\\.csv$",
+        "--re-ignore=\\.egg-info(/.*)?$",
+        "--re-ignore=\\.gif$",
+        "--re-ignore=\\.gitignore$",
+        "--re-ignore=\\.gv$",
+        "--re-ignore=\\.inv$",
+        "--re-ignore=\\.json$",
+        "--re-ignore=\\.pickle$",
+        "--re-ignore=\\.pkl$",
+        "--re-ignore=\\.png$",
+        "--re-ignore=\\.root$",
+        "--re-ignore=\\.svg$",
+        "--re-ignore=\\.tmp$",
+        "--re-ignore=\\.ya?ml$",
         "--watch=src",
         "docs/",
-        "docs/_build/html",
+        "docs/_build/html/",
     ],
 ]
 description = "Set up a server to directly preview changes to the HTML pages"
@@ -493,7 +468,9 @@ description = "Set up a server to directly preview changes to the HTML pages"
 [tool.tox.env.docnb]
 base = ["tool.tox.env.doc"]
 set_env = [
-    {replace = "ref", of = ["tool.tox.env.doc.set_env"]},
+    {replace = "ref", of = [
+        "tool.tox.env.doc.set_env",
+    ]},
     {EXECUTE_NB = "yes"},
 ]
 
@@ -501,14 +478,18 @@ set_env = [
 base = ["tool.tox.env.doc"]
 description = "Execute Jupyter notebooks without cache and build documentation with Sphinx"
 set_env = [
-    {replace = "ref", of = ["tool.tox.env.doc.set_env"]},
+    {replace = "ref", of = [
+        "tool.tox.env.doc.set_env",
+    ]},
     {FORCE_EXECUTE_NB = "yes"},
 ]
 
 [tool.tox.env.docnblive]
 base = ["tool.tox.env.doclive"]
 set_env = [
-    {replace = "ref", of = ["tool.tox.env.doclive.set_env"]},
+    {replace = "ref", of = [
+        "tool.tox.env.doclive.set_env",
+    ]},
     {EXECUTE_NB = "yes"},
 ]
 
@@ -520,7 +501,7 @@ commands = [
         "--builder=linkcheck",
         "--show-traceback",
         "docs/",
-        "docs/_build/linkcheck",
+        "docs/_build/linkcheck/",
     ],
 ]
 description = "Check external links in the documentation (requires internet connection)"
@@ -533,7 +514,14 @@ with_dev = true
 [tool.tox.env.sty]
 allowlist_externals = ["pre-commit"]
 base = []
-commands = [["pre-commit", "run", "--all-files", {replace = "posargs", extend = true}]]
+commands = [
+    [
+        "pre-commit",
+        "run",
+        "--all-files",
+        {replace = "posargs", extend = true},
+    ],
+]
 description = "Perform all linting, formatting, and spelling checks"
 
 [tool.tox.env.test]
@@ -550,14 +538,5 @@ commands = [
 description = "Run ALL tests, including the slow channel tests, and compute coverage"
 
 [tool.tox.labels]
-doc = [
-    "docnb-force",
-    "linkcheck",
-]
-test = [
-    "3.9",
-    "3.10",
-    "3.11",
-    "3.12",
-    "3.13",
-]
+doc = ["docnb-force", "linkcheck"]
+test = ["3.9", "3.10", "3.11", "3.12", "3.13"]
