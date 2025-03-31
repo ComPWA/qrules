@@ -777,7 +777,7 @@ class Transition(ABC, Generic[EdgeType, NodeType]):
 
     def filter_states(self, edge_ids: Iterable[int]) -> dict[int, EdgeType]:
         """Filter `states` by a selection of :code:`edge_ids`."""
-        return {i: self.states[i] for i in edge_ids}
+        return {i: self.states[i] for i in edge_ids if i in self.states}
 
 
 @implement_pretty_repr
