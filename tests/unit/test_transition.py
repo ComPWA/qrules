@@ -24,6 +24,23 @@ NAMESPACE_WITH_FRACTIONS = globals()
 NAMESPACE_WITH_FRACTIONS["Fraction"] = Fraction
 
 
+class TestMutableTransition:
+    def test_intermediate_states(self):
+        stm = StateTransitionManager(
+            initial_state=[("J/psi(1S)", [-1, +1])],
+            final_state=["K0", "Sigma+", "p~"],
+            allowed_intermediate_particles=["N(1700)", "Sigma(1750)"],
+            formalism="helicity",
+            mass_conservation_factor=0,
+        )
+        stm.set_allowed_interaction_types([InteractionType.STRONG, InteractionType.EM])
+        problem_sets = stm.create_problem_sets()
+        some_problem_set = problem_sets[3600.0][0]
+        assert set(some_problem_set.initial_facts.initial_states) == {-1}
+        assert set(some_problem_set.initial_facts.final_states) == {0, 1, 2}
+        assert set(some_problem_set.initial_facts.intermediate_states) == set()
+
+
 class TestReactionInfo:
     def test_properties(self, reaction: ReactionInfo):
         assert reaction.initial_state[-1].name == "J/psi(1S)"
