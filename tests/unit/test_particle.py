@@ -509,6 +509,7 @@ def test_get_name_root(particle_database: ParticleCollection):
         "chi",
         "D",
         "Delta",
+        "H",
         "e",
         "eta",
         "f",
