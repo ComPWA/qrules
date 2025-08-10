@@ -141,6 +141,7 @@ copyright = f"2020, {ORGANIZATION}"
 default_role = "py:obj"
 exclude_patterns = [
     "**.ipynb_checkpoints",
+    "**.virtual_documents",
     "*build",
     "adr/template.md",
     "tests",
