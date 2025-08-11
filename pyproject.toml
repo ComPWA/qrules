@@ -222,13 +222,14 @@ sequence = [
 
 [tool.poe.tasks.cov]
 cmd = """
-pytest \
-    --cov=qrules \
-    --cov-fail-under=85 \
-    --cov-report=html \
-    --cov-report=xml \
-    --numprocesses=auto \
-    ${paths}
+uv run --group test --isolated --no-dev \
+    pytest \
+        --cov=qrules \
+        --cov-fail-under=85 \
+        --cov-report=html \
+        --cov-report=xml \
+        --numprocesses=auto \
+        ${paths}
 """
 help = "Compute how much of the source code is covered by tests"
 
@@ -303,11 +304,12 @@ sequence = ["doclive"]
 
 [tool.poe.tasks.linkcheck]
 cmd = """
-sphinx-build \
-    --builder=linkcheck \
-    --show-traceback \
-    docs/ \
-    docs/_build/linkcheck/
+uv run --group doc --isolated --no-dev \
+    sphinx-build \
+        --builder=linkcheck \
+        --show-traceback \
+        docs/ \
+        docs/_build/linkcheck/
 """
 env = {PYTHONWARNINGS = ""}
 help = "Check external links in the documentation (requires internet connection)"
@@ -321,7 +323,7 @@ cmd = "uv run --group style --isolated --no-dev pre-commit run --all-files"
 help = "Perform all linting, formatting, and spelling checks"
 
 [tool.poe.tasks.test]
-cmd = "pytest --numprocesses=auto ${paths}"
+cmd = "uv run --group test --isolated --no-dev pytest --numprocesses=auto ${paths}"
 help = "Run all unit tests"
 
 [[tool.poe.tasks.test.args]]
