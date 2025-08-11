@@ -317,7 +317,7 @@ cmd = "pytest --nbmake --nbmake-timeout=0 docs"
 help = "Run all notebooks"
 
 [tool.poe.tasks.style]
-cmd = "pre-commit run --all-files"
+cmd = "uv run --group style --isolated --no-dev pre-commit run --all-files"
 help = "Perform all linting, formatting, and spelling checks"
 
 [tool.poe.tasks.test]
