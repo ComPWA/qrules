@@ -5,9 +5,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 import qrules.particle
-import qrules.quantum_numbers
 import qrules.system_control
-import qrules.transition
 from qrules.conservation_rules import (
     c_parity_conservation,
     parity_conservation,

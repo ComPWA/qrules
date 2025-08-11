@@ -69,6 +69,7 @@ api_target_substitutions: dict[str, str | tuple[str, str]] = {
     "StateDefinition": ("obj", "qrules.combinatorics.StateDefinition"),
     "StateDefinitionInput": ("obj", "qrules.combinatorics.StateDefinitionInput"),
     "StateTransition": ("obj", "qrules.transition.StateTransition"),
+    "TypeAliasForwardRef": ("obj", "typing.TypeAlias"),
     "typing.Literal[-1, 1]": "typing.Literal",
 }
 api_target_types: dict[str, str | tuple[str, str]] = {
@@ -140,6 +141,7 @@ copyright = f"2020, {ORGANIZATION}"
 default_role = "py:obj"
 exclude_patterns = [
     "**.ipynb_checkpoints",
+    "**.virtual_documents",
     "*build",
     "adr/template.md",
     "tests",

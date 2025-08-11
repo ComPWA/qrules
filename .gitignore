@@ -39,7 +39,6 @@ TAGS
 
 # Virtual environments
 *venv/
-.tox/
 pyvenv*/
 
 # Settings
