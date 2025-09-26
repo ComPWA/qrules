@@ -1,5 +1,6 @@
 import hashlib
 import pickle  # noqa: S403
+import sys
 import typing
 
 import pytest
@@ -44,10 +45,16 @@ class TestEdge:
 class TestFrozenDict:
     def test_hash(self):
         obj: FrozenDict = FrozenDict({})
-        assert _compute_hash(obj) == "067705e70d037311d05daae1e32e1fce"
+        if sys.version_info >= (3, 14):
+            assert _compute_hash(obj) == "94a4fe9b33e3b76ae80a8ad180793f4e"
+        else:
+            assert _compute_hash(obj) == "067705e70d037311d05daae1e32e1fce"
 
         obj = FrozenDict({"key1": "value1"})
-        assert _compute_hash(obj) == "56b0520e2a3af550c0f488cd5de2d474"
+        if sys.version_info >= (3, 14):
+            assert _compute_hash(obj) == "ea696fba01bf7cf7dd2698f612785e9b"
+        else:
+            assert _compute_hash(obj) == "56b0520e2a3af550c0f488cd5de2d474"
 
         obj = FrozenDict({
             "key1": "value1",
@@ -55,7 +62,10 @@ class TestFrozenDict:
             "key3": (1, 2, 3),
             "key4": FrozenDict({"nested_key": "nested_value"}),
         })
-        assert _compute_hash(obj) == "8568f73c07fce099311f010061f070c6"
+        if sys.version_info >= (3, 14):
+            assert _compute_hash(obj) == "2ef89d6c8709500db43849847ea2bd93"
+        else:
+            assert _compute_hash(obj) == "8568f73c07fce099311f010061f070c6"
 
 
 class TestInteractionNode:
@@ -208,7 +218,10 @@ class TestTopology:
             assert Topology(nodes, edges)
 
     def test_hash(self, two_to_three_decay: Topology):
-        assert _compute_hash(two_to_three_decay) == "cbaea5d94038a3ad30888014a7b3ae20"
+        if sys.version_info >= (3, 14):
+            assert _compute_hash(two_to_three_decay)[:7] == "453a92e"
+        else:
+            assert _compute_hash(two_to_three_decay)[:7] == "cbaea5d"
 
     @pytest.mark.parametrize("repr_method", [repr, pretty])
     def test_repr_and_eq(self, repr_method, two_to_three_decay: Topology):
