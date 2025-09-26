@@ -19,6 +19,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python",
     "Topic :: Scientific/Engineering :: Physics",
@@ -340,6 +341,7 @@ sequence = [
     {ref = "test-py 3.11"},
     {ref = "test-py 3.12"},
     {ref = "test-py 3.13"},
+    {ref = "test-py 3.14"},
 ]
 
 [tool.poe.tasks.test-py]
