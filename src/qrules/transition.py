@@ -16,6 +16,7 @@ from attrs import define, field, frozen
 from attrs.validators import in_, instance_of
 from tqdm.auto import tqdm
 
+from qrules._attrs import to_fraction
 from qrules._implementers import implement_pretty_repr
 from qrules.combinatorics import (
     InitialFacts,
@@ -27,13 +28,7 @@ from qrules.combinatorics import (
     match_external_edges,
     permutate_topology_kinematically,
 )
-from qrules.particle import (
-    Particle,
-    ParticleCollection,
-    ParticleWithSpin,
-    _to_fraction,
-    load_pdg,
-)
+from qrules.particle import Particle, ParticleCollection, ParticleWithSpin, load_pdg
 from qrules.quantum_numbers import (
     EdgeQuantumNumber,
     EdgeQuantumNumbers,
@@ -503,8 +498,8 @@ class StateTransitionManager:
             )
             _LOGGER.debug(
                 "using %s interaction order for node: %s",
-                str(interaction_types),
-                str(node_id),
+                interaction_types,
+                node_id,
             )
 
             temp_graph_settings: list[GraphSettings] = graph_settings
@@ -734,7 +729,7 @@ def _strip_spin(state_definition: Sequence[StateDefinition]) -> list[str]:
 @frozen(order=True)
 class State:
     particle: Particle = field(validator=instance_of(Particle))
-    spin_projection: Fraction = field(converter=_to_fraction)
+    spin_projection: Fraction = field(converter=to_fraction)
 
 
 StateTransition = FrozenTransition[State, InteractionProperties]

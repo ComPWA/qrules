@@ -20,7 +20,9 @@ if TYPE_CHECKING:
     from collections.abc import Generator
 
 
-def _to_parity(value: int) -> Literal[-1, 1]:
+def _to_parity_int(value: int | Parity) -> Literal[-1, 1]:
+    if isinstance(value, Parity):
+        return value.value
     if not isinstance(value, int):
         msg = f"Parity must be an integer, not {type(value)}"
         raise TypeError(msg)
@@ -35,7 +37,7 @@ def _to_parity(value: int) -> Literal[-1, 1]:
 @total_ordering
 @frozen(eq=False, hash=True, order=False, repr=False)
 class Parity:  # noqa: PLW1641
-    value: Literal[-1, 1] = field(converter=_to_parity)
+    value: Literal[-1, 1] = field(converter=_to_parity_int)
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Parity):
