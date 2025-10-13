@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import inspect
 from fractions import Fraction
-from typing import TYPE_CHECKING, Any, Callable, Generic, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, Union
 
 import attrs
 
@@ -21,11 +21,10 @@ from qrules.conservation_rules import (
 from qrules.quantum_numbers import EdgeQuantumNumber, NodeQuantumNumber, Parity
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Callable, Sequence
 
-Scalar = Union[int, float, Fraction]
-
-Rule = Union[GraphElementRule, EdgeQNConservationRule, ConservationRule]
+Scalar = int | float | Fraction
+Rule = GraphElementRule | EdgeQNConservationRule | ConservationRule
 """Any type of rule"""
 
 _ElementType = TypeVar("_ElementType")
@@ -95,7 +94,7 @@ def _sequence_input_check(func: Callable) -> Callable[[Sequence], bool]:
 
 def _check_all_arguments(checks: list[Callable]) -> Callable[..., bool]:
     def wrapper(*args: Any) -> bool:
-        return all(check(arg) for check, arg in zip(checks, args))
+        return all(check(arg) for check, arg in zip(checks, args, strict=False))
 
     return wrapper
 
@@ -171,7 +170,7 @@ def _sequence_arg_builder(func: Callable) -> Callable[[Sequence], list[Any]]:
 
 def _build_all_arguments(checks: list[Callable]) -> Callable:
     def wrapper(*args: Any) -> list[Any]:
-        return [check(arg) for check, arg in zip(checks, args) if arg]
+        return [check(arg) for check, arg in zip(checks, args, strict=False) if arg]
 
     return wrapper
 

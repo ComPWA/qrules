@@ -9,10 +9,10 @@ from __future__ import annotations
 
 import itertools
 from collections import OrderedDict
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from copy import deepcopy
 from fractions import Fraction
-from typing import TYPE_CHECKING, Any, Callable, Union
+from typing import TYPE_CHECKING, Any
 
 from qrules.argument_handling import Scalar
 from qrules.particle import ParticleWithSpin
@@ -24,9 +24,9 @@ if TYPE_CHECKING:
 
 
 StateWithSpins = tuple[str, Sequence[Fraction]]
-StateDefinition = Union[str, StateWithSpins]
+StateDefinition = str | StateWithSpins
 """Particle name, optionally with a list of spin projections."""
-StateDefinitionInput = Union[str, tuple[str, Sequence[Scalar]]]
+StateDefinitionInput = str | tuple[str, Sequence[Scalar]]
 """Input type for `StateDefinition` permitting also `int` and `float`"""
 InitialFacts = MutableTransition[ParticleWithSpin, InteractionProperties]
 """A `.Transition` with only initial and final state information."""
@@ -221,7 +221,7 @@ def __create_states_with_spin_projections(
         msg = "Number of state definitions is not same as number of edge IDs"
         raise ValueError(msg)
     states = __safe_set_spin_projections(state_definitions, particle_db)
-    return dict(zip(edge_ids, states))
+    return dict(zip(edge_ids, states, strict=True))
 
 
 def __safe_set_spin_projections(
@@ -289,7 +289,9 @@ def permutate_topology_kinematically(
     states = list(initial_state) + list(final_state)
     return _generate_kinematic_permutations(
         topology,
-        particle_names={i: strip_spin(s) for i, s in zip(edge_ids, states)},
+        particle_names={
+            i: strip_spin(s) for i, s in zip(edge_ids, states, strict=True)
+        },
         allowed_kinematic_groupings=__get_kinematic_groupings(final_state_groupings),
     )
 
@@ -331,6 +333,7 @@ def _permutate_outer_edges(topology: Topology) -> list[Topology]:
             permutation = zip(
                 initial_state_ids + final_state_ids,
                 initial_state_permutation + final_state_permutation,
+                strict=True,
             )
             new_topology = topology.relabel_edges(dict(permutation))
             topologies.add(new_topology)
@@ -460,10 +463,12 @@ def _external_edge_identical_particle_combinatorics(
         ext_edge_combinations = []
         ref_node_origin = get_originating_node_list(graph.topology, edge_group)
         for comb in combinations:
-            temp_edge_node_mapping = tuple(sorted(zip(comb, ref_node_origin)))
+            temp_edge_node_mapping = tuple(
+                sorted(zip(comb, ref_node_origin, strict=True))
+            )
             if temp_edge_node_mapping not in graph_combinations:
                 graph_combinations.add(temp_edge_node_mapping)
-                ext_edge_combinations.append(dict(zip(edge_group, comb)))
+                ext_edge_combinations.append(dict(zip(edge_group, comb, strict=True)))
         temp_new_graphs = []
         for new_graph in new_graphs:
             for combination in ext_edge_combinations:

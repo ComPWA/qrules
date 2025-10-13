@@ -33,6 +33,7 @@ from qrules.conservation_rules import MassConservation, MassEdgeInput
                 (0.200, 0.01),
             ],
             [True] * 3 + [False] * 3,
+            strict=True,
         )
     ],
 )

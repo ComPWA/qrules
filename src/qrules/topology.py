@@ -22,7 +22,7 @@ import logging
 from abc import ABC, abstractmethod
 from collections import abc
 from functools import total_ordering
-from typing import TYPE_CHECKING, Any, Callable, Generic, Protocol, TypeVar, overload
+from typing import TYPE_CHECKING, Any, Generic, Protocol, TypeVar, overload
 
 import attrs
 from attrs import define, field, frozen
@@ -32,7 +32,7 @@ from frozendict import frozendict
 from qrules._implementers import implement_pretty_repr
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Mapping, Sequence
+    from collections.abc import Callable, Iterable, Mapping, Sequence
 
     from IPython.lib.pretty import PrettyPrinter
 

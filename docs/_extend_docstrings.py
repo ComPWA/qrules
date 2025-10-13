@@ -9,9 +9,12 @@ from __future__ import annotations
 import inspect
 import logging
 import textwrap
-from typing import Callable
+from typing import TYPE_CHECKING
 
 import qrules
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 logging.getLogger().setLevel(logging.ERROR)
 

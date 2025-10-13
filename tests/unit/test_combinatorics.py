@@ -134,6 +134,7 @@ def test_generate_kinematic_permutations(
         zip(
             sorted(topology.incoming_edge_ids) + sorted(topology.outgoing_edge_ids),
             list(initial_state) + list(final_state),
+            strict=True,
         )
     )
     permutations = _generate_kinematic_permutations(topology, particle_names)

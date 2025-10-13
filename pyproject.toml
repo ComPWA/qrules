@@ -20,7 +20,6 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python",
     "Topic :: Scientific/Engineering :: Physics",
     "Topic :: Scientific/Engineering",
@@ -49,7 +48,7 @@ keywords = [
 license = {file = "LICENSE"}
 maintainers = [{email = "compwa-admin@ep1.rub.de"}]
 name = "qrules"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 
 [project.optional-dependencies]
 viz = ["graphviz"]

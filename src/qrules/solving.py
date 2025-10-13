@@ -14,7 +14,7 @@ import operator
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from copy import copy
-from typing import TYPE_CHECKING, Any, Callable, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 import attrs
 from attrs import define, field, frozen
@@ -40,7 +40,7 @@ from qrules.quantum_numbers import (
 from qrules.topology import MutableTransition, Topology
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Callable, Iterable
 
 _LOGGER = logging.getLogger(__name__)
 

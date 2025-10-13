@@ -6,7 +6,7 @@ import logging
 import operator
 from abc import ABC, abstractmethod
 from fractions import Fraction
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
 import attrs
 
@@ -23,7 +23,7 @@ from qrules.solving import GraphEdgePropertyMap, GraphNodePropertyMap, GraphSett
 from qrules.topology import MutableTransition
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Callable, Iterable
 
     from qrules.particle import Particle, ParticleCollection, ParticleWithSpin
 

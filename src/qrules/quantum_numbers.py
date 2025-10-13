@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from fractions import Fraction
 from functools import total_ordering
-from typing import TYPE_CHECKING, Any, Literal, NewType, Union
+from typing import TYPE_CHECKING, Any, Literal, NewType
 
 from attrs import field, frozen
 
@@ -104,50 +104,50 @@ for edge_qn_name, edge_qn_type in EdgeQuantumNumbers.__dict__.items():
         edge_qn_type.__module__ = __name__
 
 
-EdgeQuantumNumber = Union[
-    EdgeQuantumNumbers.pid,
-    EdgeQuantumNumbers.mass,
-    EdgeQuantumNumbers.width,
-    EdgeQuantumNumbers.spin_magnitude,
-    EdgeQuantumNumbers.spin_projection,
-    EdgeQuantumNumbers.charge,
-    EdgeQuantumNumbers.isospin_magnitude,
-    EdgeQuantumNumbers.isospin_projection,
-    EdgeQuantumNumbers.strangeness,
-    EdgeQuantumNumbers.charmness,
-    EdgeQuantumNumbers.bottomness,
-    EdgeQuantumNumbers.topness,
-    EdgeQuantumNumbers.baryon_number,
-    EdgeQuantumNumbers.electron_lepton_number,
-    EdgeQuantumNumbers.muon_lepton_number,
-    EdgeQuantumNumbers.tau_lepton_number,
-    EdgeQuantumNumbers.parity,
-    EdgeQuantumNumbers.c_parity,
-    EdgeQuantumNumbers.g_parity,
-]
+EdgeQuantumNumber = (
+    EdgeQuantumNumbers.pid
+    | EdgeQuantumNumbers.mass
+    | EdgeQuantumNumbers.width
+    | EdgeQuantumNumbers.spin_magnitude
+    | EdgeQuantumNumbers.spin_projection
+    | EdgeQuantumNumbers.charge
+    | EdgeQuantumNumbers.isospin_magnitude
+    | EdgeQuantumNumbers.isospin_projection
+    | EdgeQuantumNumbers.strangeness
+    | EdgeQuantumNumbers.charmness
+    | EdgeQuantumNumbers.bottomness
+    | EdgeQuantumNumbers.topness
+    | EdgeQuantumNumbers.baryon_number
+    | EdgeQuantumNumbers.electron_lepton_number
+    | EdgeQuantumNumbers.muon_lepton_number
+    | EdgeQuantumNumbers.tau_lepton_number
+    | EdgeQuantumNumbers.parity
+    | EdgeQuantumNumbers.c_parity
+    | EdgeQuantumNumbers.g_parity
+)
 """Type hint for quantum numbers of edges"""
 
-EdgeQuantumNumberTypes = Union[
-    type[EdgeQuantumNumbers.pid],
-    type[EdgeQuantumNumbers.mass],
-    type[EdgeQuantumNumbers.width],
-    type[EdgeQuantumNumbers.spin_magnitude],
-    type[EdgeQuantumNumbers.spin_projection],
-    type[EdgeQuantumNumbers.charge],
-    type[EdgeQuantumNumbers.isospin_magnitude],
-    type[EdgeQuantumNumbers.isospin_projection],
-    type[EdgeQuantumNumbers.strangeness],
-    type[EdgeQuantumNumbers.charmness],
-    type[EdgeQuantumNumbers.bottomness],
-    type[EdgeQuantumNumbers.topness],
-    type[EdgeQuantumNumbers.baryon_number],
-    type[EdgeQuantumNumbers.electron_lepton_number],
-    type[EdgeQuantumNumbers.muon_lepton_number],
-    type[EdgeQuantumNumbers.tau_lepton_number],
-    type[EdgeQuantumNumbers.parity],
-    type[EdgeQuantumNumbers.c_parity],
-    type[EdgeQuantumNumbers.g_parity],
-]
+EdgeQuantumNumberTypes = (
+    type[EdgeQuantumNumbers.pid]
+    | type[EdgeQuantumNumbers.mass]
+    | type[EdgeQuantumNumbers.width]
+    | type[EdgeQuantumNumbers.spin_magnitude]
+    | type[EdgeQuantumNumbers.spin_projection]
+    | type[EdgeQuantumNumbers.charge]
+    | type[EdgeQuantumNumbers.isospin_magnitude]
+    | type[EdgeQuantumNumbers.isospin_projection]
+    | type[EdgeQuantumNumbers.strangeness]
+    | type[EdgeQuantumNumbers.charmness]
+    | type[EdgeQuantumNumbers.bottomness]
+    | type[EdgeQuantumNumbers.topness]
+    | type[EdgeQuantumNumbers.baryon_number]
+    | type[EdgeQuantumNumbers.electron_lepton_number]
+    | type[EdgeQuantumNumbers.muon_lepton_number]
+    | type[EdgeQuantumNumbers.tau_lepton_number]
+    | type[EdgeQuantumNumbers.parity]
+    | type[EdgeQuantumNumbers.c_parity]
+    | type[EdgeQuantumNumbers.g_parity]
+)
 """Type-Union for accessing the keys of the dicts in `.EdgeSettings`"""
 
 
@@ -169,23 +169,23 @@ for node_qn_name, node_qn_type in NodeQuantumNumbers.__dict__.items():
 
 
 # for static typing
-NodeQuantumNumber = Union[
-    NodeQuantumNumbers.l_magnitude,
-    NodeQuantumNumbers.l_projection,
-    NodeQuantumNumbers.s_magnitude,
-    NodeQuantumNumbers.s_projection,
-    NodeQuantumNumbers.parity_prefactor,
-]
+NodeQuantumNumber = (
+    NodeQuantumNumbers.l_magnitude
+    | NodeQuantumNumbers.l_projection
+    | NodeQuantumNumbers.s_magnitude
+    | NodeQuantumNumbers.s_projection
+    | NodeQuantumNumbers.parity_prefactor
+)
 """Type hint for quantum numbers of interaction nodes."""
 
 # for accessing the keys of the dicts in NodeSettings
-NodeQuantumNumberTypes = Union[
-    type[NodeQuantumNumbers.l_magnitude],
-    type[NodeQuantumNumbers.l_projection],
-    type[NodeQuantumNumbers.s_magnitude],
-    type[NodeQuantumNumbers.s_projection],
-    type[NodeQuantumNumbers.parity_prefactor],
-]
+NodeQuantumNumberTypes = (
+    type[NodeQuantumNumbers.l_magnitude]
+    | type[NodeQuantumNumbers.l_projection]
+    | type[NodeQuantumNumbers.s_magnitude]
+    | type[NodeQuantumNumbers.s_projection]
+    | type[NodeQuantumNumbers.parity_prefactor]
+)
 """Type-Union for accessing the keys of the dicts in `.NodeSettings`"""
 
 
