@@ -39,6 +39,7 @@ def test_pdg_size(pdg: ParticleCollection):
         537,  # particle==0.23-0.24
         539,  # particle==0.25
         540,  # particle==0.25.4
+        541,  # particle==0.26.0
     }
     assert len(pdg.filter(lambda p: "~" in p.name)) in {
         165,  # particle==0.13

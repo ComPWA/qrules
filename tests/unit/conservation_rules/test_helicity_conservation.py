@@ -11,11 +11,11 @@ from qrules.quantum_numbers import EdgeQuantumNumbers
     [
         (
             [
-                EdgeQuantumNumbers.spin_magnitude(s_magnitude),
+                EdgeQuantumNumbers.spin_magnitude(s_magnitude),  # type:ignore[arg-type]
             ],
             [
-                EdgeQuantumNumbers.spin_projection(lambda1),
-                EdgeQuantumNumbers.spin_projection(lambda2),
+                EdgeQuantumNumbers.spin_projection(lambda1),  # type:ignore[arg-type]
+                EdgeQuantumNumbers.spin_projection(lambda2),  # type:ignore[arg-type]
             ],
             abs(lambda1 - lambda2) <= s_magnitude,
         )

@@ -19,13 +19,14 @@ from difflib import get_close_matches
 from fractions import Fraction
 from functools import total_ordering
 from math import copysign
-from typing import TYPE_CHECKING, Any, Callable, SupportsFloat
+from typing import TYPE_CHECKING, Any, Callable
 
 import attrs
 from attrs import field, frozen
 from attrs.converters import optional
 from attrs.validators import instance_of
 
+from qrules._attrs import to_fraction, to_parity
 from qrules.conservation_rules import GellMannNishijimaInput, gellmann_nishijima
 from qrules.quantum_numbers import Parity, _float_as_signed_str
 
@@ -42,13 +43,6 @@ if TYPE_CHECKING:
     from particle.particle import enums
 
 _LOGGER = logging.getLogger(__name__)
-
-
-def _to_fraction(value: SupportsFloat) -> Fraction:
-    float_value = float(value)
-    if float_value == -0.0:
-        float_value = 0.0
-    return Fraction(float_value)
 
 
 def _validate_fraction_for_spin(
@@ -82,11 +76,11 @@ class Spin:  # noqa: PLW1641
     """Safe, immutable data container for spin **with projection**."""
 
     magnitude: Fraction = field(
-        converter=_to_fraction,
+        converter=to_fraction,
         validator=_validate_fraction_for_spin,
     )
     projection: Fraction = field(
-        converter=_to_fraction,
+        converter=to_fraction,
         validator=_validate_fraction_for_spin,
     )
 
@@ -123,10 +117,6 @@ def _render_fraction(fraction: Fraction, plusminus: bool = False) -> str:
     if plusminus and fraction.numerator > 0:
         return f"+{fraction}"
     return str(fraction)
-
-
-def _to_parity(value: Parity | int) -> Parity:
-    return Parity(int(value))
 
 
 def _to_spin(value: Spin | tuple[Fraction, Fraction] | tuple[float, float]) -> Spin:
@@ -173,9 +163,9 @@ class Particle:
     electron_lepton_number: int = field(default=0, validator=instance_of(int))
     muon_lepton_number: int = field(default=0, validator=instance_of(int))
     tau_lepton_number: int = field(default=0, validator=instance_of(int))
-    parity: Parity | None = field(converter=optional(_to_parity), default=None)
-    c_parity: Parity | None = field(converter=optional(_to_parity), default=None)
-    g_parity: Parity | None = field(converter=optional(_to_parity), default=None)
+    parity: Parity | None = field(converter=optional(to_parity), default=None)
+    c_parity: Parity | None = field(converter=optional(to_parity), default=None)
+    g_parity: Parity | None = field(converter=optional(to_parity), default=None)
 
     def __attrs_post_init__(self) -> None:
         if self.isospin is not None and not gellmann_nishijima(
