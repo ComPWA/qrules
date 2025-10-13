@@ -46,11 +46,12 @@ has been defined to provide type checks on `.parity_conservation_helicity`.
 """
 
 import operator
+from collections.abc import Callable
 from copy import deepcopy
 from fractions import Fraction
 from functools import reduce
 from textwrap import dedent
-from typing import Any, Callable, Optional, Protocol, Union
+from typing import Any, Protocol
 
 from attrs import define, field, frozen
 from attrs.converters import optional
@@ -232,7 +233,7 @@ def parity_conservation_helicity(
 class CParityEdgeInput:
     spin_magnitude: EdgeQN.spin_magnitude = field(converter=to_fraction)
     pid: EdgeQN.pid = field(converter=int)
-    c_parity: Optional[EdgeQN.c_parity] = field(
+    c_parity: EdgeQN.c_parity | None = field(
         converter=optional(to_parity), default=None
     )
 
@@ -256,7 +257,7 @@ def c_parity_conservation(
 
     def _get_c_parity_multiparticle(
         part_qns: list[CParityEdgeInput], interaction_qns: CParityNodeInput
-    ) -> Optional[int]:
+    ) -> int | None:
         c_parities_part = [x.c_parity.value for x in part_qns if x.c_parity]
         # if all states have C parity defined, then just multiply them
         if len(c_parities_part) == len(part_qns):
@@ -290,7 +291,7 @@ class GParityEdgeInput:
     isospin_magnitude: EdgeQN.isospin_magnitude = field(converter=to_fraction)
     spin_magnitude: EdgeQN.spin_magnitude = field(converter=to_fraction)
     pid: EdgeQN.pid = field(converter=int)
-    g_parity: Optional[EdgeQN.g_parity] = field(
+    g_parity: EdgeQN.g_parity | None = field(
         converter=optional(to_parity), default=None
     )
 
@@ -314,7 +315,7 @@ def g_parity_conservation(  # noqa: C901
     def check_multistate_g_parity(
         isospin: EdgeQN.isospin_magnitude,
         double_state_qns: tuple[GParityEdgeInput, GParityEdgeInput],
-    ) -> Optional[int]:
+    ) -> int | None:
         if _is_particle_antiparticle_pair(
             double_state_qns[0].pid, double_state_qns[1].pid
         ):
@@ -434,8 +435,8 @@ def identical_particle_symmetrization(
 
 @frozen
 class _Spin:
-    magnitude: Union[Fraction, NodeQN.s_magnitude, NodeQN.l_magnitude]
-    projection: Union[Fraction, NodeQN.s_projection, NodeQN.l_projection]
+    magnitude: Fraction | NodeQN.s_magnitude | NodeQN.l_magnitude
+    projection: Fraction | NodeQN.s_projection | NodeQN.l_projection
 
 
 def _is_clebsch_gordan_coefficient_zero(
@@ -480,7 +481,7 @@ def ls_spin_validity(spin_input: SpinNodeInput) -> bool:
 def _check_magnitude(
     in_part: list[Fraction],
     out_part: list[Fraction],
-    interaction_qns: Optional[Union[SpinMagnitudeNodeInput, SpinNodeInput]],
+    interaction_qns: SpinMagnitudeNodeInput | SpinNodeInput | None,
 ) -> bool:
     def couple_mags(j_1: Fraction, j_2: Fraction) -> list[Fraction]:
         return [
@@ -490,7 +491,7 @@ def _check_magnitude(
 
     def couple_magnitudes(
         magnitudes: list[Fraction],
-        interaction_qns: Optional[Union[SpinMagnitudeNodeInput, SpinNodeInput]],
+        interaction_qns: SpinMagnitudeNodeInput | SpinNodeInput | None,
     ) -> set[Fraction]:
         if len(magnitudes) == 1:
             return set(magnitudes)
@@ -523,7 +524,7 @@ def _check_magnitude(
 def _check_spin_couplings(
     in_part: list[_Spin],
     out_part: list[_Spin],
-    interaction_qns: Optional[SpinNodeInput],
+    interaction_qns: SpinNodeInput | None,
 ) -> bool:
     in_tot_spins = __calculate_total_spins(in_part, interaction_qns)
     out_tot_spins = __calculate_total_spins(out_part, interaction_qns)
@@ -533,7 +534,7 @@ def _check_spin_couplings(
 
 def __calculate_total_spins(
     spins: list[_Spin],
-    interaction_qns: Optional[SpinNodeInput] = None,
+    interaction_qns: SpinNodeInput | None = None,
 ) -> set[_Spin]:
     total_spins = set()
     if len(spins) == 1:
@@ -785,31 +786,31 @@ def helicity_conservation(
 @frozen
 class GellMannNishijimaInput:
     charge: EdgeQN.charge = field(converter=EdgeQN.charge)
-    isospin_projection: Optional[EdgeQN.isospin_projection] = field(
+    isospin_projection: EdgeQN.isospin_projection | None = field(
         converter=optional(EdgeQN.isospin_projection), default=None
     )
-    strangeness: Optional[EdgeQN.strangeness] = field(
+    strangeness: EdgeQN.strangeness | None = field(
         converter=optional(EdgeQN.strangeness), default=None
     )
-    charmness: Optional[EdgeQN.charmness] = field(
+    charmness: EdgeQN.charmness | None = field(
         converter=optional(EdgeQN.charmness), default=None
     )
-    bottomness: Optional[EdgeQN.bottomness] = field(
+    bottomness: EdgeQN.bottomness | None = field(
         converter=optional(EdgeQN.bottomness), default=None
     )
-    topness: Optional[EdgeQN.topness] = field(
+    topness: EdgeQN.topness | None = field(
         converter=optional(EdgeQN.topness), default=None
     )
-    baryon_number: Optional[EdgeQN.baryon_number] = field(
+    baryon_number: EdgeQN.baryon_number | None = field(
         converter=optional(EdgeQN.baryon_number), default=None
     )
-    electron_lepton_number: Optional[EdgeQN.electron_lepton_number] = field(
+    electron_lepton_number: EdgeQN.electron_lepton_number | None = field(
         converter=optional(EdgeQN.electron_lepton_number), default=None
     )
-    muon_lepton_number: Optional[EdgeQN.muon_lepton_number] = field(
+    muon_lepton_number: EdgeQN.muon_lepton_number | None = field(
         converter=optional(EdgeQN.muon_lepton_number), default=None
     )
-    tau_lepton_number: Optional[EdgeQN.tau_lepton_number] = field(
+    tau_lepton_number: EdgeQN.tau_lepton_number | None = field(
         converter=optional(EdgeQN.tau_lepton_number), default=None
     )
 
@@ -863,7 +864,7 @@ def gellmann_nishijima(edge_qns: GellMannNishijimaInput) -> bool:
 @frozen
 class MassEdgeInput:
     mass: EdgeQN.mass = field(converter=EdgeQN.mass)
-    width: Optional[EdgeQN.width] = field(converter=EdgeQN.width, default=None)
+    width: EdgeQN.width | None = field(converter=EdgeQN.width, default=None)
 
 
 class MassConservation:

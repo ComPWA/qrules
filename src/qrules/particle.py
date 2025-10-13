@@ -19,7 +19,7 @@ from difflib import get_close_matches
 from fractions import Fraction
 from functools import total_ordering
 from math import copysign
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 
 import attrs
 from attrs import field, frozen
@@ -35,7 +35,7 @@ if sys.version_info >= (3, 11):
 else:
     from typing_extensions import Self
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Iterator
+    from collections.abc import Callable, Iterable, Iterator
 
     from attrs import Attribute
     from IPython.lib.pretty import PrettyPrinter

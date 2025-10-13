@@ -80,7 +80,7 @@ def __create_two_body_decay_spin_data(
             ),
             expected,
         )
-        for spin_magnitude, expected in zip([0, 1, 2], [True] * 3)
+        for spin_magnitude, expected in zip([0, 1, 2], [True] * 3, strict=True)
     ]
     + [
         (
@@ -142,7 +142,7 @@ def test_spin_all_defined(rule_input: _SpinRuleInputType, expected: bool) -> Non
             True,
         )
         for spin2_mag, ang_mom_mag, coupled_spin_mag in zip(
-            (0, 0, 1), (2, 1, 2), (1, 1, 2)
+            (0, 0, 1), (2, 1, 2), (1, 1, 2), strict=True
         )
     ]
     + [
@@ -160,7 +160,7 @@ def test_spin_all_defined(rule_input: _SpinRuleInputType, expected: bool) -> Non
             False,
         )
         for spin2_mag, ang_mom_mag, coupled_spin_mag in zip(
-            (1, 0, 1), (0, 1, 2), (0, 2, 0)
+            (1, 0, 1), (0, 1, 2), (0, 2, 0), strict=True
         )
     ],
 )

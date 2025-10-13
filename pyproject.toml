@@ -20,7 +20,6 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python",
     "Topic :: Scientific/Engineering :: Physics",
     "Topic :: Scientific/Engineering",
@@ -49,7 +48,7 @@ keywords = [
 license = {file = "LICENSE"}
 maintainers = [{email = "compwa-admin@ep1.rub.de"}]
 name = "qrules"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 
 [project.optional-dependencies]
 viz = ["graphviz"]
@@ -302,6 +301,11 @@ sequence = ["doc"]
 env = {EXECUTE_NB = "yes"}
 help = "Set up a server to directly preview changes to the HTML pages with cached notebook execution"
 sequence = ["doclive"]
+
+[tool.poe.tasks.lab]
+args = [{name = "paths", default = "", positional = true}]
+cmd = "jupyter lab ${paths}"
+help = "Run Jupyter Lab"
 
 [tool.poe.tasks.linkcheck]
 cmd = """

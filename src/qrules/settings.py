@@ -14,7 +14,7 @@ from copy import deepcopy
 from enum import Enum, auto
 from fractions import Fraction
 from os.path import dirname, join, realpath
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 
 from qrules.conservation_rules import (
     BaryonNumberConservation,
@@ -50,7 +50,7 @@ from qrules.quantum_numbers import arange
 from qrules.solving import EdgeSettings, NodeSettings
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Callable, Iterable
 
     from qrules.particle import Particle, ParticleCollection
     from qrules.transition import SpinFormalism
