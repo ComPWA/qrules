@@ -96,6 +96,7 @@ jupyter = [
     "jupyterlab-git",
     "jupyterlab-lsp",
     "jupyterlab-myst",
+    "jupyterlab-quickopen",
     "python-lsp-ruff",
     "python-lsp-server[rope]",
     {include-group = "notebooks"},
