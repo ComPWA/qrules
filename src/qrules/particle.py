@@ -382,10 +382,9 @@ class ParticleCollection(abc.MutableSet):  # noqa: PLW1641
         >>> from qrules.particle import load_pdg
         >>> pdg = load_pdg()
         >>> subset = pdg.filter(
-        ...     lambda p: p.mass > 1.8
-        ...     and p.mass < 2.0
-        ...     and p.spin == 2
-        ...     and p.strangeness == 1
+        ...     lambda p: (
+        ...         p.mass > 1.8 and p.mass < 2.0 and p.spin == 2 and p.strangeness == 1
+        ...     )
         ... )
         >>> sorted(subset.names)
         ['K(2)(1820)+', 'K(2)(1820)0', 'K(2)*(1980)+', 'K(2)*(1980)0']
@@ -500,12 +499,14 @@ def load_pdg() -> ParticleCollection:
     from particle import Particle as PdgDatabase  # noqa: PLC0415
 
     all_pdg_particles = PdgDatabase.findall(
-        lambda item: item.charge is not None
-        and item.charge.is_integer()  # remove quarks
-        and item.J is not None  # remove new physics and nuclei
-        and abs(item.pdgid) < 1e9  # p and n as nucleus
-        and item.name not in __skip_particles
-        and not (item.mass is None and not item.name.startswith("nu"))
+        lambda item: (
+            item.charge is not None
+            and item.charge.is_integer()  # remove quarks
+            and item.J is not None  # remove new physics and nuclei
+            and abs(item.pdgid) < 1e9  # p and n as nucleus
+            and item.name not in __skip_particles
+            and not (item.mass is None and not item.name.startswith("nu"))
+        )
     )
     particle_collection = ParticleCollection()
     for pdg_particle in all_pdg_particles:
