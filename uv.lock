@@ -2407,6 +2407,8 @@ style = [
     { name = "types-pyyaml" },
 ]
 test = [
+    { name = "ipython", version = "8.38.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "ipython", version = "9.9.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "pydot" },
     { name = "pytest" },
     { name = "pytest-cov" },
@@ -2507,6 +2509,7 @@ style = [
     { name = "types-pyyaml" },
 ]
 test = [
+    { name = "ipython" },
     { name = "pydot", specifier = "<2" },
     { name = "pytest" },
     { name = "pytest-cov" },

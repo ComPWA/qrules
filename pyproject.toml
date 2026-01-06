@@ -106,6 +106,7 @@ style = [
     {include-group = "types"},
 ]
 test = [
+    "ipython",
     "pydot <2",
     "pytest",
     "pytest-cov",
