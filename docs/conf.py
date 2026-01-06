@@ -303,6 +303,7 @@ project = "QRules"
 pygments_style = "sphinx"
 release = get_package_version(PACKAGE)
 suppress_warnings = [
+    "myst.directive_unknown",
     "myst.domains",
     # skipping unknown output mime type: application/json
     # https://github.com/ComPWA/qrules/runs/8132605149?check_suite_focus=true#step:5:92
