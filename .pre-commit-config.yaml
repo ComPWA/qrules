@@ -15,13 +15,15 @@ repos:
       - id: check-useless-excludes
 
   - repo: https://github.com/ComPWA/policy
-    rev: 0.7.5
+    rev: 0.8.0
     hooks:
       - id: check-dev-files
         args:
           - --doc-apt-packages=graphviz
           - --repo-name=qrules
           - --repo-title=QRules
+          - --type-checker=mypy
+          - --type-checker=pyright
           - --update-lock-files=outsource
       - id: colab-toc-visible
       - id: fix-nbformat-version
@@ -146,8 +148,7 @@ repos:
         entry: mypy
         language: system
         require_serial: true
-        types:
-          - python
+        types: [python]
 
   - repo: https://github.com/ComPWA/pyright-pre-commit
     rev: v1.1.407
@@ -155,6 +156,6 @@ repos:
       - id: pyright
 
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.9.21
+    rev: 0.9.22
     hooks:
       - id: uv-lock
