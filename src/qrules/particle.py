@@ -383,7 +383,10 @@ class ParticleCollection(abc.MutableSet):  # noqa: PLW1641
         >>> pdg = load_pdg()
         >>> subset = pdg.filter(
         ...     lambda p: (
-        ...         p.mass > 1.8 and p.mass < 2.0 and p.spin == 2 and p.strangeness == 1
+        ...         p.mass > 1.8
+        ...         and p.mass < 2.15
+        ...         and p.spin == 2
+        ...         and p.strangeness == 1
         ...     )
         ... )
         >>> sorted(subset.names)
