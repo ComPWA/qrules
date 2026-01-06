@@ -314,6 +314,7 @@ help = "Run Jupyter Lab"
 cmd = """
 sphinx-build \
     --builder=linkcheck \
+    --fail-on-warning \
     --show-traceback \
     docs/ \
     docs/_build/linkcheck/
