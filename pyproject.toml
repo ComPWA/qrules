@@ -207,8 +207,10 @@ module = ["sphinx.*"]
 ignore_missing_imports = true
 module = ["tqdm.*"]
 
-[tool.poe]
-executor.type = "uv"
+[tool.poe.executor]
+isolated = true
+no-group = "dev"
+type = "uv"
 
 [tool.poe.tasks.all]
 help = "Run all continuous integration (CI) tasks locally"
@@ -223,15 +225,15 @@ sequence = [
 
 [tool.poe.tasks.cov]
 cmd = """
-uv run --group test --isolated --no-dev \
-    pytest \
-        --cov=qrules \
-        --cov-fail-under=85 \
-        --cov-report=html \
-        --cov-report=xml \
-        --numprocesses=auto \
-        ${paths}
+pytest \
+    --cov=qrules \
+    --cov-fail-under=85 \
+    --cov-report=html \
+    --cov-report=xml \
+    --numprocesses=auto \
+    ${paths}
 """
+executor = {group = "test"}
 help = "Compute how much of the source code is covered by tests"
 
 [[tool.poe.tasks.cov.args]]
@@ -310,14 +312,14 @@ help = "Run Jupyter Lab"
 
 [tool.poe.tasks.linkcheck]
 cmd = """
-uv run --group doc --isolated --no-dev \
-    sphinx-build \
-        --builder=linkcheck \
-        --show-traceback \
-        docs/ \
-        docs/_build/linkcheck/
+sphinx-build \
+    --builder=linkcheck \
+    --show-traceback \
+    docs/ \
+    docs/_build/linkcheck/
 """
 env = {PYTHONWARNINGS = ""}
+executor = {group = "doc"}
 help = "Check external links in the documentation (requires internet connection)"
 
 [tool.poe.tasks.nb]
@@ -325,11 +327,13 @@ cmd = "pytest --nbmake --nbmake-timeout=0 docs"
 help = "Run all notebooks"
 
 [tool.poe.tasks.style]
-cmd = "uv run --group style --isolated --no-dev pre-commit run --all-files"
+cmd = "pre-commit run --all-files"
+executor = {group = "style"}
 help = "Perform all linting, formatting, and spelling checks"
 
 [tool.poe.tasks.test]
-cmd = "uv run --group test --isolated --no-dev pytest --numprocesses=auto ${paths}"
+cmd = "pytest --numprocesses=auto ${paths}"
+executor = {group = "test"}
 help = "Run all unit tests"
 
 [[tool.poe.tasks.test.args]]
