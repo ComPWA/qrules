@@ -65,7 +65,6 @@ Tracker = "https://github.com/ComPWA/qrules/issues"
 
 [dependency-groups]
 dev = [
-    "poethepoet",
     "ruff",
     "sphinx-autobuild",
     {include-group = "doc"},
@@ -107,12 +106,9 @@ style = [
     {include-group = "types"},
 ]
 test = [
-    "ipython",
-    "nbmake",
     "pydot <2",
     "pytest",
     "pytest-cov",
-    "pytest-profiling",
     "pytest-xdist",
 ]
 types = [
@@ -323,8 +319,15 @@ executor = {group = "doc"}
 help = "Check external links in the documentation (requires internet connection)"
 
 [tool.poe.tasks.nb]
-cmd = "pytest --nbmake --nbmake-timeout=0 docs"
+cmd = "pytest --nbmake --nbmake-timeout=0 ${paths}"
+executor = {group = "notebooks", with = "nbmake"}
 help = "Run all notebooks"
+
+[[tool.poe.tasks.nb.args]]
+default = "docs"
+multiple = true
+name = "paths"
+positional = true
 
 [tool.poe.tasks.style]
 cmd = "pre-commit run --all-files"
