@@ -226,6 +226,7 @@ pytest \
     --cov-report=html \
     --cov-report=xml \
     --numprocesses=auto \
+    -m 'slow or not slow' \
     ${paths}
 """
 executor = {group = "test"}
@@ -306,7 +307,7 @@ sequence = ["doclive"]
 args = [{name = "paths", default = "", positional = true}]
 cmd = "jupyter lab ${paths}"
 executor = {group = "jupyter"}
-help = "Run Jupyter Lab"
+help = "Launch Jupyter Lab"
 
 [tool.poe.tasks.linkcheck]
 cmd = """
@@ -322,15 +323,10 @@ executor = {group = "doc"}
 help = "Check external links in the documentation (requires internet connection)"
 
 [tool.poe.tasks.nb]
+args = [{name = "paths", default = "docs", multiple = true, positional = true}]
 cmd = "pytest --nbmake --nbmake-timeout=0 ${paths}"
 executor = {group = "notebooks", with = "nbmake"}
 help = "Run all notebooks"
-
-[[tool.poe.tasks.nb.args]]
-default = "docs"
-multiple = true
-name = "paths"
-positional = true
 
 [tool.poe.tasks.style]
 cmd = "pre-commit run --all-files"
@@ -338,7 +334,7 @@ executor = {group = "style"}
 help = "Perform all linting, formatting, and spelling checks"
 
 [tool.poe.tasks.test]
-cmd = "pytest --numprocesses=auto ${paths}"
+cmd = "pytest --numprocesses=auto -m 'slow or not slow' ${paths}"
 executor = {group = "test"}
 help = "Run all unit tests"
 
@@ -351,32 +347,38 @@ positional = true
 [tool.poe.tasks.test-all]
 help = "Run all tests on each supported Python version"
 sequence = [
-    {ref = "test-py 3.9"},
-    {ref = "test-py 3.10"},
-    {ref = "test-py 3.11"},
-    {ref = "test-py 3.12"},
-    {ref = "test-py 3.13"},
-    {ref = "test-py 3.14"},
+    {ref = "test-py310 ${paths}"},
+    {ref = "test-py311 ${paths}"},
+    {ref = "test-py312 ${paths}"},
+    {ref = "test-py313 ${paths}"},
+    {ref = "test-py314 ${paths}"},
 ]
 
-[tool.poe.tasks.test-py]
-cmd = """
-uv run \
-    --group=test \
-    --isolated \
-    --no-dev \
-    --python=${version} \
-    pytest \
-        -m 'slow or not slow' \
-        --numprocesses=auto
-"""
-help = "Run all tests on a specific Python version"
-
-[[tool.poe.tasks.test-py.args]]
-default = "3.13"
-help = "Selected Python version"
-name = "version"
+[[tool.poe.tasks.test-all.args]]
+default = ""
+multiple = true
+name = "paths"
 positional = true
+
+[tool.poe.tasks.test-py310]
+env = {UV_PYTHON = "3.10"}
+ref = "test"
+
+[tool.poe.tasks.test-py311]
+env = {UV_PYTHON = "3.11"}
+ref = "test"
+
+[tool.poe.tasks.test-py312]
+env = {UV_PYTHON = "3.12"}
+ref = "test"
+
+[tool.poe.tasks.test-py313]
+env = {UV_PYTHON = "3.13"}
+ref = "test"
+
+[tool.poe.tasks.test-py314]
+env = {UV_PYTHON = "3.14"}
+ref = "test"
 
 [tool.pyright]
 reportArgumentType = false
@@ -486,6 +488,7 @@ ignore = [
     "PLW2901",
     "PT001",
     "PTH",
+    "RUF067",
     "SIM108",
 ]
 select = ["ALL"]
