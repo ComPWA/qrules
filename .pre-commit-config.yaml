@@ -1,7 +1,6 @@
 ci:
   autofix_commit_msg: "MAINT: implement pre-commit autofixes"
   autoupdate_commit_msg: "MAINT: upgrade lock files"
-  autoupdate_schedule: quarterly
   skip:
     - check-jsonschema
     - mypy
@@ -15,7 +14,7 @@ repos:
       - id: check-useless-excludes
 
   - repo: https://github.com/ComPWA/policy
-    rev: 0.8.2rc5
+    rev: 0.8.2rc7
     hooks:
       - id: check-dev-files
         args:
@@ -24,7 +23,6 @@ repos:
           - --repo-title=QRules
           - --type-checker=mypy
           - --type-checker=pyright
-          - --update-lock-files=outsource
       - id: colab-toc-visible
       - id: fix-nbformat-version
       - id: remove-empty-tags
