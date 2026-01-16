@@ -89,14 +89,14 @@ doc = [
 ]
 jupyter = [
     "ipywidgets",
+    "jupyter-ruff",
     "jupyterlab",
-    "jupyterlab-code-formatter",
     "jupyterlab-git",
     "jupyterlab-lsp",
     "jupyterlab-myst",
     "jupyterlab-quickopen",
     "python-lsp-ruff",
-    "python-lsp-server[rope]",
+    "python-lsp-server",
     {include-group = "notebooks"},
 ]
 notebooks = ["qrules[viz]"]
@@ -415,7 +415,7 @@ typeCheckingMode = "strict"
 venv = ".venv"
 venvPath = "."
 
-[tool.pytest.ini_options]
+[tool.pytest]
 addopts = [
     "--color=yes",
     "--doctest-continue-on-failure",
@@ -423,6 +423,7 @@ addopts = [
     "--durations=3",
     "--ignore=docs/abbreviate_signature.py",
     "--ignore=docs/conf.py",
+    "--import-mode=importlib",
 ]
 filterwarnings = [
     "error",
@@ -434,6 +435,7 @@ filterwarnings = [
     "ignore:unclosed .*:ResourceWarning",
 ]
 markers = ["slow: marks tests as slow (deselect with '-m \"not slow\"')"]
+minversion = "9.0"
 norecursedirs = [
     ".ipynb_checkpoints",
     ".virtual_documents",
@@ -504,6 +506,7 @@ allow-dict-calls-with-keyword-arguments = true
 ban-relative-imports = "all"
 
 [tool.ruff.lint.isort]
+known-first-party = ["qrules"]
 split-on-trailing-comma = false
 
 [tool.ruff.lint.per-file-ignores]
@@ -546,7 +549,6 @@ split-on-trailing-comma = false
     "ANN",
     "D",
     "INP001",
-    "PGH001",
     "PLC2701",
     "PLR6301",
     "S101",
@@ -573,3 +575,6 @@ sort_first = [
 ]
 spaces_indent_inline_array = 4
 trailing_comma_inline_array = true
+
+[tool.uv.sources]
+sphinx-api-relink = {git = "https://github.com/ComPWA/sphinx-api-relink", rev = "5e18cb0981eb31680926bdb6511078f4308f38e0"}
