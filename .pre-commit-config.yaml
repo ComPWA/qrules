@@ -14,7 +14,7 @@ repos:
       - id: check-useless-excludes
 
   - repo: https://github.com/ComPWA/policy
-    rev: 0.8.2rc12
+    rev: 0.8.2rc15
     hooks:
       - id: check-dev-files
         args:
@@ -32,6 +32,7 @@ repos:
           - --additional-packages=IPython
           - --extras-require=doc,viz
       - id: set-nb-display-name
+      - id: strip-nb-whitespace
 
   - repo: https://github.com/kynan/nbstripout
     rev: 0.9.0
@@ -62,7 +63,7 @@ repos:
             metadata.vscode
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.14
+    rev: v0.15.0
     hooks:
       - id: ruff-check
         args: [--fix]
@@ -154,6 +155,6 @@ repos:
       - id: pyright
 
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.9.28
+    rev: 0.9.29
     hooks:
       - id: uv-lock
