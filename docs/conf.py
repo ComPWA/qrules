@@ -254,6 +254,7 @@ intersphinx_mapping = {
 linkcheck_anchors = False
 linkcheck_ignore = [
     "https://doi.org/10.1002/andp.19955070504",  # 403 for onlinelibrary.wiley.com
+    "https://doi.org/10.1103/PhysRevD.86.010001",
 ]
 project = REPO_TITLE
 modindex_common_prefix = [f"{PACKAGE}."]
