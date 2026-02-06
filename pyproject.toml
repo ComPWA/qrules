@@ -106,14 +106,14 @@ style = [
 ]
 test = [
     "ipython",
-    "pydot <2",
+    "pydot<5",
     "pytest",
     "pytest-cov",
     "pytest-xdist",
 ]
 types = [
     "ipython",
-    "pydot <2",
+    "pydot<5",
     "pytest",
     "sphinx-api-relink",
     "types-PyYAML",
