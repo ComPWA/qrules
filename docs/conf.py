@@ -126,6 +126,7 @@ autodoc_type_aliases = {
 autodoc_typehints_format = "short"
 autosectionlabel_prefix_document = True
 bibtex_bibfiles = ["bibliography.bib"]
+bibtex_use_mathjax = True
 codeautolink_concat_default = True
 comments_config = {
     "hypothesis": True,
