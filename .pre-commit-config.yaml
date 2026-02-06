@@ -14,7 +14,7 @@ repos:
       - id: check-useless-excludes
 
   - repo: https://github.com/ComPWA/policy
-    rev: 0.8.2rc15
+    rev: 0.8.2rc18
     hooks:
       - id: check-dev-files
         args:
@@ -155,6 +155,6 @@ repos:
       - id: pyright
 
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.9.30
+    rev: 0.10.0
     hooks:
       - id: uv-lock
