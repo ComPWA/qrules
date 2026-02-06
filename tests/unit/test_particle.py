@@ -261,10 +261,9 @@ class TestParticleCollection:
         assert gamma_from_subset.pid == 22
         assert gamma_from_subset is particle_database["gamma"]
         filtered_result = particle_database.filter(
-            lambda p: p.mass > 1.8
-            and p.mass < 2.0
-            and p.spin == 2
-            and p.strangeness == 1
+            lambda p: (
+                p.mass > 1.8 and p.mass < 2.0 and p.spin == 2 and p.strangeness == 1
+            )
         )
         sorted_result = sorted(filtered_result.names)
         expected = {

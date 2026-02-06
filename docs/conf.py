@@ -126,6 +126,7 @@ autodoc_type_aliases = {
 autodoc_typehints_format = "short"
 autosectionlabel_prefix_document = True
 bibtex_bibfiles = ["bibliography.bib"]
+bibtex_use_mathjax = True
 codeautolink_concat_default = True
 comments_config = {
     "hypothesis": True,
@@ -248,12 +249,12 @@ intersphinx_mapping = {
     "IPython": (f"https://ipython.readthedocs.io/en/{pin('IPython')}", None),
     "jsonschema": ("https://python-jsonschema.readthedocs.io/en/stable", None),
     "mypy": ("https://mypy.readthedocs.io/en/stable", None),
-    "pwa": ("https://pwa.readthedocs.io", None),
     "python": ("https://docs.python.org/3", None),
 }
 linkcheck_anchors = False
 linkcheck_ignore = [
     "https://doi.org/10.1002/andp.19955070504",  # 403 for onlinelibrary.wiley.com
+    "https://doi.org/10.1103/PhysRevD.86.010001",
 ]
 project = REPO_TITLE
 modindex_common_prefix = [f"{PACKAGE}."]
@@ -280,6 +281,9 @@ nb_execution_mode = get_execution_mode()
 nb_execution_show_tb = True
 nb_execution_timeout = -1
 nb_output_stderr = "remove"
+nitpick_ignore = [
+    ("py:class", "StrPath"),
+]
 nitpick_ignore_regex = [
     (r"py:(class|obj)", "json.encoder.JSONEncoder"),
     (r"py:(class|obj)", r"frozendict(\.frozendict)?"),
@@ -301,6 +305,7 @@ project = "QRules"
 pygments_style = "sphinx"
 release = get_package_version(PACKAGE)
 suppress_warnings = [
+    "myst.directive_unknown",
     "myst.domains",
     # skipping unknown output mime type: application/json
     # https://github.com/ComPWA/qrules/runs/8132605149?check_suite_focus=true#step:5:92

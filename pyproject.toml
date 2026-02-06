@@ -60,14 +60,12 @@ file = "README.md"
 [project.urls]
 Changelog = "https://github.com/ComPWA/qrules/releases"
 Documentation = "https://qrules.rtfd.io"
+Issues = "https://github.com/ComPWA/qrules/issues"
 Source = "https://github.com/ComPWA/qrules"
-Tracker = "https://github.com/ComPWA/qrules/issues"
 
 [dependency-groups]
 dev = [
-    "poethepoet",
     "ruff",
-    "sphinx-autobuild",
     {include-group = "doc"},
     {include-group = "jupyter"},
     {include-group = "style"},
@@ -91,14 +89,14 @@ doc = [
 ]
 jupyter = [
     "ipywidgets",
+    "jupyter-ruff",
     "jupyterlab",
-    "jupyterlab-code-formatter",
     "jupyterlab-git",
     "jupyterlab-lsp",
     "jupyterlab-myst",
     "jupyterlab-quickopen",
     "python-lsp-ruff",
-    "python-lsp-server[rope]",
+    "python-lsp-server",
     {include-group = "notebooks"},
 ]
 notebooks = ["qrules[viz]"]
@@ -108,11 +106,9 @@ style = [
 ]
 test = [
     "ipython",
-    "nbmake",
     "pydot <2",
     "pytest",
     "pytest-cov",
-    "pytest-profiling",
     "pytest-xdist",
 ]
 types = [
@@ -121,7 +117,6 @@ types = [
     "pytest",
     "sphinx-api-relink",
     "types-PyYAML",
-    "types-setuptools",
 ]
 
 [tool.setuptools]
@@ -207,8 +202,10 @@ module = ["sphinx.*"]
 ignore_missing_imports = true
 module = ["tqdm.*"]
 
-[tool.poe]
-executor.type = "uv"
+[tool.poe.executor]
+isolated = true
+no-group = "dev"
+type = "uv"
 
 [tool.poe.tasks.all]
 help = "Run all continuous integration (CI) tasks locally"
@@ -223,15 +220,16 @@ sequence = [
 
 [tool.poe.tasks.cov]
 cmd = """
-uv run --group test --isolated --no-dev \
-    pytest \
-        --cov=qrules \
-        --cov-fail-under=85 \
-        --cov-report=html \
-        --cov-report=xml \
-        --numprocesses=auto \
-        ${paths}
+pytest \
+    --cov=qrules \
+    --cov-fail-under=85 \
+    --cov-report=html \
+    --cov-report=xml \
+    --numprocesses=auto \
+    -m 'slow or not slow' \
+    ${paths}
 """
+executor = {group = "test"}
 help = "Compute how much of the source code is covered by tests"
 
 [[tool.poe.tasks.cov.args]]
@@ -251,6 +249,7 @@ sphinx-build \
     docs/_build/html/
 """
 env = {PYTHONWARNINGS = ""}
+executor = {group = "doc"}
 help = "Build documentation and API"
 
 [tool.poe.tasks.doclive]
@@ -286,6 +285,7 @@ sphinx-autobuild \
     docs/ \
     docs/_build/html/
 """
+executor = {group = "doc", with = "sphinx-autobuild"}
 help = "Set up a server to directly preview changes to the HTML pages"
 
 [tool.poe.tasks.docnb]
@@ -306,30 +306,36 @@ sequence = ["doclive"]
 [tool.poe.tasks.lab]
 args = [{name = "paths", default = "", positional = true}]
 cmd = "jupyter lab ${paths}"
-help = "Run Jupyter Lab"
+executor = {group = "jupyter"}
+help = "Launch Jupyter Lab"
 
 [tool.poe.tasks.linkcheck]
 cmd = """
-uv run --group doc --isolated --no-dev \
-    sphinx-build \
-        --builder=linkcheck \
-        --show-traceback \
-        docs/ \
-        docs/_build/linkcheck/
+sphinx-build \
+    --builder=linkcheck \
+    --fail-on-warning \
+    --show-traceback \
+    docs/ \
+    docs/_build/linkcheck/
 """
 env = {PYTHONWARNINGS = ""}
+executor = {group = "doc"}
 help = "Check external links in the documentation (requires internet connection)"
 
 [tool.poe.tasks.nb]
-cmd = "pytest --nbmake --nbmake-timeout=0 docs"
+args = [{name = "paths", default = "docs", multiple = true, positional = true}]
+cmd = "pytest --nbmake --nbmake-timeout=0 ${paths}"
+executor = {group = "notebooks", with = "nbmake"}
 help = "Run all notebooks"
 
 [tool.poe.tasks.style]
-cmd = "uv run --group style --isolated --no-dev pre-commit run --all-files"
+cmd = "pre-commit run --all-files"
+executor = {group = "style"}
 help = "Perform all linting, formatting, and spelling checks"
 
 [tool.poe.tasks.test]
-cmd = "uv run --group test --isolated --no-dev pytest --numprocesses=auto ${paths}"
+cmd = "pytest --numprocesses=auto -m 'slow or not slow' ${paths}"
+executor = {group = "test"}
 help = "Run all unit tests"
 
 [[tool.poe.tasks.test.args]]
@@ -341,32 +347,38 @@ positional = true
 [tool.poe.tasks.test-all]
 help = "Run all tests on each supported Python version"
 sequence = [
-    {ref = "test-py 3.9"},
-    {ref = "test-py 3.10"},
-    {ref = "test-py 3.11"},
-    {ref = "test-py 3.12"},
-    {ref = "test-py 3.13"},
-    {ref = "test-py 3.14"},
+    {ref = "test-py310 ${paths}"},
+    {ref = "test-py311 ${paths}"},
+    {ref = "test-py312 ${paths}"},
+    {ref = "test-py313 ${paths}"},
+    {ref = "test-py314 ${paths}"},
 ]
 
-[tool.poe.tasks.test-py]
-cmd = """
-uv run \
-    --group=test \
-    --isolated \
-    --no-dev \
-    --python=${version} \
-    pytest \
-        -m 'slow or not slow' \
-        --numprocesses=auto
-"""
-help = "Run all tests on a specific Python version"
-
-[[tool.poe.tasks.test-py.args]]
-default = "3.13"
-help = "Selected Python version"
-name = "version"
+[[tool.poe.tasks.test-all.args]]
+default = ""
+multiple = true
+name = "paths"
 positional = true
+
+[tool.poe.tasks.test-py310]
+env = {UV_PYTHON = "3.10"}
+ref = "test"
+
+[tool.poe.tasks.test-py311]
+env = {UV_PYTHON = "3.11"}
+ref = "test"
+
+[tool.poe.tasks.test-py312]
+env = {UV_PYTHON = "3.12"}
+ref = "test"
+
+[tool.poe.tasks.test-py313]
+env = {UV_PYTHON = "3.13"}
+ref = "test"
+
+[tool.poe.tasks.test-py314]
+env = {UV_PYTHON = "3.14"}
+ref = "test"
 
 [tool.pyright]
 reportArgumentType = false
@@ -403,7 +415,7 @@ typeCheckingMode = "strict"
 venv = ".venv"
 venvPath = "."
 
-[tool.pytest.ini_options]
+[tool.pytest]
 addopts = [
     "--color=yes",
     "--doctest-continue-on-failure",
@@ -411,9 +423,11 @@ addopts = [
     "--durations=3",
     "--ignore=docs/abbreviate_signature.py",
     "--ignore=docs/conf.py",
+    "--import-mode=importlib",
 ]
 filterwarnings = [
     "error",
+    "ignore: '[A-Za-z]+' .*deprecated.* use '[a-z_]+':DeprecationWarning",
     "ignore: The `hash` argument is deprecated in favor of `unsafe_hash` and will be removed in or after August 2025.:DeprecationWarning",
     "ignore:'importlib.abc.Traversable' is deprecated and slated for removal in Python 3.14:DeprecationWarning",
     "ignore:Passing a schema to Validator.iter_errors is deprecated.*:DeprecationWarning",
@@ -421,6 +435,7 @@ filterwarnings = [
     "ignore:unclosed .*:ResourceWarning",
 ]
 markers = ["slow: marks tests as slow (deselect with '-m \"not slow\"')"]
+minversion = "9.0"
 norecursedirs = [
     ".ipynb_checkpoints",
     ".virtual_documents",
@@ -475,6 +490,7 @@ ignore = [
     "PLW2901",
     "PT001",
     "PTH",
+    "RUF067",
     "SIM108",
 ]
 select = ["ALL"]
@@ -490,6 +506,7 @@ allow-dict-calls-with-keyword-arguments = true
 ban-relative-imports = "all"
 
 [tool.ruff.lint.isort]
+known-first-party = ["qrules"]
 split-on-trailing-comma = false
 
 [tool.ruff.lint.per-file-ignores]
@@ -532,7 +549,6 @@ split-on-trailing-comma = false
     "ANN",
     "D",
     "INP001",
-    "PGH001",
     "PLC2701",
     "PLR6301",
     "S101",

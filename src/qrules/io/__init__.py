@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import attrs
 import yaml
@@ -17,6 +17,9 @@ import yaml
 from qrules.io import _dict, _dot
 from qrules.particle import Particle, ParticleCollection
 from qrules.topology import Topology
+
+if TYPE_CHECKING:
+    from _typeshed import StrPath
 
 
 def asdict(instance: object) -> dict:
@@ -143,7 +146,7 @@ class _IncreasedIndent(yaml.Dumper):
             super().write_line_break()
 
 
-def write(instance: object, filename: str) -> None:
+def write(instance: object, filename: StrPath) -> None:
     with open(filename, "w") as stream:
         file_extension = _get_file_extension(filename)
         if file_extension == "json":
@@ -170,7 +173,7 @@ def write(instance: object, filename: str) -> None:
     raise NotImplementedError(msg)
 
 
-def _get_file_extension(filename: str | Path) -> str:
+def _get_file_extension(filename: StrPath) -> str:
     path = Path(filename)
     extension = path.suffix.lower()
     if not extension:

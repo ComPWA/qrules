@@ -26,6 +26,7 @@
     "*particle*.*ml",
     ".editorconfig",
     ".envrc",
+    ".github/dependabot.yml",
     ".gitignore",
     ".pre-commit-config.yaml",
     ".prettierignore",
@@ -39,7 +40,6 @@
     "typings"
   ],
   "ignoreWords": [
-    "MAINT",
     "adrs",
     "ampform",
     "arange",
