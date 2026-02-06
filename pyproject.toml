@@ -60,8 +60,8 @@ file = "README.md"
 [project.urls]
 Changelog = "https://github.com/ComPWA/qrules/releases"
 Documentation = "https://qrules.rtfd.io"
+Issues = "https://github.com/ComPWA/qrules/issues"
 Source = "https://github.com/ComPWA/qrules"
-Tracker = "https://github.com/ComPWA/qrules/issues"
 
 [dependency-groups]
 dev = [
