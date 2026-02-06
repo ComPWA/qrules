@@ -2542,7 +2542,7 @@ dev = [
     { name = "qrules", extras = ["viz"] },
     { name = "ruff" },
     { name = "sphinx" },
-    { name = "sphinx-api-relink", git = "https://github.com/ComPWA/sphinx-api-relink?rev=5e18cb0981eb31680926bdb6511078f4308f38e0" },
+    { name = "sphinx-api-relink" },
     { name = "sphinx-book-theme" },
     { name = "sphinx-codeautolink", extras = ["ipython"] },
     { name = "sphinx-comments" },
@@ -2559,7 +2559,7 @@ doc = [
     { name = "myst-nb" },
     { name = "qrules", extras = ["viz"] },
     { name = "sphinx" },
-    { name = "sphinx-api-relink", git = "https://github.com/ComPWA/sphinx-api-relink?rev=5e18cb0981eb31680926bdb6511078f4308f38e0" },
+    { name = "sphinx-api-relink" },
     { name = "sphinx-book-theme" },
     { name = "sphinx-codeautolink", extras = ["ipython"] },
     { name = "sphinx-comments" },
@@ -2589,7 +2589,7 @@ style = [
     { name = "mypy" },
     { name = "pydot", specifier = "<2" },
     { name = "pytest" },
-    { name = "sphinx-api-relink", git = "https://github.com/ComPWA/sphinx-api-relink?rev=5e18cb0981eb31680926bdb6511078f4308f38e0" },
+    { name = "sphinx-api-relink" },
     { name = "types-pyyaml" },
 ]
 test = [
@@ -2603,7 +2603,7 @@ types = [
     { name = "ipython" },
     { name = "pydot", specifier = "<2" },
     { name = "pytest" },
-    { name = "sphinx-api-relink", git = "https://github.com/ComPWA/sphinx-api-relink?rev=5e18cb0981eb31680926bdb6511078f4308f38e0" },
+    { name = "sphinx-api-relink" },
     { name = "types-pyyaml" },
 ]
 
@@ -2975,8 +2975,8 @@ wheels = [
 
 [[package]]
 name = "sphinx-api-relink"
-version = "0.1.1.dev2+g5e18cb098"
-source = { git = "https://github.com/ComPWA/sphinx-api-relink?rev=5e18cb0981eb31680926bdb6511078f4308f38e0#5e18cb0981eb31680926bdb6511078f4308f38e0" }
+version = "0.1.1"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "colorama" },
     { name = "docutils", version = "0.21.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
@@ -2984,6 +2984,10 @@ dependencies = [
     { name = "sphinx", version = "8.1.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "sphinx", version = "9.0.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.11.*'" },
     { name = "sphinx", version = "9.1.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d3/03/3488c9fa7fcfddb01206aadfd6641ba3f4ba4166a09ad96786c6d8a3be57/sphinx_api_relink-0.1.1.tar.gz", hash = "sha256:91ce49375941742384f30ce8d823eb85d1e1be9bdbda0f7e0441141db3c8cfa5", size = 27117, upload-time = "2026-02-06T12:14:51.332Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/6c/c7/3d049d143c1a102085c90552a4e33867013771419f74f0a297705ff3ba38/sphinx_api_relink-0.1.1-py3-none-any.whl", hash = "sha256:1dcb75777ac4e0d5621c61aceb61cdfbb1d37095481af857676581a68790a466", size = 13753, upload-time = "2026-02-06T12:14:50.294Z" },
 ]
 
 [[package]]
