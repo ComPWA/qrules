@@ -1,13 +1,13 @@
 ci:
   autofix_commit_msg: "MAINT: implement pre-commit autofixes"
   autoupdate_commit_msg: "MAINT: upgrade lock files"
+  autoupdate_schedule: quarterly
   skip:
     - check-jsonschema
     - mypy
     - pyright
     - uv-lock
 
-  autoupdate_schedule: quarterly
 repos:
   - repo: meta
     hooks:
