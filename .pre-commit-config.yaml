@@ -28,10 +28,7 @@ repos:
       - id: fix-nbformat-version
       - id: remove-empty-tags
       - id: set-nb-cells
-        args:
-          - --add-install-cell
-          - --additional-packages=IPython
-          - --extras-require=doc,viz
+        args: [--autolink-concat]
       - id: set-nb-display-name
       - id: strip-nb-whitespace
 
