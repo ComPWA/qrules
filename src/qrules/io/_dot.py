@@ -247,8 +247,8 @@ def _get_graphviz_node(edge_id: int, node_id: int | None = None) -> str:
 
 def _create_same_rank_line(node_edge_ids: Iterable[int], prefix: str = "") -> str:
     name_list = [f"{prefix}{_get_graphviz_node(i)}" for i in node_edge_ids]
-    name_string = ", ".join(name_list)
-    return f"{{ rank=same {name_string} }}"
+    name_string = " ".join(name_list)
+    return f"{{ rank=same; {name_string} }}"
 
 
 def _create_edge_label(

@@ -31,18 +31,18 @@ from qrules.transition import (
 
 def test_asdot(reaction: ReactionInfo):
     for transition in reaction.transitions:
-        dot_data = io.asdot(transition)
-        assert pydot.graph_from_dot_data(dot_data) is not None
-    dot_data = io.asdot(reaction)
-    assert pydot.graph_from_dot_data(dot_data) is not None
-    dot_data = io.asdot(reaction, strip_spin=True)
-    assert pydot.graph_from_dot_data(dot_data) is not None
-    dot_data = io.asdot(reaction, collapse_graphs=True)
-    assert pydot.graph_from_dot_data(dot_data) is not None
+        src = io.asdot(transition)
+        assert is_valid_dot(src)
+    src = io.asdot(reaction)
+    assert is_valid_dot(src)
+    src = io.asdot(reaction, strip_spin=True)
+    assert is_valid_dot(src)
+    src = io.asdot(reaction, collapse_graphs=True)
+    assert is_valid_dot(src)
 
 
 def test_asdot_exact_format(reaction: ReactionInfo):
-    dot = io.asdot(reaction.transitions[0], render_node=True)
+    src = io.asdot(reaction.transitions[0], render_node=True)
     if reaction.formalism == "helicity":
         expected_dot = """
 digraph {
@@ -54,8 +54,8 @@ digraph {
     1 [label="1: pi0[0]"]
     2 [label="2: pi0[0]"]
     A [label="J/psi(1S)[-1]"]
-    { rank=same A }
-    { rank=same 0, 1, 2 }
+    { rank=same; A }
+    { rank=same; 0 1 2 }
     A -> N0
     N0 -> N1 [label="f(0)(980)[0]"]
     N0 -> 0
@@ -76,8 +76,8 @@ digraph {
     1 [label="1: pi0[0]"]
     2 [label="2: pi0[0]"]
     A [label="J/psi(1S)[-1]"]
-    { rank=same A }
-    { rank=same 0, 1, 2 }
+    { rank=same; A }
+    { rank=same; 0 1 2 }
     A -> N0
     N0 -> N1 [label="f(0)(980)[0]"]
     N0 -> 0
@@ -87,50 +87,50 @@ digraph {
     N1 [label="L=|0,0⟩\nS=|0,0⟩\nP=+1"]
 }
         """
-    assert dot.strip() == expected_dot.strip()
+    assert src.strip() == expected_dot.strip()
 
 
 def test_asdot_graphviz_attrs(reaction: ReactionInfo):
-    dot_data = io.asdot(reaction, size=12)
-    assert pydot.graph_from_dot_data(dot_data) is not None
-    dot_data = io.asdot(reaction, bgcolor="red", size=12)
-    assert pydot.graph_from_dot_data(dot_data) is not None
-    assert '\n    bgcolor="red"\n' in dot_data
-    assert "\n    size=12\n" in dot_data
-    assert "bgcolor=none" not in dot_data
+    src = io.asdot(reaction, size=12)
+    assert is_valid_dot(src)
+    src = io.asdot(reaction, bgcolor="red", size=12)
+    assert is_valid_dot(src)
+    assert '\n    bgcolor="red"\n' in src
+    assert "\n    size=12\n" in src
+    assert "bgcolor=none" not in src
 
 
 def test_asdot_qn_problem_set(qn_problem_and_result: tuple[QNProblemSet, QNResult]):
     qn_problem_set, _ = qn_problem_and_result
-    dot_data = qrules.io.asdot(qn_problem_set, render_node=True)
-    assert pydot.graph_from_dot_data(dot_data) is not None
+    src = qrules.io.asdot(qn_problem_set, render_node=True)
+    assert is_valid_dot(src)
 
 
 def test_asdot_with_styled_edges_and_nodes(reaction: ReactionInfo, output_dir):
     transition = reaction.transitions[0]
-    dot = io.asdot(
+    src = io.asdot(
         transition,
         edge_style={"fontcolor": "blue"},
         node_style={"fontcolor": "darkgreen", "shape": "ellipse"},
     )
-    assert pydot.graph_from_dot_data(dot) is not None
+    assert is_valid_dot(src)
     with open(output_dir + f"styled_{reaction.formalism}.gv", "w") as stream:
-        stream.write(dot)
-    assert '0 [fontcolor="blue", label="0: gamma[-1]"]' in dot
-    assert 'N0 -> N1 [fontcolor="blue", label="f(0)(980)[0]"]' in dot
-    assert 'N0 [fontcolor="darkgreen", shape="ellipse", label=""]' in dot
+        stream.write(src)
+    assert '0 [fontcolor="blue", label="0: gamma[-1]"]' in src
+    assert 'N0 -> N1 [fontcolor="blue", label="f(0)(980)[0]"]' in src
+    assert 'N0 [fontcolor="darkgreen", shape="ellipse", label=""]' in src
 
 
 def test_asdot_no_label_overwriting(reaction: ReactionInfo):
     transition = reaction.transitions[0]
     label = "should be ignored"
-    dot_data = io.asdot(
+    src = io.asdot(
         transition,
         edge_style={"label": label},
         node_style={"label": label},
     )
-    assert pydot.graph_from_dot_data(dot_data) is not None
-    assert label not in dot_data
+    assert is_valid_dot(src)
+    assert label not in src
 
 
 @pytest.mark.parametrize(
@@ -146,28 +146,28 @@ def test_asdot_problemset(formalism: SpinFormalism):
     problem_sets = stm.create_problem_sets()
     for problem_set_list in problem_sets.values():
         for problem_set in problem_set_list:
-            dot_data = io.asdot(problem_set)
-            assert pydot.graph_from_dot_data(dot_data) is not None
+            src = io.asdot(problem_set)
+            assert is_valid_dot(src)
             topology = problem_set.topology
             initial_facts = problem_set.initial_facts
             settings = problem_set.solving_settings
-            dot_data = io.asdot([(topology, initial_facts)])
-            assert pydot.graph_from_dot_data(dot_data) is not None
-            dot_data = io.asdot([(topology, settings)])
-            assert pydot.graph_from_dot_data(dot_data) is not None
-        dot_data = io.asdot(problem_set_list)
-        assert pydot.graph_from_dot_data(dot_data) is not None
+            src = io.asdot([(topology, initial_facts)])
+            assert is_valid_dot(src)
+            src = io.asdot([(topology, settings)])
+            assert is_valid_dot(src)
+        src = io.asdot(problem_set_list)
+        assert is_valid_dot(src)
 
 
 def test_asdot_topology():
-    dot_data = io.asdot(create_n_body_topology(3, 4))
-    assert pydot.graph_from_dot_data(dot_data) is not None
-    dot_data = io.asdot(create_isobar_topologies(2))
-    assert pydot.graph_from_dot_data(dot_data) is not None
-    dot_data = io.asdot(create_isobar_topologies(3))
-    assert pydot.graph_from_dot_data(dot_data) is not None
-    dot_data = io.asdot(create_isobar_topologies(4))
-    assert pydot.graph_from_dot_data(dot_data) is not None
+    src = io.asdot(create_n_body_topology(3, 4))
+    assert is_valid_dot(src)
+    src = io.asdot(create_isobar_topologies(2))
+    assert is_valid_dot(src)
+    src = io.asdot(create_isobar_topologies(3))
+    assert is_valid_dot(src)
+    src = io.asdot(create_isobar_topologies(4))
+    assert is_valid_dot(src)
 
 
 def test_as_string_dict(
@@ -181,7 +181,7 @@ def test_as_string_dict(
     node_setting = problem_set.solving_settings.interactions[0]
     intermediate_setting, *_ = problem_set.solving_settings.intermediate_states.values()
 
-    dot = as_string(intermediate_setting).strip()
+    src = as_string(intermediate_setting).strip()
     expected_dot = dedent("""
         RULES
         spin_validity - 62
@@ -205,9 +205,9 @@ def test_as_string_dict(
         tau_lepton_number ∊ [0]
         topness ∊ [0]
     """).strip()
-    assert dot == expected_dot
+    assert src == expected_dot
 
-    dot = as_string(node_setting).strip()
+    src = as_string(node_setting).strip()
     expected_dot = dedent("""
         RULES
         clebsch_gordan_helicity_to_canonical - NA
@@ -236,9 +236,9 @@ def test_as_string_dict(
         s_magnitude ∊ [0, 1/2, 1, 3/2, 2]
         s_projection ∊ [-2, -3/2, -1, -1/2, 0, +1/2, +1, +3/2, +2]
     """).strip()
-    assert dot == expected_dot
+    assert src == expected_dot
 
-    dot = as_string(interaction).strip()
+    src = as_string(interaction).strip()
     expected_dot = dedent("""
         l_magnitude = 0
         s_magnitude = 1/2
@@ -246,9 +246,9 @@ def test_as_string_dict(
         s_projection = -1/2
         parity_prefactor = +1
     """).strip()
-    assert dot == expected_dot
+    assert src == expected_dot
 
-    dot = as_string(intermediate_state).strip()
+    src = as_string(intermediate_state).strip()
     expected_dot = dedent("""
         spin_magnitude = 1/2
         spin_projection = +1/2
@@ -262,7 +262,7 @@ def test_as_string_dict(
         mass = 1.75
         width = 0.15
     """).strip()
-    assert dot == expected_dot
+    assert src == expected_dot
 
 
 def test_as_string_spin_tuple(particle_database: ParticleCollection):
@@ -300,8 +300,8 @@ class TestWrite:
             filename=output_file,
         )
         with open(output_file) as stream:
-            dot_data = stream.read()
-        assert pydot.graph_from_dot_data(dot_data) is not None
+            src = stream.read()
+        assert is_valid_dot(src)
 
     def test_write_single_graph(self, output_dir: str, reaction: ReactionInfo):
         for i, transition in enumerate(reaction.transitions):
@@ -311,16 +311,16 @@ class TestWrite:
                 filename=output_file,
             )
             with open(output_file) as stream:
-                dot_data = stream.read()
-            assert pydot.graph_from_dot_data(dot_data) is not None
+                src = stream.read()
+            assert is_valid_dot(src)
 
     def test_write_graph_list(self, output_dir: str, reaction: ReactionInfo):
         for i, transition in enumerate(reaction.transitions):
             output_file = output_dir + f"test_graph_list_{i}.gv"
             io.write(transition, filename=output_file)
             with open(output_file) as stream:
-                dot_data = stream.read()
-            assert pydot.graph_from_dot_data(dot_data) is not None
+                src = stream.read()
+            assert is_valid_dot(src)
 
     def test_write_strip_spin(self, output_dir: str, reaction: ReactionInfo):
         output_file = output_dir + "test_particle_graphs.gv"
@@ -329,8 +329,8 @@ class TestWrite:
             filename=output_file,
         )
         with open(output_file) as stream:
-            dot_data = stream.read()
-        assert pydot.graph_from_dot_data(dot_data) is not None
+            src = stream.read()
+        assert is_valid_dot(src)
 
 
 def test_collapse_graphs(
@@ -419,3 +419,13 @@ def qn_problem_and_result(
     qn_solutions = stm.find_quantum_number_transitions(problem_sets)
     strong_qn_solutions = qn_solutions[3600.0]
     return strong_qn_solutions[1]
+
+
+def is_valid_dot(src: str) -> bool:
+    try:
+        graphs = pydot.graph_from_dot_data(src)
+        if graphs is None:
+            return False
+        return len(graphs) > 0
+    except pydot.Error:
+        return False
