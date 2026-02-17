@@ -551,6 +551,7 @@ split-on-trailing-comma = false
     "INP001",
     "PLC2701",
     "PLR6301",
+    "RUF069",
     "S101",
     "S307",
     "SLF001",

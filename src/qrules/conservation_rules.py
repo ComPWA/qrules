@@ -222,7 +222,7 @@ def parity_conservation_helicity(
             sum(out_spins) - ingoing_edge_qns[0].spin_magnitude
         )
 
-        if all(x.spin_projection == 0.0 for x in outgoing_edge_qns) and prefactor == -1:
+        if all(x.spin_projection == 0.0 for x in outgoing_edge_qns) and prefactor == -1:  # noqa: RUF069
             return False
 
         return prefactor == parity_prefactor
@@ -448,7 +448,7 @@ def _is_clebsch_gordan_coefficient_zero(
     j_2 = spin2.magnitude
     proj = spin_coupled.projection
     mag = spin_coupled.magnitude
-    if ((j_1 == j_2 and m_1 == m_2) or (m_1 == 0.0 and m_2 == 0.0)) and abs(
+    if ((j_1 == j_2 and m_1 == m_2) or (m_1 == 0.0 and m_2 == 0.0)) and abs(  # noqa: RUF069
         mag - j_1 - j_2
     ) % 2 == 1:
         return True
@@ -858,7 +858,7 @@ def gellmann_nishijima(edge_qns: GellMannNishijimaInput) -> bool:
     isospin_3 = Fraction(0)
     if edge_qns.isospin_projection:
         isospin_3 = edge_qns.isospin_projection
-    return float(edge_qns.charge) == isospin_3 + 0.5 * calculate_hypercharge(edge_qns)
+    return float(edge_qns.charge) == isospin_3 + 0.5 * calculate_hypercharge(edge_qns)  # noqa: RUF069
 
 
 @frozen
