@@ -15,7 +15,7 @@ repos:
       - id: check-useless-excludes
 
   - repo: https://github.com/ComPWA/policy
-    rev: 0.8.8
+    rev: 0.8.9
     hooks:
       - id: check-dev-files
         args:
@@ -61,7 +61,7 @@ repos:
             metadata.vscode
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.9
+    rev: v0.15.10
     hooks:
       - id: ruff-check
         args: [--fix]
@@ -123,9 +123,10 @@ repos:
         pass_filenames: false
 
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v9.8.0
+    rev: v10.0.0
     hooks:
       - id: cspell
+        language_version: 25.9.0
 
   - repo: https://github.com/editorconfig-checker/editorconfig-checker.python
     rev: 3.6.1
@@ -153,6 +154,6 @@ repos:
       - id: pyright
 
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.11.3
+    rev: 0.11.6
     hooks:
       - id: uv-lock
