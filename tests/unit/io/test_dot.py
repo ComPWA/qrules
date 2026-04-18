@@ -182,6 +182,8 @@ def test_as_string_dict(
     intermediate_setting, *_ = problem_set.solving_settings.intermediate_states.values()
 
     src = as_string(intermediate_setting).strip()
+    print()
+    print(src)
     expected_dot = dedent("""
         RULES
         spin_validity - 62
@@ -208,6 +210,8 @@ def test_as_string_dict(
     assert src == expected_dot
 
     src = as_string(node_setting).strip()
+    print()
+    print(src)
     expected_dot = dedent("""
         RULES
         clebsch_gordan_helicity_to_canonical - NA
@@ -239,6 +243,8 @@ def test_as_string_dict(
     assert src == expected_dot
 
     src = as_string(interaction).strip()
+    print()
+    print(src)
     expected_dot = dedent("""
         l_magnitude = 0
         s_magnitude = 1/2
@@ -249,6 +255,8 @@ def test_as_string_dict(
     assert src == expected_dot
 
     src = as_string(intermediate_state).strip()
+    print()
+    print(src)
     expected_dot = dedent("""
         spin_magnitude = 1/2
         spin_projection = +1/2
