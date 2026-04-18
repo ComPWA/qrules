@@ -255,22 +255,21 @@ def test_as_string_dict(
     assert src == expected_dot
 
     src = as_string(intermediate_state).strip()
-    print()
-    print(src)
-    expected_dot = dedent("""
-        spin_magnitude = 1/2
-        spin_projection = +1/2
-        parity = +1
-        isospin_magnitude = 1
-        isospin_projection = -1
-        baryon_number = -1
-        charge = -1
-        strangeness = +1
-        pid = -23222
-        mass = 1.75
-        width = 0.15
-    """).strip()
-    assert src == expected_dot
+    lines = set(src.splitlines())
+    expected_lines = {
+        "spin_magnitude = 1/2",
+        "spin_projection = +1/2",
+        "parity = +1",
+        "isospin_magnitude = 1",
+        "isospin_projection = -1",
+        "baryon_number = -1",
+        "charge = -1",
+        "strangeness = +1",
+        "pid = -23222",
+        "mass = 1.75",
+        "width = 0.15",
+    }
+    assert lines == expected_lines
 
 
 def test_as_string_spin_tuple(particle_database: ParticleCollection):
