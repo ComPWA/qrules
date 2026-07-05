@@ -537,7 +537,7 @@ def __convert_pdg_instance(pdg_particle: PdgDatabase) -> Particle:
             return 0.0
         return float(value) / 1e3  # https://github.com/ComPWA/qrules/issues/14
 
-    def convert_spin(value: Fraction | None) -> float:
+    def convert_spin(value: Fraction | float | None) -> float:
         if value is None:
             msg = f"PDG instance has no spin:\n{pdg_particle}"
             raise ValueError(msg)
