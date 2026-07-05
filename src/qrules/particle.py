@@ -504,7 +504,7 @@ def load_pdg() -> ParticleCollection:
     all_pdg_particles = PdgDatabase.findall(
         lambda item: (
             item.charge is not None
-            and item.charge.is_integer()  # remove quarks
+            and float(item.charge).is_integer()  # remove quarks
             and item.J is not None  # remove new physics and nuclei
             and abs(item.pdgid) < 1e9  # p and n as nucleus
             and item.name not in __skip_particles
@@ -537,6 +537,12 @@ def __convert_pdg_instance(pdg_particle: PdgDatabase) -> Particle:
             return 0.0
         return float(value) / 1e3  # https://github.com/ComPWA/qrules/issues/14
 
+    def convert_spin(value: Fraction | None) -> float:
+        if value is None:
+            msg = f"PDG instance has no spin:\n{pdg_particle}"
+            raise ValueError(msg)
+        return float(value)
+
     if pdg_particle.charge is None:
         msg = f"PDG instance has no charge:\n{pdg_particle}"
         raise ValueError(msg)
@@ -556,7 +562,7 @@ def __convert_pdg_instance(pdg_particle: PdgDatabase) -> Particle:
         mass=convert_mass_width(pdg_particle.mass),
         width=convert_mass_width(pdg_particle.width),
         charge=int(pdg_particle.charge),
-        spin=float(pdg_particle.J),
+        spin=convert_spin(pdg_particle.J),
         strangeness=quark_numbers[0],
         charmness=quark_numbers[1],
         bottomness=quark_numbers[2],
