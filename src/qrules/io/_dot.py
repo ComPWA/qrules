@@ -18,7 +18,7 @@ import attrs
 from attrs import Attribute, define, field
 from attrs.converters import default_if_none
 
-from qrules.particle import Particle, ParticleWithSpin, Spin, _render_fraction
+from qrules.particle import Particle, Spin, _render_fraction
 from qrules.quantum_numbers import InteractionProperties
 from qrules.solving import EdgeSettings, NodeSettings, QNProblemSet, QNResult
 from qrules.topology import FrozenTransition, MutableTransition, Topology, Transition
@@ -117,13 +117,15 @@ class GraphPrinter:
 
     def _render_transition(  # noqa: C901, PLR0912, PLR0915
         self,
-        obj: ProblemSet | QNProblemSet | Topology | Transition,
+        obj: ProblemSet | QNProblemSet | Topology | Transition | tuple[Any, Any],
         prefix: str = "",
     ) -> list[str]:
         lines: list[str] = []
         if isinstance(obj, tuple) and len(obj) == 2:
-            topology: Topology = obj[0]
-            rendered_graph: ProblemSet | QNProblemSet | Topology | Transition = obj[1]
+            topology = cast("Topology", obj[0])
+            rendered_graph = cast(
+                "ProblemSet | QNProblemSet | Topology | Transition", obj[1]
+            )
         elif isinstance(obj, (ProblemSet, QNProblemSet, Transition)):
             rendered_graph = obj
             topology = obj.topology
@@ -263,7 +265,7 @@ def _create_edge_label(
     if isinstance(graph, (ProblemSet, QNProblemSet)):
         edge_setting = graph.solving_settings.states.get(edge_id)
         initial_fact = graph.initial_facts.states.get(edge_id)
-        edge_property: EdgeSettings | ParticleWithSpin | None = None
+        edge_property: Any = None
         if edge_setting:
             edge_property = edge_setting
         if initial_fact:
@@ -387,7 +389,7 @@ def __render_rule(rule: Rule) -> str:
     return __get_type(rule).__name__
 
 
-def __get_type(rule: Rule) -> type[Rule]:
+def __get_type(rule: Rule) -> Any:
     if isfunction(rule):
         return rule
     return type(rule)
@@ -449,7 +451,7 @@ def _(obj: tuple) -> str:
 
 
 def _get_particle_graphs(
-    graphs: Iterable[Transition[ParticleWithSpin, InteractionProperties]],
+    graphs: Iterable[Transition[Any, InteractionProperties]],
 ) -> list[FrozenTransition[Particle, None]]:
     """Strip `list` of `.Transition` s of the spin projections.
 
@@ -460,8 +462,6 @@ def _get_particle_graphs(
     """
     inventory = set()
     for transition in graphs:
-        if isinstance(transition, FrozenTransition):
-            transition = transition.convert(lambda s: (s.particle, s.spin_projection))
         stripped_transition = _strip_projections(transition)
         topology = stripped_transition.topology
         particle_transition: FrozenTransition[Particle, None] = FrozenTransition(
@@ -481,7 +481,8 @@ def _strip_projections(
 ) -> FrozenTransition[Particle, InteractionProperties]:
     if isinstance(graph, MutableTransition):
         transition = graph.freeze()
-    transition = cast("FrozenTransition[Any, InteractionProperties]", graph)
+    else:
+        transition = cast("FrozenTransition[Any, InteractionProperties]", graph)
     return transition.convert(
         state_converter=__to_particle,
         interaction_converter=lambda i: attrs.evolve(

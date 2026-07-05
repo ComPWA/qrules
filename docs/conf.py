@@ -284,6 +284,7 @@ nb_execution_show_tb = True
 nb_execution_timeout = -1
 nb_output_stderr = "remove"
 nitpick_ignore = [
+    ("py:class", "qrules.conservation_rules._RuleClass"),
     ("py:class", "StrPath"),
 ]
 nitpick_ignore_regex = [

@@ -2432,6 +2432,7 @@ viz = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "graphviz" },
     { name = "ipython", version = "8.39.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "ipython", version = "9.15.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "ipywidgets" },
@@ -2505,6 +2506,7 @@ notebooks = [
     { name = "qrules", extra = ["viz"] },
 ]
 style = [
+    { name = "graphviz" },
     { name = "ipython", version = "8.39.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "ipython", version = "9.15.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "pydot" },
@@ -2522,6 +2524,7 @@ test = [
     { name = "pytest-xdist" },
 ]
 types = [
+    { name = "graphviz" },
     { name = "ipython", version = "8.39.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "ipython", version = "9.15.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "pydot" },
@@ -2545,6 +2548,7 @@ provides-extras = ["viz"]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "graphviz" },
     { name = "ipython" },
     { name = "ipywidgets" },
     { name = "jupyter-ruff" },
@@ -2607,6 +2611,7 @@ jupyter = [
 ]
 notebooks = [{ name = "qrules", extras = ["viz"] }]
 style = [
+    { name = "graphviz" },
     { name = "ipython" },
     { name = "pydot" },
     { name = "pytest" },
@@ -2622,6 +2627,7 @@ test = [
     { name = "pytest-xdist" },
 ]
 types = [
+    { name = "graphviz" },
     { name = "ipython" },
     { name = "pydot" },
     { name = "pytest" },

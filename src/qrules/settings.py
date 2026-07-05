@@ -21,10 +21,7 @@ from qrules.conservation_rules import (
     BottomnessConservation,
     ChargeConservation,
     CharmConservation,
-    ConservationRule,
-    EdgeQNConservationRule,
     ElectronLNConservation,
-    GraphElementRule,
     MassConservation,
     MuonLNConservation,
     StrangenessConservation,
@@ -60,9 +57,7 @@ ADDITIONAL_PARTICLES_DEFINITIONS_PATH: str = join(
     __QRULES_PATH, "additional_definitions.yml"
 )
 
-CONSERVATION_LAW_PRIORITIES: dict[
-    GraphElementRule | EdgeQNConservationRule | ConservationRule, int
-] = {
+CONSERVATION_LAW_PRIORITIES: dict[Any, int] = {
     MassConservation: 10,
     ElectronLNConservation: 45,
     MuonLNConservation: 44,
@@ -86,7 +81,7 @@ CONSERVATION_LAW_PRIORITIES: dict[
 """Determines the order with which to verify conservation rules."""
 
 
-EDGE_RULE_PRIORITIES: dict[GraphElementRule, int] = {
+EDGE_RULE_PRIORITIES: dict[Any, int] = {
     gellmann_nishijima: 50,
     isospin_validity: 61,
     spin_validity: 62,

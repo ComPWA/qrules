@@ -18,17 +18,17 @@ framework.
 from __future__ import annotations
 
 from itertools import product
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeGuard, cast
 
 import attrs
 
 from qrules import io
 from qrules.combinatorics import (
     InitialFacts,
-    StateDefinition,
     StateDefinitionInput,
     create_initial_facts,
 )
+from qrules.combinatorics import StateDefinition as StateDefinition
 from qrules.conservation_rules import (
     BaryonNumberConservation,
     BottomnessConservation,
@@ -73,8 +73,8 @@ if TYPE_CHECKING:
 
 
 def check_reaction_violations(  # noqa: C901, PLR0917
-    initial_state: StateDefinition | Sequence[StateDefinition],
-    final_state: Sequence[StateDefinition],
+    initial_state: StateDefinitionInput | Sequence[StateDefinitionInput],
+    final_state: Sequence[StateDefinitionInput],
     mass_conservation_factor: float | None = 3.0,
     particle_db: ParticleCollection | None = None,
     max_angular_momentum: int = 1,
@@ -117,8 +117,12 @@ def check_reaction_violations(  # noqa: C901, PLR0917
 
     .. seealso:: :ref:`usage:Check allowed reactions`
     """
-    if not isinstance(initial_state, (list, tuple)):
-        initial_state = [initial_state]
+    if _is_state_definition_input(initial_state):
+        initial_state_definitions = [initial_state]
+    else:
+        initial_state_definitions = list(
+            cast("Sequence[StateDefinitionInput]", initial_state)
+        )
 
     if particle_db is None:
         particle_db = load_pdg()
@@ -181,7 +185,7 @@ def check_reaction_violations(  # noqa: C901, PLR0917
             TauLNConservation(),
             isospin_conservation,
         }
-        if len(initial_state) == 1 and mass_conservation_factor is not None:
+        if len(initial_state_definitions) == 1 and mass_conservation_factor is not None:
             edge_qn_conservation_rules.add(MassConservation(mass_conservation_factor))
 
         return {
@@ -196,11 +200,11 @@ def check_reaction_violations(  # noqa: C901, PLR0917
     # Using a n-body topology is enough, to determine the violations reliably
     # since only certain spin rules require the isobar model. These spin rules
     # are not required here though.
-    topology = create_n_body_topology(len(initial_state), len(final_state))
+    topology = create_n_body_topology(len(initial_state_definitions), len(final_state))
     node_id = next(iter(topology.nodes))
 
     initial_facts = create_initial_facts(
-        topology, initial_state, final_state, particle_db
+        topology, initial_state_definitions, final_state, particle_db
     )
 
     check_pure_edge_rules()
@@ -351,14 +355,14 @@ def generate_transitions(  # noqa: PLR0917
     >>> len(reaction.group_by_topology())
     3
     """
-    if isinstance(initial_state, str) or (
-        isinstance(initial_state, tuple)
-        and len(initial_state) == 2
-        and isinstance(initial_state[0], str)
-    ):
-        initial_state = [initial_state]
+    if _is_state_definition_input(initial_state):
+        initial_state_definitions = [initial_state]
+    else:
+        initial_state_definitions = list(
+            cast("Sequence[StateDefinitionInput]", initial_state)
+        )
     stm = StateTransitionManager(
-        initial_state=initial_state,
+        initial_state=initial_state_definitions,
         final_state=final_state,
         particle_db=particle_db,
         allowed_intermediate_particles=allowed_intermediate_particles,
@@ -380,6 +384,12 @@ def generate_transitions(  # noqa: PLR0917
         stm.set_allowed_interaction_types(list(interaction_types))
     problem_sets = stm.create_problem_sets()
     return stm.find_solutions(problem_sets)
+
+
+def _is_state_definition_input(value: object) -> TypeGuard[StateDefinitionInput]:
+    return isinstance(value, str) or (
+        isinstance(value, tuple) and len(value) == 2 and isinstance(value[0], str)
+    )
 
 
 def load_default_particles() -> ParticleCollection:

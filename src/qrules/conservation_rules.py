@@ -50,7 +50,7 @@ from copy import deepcopy
 from fractions import Fraction
 from functools import reduce
 from textwrap import dedent
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol, TypeVar
 
 from attrs import define, field, frozen
 from attrs.converters import optional
@@ -58,7 +58,36 @@ from attrs.converters import optional
 from qrules._attrs import to_fraction, to_parity
 from qrules.quantum_numbers import EdgeQuantumNumbers as EdgeQN
 from qrules.quantum_numbers import NodeQuantumNumbers as NodeQN
-from qrules.quantum_numbers import arange
+from qrules.quantum_numbers import Parity, arange
+
+_RuleClass = TypeVar("_RuleClass", bound=type[Any])
+
+if TYPE_CHECKING:
+    EdgeParity = Parity
+    EdgeSpinMagnitude = Fraction
+    EdgeSpinProjection = Fraction
+    EdgePid = int
+    EdgeCParity = Parity
+    EdgeGParity = Parity
+    EdgeIsospinMagnitude = Fraction
+    EdgeIsospinProjection = Fraction
+    NodeLMagnitude = Fraction
+    NodeLProjection = Fraction
+    NodeSMagnitude = Fraction
+    NodeSProjection = Fraction
+else:
+    EdgeParity = EdgeQN.parity
+    EdgeSpinMagnitude = EdgeQN.spin_magnitude
+    EdgeSpinProjection = EdgeQN.spin_projection
+    EdgePid = EdgeQN.pid
+    EdgeCParity = EdgeQN.c_parity
+    EdgeGParity = EdgeQN.g_parity
+    EdgeIsospinMagnitude = EdgeQN.isospin_magnitude
+    EdgeIsospinProjection = EdgeQN.isospin_projection
+    NodeLMagnitude = NodeQN.l_magnitude
+    NodeLProjection = NodeQN.l_projection
+    NodeSMagnitude = NodeQN.s_magnitude
+    NodeSProjection = NodeQN.s_projection
 
 
 def _is_boson(spin_magnitude: Fraction) -> bool:
@@ -95,8 +124,8 @@ class ConservationRule(Protocol):
 # __call__ method in a concrete version of the generic are still containing the
 # TypeVar types. See https://github.com/python/typing/issues/762
 def additive_quantum_number_rule(
-    quantum_number: type,
-) -> Callable[[Any], EdgeQNConservationRule]:
+    quantum_number: Any,
+) -> Callable[[_RuleClass], _RuleClass]:
     r"""Class decorator for creating an additive conservation rule.
 
     Use this decorator to create a `EdgeQNConservationRule` for a quantum number to
@@ -109,14 +138,19 @@ def additive_quantum_number_rule(
             conservation check. An example would be `.EdgeQuantumNumbers.charge`.
     """
 
-    def decorator(rule_class: Any) -> EdgeQNConservationRule:
+    def decorator(rule_class: _RuleClass) -> _RuleClass:
         def new_call(
-            self: type[EdgeQNConservationRule],  # noqa: ARG001
-            ingoing_edge_qns: list[quantum_number],
-            outgoing_edge_qns: list[quantum_number],
+            self: Any,  # noqa: ARG001
+            ingoing_edge_qns: list[Any],
+            outgoing_edge_qns: list[Any],
         ) -> bool:
             return sum(ingoing_edge_qns) == sum(outgoing_edge_qns)
 
+        new_call.__annotations__ = {
+            "ingoing_edge_qns": list[quantum_number],
+            "outgoing_edge_qns": list[quantum_number],
+            "return": bool,
+        }
         rule_class.__call__ = new_call
         rule_class.__doc__ = dedent(
             f"""
@@ -187,9 +221,9 @@ def parity_conservation(
 
 @frozen
 class HelicityParityEdgeInput:
-    parity: EdgeQN.parity = field(converter=to_parity)
-    spin_magnitude: EdgeQN.spin_magnitude = field(converter=to_fraction)
-    spin_projection: EdgeQN.spin_projection = field(converter=to_fraction)
+    parity: EdgeParity = field(converter=to_parity)
+    spin_magnitude: EdgeSpinMagnitude = field(converter=to_fraction)
+    spin_projection: EdgeSpinProjection = field(converter=to_fraction)
 
 
 def parity_conservation_helicity(
@@ -230,18 +264,16 @@ def parity_conservation_helicity(
 
 @frozen
 class CParityEdgeInput:
-    spin_magnitude: EdgeQN.spin_magnitude = field(converter=to_fraction)
-    pid: EdgeQN.pid = field(converter=int)
-    c_parity: EdgeQN.c_parity | None = field(
-        converter=optional(to_parity), default=None
-    )
+    spin_magnitude: EdgeSpinMagnitude = field(converter=to_fraction)
+    pid: EdgePid = field(converter=int)
+    c_parity: EdgeCParity | None = field(converter=optional(to_parity), default=None)
 
 
 @frozen
 class CParityNodeInput:
     # These converters currently do not do anything, as "NewType"s do not have constructors
-    l_magnitude: NodeQN.l_magnitude = field(converter=to_fraction)
-    s_magnitude: NodeQN.s_magnitude = field(converter=to_fraction)
+    l_magnitude: NodeLMagnitude = field(converter=to_fraction)
+    s_magnitude: NodeSMagnitude = field(converter=to_fraction)
 
 
 def c_parity_conservation(
@@ -287,18 +319,16 @@ def c_parity_conservation(
 
 @frozen
 class GParityEdgeInput:
-    isospin_magnitude: EdgeQN.isospin_magnitude = field(converter=to_fraction)
-    spin_magnitude: EdgeQN.spin_magnitude = field(converter=to_fraction)
-    pid: EdgeQN.pid = field(converter=int)
-    g_parity: EdgeQN.g_parity | None = field(
-        converter=optional(to_parity), default=None
-    )
+    isospin_magnitude: EdgeIsospinMagnitude = field(converter=to_fraction)
+    spin_magnitude: EdgeSpinMagnitude = field(converter=to_fraction)
+    pid: EdgePid = field(converter=int)
+    g_parity: EdgeGParity | None = field(converter=optional(to_parity), default=None)
 
 
 @frozen
 class GParityNodeInput:
-    l_magnitude: NodeQN.l_magnitude = field(converter=to_fraction)
-    s_magnitude: NodeQN.s_magnitude = field(converter=to_fraction)
+    l_magnitude: NodeLMagnitude = field(converter=to_fraction)
+    s_magnitude: NodeSMagnitude = field(converter=to_fraction)
 
 
 def g_parity_conservation(  # noqa: C901
@@ -312,7 +342,7 @@ def g_parity_conservation(  # noqa: C901
     """
 
     def check_multistate_g_parity(
-        isospin: EdgeQN.isospin_magnitude,
+        isospin: Fraction,
         double_state_qns: tuple[GParityEdgeInput, GParityEdgeInput],
     ) -> int | None:
         if _is_particle_antiparticle_pair(
@@ -378,9 +408,9 @@ def g_parity_conservation(  # noqa: C901
 
 @frozen
 class IdenticalParticleSymmetryOutEdgeInput:
-    spin_magnitude: EdgeQN.spin_magnitude = field(converter=to_fraction)
-    spin_projection: EdgeQN.spin_projection = field(converter=to_fraction)
-    pid: EdgeQN.pid = field(converter=int)
+    spin_magnitude: EdgeSpinMagnitude = field(converter=to_fraction)
+    spin_projection: EdgeSpinProjection = field(converter=to_fraction)
+    pid: EdgePid = field(converter=int)
 
 
 def identical_particle_symmetrization(
@@ -458,16 +488,16 @@ def _is_clebsch_gordan_coefficient_zero(
 
 @frozen
 class SpinNodeInput:
-    l_magnitude: NodeQN.l_magnitude = field(converter=to_fraction)
-    l_projection: NodeQN.l_projection = field(converter=to_fraction)
-    s_magnitude: NodeQN.s_magnitude = field(converter=to_fraction)
-    s_projection: NodeQN.s_projection = field(converter=to_fraction)
+    l_magnitude: NodeLMagnitude = field(converter=to_fraction)
+    l_projection: NodeLProjection = field(converter=to_fraction)
+    s_magnitude: NodeSMagnitude = field(converter=to_fraction)
+    s_projection: NodeSProjection = field(converter=to_fraction)
 
 
 @frozen
 class SpinMagnitudeNodeInput:
-    l_magnitude: NodeQN.l_magnitude = field(converter=to_fraction)
-    s_magnitude: NodeQN.s_magnitude = field(converter=to_fraction)
+    l_magnitude: NodeLMagnitude = field(converter=to_fraction)
+    s_magnitude: NodeSMagnitude = field(converter=to_fraction)
 
 
 def ls_spin_validity(spin_input: SpinNodeInput) -> bool:
@@ -588,8 +618,8 @@ def __spin_couplings(spin1: _Spin, spin2: _Spin) -> set[_Spin]:
 
 @define
 class IsoSpinEdgeInput:
-    isospin_magnitude: EdgeQN.isospin_magnitude = field(converter=to_fraction)
-    isospin_projection: EdgeQN.isospin_projection = field(converter=to_fraction)
+    isospin_magnitude: EdgeIsospinMagnitude = field(converter=to_fraction)
+    isospin_projection: EdgeIsospinProjection = field(converter=to_fraction)
 
 
 def _check_spin_valid(magnitude: Fraction, projection: Fraction) -> bool:
@@ -634,8 +664,8 @@ def isospin_conservation(
 
 @define
 class SpinEdgeInput:
-    spin_magnitude: EdgeQN.spin_magnitude = field(converter=EdgeQN.spin_magnitude)
-    spin_projection: EdgeQN.spin_projection = field(converter=EdgeQN.spin_projection)
+    spin_magnitude: EdgeSpinMagnitude = field(converter=to_fraction)
+    spin_projection: EdgeSpinProjection = field(converter=to_fraction)
 
 
 def spin_validity(spin: SpinEdgeInput) -> bool:
@@ -679,8 +709,8 @@ def spin_conservation(
     # otherwise don't use S and L and just check magnitude
     # are integral or non integral on both sides
     return (
-        sum(float(x.spin_magnitude) for x in ingoing_spins).is_integer()
-        == sum(float(x.spin_magnitude) for x in outgoing_spins).is_integer()
+        sum((float(x.spin_magnitude) for x in ingoing_spins), 0.0).is_integer()
+        == sum((float(x.spin_magnitude) for x in outgoing_spins), 0.0).is_integer()
     )
 
 
@@ -716,8 +746,8 @@ def spin_magnitude_conservation(
     # otherwise don't use S and L and just check magnitude
     # are integral or non integral on both sides
     return (
-        sum(float(x) for x in ingoing_spin_magnitudes).is_integer()
-        == sum(float(x) for x in outgoing_spin_magnitudes).is_integer()
+        sum((float(x) for x in ingoing_spin_magnitudes), 0.0).is_integer()
+        == sum((float(x) for x in outgoing_spin_magnitudes), 0.0).is_integer()
     )
 
 

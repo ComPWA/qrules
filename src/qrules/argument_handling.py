@@ -9,7 +9,16 @@ from __future__ import annotations
 
 import inspect
 from fractions import Fraction
-from typing import TYPE_CHECKING, Any, Generic, TypeVar, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Generic,
+    TypeVar,
+    Union,
+    cast,
+    get_args,
+    get_origin,
+)
 
 import attrs
 
@@ -23,29 +32,25 @@ from qrules.quantum_numbers import EdgeQuantumNumber, NodeQuantumNumber, Parity
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
 
-Scalar = int | float | Fraction
+Scalar = int | float | Fraction | None
 Rule = GraphElementRule | EdgeQNConservationRule | ConservationRule
 """Any type of rule"""
 
-_ElementType = TypeVar("_ElementType")
-
-GraphElementPropertyMap = dict[type[_ElementType], Scalar]
-GraphEdgePropertyMap = GraphElementPropertyMap[EdgeQuantumNumber]
+GraphElementPropertyMap = dict[Any, Scalar]
+GraphEdgePropertyMap = GraphElementPropertyMap
 """Type alias for a graph edge property map."""
-GraphNodePropertyMap = GraphElementPropertyMap[NodeQuantumNumber]
+GraphNodePropertyMap = GraphElementPropertyMap
 """Type alias for a graph node property map."""
 
-
-def _is_optional(field_type: type | None) -> bool:
-    return (
-        getattr(field_type, "__origin__", None) is Union
-        and type(None) in field_type.__args__
-    )
+_ElementType = TypeVar("_ElementType")
 
 
-def _is_sequence_type(input_type: type) -> bool:
-    origin = getattr(input_type, "__origin__", None)
-    return origin in {list, tuple}
+def _is_optional(field_type: Any) -> bool:
+    return get_origin(field_type) is Union and type(None) in get_args(field_type)
+
+
+def _is_sequence_type(input_type: Any) -> bool:
+    return get_origin(input_type) in {list, tuple}
 
 
 def _is_edge_quantum_number(qn_type: Any) -> bool:
@@ -100,30 +105,24 @@ def _check_all_arguments(checks: list[Callable]) -> Callable[..., bool]:
 
 
 class _ValueExtractor(Generic[_ElementType]):
-    def __init__(self, obj_type: type[_ElementType] | None) -> None:
-        self.__obj_type: type[_ElementType] = obj_type
+    def __init__(self, obj_type: Any) -> None:
+        self.__obj_type: Any = obj_type
         self.__function = self.__extract
 
         if _is_optional(obj_type):
-            self.__obj_type = obj_type.__args__[0]
+            self.__obj_type = get_args(obj_type)[0]
             self.__function = self.__optional_extract
 
-    def __call__(
-        self, props: GraphElementPropertyMap[_ElementType]
-    ) -> _ElementType | None:
+    def __call__(self, props: GraphElementPropertyMap) -> _ElementType | None:
         return self.__function(props)
 
-    def __optional_extract(
-        self, props: GraphElementPropertyMap[_ElementType]
-    ) -> _ElementType | None:
+    def __optional_extract(self, props: GraphElementPropertyMap) -> _ElementType | None:
         if self.__obj_type in props:
             return self.__extract(props)
 
         return None
 
-    def __extract(
-        self, props: GraphElementPropertyMap[_ElementType]
-    ) -> _ElementType | None:
+    def __extract(self, props: GraphElementPropertyMap) -> _ElementType | None:
         value = props[self.__obj_type]
         if value is None:
             return None
@@ -131,8 +130,8 @@ class _ValueExtractor(Generic[_ElementType]):
             "__supertype__" in self.__obj_type.__dict__
             and self.__obj_type.__supertype__ == Parity
         ):
-            return self.__obj_type.__supertype__(value)
-        return self.__obj_type(value)
+            return cast("_ElementType", self.__obj_type.__supertype__(value))
+        return cast("_ElementType", self.__obj_type(value))
 
 
 class _CompositeArgumentCreator:
@@ -192,7 +191,7 @@ class RuleArgumentHandler:
             is_list = False
             qn_type = input_type
             if _is_sequence_type(input_type):
-                qn_type = input_type.__args__[0]
+                qn_type = get_args(input_type)[0]
                 is_list = True
 
             if attrs.has(qn_type):
@@ -223,7 +222,7 @@ class RuleArgumentHandler:
             is_list = False
             qn_type = input_type
             if _is_sequence_type(input_type):
-                qn_type = input_type.__args__[0]
+                qn_type = get_args(input_type)[0]
                 is_list = True
 
             if attrs.has(qn_type):
@@ -315,12 +314,12 @@ def get_required_qns(
     for input_type in rule_annotations:
         class_type = input_type
         if _is_sequence_type(input_type):
-            class_type = input_type.__args__[0]
+            class_type = get_args(input_type)[0]
 
         if attrs.has(class_type):
             for class_field in attrs.fields(class_type):
                 field_type = (
-                    class_field.type.__args__[0]
+                    get_args(class_field.type)[0]
                     if _is_optional(class_field.type)
                     else class_field.type
                 )

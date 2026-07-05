@@ -19,7 +19,7 @@ from difflib import get_close_matches
 from fractions import Fraction
 from functools import total_ordering
 from math import copysign
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import attrs
 from attrs import field, frozen
@@ -38,9 +38,10 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Iterator
 
     from attrs import Attribute
-    from IPython.lib.pretty import PrettyPrinter
     from particle import Particle as PdgDatabase
     from particle.particle import enums
+
+    from qrules._implementers import PrettyPrinter
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -121,7 +122,10 @@ def _render_fraction(fraction: Fraction, plusminus: bool = False) -> str:
 
 def _to_spin(value: Spin | tuple[Fraction, Fraction] | tuple[float, float]) -> Spin:
     if isinstance(value, tuple):
-        return Spin(*value)
+        magnitude, projection = cast(
+            "tuple[Fraction, Fraction] | tuple[float, float]", value
+        )
+        return Spin(magnitude, projection)
     return value
 
 
@@ -647,7 +651,10 @@ def __isospin_projection_from_pdg(pdg_particle: PdgDatabase) -> Fraction:
             projection += quark_content.count("u") + quark_content.count("D")
             projection -= quark_content.count("U") + quark_content.count("d")
             projection *= 0.5
-    if pdg_particle.I is not None and not (pdg_particle.I - projection).is_integer():
+    if (
+        pdg_particle.I is not None
+        and not float(pdg_particle.I - projection).is_integer()
+    ):
         msg = f"Cannot have isospin {pdg_particle.I, projection}"
         raise ValueError(msg)
     return Fraction(projection)

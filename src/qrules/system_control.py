@@ -104,7 +104,11 @@ def find_particle(  # noqa: D417
 
         ValueError: If the edge properties do not contain spin projection info.
     """
-    particle = particle_db.find(int(state[EdgeQuantumNumbers.pid]))
+    pid = state[EdgeQuantumNumbers.pid]
+    if pid is None:
+        msg = f"{GraphEdgePropertyMap.__name__} does not contain a PID"
+        raise ValueError(msg)
+    particle = particle_db.find(int(pid))
     spin_projection = state.get(EdgeQuantumNumbers.spin_projection)
     if spin_projection is None:
         msg = f"{GraphEdgePropertyMap.__name__} does not contain a spin projection"

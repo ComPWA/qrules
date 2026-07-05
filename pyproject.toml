@@ -112,6 +112,7 @@ test = [
     "pytest-xdist",
 ]
 types = [
+    "graphviz",
     "ipython",
     "pydot",
     "pytest",

@@ -2,15 +2,28 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any, Protocol, TypeVar
 
 import attrs
 
 if TYPE_CHECKING:
-    from IPython.lib.pretty import PrettyPrinter
-
+    from contextlib import AbstractContextManager
 
 _DecoratedClass = TypeVar("_DecoratedClass")
+
+
+class PrettyPrinter(Protocol):
+    def breakable(self) -> None: ...
+
+    def group(
+        self,
+        indent: int = 0,
+        open: str = "",  # noqa: A002
+    ) -> AbstractContextManager: ...
+
+    def pretty(self, obj: Any) -> None: ...
+
+    def text(self, obj: str) -> None: ...
 
 
 def implement_pretty_repr(

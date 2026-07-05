@@ -14,11 +14,11 @@ import operator
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from copy import copy
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
 
 import attrs
 from attrs import define, field, frozen
-from constraint import BacktrackingSolver, Constraint, Problem, Unassigned, Variable
+from constraint import BacktrackingSolver, Constraint, Problem, Unassigned
 
 from qrules._implementers import implement_pretty_repr
 from qrules.argument_handling import (
@@ -40,7 +40,7 @@ from qrules.quantum_numbers import (
 from qrules.topology import MutableTransition, Topology
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterable
+    from collections.abc import Callable, Iterable, Sequence
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -51,7 +51,7 @@ class EdgeSettings:
     """Solver settings for a specific edge of a graph."""
 
     conservation_rules: set[GraphElementRule] = field(factory=set)
-    rule_priorities: dict[GraphElementRule, int] = field(factory=dict)
+    rule_priorities: dict[Any, int] = field(factory=dict)
     qn_domains: dict[EdgeQuantumNumberTypes, list] = field(factory=dict)
 
 
@@ -71,7 +71,7 @@ class NodeSettings:
     """
 
     conservation_rules: set[Rule] = field(factory=set)
-    rule_priorities: dict[Rule, int] = field(factory=dict)
+    rule_priorities: dict[Any, int] = field(factory=dict)
     qn_domains: dict[NodeQuantumNumberTypes, list] = field(factory=dict)
     interaction_strength: float = 1.0
 
@@ -638,7 +638,9 @@ class CSPSolver(Solver):
 
         for edge_id in problem_set.topology.edges:
             edge_settings = problem_set.solving_settings.states[edge_id]
-            for rule in get_rules_by_priority(edge_settings):
+            for rule in cast(
+                "list[GraphElementRule]", get_rules_by_priority(edge_settings)
+            ):
                 variable_mapping = _VariableContainer()
                 # from cons law and graph determine needed var lists
                 edge_qns, node_qns = get_required_qns(rule)
@@ -705,8 +707,9 @@ class CSPSolver(Solver):
 
                 score_callback = self.__scoresheet.register_rule(node_id, rule)
                 if len(inspect.signature(rule).parameters) == 1:
+                    graph_rule = cast("GraphElementRule", rule)
                     constraint = _GraphElementConstraint[NodeQuantumNumber](
-                        rule,
+                        graph_rule,
                         int_node_vars[0],
                         {node_id: int_node_vars[1]},
                         arg_handler,
@@ -923,11 +926,10 @@ class _GraphElementConstraint(Constraint, Generic[_QNType]):
 
     def __call__(
         self,
-        variables: set[str],
+        variables: Sequence[str],
         domains: dict,  # noqa: ARG002
         assignments: dict,
         forwardcheck: bool = False,  # noqa: ARG002
-        _unassigned: Variable = Unassigned,
     ) -> bool:
         """Perform the constraint checking.
 
@@ -954,8 +956,8 @@ class _GraphElementConstraint(Constraint, Generic[_QNType]):
             bool:
                 Boolean value stating if this constraint is currently broken or not.
         """
-        params = [(x, assignments.get(x, _unassigned)) for x in variables]
-        missing = [name for (name, val) in params if val is _unassigned]
+        params = [(x, assignments.get(x, Unassigned)) for x in variables]
+        missing = [name for (name, val) in params if val is Unassigned]
         if missing:
             return True
 
@@ -1064,11 +1066,10 @@ class _ConservationRuleConstraintWrapper(
 
     def __call__(
         self,
-        variables: set[str],
+        variables: Sequence[str],
         domains: dict,  # noqa: ARG002
         assignments: dict,
         forwardcheck: bool = False,  # noqa: ARG002
-        _unassigned: Variable = Unassigned,
     ) -> bool:
         """Perform the constraint checking.
 
@@ -1095,8 +1096,8 @@ class _ConservationRuleConstraintWrapper(
             bool:
                 Boolean value stating if this constraint is currently broken or not.
         """
-        params = [(x, assignments.get(x, _unassigned)) for x in variables]
-        missing = [name for (name, val) in params if val is _unassigned]
+        params = [(x, assignments.get(x, Unassigned)) for x in variables]
+        missing = [name for (name, val) in params if val is Unassigned]
         if missing:
             return True
 

@@ -12,7 +12,7 @@ from collections import OrderedDict
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from copy import deepcopy
 from fractions import Fraction
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from qrules.argument_handling import Scalar
 from qrules.particle import ParticleWithSpin
@@ -113,7 +113,7 @@ class _KinematicRepresentation:  # noqa: PLW1641
                 if not isinstance(item, list):
                     msg = "Comparison representation needs to be a list of lists"
                     raise TypeError(msg)
-            return is_sublist(other, self.final_state)
+            return is_sublist(cast("list[list[str]]", other), self.final_state)
         msg = f"Cannot compare {type(self).__name__} with {type(other).__name__}"
         raise ValueError(msg)
 
@@ -125,12 +125,16 @@ def _sort_nested(nested_list: list[list[str]]) -> list[list[str]]:
 def ensure_nested_list(
     nested_list: list[str] | list[list[str]],
 ) -> list[list[str]]:
-    if any(not isinstance(item, list) for item in nested_list):
-        nested_list = [nested_list]
-    if any(not isinstance(i, str) for lst in nested_list for i in lst):
+    if all(isinstance(item, str) for item in nested_list):
+        return [cast("list[str]", nested_list)]
+    if not all(isinstance(item, list) for item in nested_list):
+        msg = "Grouping items have to be either all strings or all lists of strings"
+        raise ValueError(msg)
+    nested = cast("list[list[str]]", nested_list)
+    if any(not isinstance(i, str) for lst in nested for i in lst):
         msg = "Not all grouping items are particle names"
         raise ValueError(msg)
-    return nested_list
+    return nested
 
 
 def _get_kinematic_representation(
