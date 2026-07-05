@@ -343,6 +343,8 @@ def _compute_hash(obj) -> str:
 
 
 def _to_bytes(obj) -> bytes:
-    if isinstance(obj, (bytes, bytearray)):
+    if isinstance(obj, bytearray):
+        return bytes(obj)
+    if isinstance(obj, bytes):
         return obj
     return pickle.dumps(obj)
