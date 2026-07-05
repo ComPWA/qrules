@@ -118,11 +118,11 @@ def create_interaction_properties(
     converted_solution = {k.__name__: v for k, v in qn_solution.items()}
     kw_args = {
         x.name: converted_solution[x.name]
-        for x in attrs.fields(InteractionProperties)  # type: ignore[arg-type]
+        for x in attrs.fields(InteractionProperties)
         if x.name in converted_solution
     }
 
-    return attrs.evolve(InteractionProperties(), **kw_args)  # type: ignore[arg-type]
+    return attrs.evolve(InteractionProperties(), **kw_args)
 
 
 def filter_interaction_types(
@@ -240,7 +240,7 @@ def _remove_qns_from_graph(
             interactions, **{x.__name__: None for x in qn_list}
         )
 
-    return attrs.evolve(graph, interactions=new_interactions)  # type: ignore[arg-type]
+    return attrs.evolve(graph, interactions=new_interactions)
 
 
 def _check_equal_ignoring_qns(

@@ -33,10 +33,10 @@ def implement_pretty_repr(
                     value = getattr(self, field.name)
                     p.breakable()
                     p.text(f"{field.name}=")
-                    p.pretty(value)  # type: ignore[attr-defined]
+                    p.pretty(value)
                     p.text(",")
             p.breakable()
             p.text(")")
 
-    decorated_class._repr_pretty_ = repr_pretty  # type: ignore[attr-defined]
-    return decorated_class  # type: ignore[return-value]
+    decorated_class._repr_pretty_ = repr_pretty
+    return decorated_class

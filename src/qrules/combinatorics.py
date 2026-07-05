@@ -39,7 +39,7 @@ def as_state_definition(
         return definition
     if type(definition) is tuple:
         name, state = definition
-        return name, list(map(Fraction, state))  # type: ignore  # noqa: PGH003
+        return name, list(map(Fraction, state))  # type:ignore  # noqa: PGH003
     msg = f"value has to be of type {StateDefinitionInput}, got {type(definition)}"
     raise ValueError(msg)
 
@@ -126,11 +126,11 @@ def ensure_nested_list(
     nested_list: list[str] | list[list[str]],
 ) -> list[list[str]]:
     if any(not isinstance(item, list) for item in nested_list):
-        nested_list = [nested_list]  # type: ignore[assignment]
+        nested_list = [nested_list]
     if any(not isinstance(i, str) for lst in nested_list for i in lst):
         msg = "Not all grouping items are particle names"
         raise ValueError(msg)
-    return nested_list  # type: ignore[return-value]
+    return nested_list
 
 
 def _get_kinematic_representation(
@@ -209,7 +209,7 @@ def create_initial_facts(
         particle_db,
     )
     spin_states = __generate_spin_combinations(states, particle_db)
-    return [MutableTransition(topology, state) for state in spin_states]  # type: ignore[arg-type]
+    return [MutableTransition(topology, state) for state in spin_states]
 
 
 def __create_states_with_spin_projections(

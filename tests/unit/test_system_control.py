@@ -241,7 +241,7 @@ def make_ls_test_graph(
         )
     }
     states: dict[int, ParticleWithSpin] = {-1: (particle, Fraction(0))}
-    return MutableTransition(topology, states, interactions)  # type: ignore[arg-type,var-annotated]
+    return MutableTransition(topology, states, interactions)
 
 
 def make_ls_test_graph_scrambled(
@@ -258,7 +258,7 @@ def make_ls_test_graph_scrambled(
         )
     }
     states: dict[int, ParticleWithSpin] = {-1: (particle, Fraction(0))}
-    return MutableTransition(topology, states, interactions)  # type: ignore[arg-type,var-annotated]
+    return MutableTransition(topology, states, interactions)
 
 
 class TestSolutionFilter:
@@ -359,8 +359,8 @@ def _create_graph(
 ) -> MutableTransition[ParticleWithSpin, InteractionProperties]:
     return MutableTransition(
         topology=problem_set.topology,
-        interactions=problem_set.initial_facts.interactions,  # type: ignore[arg-type]
-        states=problem_set.initial_facts.states,  # type: ignore[arg-type]
+        interactions=problem_set.initial_facts.interactions,
+        states=problem_set.initial_facts.states,
     )
 
 

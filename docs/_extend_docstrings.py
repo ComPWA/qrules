@@ -110,7 +110,7 @@ def _graphviz_to_image(  # noqa: PLR0917
     caption: str = "",
     label: str = "",
 ) -> str:
-    import graphviz  # type: ignore[import]
+    import graphviz
 
     if options is None:
         options = {}

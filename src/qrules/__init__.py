@@ -118,7 +118,7 @@ def check_reaction_violations(  # noqa: C901, PLR0917
     .. seealso:: :ref:`usage:Check allowed reactions`
     """
     if not isinstance(initial_state, (list, tuple)):
-        initial_state = [initial_state]  # type: ignore[list-item]
+        initial_state = [initial_state]
 
     if particle_db is None:
         particle_db = load_pdg()
@@ -134,11 +134,11 @@ def check_reaction_violations(  # noqa: C901, PLR0917
             solving_settings=MutableTransition(
                 facts.topology,
                 interactions={
-                    i: NodeSettings(conservation_rules=rules)  # type: ignore[misc]
+                    i: NodeSettings(conservation_rules=rules)
                     for i, rules in node_rules.items()
                 },
                 states={
-                    i: EdgeSettings(conservation_rules=rules)  # type: ignore[misc]
+                    i: EdgeSettings(conservation_rules=rules)
                     for i, rules in edge_rules.items()
                 },
             ),
@@ -171,14 +171,14 @@ def check_reaction_violations(  # noqa: C901, PLR0917
         correct.
         """
         edge_qn_conservation_rules: set[Rule] = {
-            BaryonNumberConservation(),  # type: ignore[abstract]
-            BottomnessConservation(),  # type: ignore[abstract]
-            ChargeConservation(),  # type: ignore[abstract]
-            CharmConservation(),  # type: ignore[abstract]
-            ElectronLNConservation(),  # type: ignore[abstract]
-            MuonLNConservation(),  # type: ignore[abstract]
-            StrangenessConservation(),  # type: ignore[abstract]
-            TauLNConservation(),  # type: ignore[abstract]
+            BaryonNumberConservation(),
+            BottomnessConservation(),
+            ChargeConservation(),
+            CharmConservation(),
+            ElectronLNConservation(),
+            MuonLNConservation(),
+            StrangenessConservation(),
+            TauLNConservation(),
             isospin_conservation,
         }
         if len(initial_state) == 1 and mass_conservation_factor is not None:
@@ -220,8 +220,8 @@ def check_reaction_violations(  # noqa: C901, PLR0917
     for ls_combi in ls_combinations:
         for facts_combination in initial_facts:
             new_facts = attrs.evolve(
-                facts_combination,  # type: ignore[arg-type]
-                interactions={node_id: ls_combi},  # type: ignore[dict-item]
+                facts_combination,
+                interactions={node_id: ls_combi},
             )
             initial_facts_list.append(new_facts)
 
@@ -356,9 +356,9 @@ def generate_transitions(  # noqa: PLR0917
         and len(initial_state) == 2
         and isinstance(initial_state[0], str)
     ):
-        initial_state = [initial_state]  # type: ignore[list-item]
+        initial_state = [initial_state]
     stm = StateTransitionManager(
-        initial_state=initial_state,  # type: ignore[arg-type]
+        initial_state=initial_state,
         final_state=final_state,
         particle_db=particle_db,
         allowed_intermediate_particles=allowed_intermediate_particles,

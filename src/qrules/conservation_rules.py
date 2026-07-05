@@ -37,10 +37,9 @@ created in the form of `~typing.Tuple` instead of `~typing.List`.
 For additive quantum numbers, the decorator `additive_quantum_number_rule` can be used
 to automatically generate the appropriate behavior.
 
-
 The module is therefore strongly typed (both for the reader of the code and for type
-checking with :doc:`mypy <mypy:index>`). An example is `.HelicityParityEdgeInput`, which
-has been defined to provide type checks on `.parity_conservation_helicity`.
+checking). An example is `.HelicityParityEdgeInput`, which has been defined to provide
+type checks on `.parity_conservation_helicity`.
 
 .. seealso:: :doc:`/usage/conservation`
 """
@@ -113,8 +112,8 @@ def additive_quantum_number_rule(
     def decorator(rule_class: Any) -> EdgeQNConservationRule:
         def new_call(
             self: type[EdgeQNConservationRule],  # noqa: ARG001
-            ingoing_edge_qns: list[quantum_number],  # type: ignore[valid-type]
-            outgoing_edge_qns: list[quantum_number],  # type: ignore[valid-type]
+            ingoing_edge_qns: list[quantum_number],
+            outgoing_edge_qns: list[quantum_number],
         ) -> bool:
             return sum(ingoing_edge_qns) == sum(outgoing_edge_qns)
 
@@ -680,8 +679,8 @@ def spin_conservation(
     # otherwise don't use S and L and just check magnitude
     # are integral or non integral on both sides
     return (
-        sum(float(x.spin_magnitude) for x in ingoing_spins).is_integer()  # type: ignore[union-attr]
-        == sum(float(x.spin_magnitude) for x in outgoing_spins).is_integer()  # type: ignore[union-attr]
+        sum(float(x.spin_magnitude) for x in ingoing_spins).is_integer()
+        == sum(float(x.spin_magnitude) for x in outgoing_spins).is_integer()
     )
 
 
@@ -717,8 +716,8 @@ def spin_magnitude_conservation(
     # otherwise don't use S and L and just check magnitude
     # are integral or non integral on both sides
     return (
-        sum(float(x) for x in ingoing_spin_magnitudes).is_integer()  # type: ignore[union-attr]
-        == sum(float(x) for x in outgoing_spin_magnitudes).is_integer()  # type: ignore[union-attr]
+        sum(float(x) for x in ingoing_spin_magnitudes).is_integer()
+        == sum(float(x) for x in outgoing_spin_magnitudes).is_integer()
     )
 
 

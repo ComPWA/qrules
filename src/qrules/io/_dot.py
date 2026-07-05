@@ -62,11 +62,11 @@ class GraphPrinter:
         converter=_create_default_figure_style, default=None
     )
     edge_style: dict[str, Any] = field(
-        converter=default_if_none(factory=dict),  # type: ignore[misc]
+        converter=default_if_none(factory=dict),
         default=None,
     )
     node_style: dict[str, Any] = field(
-        converter=default_if_none(factory=dict),  # type: ignore[misc]
+        converter=default_if_none(factory=dict),
         default=None,
     )
     indent: int = 4
@@ -267,7 +267,7 @@ def _create_edge_label(
         if edge_setting:
             edge_property = edge_setting
         if initial_fact:
-            edge_property = initial_fact  # type: ignore[assignment]
+            edge_property = initial_fact
         return __render_edge_with_id(edge_id, edge_property, render_edge_id)
     edge_prop = graph.states.get(edge_id)
     return __render_edge_with_id(edge_id, edge_prop, render_edge_id)
@@ -389,7 +389,7 @@ def __render_rule(rule: Rule) -> str:
 
 def __get_type(rule: Rule) -> type[Rule]:
     if isfunction(rule):
-        return rule  # type: ignore[return-value]
+        return rule
     return type(rule)
 
 
@@ -505,8 +505,8 @@ def _collapse_graphs(
     transition_groups: dict[Topology, MutableTransition[set[Particle], None]] = {
         g.topology: MutableTransition(
             g.topology,
-            states={i: set() for i in g.topology.edges},  # type: ignore[misc]
-            interactions=dict.fromkeys(g.topology.nodes),  # type: ignore[misc]
+            states={i: set() for i in g.topology.edges},
+            interactions=dict.fromkeys(g.topology.nodes),
         )
         for g in graphs
     }

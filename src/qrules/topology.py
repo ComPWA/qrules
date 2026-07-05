@@ -61,7 +61,7 @@ class FrozenDict(frozendict, Generic[KT, VT]):
                 for key, value in self.items():
                     p.breakable()
                     p.text(f"{key}: ")
-                    p.pretty(value)  # type: ignore[attr-defined]
+                    p.pretty(value)
                     p.text(",")
             p.breakable()
             p.text("})")
@@ -112,7 +112,7 @@ class Edge:
         """Get all node IDs to which the `Edge` is connected."""
         connected_nodes = {self.ending_node_id, self.originating_node_id}
         connected_nodes.discard(None)
-        return connected_nodes  # type: ignore[return-value]
+        return connected_nodes
 
 
 def _to_topology_nodes(inst: Iterable[int]) -> frozenset[int]:
@@ -586,10 +586,10 @@ class SimpleStateTransitionTopologyBuilder:
                 # remove all combinations that originate from the same nodes
                 for comb1, comb2 in itertools.combinations(combis, 2):
                     if get_originating_node_list(
-                        topology,  # type: ignore[arg-type]
+                        topology,
                         comb1,
                     ) == get_originating_node_list(
-                        topology,  # type: ignore[arg-type]
+                        topology,
                         comb2,
                     ):
                         combis.remove(comb2)
@@ -817,7 +817,7 @@ class FrozenTransition(Transition, Generic[EdgeType, NodeType]):
         interaction_converter: Callable[[NodeType], NewNodeType],
     ) -> FrozenTransition[NewEdgeType, NewNodeType]: ...
 
-    def convert(self, state_converter=None, interaction_converter=None):  # type: ignore[no-untyped-def]
+    def convert(self, state_converter=None, interaction_converter=None):
         """Cast the edge and/or node properties to another type."""
         if state_converter is None:
             state_converter = _identity_function

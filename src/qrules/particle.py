@@ -224,7 +224,7 @@ class Particle:
             p.text(f"{class_name}(...)")
         else:
             with p.group(indent=2, open=f"{class_name}("):
-                for attribute in attrs.fields(type(self)):  # type: ignore[misc]
+                for attribute in attrs.fields(type(self)):
                     value = getattr(self, attribute.name)
                     if value != attribute.default:
                         p.breakable()
@@ -232,7 +232,7 @@ class Particle:
                         if isinstance(value, Parity):
                             p.text(_float_as_signed_str(int(value), render_plus=True))
                         else:
-                            p.pretty(value)  # type: ignore[attr-defined]
+                            p.pretty(value)
                         p.text(",")
             p.breakable()
             p.text(")")
@@ -322,7 +322,7 @@ class ParticleCollection(abc.MutableSet):  # noqa: PLW1641
             with p.group(indent=2, open=f"{class_name}({{"):
                 for particle in self:
                     p.breakable()
-                    p.pretty(particle)  # type: ignore[attr-defined]
+                    p.pretty(particle)
                     p.text(",")
             p.breakable()
             p.text("})")

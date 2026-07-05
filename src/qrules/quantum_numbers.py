@@ -1,9 +1,9 @@
 """Definitions used internally for type hints and signatures.
 
-`qrules` is strictly typed (enforced through :doc:`mypy <mypy:index>`). This module
-bundles structures and definitions that don't serve as data containers but only as type
-hints. `.EdgeQuantumNumbers` and `.NodeQuantumNumbers` are the main structures and serve
-as a bridge between the :mod:`.particle` and the :mod:`.conservation_rules` module.
+`qrules` is strictly typed. This module bundles structures and definitions that don't
+serve as data containers but only as type hints. `.EdgeQuantumNumbers` and
+`.NodeQuantumNumbers` are the main structures and serve as a bridge between the
+:mod:`.particle` and the :mod:`.conservation_rules` module.
 """
 
 from __future__ import annotations

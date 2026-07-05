@@ -63,15 +63,15 @@ ADDITIONAL_PARTICLES_DEFINITIONS_PATH: str = join(
 CONSERVATION_LAW_PRIORITIES: dict[
     GraphElementRule | EdgeQNConservationRule | ConservationRule, int
 ] = {
-    MassConservation: 10,  # type: ignore[dict-item]
-    ElectronLNConservation: 45,  # type: ignore[dict-item]
-    MuonLNConservation: 44,  # type: ignore[dict-item]
-    TauLNConservation: 43,  # type: ignore[dict-item]
-    BaryonNumberConservation: 90,  # type: ignore[dict-item]
-    StrangenessConservation: 69,  # type: ignore[dict-item]
-    CharmConservation: 70,  # type: ignore[dict-item]
-    BottomnessConservation: 68,  # type: ignore[dict-item]
-    ChargeConservation: 100,  # type: ignore[dict-item]
+    MassConservation: 10,
+    ElectronLNConservation: 45,
+    MuonLNConservation: 44,
+    TauLNConservation: 43,
+    BaryonNumberConservation: 90,
+    StrangenessConservation: 69,
+    CharmConservation: 70,
+    BottomnessConservation: 68,
+    ChargeConservation: 100,
     spin_conservation: 8,
     spin_magnitude_conservation: 8,
     parity_conservation: 6,
@@ -184,11 +184,11 @@ def create_interaction_settings(  # noqa: PLR0917
     interaction_type_settings = {}
     weak_node_settings = deepcopy(formalism_node_settings)
     weak_node_settings.conservation_rules.update([
-        ChargeConservation(),  # type: ignore[abstract]
-        ElectronLNConservation(),  # type: ignore[abstract]
-        MuonLNConservation(),  # type: ignore[abstract]
-        TauLNConservation(),  # type: ignore[abstract]
-        BaryonNumberConservation(),  # type: ignore[abstract]
+        ChargeConservation(),
+        ElectronLNConservation(),
+        MuonLNConservation(),
+        TauLNConservation(),
+        BaryonNumberConservation(),
         identical_particle_symmetrization,
     ])
     weak_node_settings.interaction_strength = 10 ** (-4)
@@ -201,9 +201,9 @@ def create_interaction_settings(  # noqa: PLR0917
 
     em_node_settings = deepcopy(weak_node_settings)
     em_node_settings.conservation_rules.update({
-        CharmConservation(),  # type: ignore[abstract]
-        StrangenessConservation(),  # type: ignore[abstract]
-        BottomnessConservation(),  # type: ignore[abstract]
+        CharmConservation(),
+        StrangenessConservation(),
+        BottomnessConservation(),
         parity_conservation,
         c_parity_conservation,
     })
@@ -237,7 +237,7 @@ def create_interaction_settings(  # noqa: PLR0917
 def __get_ang_mom_magnitudes(is_nbody: bool, max_angular_momentum: int) -> list[int]:
     if is_nbody:
         return [0]
-    return _int_domain(0, max_angular_momentum)  # type: ignore[return-value]
+    return _int_domain(0, max_angular_momentum)
 
 
 def __get_spin_magnitudes(is_nbody: bool, max_spin_magnitude: float) -> list[Fraction]:

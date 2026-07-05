@@ -36,8 +36,7 @@
     "CITATION.cff",
     "codecov.yml",
     "docs/conf.py",
-    "pyproject.toml",
-    "typings"
+    "pyproject.toml"
   ],
   "ignoreWords": [
     "adrs",
@@ -186,7 +185,6 @@
     "lineshape",
     "lineshapes",
     "mathbb",
-    "mypy",
     "nishijima",
     "pydot",
     "PyPA",

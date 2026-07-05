@@ -251,7 +251,6 @@ intersphinx_mapping = {
     "graphviz": ("https://graphviz.readthedocs.io/en/stable", None),
     "IPython": (f"https://ipython.readthedocs.io/en/{pin('IPython')}", None),
     "jsonschema": ("https://python-jsonschema.readthedocs.io/en/stable", None),
-    "mypy": ("https://mypy.readthedocs.io/en/stable", None),
     "python": ("https://docs.python.org/3", None),
 }
 linkcheck_anchors = False

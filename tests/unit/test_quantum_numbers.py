@@ -1,4 +1,3 @@
-import typing
 from copy import deepcopy
 from fractions import Fraction
 
@@ -15,7 +14,6 @@ class TestParity:
         assert int(parity) == +1
         assert parity > None
 
-    @typing.no_type_check  # https://github.com/python/mypy/issues/4610
     def test_comparison(self):
         neg = Parity(-1)
         pos = Parity(+1)
@@ -47,7 +45,7 @@ class TestParity:
 
     def test_exceptions(self):
         with pytest.raises(TypeError):
-            Parity(1.2)  # type: ignore[arg-type]
+            Parity(1.2)
         with pytest.raises(ValueError, match=r"Parity can only be \+1 or -1, not 0"):
             Parity(0)
 
