@@ -42,8 +42,10 @@ TAGS
 pyvenv*/
 
 # Settings
+.claude/
 .idea/
 **.code-workspace
+CLAUDE.md
 
 # Exceptions
 !.cspell.json
