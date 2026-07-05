@@ -990,9 +990,7 @@ class _GraphElementConstraint(Constraint, Generic[_QNType]):
                 )
 
 
-class _ConservationRuleConstraintWrapper(
-    Constraint  # pyright: ignore[reportUntypedBaseClass]
-):
+class _ConservationRuleConstraintWrapper(Constraint):
     """Wrapper class of the `~constraints.Constraint` class.
 
     This allows a customized definition of conservation rules, and hence a cleaner user

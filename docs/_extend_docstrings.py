@@ -3,7 +3,6 @@
 This small script is used by ``conf.py`` to dynamically modify docstrings.
 """
 
-# pyright: reportMissingImports=false
 from __future__ import annotations
 
 import inspect
@@ -116,7 +115,7 @@ def _graphviz_to_image(  # noqa: PLR0917
         options = {}
     global _GRAPHVIZ_COUNTER  # noqa: PLW0603
     output_file = f"graphviz_{_GRAPHVIZ_COUNTER}"
-    _GRAPHVIZ_COUNTER += 1  # pyright: ignore[reportConstantRedefinition]
+    _GRAPHVIZ_COUNTER += 1
     graphviz.Source(dot).render(f"{_IMAGE_DIR}/{output_file}", format=format)
     restructuredtext = "\n"
     if label:

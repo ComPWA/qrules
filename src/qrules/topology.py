@@ -905,7 +905,6 @@ def _assert_all_defined(items: Iterable, properties: Iterable) -> None:
         raise ValueError(msg)
 
 
-# pyright: reportUnusedFunction=false
 def _assert_not_overdefined(items: Iterable, properties: Iterable) -> None:
     existing = set(items)
     defined = set(properties)

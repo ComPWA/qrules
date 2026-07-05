@@ -19,9 +19,7 @@ from qrules.particle import (
 )
 
 # For eval tests
-from qrules.quantum_numbers import (
-    Parity,  # noqa: F401 # pyright: ignore[reportUnusedImport]
-)
+from qrules.quantum_numbers import Parity  # noqa: F401
 
 
 def gen_namespace_with_fraction():

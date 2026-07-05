@@ -1,4 +1,3 @@
-# pyright: reportUnusedImport=false
 import hashlib
 import pickle  # noqa: S403
 import sys

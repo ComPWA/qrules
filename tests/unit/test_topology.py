@@ -9,7 +9,7 @@ from IPython.lib.pretty import pretty
 
 from qrules.topology import (
     Edge,
-    FrozenDict,  # pyright: ignore[reportUnusedImport]
+    FrozenDict,
     InteractionNode,
     MutableTopology,
     SimpleStateTransitionTopologyBuilder,
