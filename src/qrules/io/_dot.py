@@ -480,15 +480,21 @@ def _strip_projections(
     graph: Transition[Any, InteractionProperties],
 ) -> FrozenTransition[Particle, InteractionProperties]:
     if isinstance(graph, MutableTransition):
-        transition = graph.freeze()
+        transition = cast(
+            "FrozenTransition[Any, InteractionProperties]", graph.freeze()
+        )
     else:
         transition = cast("FrozenTransition[Any, InteractionProperties]", graph)
     return transition.convert(
         state_converter=__to_particle,
-        interaction_converter=lambda i: attrs.evolve(
-            i, l_projection=None, s_projection=None
-        ),
+        interaction_converter=__strip_interaction_projections,
     )
+
+
+def __strip_interaction_projections(
+    interaction: InteractionProperties,
+) -> InteractionProperties:
+    return attrs.evolve(interaction, l_projection=None, s_projection=None)
 
 
 def __to_particle(state: Any) -> Particle:
