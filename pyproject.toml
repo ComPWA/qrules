@@ -138,6 +138,14 @@ where = ["src"]
 [tool.setuptools_scm]
 write_to = "src/qrules/version.py"
 
+[tool.compwa.policy]
+doc-apt-packages = "graphviz"
+repo-name = "qrules"
+repo-title = "QRules"
+
+[tool.compwa.policy.python]
+type-checker = ["ty"]
+
 [tool.coverage.report]
 exclude_also = [
     "if TYPE_CHECKING:",
