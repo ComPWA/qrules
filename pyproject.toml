@@ -31,7 +31,7 @@ dependencies = [
     "frozendict",
     "jsonschema",
     "particle",
-    "python-constraint2",
+    "python-constraint",
     "tqdm >=4.24.0", # autonotebook
 ]
 description = "Rule-based particle reaction problem solver on a quantum number level"
