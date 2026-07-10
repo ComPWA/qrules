@@ -1,12 +1,12 @@
 """Find allowed transitions with a pipeline of functions instead of the STM.
 
 This module decomposes the `.StateTransitionManager` into free functions that exchange
-explicit data structures, so that intermediate results — most notably `.QNProblemSet`s
-— can be inspected, modified, and fed back into the pipeline. The default use-case is
-covered by two functions:
+explicit data structures, so that intermediate results — most notably the
+`.QNProblemSet` collections — can be inspected, modified, and fed back into the
+pipeline. The default use-case is covered by two functions:
 
 1. `create_qn_problem_sets`, which turns initial and final state definitions into
-   `.QNProblemSet`s, grouped by interaction strength.
+   `.QNProblemSet` collections, grouped by interaction strength.
 2. `find_solutions`, which solves them and summarizes the solutions as a
    `.ReactionInfo` object.
 
@@ -169,7 +169,7 @@ class InteractionConfig:
     allowed_types: list[InteractionType] | dict[int, list[InteractionType]] = field(
         factory=lambda: list(DEFAULT_INTERACTION_TYPES)
     )
-    """Allowed `.InteractionType`s, optionally per node ID."""
+    """Allowed `.InteractionType` values, optionally per node ID."""
     determinators: list[InteractionDeterminator] = field(
         factory=lambda: [LeptonCheck(), GammaCheck()]
     )
@@ -328,7 +328,7 @@ def create_problem_sets(  # noqa: PLR0917
     topologies: Iterable[Topology],
     final_state_groupings: list[list[list[str]]] | None = None,
 ) -> dict[float, list[ProblemSet]]:
-    """Create `.ProblemSet`s for all topologies, grouped by interaction strength."""
+    """Create a `.ProblemSet` collection over all topologies, grouped by strength."""
     initial_state = list(map(as_state_definition, initial_state))
     final_state = list(map(as_state_definition, final_state))
     problem_sets = [
@@ -383,7 +383,7 @@ def solve(
 ) -> dict[float, list[tuple[QNProblemSet, QNResult]]]:
     """Find allowed transitions purely in terms of quantum number sets.
 
-    The `.QNProblemSet`s are solved in decreasing order of interaction strength. With
+    Each `.QNProblemSet` is solved in decreasing order of interaction strength. With
     `.SolvingMode.FAST`, solving stops after the strongest strength group that yields
     solutions.
     """
@@ -586,10 +586,10 @@ def create_qn_problem_sets(  # noqa: PLR0917
     max_spin_magnitude: float = 2,
     final_state_groupings: list[list[list[str]]] | None = None,
 ) -> dict[float, list[QNProblemSet]]:
-    """Create `.QNProblemSet`s for a reaction, grouped by interaction strength.
+    """Create a `.QNProblemSet` collection for a reaction, grouped by strength.
 
     This function covers the default use-case in a single call: it fans the initial
-    and final state definitions out into `.QNProblemSet`s over all topologies,
+    and final state definitions out into `.QNProblemSet` objects over all topologies,
     kinematic permutations, and allowed interaction types. Solve the returned problem
     sets with `find_solutions`, optionally after inspecting or modifying them (see e.g.
     `.filter_quantum_number_problem_set`).
@@ -642,7 +642,7 @@ def find_solutions(  # noqa: PLR0917
     solving_mode: SolvingMode = SolvingMode.FULL,
     number_of_threads: int | None = None,
 ) -> ReactionInfo:
-    """Solve `.QNProblemSet`s and summarize the solutions as `.ReactionInfo`.
+    """Solve a `.QNProblemSet` collection and summarize it as `.ReactionInfo`.
 
     This function covers the default use-case in a single call: it chains `solve`,
     `convert_to_particle_transitions`, and `collect_reaction_info`. The
