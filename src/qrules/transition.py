@@ -3,39 +3,24 @@
 from __future__ import annotations
 
 import logging
-import re
-import warnings
 from collections import defaultdict
-from copy import copy, deepcopy
 from enum import Enum, auto
-from multiprocessing import Pool
 from typing import TYPE_CHECKING, Literal, overload
 
 import attrs
 from attrs import define, field, frozen
 from attrs.validators import in_, instance_of
-from tqdm.auto import tqdm
 
 from qrules._attrs import to_fraction
 from qrules._implementers import implement_pretty_repr
 from qrules.combinatorics import (
     InitialFacts,
-    StateDefinition,
     StateDefinitionInput,
     as_state_definition,
-    create_initial_facts,
     ensure_nested_list,
-    match_external_edges,
-    permutate_topology_kinematically,
 )
 from qrules.particle import Particle, ParticleCollection, ParticleWithSpin, load_pdg
-from qrules.quantum_numbers import (
-    EdgeQuantumNumber,
-    EdgeQuantumNumbers,
-    InteractionProperties,
-    NodeQuantumNumber,
-    NodeQuantumNumbers,
-)
+from qrules.quantum_numbers import InteractionProperties, NodeQuantumNumber
 from qrules.settings import (
     DEFAULT_INTERACTION_TYPES,
     InteractionType,
@@ -43,9 +28,7 @@ from qrules.settings import (
     create_interaction_settings,
 )
 from qrules.solving import (
-    CSPSolver,
     EdgeSettings,
-    GraphEdgePropertyMap,
     GraphSettings,
     NodeSettings,
     QNProblemSet,
@@ -56,11 +39,7 @@ from qrules.system_control import (
     InteractionDeterminator,
     LeptonCheck,
     create_edge_properties,
-    create_interaction_properties,
     create_node_properties,
-    filter_interaction_types,
-    find_particle,
-    remove_duplicate_solutions,
 )
 from qrules.topology import (
     FrozenDict,
@@ -74,6 +53,8 @@ from qrules.topology import (
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
     from fractions import Fraction
+
+    from qrules.workflow import InteractionConfig
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -202,29 +183,13 @@ class ProblemSet:
         )
 
 
-def _group_by_strength(
-    problem_sets: list[ProblemSet],
-) -> dict[float, list[ProblemSet]]:
-    def calculate_strength(node_interaction_settings: dict[int, NodeSettings]) -> float:
-        strength = 1.0
-        for int_setting in node_interaction_settings.values():
-            strength *= int_setting.interaction_strength
-        return strength
-
-    strength_sorted_problem_sets: dict[float, list[ProblemSet]] = defaultdict(list)
-    for problem_set in problem_sets:
-        strength = calculate_strength(problem_set.solving_settings.interactions)
-        strength_sorted_problem_sets[strength].append(problem_set)
-    return strength_sorted_problem_sets
-
-
 class StateTransitionManager:
     """Main handler for decay topologies.
 
     .. seealso:: :doc:`/usage/reaction` and `.generate_transitions`
     """
 
-    def __init__(  # noqa: C901, PLR0912, PLR0917
+    def __init__(  # noqa: PLR0917
         self,
         initial_state: Sequence[StateDefinitionInput],
         final_state: Sequence[StateDefinitionInput],
@@ -246,15 +211,15 @@ class StateTransitionManager:
         if number_of_threads is not None:
             NumberOfThreads.set(number_of_threads)
         self.__number_of_threads = NumberOfThreads.get()
+        from qrules.workflow import (  # noqa: PLC0415
+            _create_qn_filters,
+            _validate_formalism,
+            filter_intermediate_particles,
+        )
+
         if interaction_type_settings is None:
             interaction_type_settings = {}
-        spin_formalisms = SpinFormalism.__args__  # type: ignore[attr-defined]
-        if formalism not in set(spin_formalisms):
-            msg = (
-                f'Formalism "{formalism}" not implemented. Use one of'
-                f" {', '.join(spin_formalisms)} instead."
-            )
-            raise NotImplementedError(msg)
+        _validate_formalism(formalism)
         self.__formalism = formalism
         self.__particles = ParticleCollection()
         if particle_db is not None:
@@ -276,17 +241,9 @@ class StateTransitionManager:
         self.__allowed_interaction_types: (
             list[InteractionType] | dict[int, list[InteractionType]]
         ) = DEFAULT_INTERACTION_TYPES
-        self.filter_remove_qns: set[type[NodeQuantumNumber]] = set()
-        self.filter_ignore_qns: set[type[NodeQuantumNumber]] = set()
-        if formalism == "helicity":
-            self.filter_remove_qns = {
-                NodeQuantumNumbers.l_magnitude,
-                NodeQuantumNumbers.l_projection,
-                NodeQuantumNumbers.s_magnitude,
-                NodeQuantumNumbers.s_projection,
-            }
-        if "helicity" in formalism:
-            self.filter_ignore_qns = {NodeQuantumNumbers.parity_prefactor}
+        filter_remove_qns, filter_ignore_qns = _create_qn_filters(formalism)
+        self.filter_remove_qns: set[type[NodeQuantumNumber]] = filter_remove_qns
+        self.filter_ignore_qns: set[type[NodeQuantumNumber]] = filter_ignore_qns
         use_nbody_topology = False
         topology_building = topology_building.lower()
         if topology_building == "isobar":
@@ -317,34 +274,21 @@ class StateTransitionManager:
                 max_spin_magnitude=max_spin_magnitude,
             )
 
-        self.__intermediate_particle_filters = allowed_intermediate_particles
         if allowed_intermediate_particles is None:
-            self.__allowed_intermediate_states: list[GraphEdgePropertyMap] = [
-                create_edge_properties(x) for x in self.__particles
-            ]
+            self.__intermediate_particles = filter_intermediate_particles(
+                self.__particles
+            )
         else:
             self.set_allowed_intermediate_particles(allowed_intermediate_particles)
 
     def set_allowed_intermediate_particles(
         self, name_patterns: Iterable[str] | str, regex: bool = False
     ) -> None:
-        if isinstance(name_patterns, str):
-            name_patterns = [name_patterns]
-        selected_particles = ParticleCollection()
-        for pattern in name_patterns:
-            matches = _filter_by_name_pattern(self.__particles, pattern, regex)
-            if len(matches) == 0:
-                msg = (
-                    "Could not find any matches for allowed intermediate particle"
-                    f' pattern "{pattern}"'
-                )
-                raise LookupError(msg)
-            selected_particles.update(matches)
-        self.__allowed_intermediate_states = [
-            create_edge_properties(x)
-            for x in sorted(selected_particles, key=lambda p: p.name)
-        ]
-        self.__intermediate_particle_filters = selected_particles.names
+        from qrules.workflow import filter_intermediate_particles  # noqa: PLC0415
+
+        self.__intermediate_particles = filter_intermediate_particles(
+            self.__particles, name_patterns, regex
+        )
 
     @property
     def formalism(self) -> SpinFormalism:
@@ -369,360 +313,80 @@ class StateTransitionManager:
     def get_allowed_interaction_types(self, node_id: int) -> list[InteractionType]: ...
 
     def get_allowed_interaction_types(self, node_id=None):  # type: ignore[no-untyped-def]
-        if node_id is None:
-            return self.__allowed_interaction_types
-        if isinstance(self.__allowed_interaction_types, list):
-            return self.__allowed_interaction_types
-        return self.__allowed_interaction_types.get(node_id, DEFAULT_INTERACTION_TYPES)
+        return self.__create_interaction_config().get_allowed_interaction_types(node_id)
 
     def set_allowed_interaction_types(
         self,
         allowed_interaction_types: Iterable[InteractionType],
         node_id: int | None = None,
     ) -> None:
-        # verify order
-        for allowed_types in allowed_interaction_types:
-            if not isinstance(allowed_types, InteractionType):
-                msg = "Allowed interaction types must be of type[InteractionType]"
-                raise TypeError(msg)
-            if allowed_types not in self.interaction_type_settings:
-                _LOGGER.info(self.interaction_type_settings.keys())
-                msg = f"Interaction {allowed_types} not found in settings"
-                raise ValueError(msg)
-        allowed_interaction_types = list(allowed_interaction_types)
-        if node_id is None:
-            self.__allowed_interaction_types = allowed_interaction_types
-        else:
-            if not isinstance(self.__allowed_interaction_types, dict):
-                self.__allowed_interaction_types = {}
-            self.__allowed_interaction_types[node_id] = allowed_interaction_types
+        config = self.__create_interaction_config()
+        config.set_allowed_interaction_types(allowed_interaction_types, node_id)
+        self.__allowed_interaction_types = config.allowed_types
+
+    def __create_interaction_config(self) -> InteractionConfig:
+        from qrules.workflow import InteractionConfig  # noqa: PLC0415
+
+        return InteractionConfig(
+            type_settings=self.interaction_type_settings,
+            allowed_types=self.__allowed_interaction_types,
+            determinators=self.interaction_determinators,
+        )
 
     def create_problem_sets(self) -> dict[float, list[ProblemSet]]:
-        problem_sets = [
-            ProblemSet(permutation, initial_facts, settings)
-            for topology in self.topologies
-            for permutation in permutate_topology_kinematically(
-                topology,
-                self.initial_state,
-                self.final_state,
-                self.final_state_groupings,
-            )
-            for initial_facts in create_initial_facts(
-                permutation, self.initial_state, self.final_state, self.__particles
-            )
-            for settings in self.__determine_graph_settings(permutation, initial_facts)
-        ]
-        return _group_by_strength(problem_sets)
+        from qrules.workflow import create_problem_sets  # noqa: PLC0415
 
-    def __determine_graph_settings(  # noqa: C901, PLR0914
-        self, topology: Topology, initial_facts: InitialFacts
-    ) -> list[GraphSettings]:
-        weak_edge_settings, _ = self.interaction_type_settings[InteractionType.WEAK]
+        return create_problem_sets(
+            self.initial_state,
+            self.final_state,
+            self.__particles,
+            interaction_config=self.__create_interaction_config(),
+            intermediate_particles=self.__intermediate_particles,
+            topologies=self.topologies,
+            final_state_groupings=self.final_state_groupings,
+        )
 
-        def create_intermediate_edge_qn_domains() -> dict:
-            if self.__intermediate_particle_filters is None:
-                return weak_edge_settings.qn_domains
-
-            # if a list of intermediate states is given by user,
-            # built a domain based on these states
-            intermediate_edge_domains: dict[type[EdgeQuantumNumber], set] = defaultdict(
-                set
-            )
-            intermediate_edge_domains[EdgeQuantumNumbers.spin_projection].update(
-                weak_edge_settings.qn_domains[EdgeQuantumNumbers.spin_projection]
-            )
-            for particle_props in self.__allowed_intermediate_states:
-                for edge_qn, qn_value in particle_props.items():
-                    if edge_qn in {
-                        EdgeQuantumNumbers.pid,
-                        EdgeQuantumNumbers.mass,
-                        EdgeQuantumNumbers.width,
-                    }:
-                        continue
-                    intermediate_edge_domains[edge_qn].add(qn_value)
-
-            return {k: list(v) for k, v in intermediate_edge_domains.items()}
-
-        intermediate_state_edges = topology.intermediate_edge_ids
-        int_edge_domains = create_intermediate_edge_qn_domains()
-
-        def create_edge_settings(edge_id: int) -> EdgeSettings:
-            settings = copy(weak_edge_settings)
-            if edge_id in intermediate_state_edges:
-                settings.qn_domains = int_edge_domains
-            else:
-                settings.qn_domains = {}
-            return settings
-
-        final_state_edges = topology.outgoing_edge_ids
-        initial_state_edges = topology.incoming_edge_ids
-
-        graph_settings: list[GraphSettings] = [
-            MutableTransition(
-                topology,
-                states={
-                    edge_id: create_edge_settings(edge_id)  # type: ignore[misc]
-                    for edge_id in topology.edges
-                },
-            )
-        ]
-
-        for node_id in topology.nodes:
-            interaction_types: list[InteractionType] = []
-            out_edge_ids = topology.get_edge_ids_outgoing_from_node(node_id)
-            in_edge_ids = topology.get_edge_ids_outgoing_from_node(node_id)
-            in_states = [
-                initial_facts.states[edge_id]
-                for edge_id in [x for x in in_edge_ids if x in initial_state_edges]
-            ]
-            out_states = [
-                initial_facts.states[edge_id]
-                for edge_id in [x for x in out_edge_ids if x in final_state_edges]
-            ]
-            interactions = InteractionProperties()
-            if node_id in initial_facts.interactions:
-                interactions = initial_facts.interactions[node_id]
-            for int_det in self.interaction_determinators:
-                determined_interactions = int_det.check(
-                    in_states, out_states, interactions
-                )
-                if interaction_types:
-                    interaction_types = list(
-                        set(determined_interactions) & set(interaction_types)
-                    )
-                else:
-                    interaction_types = determined_interactions
-            allowed_interaction_types = self.get_allowed_interaction_types(node_id)
-            interaction_types = filter_interaction_types(
-                interaction_types, allowed_interaction_types
-            )
-            _LOGGER.debug(
-                "using %s interaction order for node: %s",
-                interaction_types,
-                node_id,
-            )
-
-            temp_graph_settings: list[GraphSettings] = graph_settings
-            graph_settings = []
-            for temp_setting in temp_graph_settings:
-                for int_type in interaction_types:
-                    updated_setting = deepcopy(temp_setting)
-                    updated_setting.interactions[node_id] = deepcopy(
-                        self.interaction_type_settings[int_type][1]
-                    )
-                    graph_settings.append(updated_setting)
-
-        return graph_settings
-
-    def find_solutions(  # noqa: C901
+    def find_solutions(
         self, problem_sets: dict[float, list[ProblemSet]]
     ) -> ReactionInfo:
         """Check for solutions for a specific set of interaction settings."""
+        from qrules.workflow import collect_reaction_info  # noqa: PLC0415
+
         results = self._find_particle_transitions(problem_sets)
-        for strength, result in results.items():
-            _LOGGER.info(
-                f"Number of solutions for strength {strength} after"
-                f"QN solving: {len(result.solutions)}",
-            )
-
-        final_result = _SolutionContainer()
-        for particle_result in results.values():
-            final_result.extend(particle_result)
-
-        # remove duplicate solutions, which only differ in the interaction qns
-        final_solutions = remove_duplicate_solutions(
-            final_result.solutions,
-            self.filter_remove_qns,
-            self.filter_ignore_qns,
+        return collect_reaction_info(
+            results,
+            final_state=self.final_state,
+            formalism=self.formalism,
+            filter_remove_qns=self.filter_remove_qns,
+            filter_ignore_qns=self.filter_ignore_qns,
         )
-
-        execution_info = final_result.execution_info
-        if (
-            final_result.execution_info.violated_edge_rules
-            or final_result.execution_info.violated_node_rules
-        ):
-            violated_rules: set[str] = set()
-            for rules in execution_info.violated_edge_rules.values():
-                violated_rules |= rules
-            for rules in execution_info.violated_node_rules.values():
-                violated_rules |= rules
-            if violated_rules:
-                msg = (
-                    "There were violated conservation rules: "
-                    f" {', '.join(violated_rules)}"
-                )
-                warnings.warn(msg, category=RuntimeWarning, stacklevel=1)
-        if (
-            final_result.execution_info.not_executed_edge_rules
-            or final_result.execution_info.not_executed_node_rules
-        ):
-            not_executed_rules: set[str] = set()
-            for rules in execution_info.not_executed_edge_rules.values():
-                not_executed_rules |= rules
-            for rules in execution_info.not_executed_node_rules.values():
-                not_executed_rules |= rules
-            msg = (
-                "There are conservation rules that were not executed:"
-                f" {', '.join(not_executed_rules)}"
-            )
-            warnings.warn(msg, category=RuntimeWarning, stacklevel=1)
-        if not final_solutions:
-            msg = "No solutions were found"
-            raise RuntimeError(msg, execution_info)
-
-        match_external_edges(final_solutions)
-        final_solutions = [
-            _match_final_state_ids(graph, self.final_state) for graph in final_solutions
-        ]
-        transitions = [
-            graph.freeze().convert(lambda s: State(*s)) for graph in final_solutions
-        ]
-        return ReactionInfo(transitions, self.formalism)
 
     def _find_particle_transitions(
         self, problem_sets: dict[float, list[ProblemSet]]
     ) -> dict[float, _SolutionContainer]:
+        from qrules.workflow import convert_to_particle_transitions  # noqa: PLC0415
+
         qn_results = self.find_quantum_number_transitions(problem_sets)
-        results: dict[float, _SolutionContainer] = defaultdict(_SolutionContainer)
-        for strength, qn_solutions in qn_results.items():
-            for qn_problem_set, qn_result in qn_solutions:
-                particle_result = self.__convert_to_particle_definitions(
-                    qn_problem_set.topology,
-                    qn_result,
-                )
-                results[strength].extend(
-                    particle_result,
-                    intersect_violations=True,
-                )
-        return dict(results)
+        return convert_to_particle_transitions(qn_results, self.__particles)
 
     def find_quantum_number_transitions(
         self, problem_sets: dict[float, list[ProblemSet]]
     ) -> dict[float, list[tuple[QNProblemSet, QNResult]]]:
         """Find allowed transitions purely in terms of quantum number sets."""
-        qn_results: dict[float, list[tuple[QNProblemSet, QNResult]]] = defaultdict(list)
-        _LOGGER.info(
-            "Number of interaction settings groups being processed: %d",
-            len(problem_sets),
+        from qrules.workflow import solve  # noqa: PLC0415
+
+        qn_problem_sets = {
+            strength: [problem_set.to_qn_problem_set() for problem_set in problems]
+            for strength, problems in problem_sets.items()
+        }
+        return solve(
+            qn_problem_sets,
+            self.__intermediate_particles,
+            # reaction_mode is a str, so the FAST-mode break never triggers here
+            # (pre-existing behavior, kept for backwards compatibility)
+            solving_mode=self.reaction_mode,  # type: ignore[arg-type]
+            number_of_threads=self.__number_of_threads,
         )
-        total = sum(map(len, problem_sets.values()))
-        progress_bar = tqdm(
-            total=total,
-            desc="Propagating quantum numbers",
-            disable=_LOGGER.level > logging.WARNING,
-        )
-        for strength, problems in sorted(problem_sets.items(), reverse=True):
-            _LOGGER.info(
-                f"processing interaction settings group with strength {strength}",
-            )
-            _LOGGER.info(f"{len(problems)} entries in this group")
-            _LOGGER.info(f"running with {self.__number_of_threads} threads...")
-
-            qn_problems = [x.to_qn_problem_set() for x in problems]
-
-            # Because of pickling problems of Generic classes (in this case
-            # MutableTransition), multithreaded code has to work with
-            # QNProblemSet's and QNResult's. So the appropriate conversions
-            # have to be done before and after
-            if self.__number_of_threads > 1:
-                with Pool(self.__number_of_threads) as pool:
-                    for qn_solution in pool.imap_unordered(
-                        self._solve, qn_problems, chunksize=1
-                    ):
-                        qn_results[strength].append(qn_solution)
-                        progress_bar.update()
-            else:
-                for problem in qn_problems:
-                    qn_solution = self._solve(problem)
-                    qn_results[strength].append(qn_solution)
-                    progress_bar.update()
-            if qn_results[strength] and self.reaction_mode == SolvingMode.FAST:
-                break
-        progress_bar.close()
-        return qn_results
-
-    def _solve(self, qn_problem_set: QNProblemSet) -> tuple[QNProblemSet, QNResult]:
-        solver = CSPSolver(self.__allowed_intermediate_states)
-        solutions = solver.find_solutions(qn_problem_set)
-        return qn_problem_set, solutions
-
-    def __convert_to_particle_definitions(
-        self, topology: Topology, qn_result: QNResult
-    ) -> _SolutionContainer:
-        """Converts a `.QNResult` with a `.Topology` into `.ReactionInfo`.
-
-        The ParticleCollection is used to retrieve a particle instance reference to
-        lower the memory footprint.
-        """
-        solutions = []
-        for solution in qn_result.solutions:
-            graph = MutableTransition(  # type: ignore[var-annotated]
-                topology=topology,
-                interactions={
-                    i: create_interaction_properties(x)  # type: ignore[misc]
-                    for i, x in solution.interactions.items()
-                },
-                states={
-                    i: find_particle(x, self.__particles)  # type: ignore[misc]
-                    for i, x in solution.states.items()
-                },
-            )
-            solutions.append(graph)
-
-        return _SolutionContainer(
-            solutions,
-            ExecutionInfo(
-                violated_edge_rules=qn_result.violated_edge_rules,
-                violated_node_rules=qn_result.violated_node_rules,
-                not_executed_node_rules=qn_result.not_executed_node_rules,
-                not_executed_edge_rules=qn_result.not_executed_edge_rules,
-            ),
-        )
-
-
-def _filter_by_name_pattern(
-    particles: ParticleCollection, pattern: str, regex: bool
-) -> ParticleCollection:
-    def match_regex(particle: Particle) -> bool:
-        return re.match(pattern, particle.name) is not None
-
-    def match_substring(particle: Particle) -> bool:
-        return pattern in particle.name
-
-    if regex:
-        return particles.filter(match_regex)
-    return particles.filter(match_substring)
-
-
-def _match_final_state_ids(
-    graph: MutableTransition[ParticleWithSpin, InteractionProperties],
-    state_definition: Sequence[StateDefinition],
-) -> MutableTransition[ParticleWithSpin, InteractionProperties]:
-    """Temporary fix to https://github.com/ComPWA/qrules/issues/143."""
-    particle_names = _strip_spin(state_definition)
-    name_to_id = {name: i for i, name in enumerate(particle_names)}
-    id_remapping = {
-        name_to_id[graph.states[i][0].name]: i for i in graph.topology.outgoing_edge_ids
-    }
-    new_topology = graph.topology.relabel_edges(id_remapping)
-    return MutableTransition(
-        new_topology,
-        states={
-            i: graph.states[id_remapping.get(i, i)]  # type: ignore[misc]
-            for i in graph.topology.edges
-        },
-        interactions={i: graph.interactions[i] for i in graph.topology.nodes},  # type: ignore[misc]
-    )
-
-
-def _strip_spin(state_definition: Sequence[StateDefinition]) -> list[str]:
-    particle_names = []
-    for state in state_definition:
-        if isinstance(state, str):
-            particle_names.append(state)
-        else:
-            particle_names.append(state[0])
-    return particle_names
 
 
 @implement_pretty_repr
