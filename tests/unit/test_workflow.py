@@ -306,6 +306,10 @@ def test_generate_qn_transitions():
     assert mermaid.startswith("flowchart LR")
     assert "J/psi(1S)" in mermaid
     assert "spin_projection" not in mermaid.replace("isospin_projection", "")
+    collapsed_dot = asdot(reaction, collapse_graphs=True)
+    assert "0⁺(0⁺⁺)" in collapsed_dot
+    collapsed_mermaid = asmermaid(reaction, collapse_graphs=True)
+    assert "0^{+}(0^{++})" in collapsed_mermaid
 
 
 def test_qn_reaction_info_requires_particle_states():

@@ -2,15 +2,17 @@ from __future__ import annotations
 
 import logging
 import re
+from collections import abc
 from fractions import Fraction
 from functools import singledispatch
 from inspect import isfunction
 from typing import TYPE_CHECKING, Any, Protocol
 
 import attrs
+from attrs import frozen
 
 from qrules.particle import Particle, ParticleWithSpin, Spin, _render_fraction
-from qrules.quantum_numbers import InteractionProperties
+from qrules.quantum_numbers import EdgeQuantumNumbers, InteractionProperties
 from qrules.solving import (
     EdgeSettings,
     GraphEdgePropertyMap,
@@ -21,7 +23,7 @@ from qrules.topology import FrozenTransition, MutableTransition, Topology, Trans
 from qrules.transition import ProblemSet, State
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterable
+    from collections.abc import Callable, Iterable, Mapping
 
     from typing_extensions import TypeIs
 
@@ -197,6 +199,7 @@ class _LabelFormatter(Protocol):
     def particle(self, name: str, latex: str | None) -> str: ...
     def spin(self, magnitude: str, projection: str) -> str: ...
     def state(self, particle: str, projection: str) -> str: ...
+    def superscript(self, base: str, exponent: str) -> str: ...
 
 
 class _PlainFormatter:
@@ -241,6 +244,10 @@ class _PlainFormatter:
     @staticmethod
     def state(particle: str, projection: str) -> str:
         return f"{particle}[{projection}]"
+
+    @staticmethod
+    def superscript(base: str, exponent: str) -> str:
+        return base + exponent.translate(_SUPERSCRIPT_SIGNS)
 
 
 class _LatexFormatter:
@@ -287,7 +294,14 @@ class _LatexFormatter:
     def state(particle: str, projection: str) -> str:
         return Rf"{particle}\left[{projection}\right]"
 
+    @staticmethod
+    def superscript(base: str, exponent: str) -> str:
+        if not exponent:
+            return base
+        return f"{base}^{{{exponent}}}"
 
+
+_SUPERSCRIPT_SIGNS = str.maketrans({"+": "⁺", "-": "⁻"})
 _PLAIN_FORMATTER = _PlainFormatter()
 _LATEX_FORMATTER = _LatexFormatter()
 _PARTICLE_COLUMN_MAX_ROWS = 6
@@ -536,6 +550,95 @@ def __render_state(state: State, formatter: _LabelFormatter) -> str:
     return formatter.state(particle, spin_projection)
 
 
+@frozen
+class QuantumNumberSignature:
+    """PDG-style :math:`I^G(J^{PC})` summary of a quantum-number property map.
+
+    `collapse_graphs` converts states that are quantum-number property maps to this
+    compact form, so that a collapsed edge lists signatures instead of complete maps.
+
+    >>> from qrules.quantum_numbers import EdgeQuantumNumbers as EQN
+    >>> signature = QuantumNumberSignature.from_property_map({
+    ...     EQN.spin_magnitude: 1,
+    ...     EQN.parity: -1,
+    ...     EQN.c_parity: -1,
+    ...     EQN.isospin_magnitude: 1,
+    ...     EQN.g_parity: +1,
+    ... })
+    >>> as_string(signature)
+    '1⁺(1⁻⁻)'
+    >>> as_latex(signature)
+    '1^{+}(1^{--})'
+    >>> as_string(QuantumNumberSignature.from_property_map({EQN.spin_magnitude: 0.5}))
+    '1/2'
+    """
+
+    spin_magnitude: Fraction | None = None
+    parity: int | None = None
+    c_parity: int | None = None
+    isospin_magnitude: Fraction | None = None
+    g_parity: int | None = None
+
+    @classmethod
+    def from_property_map(cls, qn_map: Mapping[Any, Any]) -> QuantumNumberSignature:
+        return cls(
+            spin_magnitude=_to_optional_fraction(
+                qn_map.get(EdgeQuantumNumbers.spin_magnitude)
+            ),
+            parity=_to_optional_int(qn_map.get(EdgeQuantumNumbers.parity)),
+            c_parity=_to_optional_int(qn_map.get(EdgeQuantumNumbers.c_parity)),
+            isospin_magnitude=_to_optional_fraction(
+                qn_map.get(EdgeQuantumNumbers.isospin_magnitude)
+            ),
+            g_parity=_to_optional_int(qn_map.get(EdgeQuantumNumbers.g_parity)),
+        )
+
+
+def _to_optional_fraction(value: Any) -> Fraction | None:
+    if value is None:
+        return None
+    return Fraction(value)
+
+
+def _to_optional_int(value: Any) -> int | None:
+    if value is None:
+        return None
+    return int(value)
+
+
+@as_string.register(QuantumNumberSignature)
+def _(signature: QuantumNumberSignature) -> str:
+    return __render_signature(signature, _PLAIN_FORMATTER)
+
+
+@as_latex.register(QuantumNumberSignature)
+def _(signature: QuantumNumberSignature) -> str:
+    return __render_signature(signature, _LATEX_FORMATTER)
+
+
+def __render_signature(
+    signature: QuantumNumberSignature, formatter: _LabelFormatter
+) -> str:
+    if signature.spin_magnitude is None:
+        spin = formatter.text("?")
+    else:
+        spin = formatter.fraction(signature.spin_magnitude)
+    jpc = formatter.superscript(
+        spin, __render_parity_signs(signature.parity, signature.c_parity)
+    )
+    if signature.isospin_magnitude is None:
+        return jpc
+    ig = formatter.superscript(
+        formatter.fraction(signature.isospin_magnitude),
+        __render_parity_signs(signature.g_parity),
+    )
+    return f"{ig}({jpc})"
+
+
+def __render_parity_signs(*parities: int | None) -> str:
+    return "".join("+" if p > 0 else "-" for p in parities if p is not None)
+
+
 @as_string.register(tuple)
 def _(obj: tuple) -> str:
     return __render_tuple(obj, _PLAIN_FORMATTER)
@@ -660,12 +763,16 @@ def collapse_graphs(
 def _strip_properties(state: Any) -> Any:
     if isinstance(state, State):
         return state.particle
+    if isinstance(state, abc.Mapping):
+        return QuantumNumberSignature.from_property_map(state)
     return state
 
 
 def _sorting_key(obj: Any) -> Any:
     if isinstance(obj, State):
         return obj.particle.name
+    if isinstance(obj, QuantumNumberSignature):
+        return as_string(obj)
     if isinstance(obj, str):
         return obj.lower()
     return obj
