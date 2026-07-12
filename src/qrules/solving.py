@@ -218,6 +218,68 @@ def filter_quantum_number_problem_set(
     )
 
 
+def strip_quantum_numbers(
+    problem_set: QNProblemSet,
+    edge_qns: Iterable[EdgeQuantumNumberTypes] = (),
+    node_qns: Iterable[NodeQuantumNumberTypes] = (),
+) -> QNProblemSet:
+    """Remove the given quantum numbers from the facts and domains of a problem set.
+
+    The conservation rules are kept: a rule that can no longer execute without the
+    removed quantum numbers is skipped and reported by the solver through the
+    not-executed-rules mechanism.
+    """
+    edge_qn_set = set(edge_qns)
+    node_qn_set = set(node_qns)
+    facts = problem_set.initial_facts
+    settings = problem_set.solving_settings
+    new_facts = MutableTransition(
+        facts.topology,
+        states={  # type: ignore[arg-type]
+            edge_id: {
+                qn_type: value
+                for qn_type, value in prop_map.items()
+                if qn_type not in edge_qn_set
+            }
+            for edge_id, prop_map in facts.states.items()
+        },
+        interactions={  # type: ignore[arg-type]
+            node_id: {
+                qn_type: value
+                for qn_type, value in prop_map.items()
+                if qn_type not in node_qn_set
+            }
+            for node_id, prop_map in facts.interactions.items()
+        },
+    )
+    new_settings = MutableTransition(
+        settings.topology,
+        states={  # type: ignore[arg-type]
+            edge_id: attrs.evolve(
+                edge_settings,
+                qn_domains={
+                    qn_type: domain
+                    for qn_type, domain in edge_settings.qn_domains.items()
+                    if qn_type not in edge_qn_set
+                },
+            )
+            for edge_id, edge_settings in settings.states.items()
+        },
+        interactions={  # type: ignore[arg-type]
+            node_id: attrs.evolve(
+                node_settings,
+                qn_domains={
+                    qn_type: domain
+                    for qn_type, domain in node_settings.qn_domains.items()
+                    if qn_type not in node_qn_set
+                },
+            )
+            for node_id, node_settings in settings.interactions.items()
+        },
+    )
+    return QNProblemSet(initial_facts=new_facts, solving_settings=new_settings)
+
+
 def merge_qn_problem_sets(
     qn_problem_sets: Iterable[QNProblemSet],
     merge_qns: Iterable[EdgeQuantumNumberTypes] | None = None,

@@ -1,6 +1,10 @@
+import json
+
 import pytest
 
+from qrules.io import asdict
 from qrules.particle import ParticleCollection, load_pdg
+from qrules.quantum_numbers import EdgeQuantumNumbers
 from qrules.settings import (
     DEFAULT_INTERACTION_TYPES,
     InteractionType,
@@ -12,7 +16,9 @@ from qrules.workflow import (
     QNProblemSetCollection,
     create_qn_problem_sets,
     filter_intermediate_particles,
+    find_qn_transitions,
     find_solutions,
+    strip_spin_projections,
 )
 
 
@@ -102,3 +108,55 @@ def test_pipeline_reproduces_state_transition_manager(
     )
     workflow_reaction = find_solutions(qn_problem_sets, particle_db)
     assert workflow_reaction == reaction
+
+
+def test_projection_free_qn_transitions():
+    particle_db = load_pdg()
+    collection = create_qn_problem_sets(
+        initial_state=[("J/psi(1S)", [-1, 1])],
+        final_state=["gamma", "pi0", "pi0"],
+        particle_db=particle_db,
+        allowed_intermediate_particles=["f(0)(980)", "f(0)(1500)"],
+        interaction_config=InteractionConfig(
+            type_settings=create_interaction_settings(
+                "helicity", particle_db=particle_db, max_angular_momentum=2
+            ),
+            allowed_types=[InteractionType.STRONG],
+        ),
+    )
+    stripped = strip_spin_projections(collection)
+    assert isinstance(stripped, QNProblemSetCollection)
+    n_original = sum(map(len, collection.problem_sets.values()))
+    n_stripped = sum(map(len, stripped.problem_sets.values()))
+    assert n_stripped < n_original
+
+    qn_transitions = find_qn_transitions(stripped)
+    assert len(qn_transitions) > 0
+    qn_names = {
+        qn_type.__name__
+        for transition in qn_transitions
+        for prop_map in [*transition.states.values(), *transition.interactions.values()]
+        for qn_type in prop_map
+    }
+    assert "spin_projection" not in qn_names
+    assert {"spin_magnitude", "parity", "l_magnitude", "s_magnitude"} <= qn_names
+
+    intermediate_signatures = {
+        (
+            state[EdgeQuantumNumbers.spin_magnitude],
+            int(state[EdgeQuantumNumbers.parity]),
+            int(state[EdgeQuantumNumbers.c_parity]),
+        )
+        for transition in qn_transitions
+        for state in transition.intermediate_states.values()
+    }
+    assert intermediate_signatures == {(0, +1, +1)}  # both f0 resonances are 0^{++}
+    collapsed = {
+        transition.convert(interaction_converter=lambda _: None)
+        for transition in qn_transitions
+    }
+    assert len(collapsed) == 1
+
+    serialized = json.dumps(asdict(qn_transitions[0]))
+    assert '"spin_projection"' not in serialized
+    assert '"spin_magnitude"' in serialized

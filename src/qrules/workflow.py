@@ -25,7 +25,7 @@ from collections import defaultdict
 from copy import copy, deepcopy
 from functools import partial
 from multiprocessing import Pool
-from typing import TYPE_CHECKING, overload
+from typing import TYPE_CHECKING, Any, overload
 
 from attrs import define, field, frozen
 from tqdm.auto import tqdm
@@ -52,8 +52,10 @@ from qrules.settings import (
 )
 from qrules.solving import (
     CSPSolver,
+    _create_merge_key,
     complete_intermediate_states,
     merge_qn_problem_sets,
+    strip_quantum_numbers,
 )
 from qrules.system_control import (
     GammaCheck,
@@ -66,6 +68,8 @@ from qrules.system_control import (
     remove_duplicate_solutions,
 )
 from qrules.topology import (
+    FrozenDict,
+    FrozenTransition,
     MutableTransition,
     create_isobar_topologies,
     create_n_body_topology,
@@ -767,6 +771,107 @@ def find_solutions(  # noqa: PLR0917
     )
     results = convert_to_particle_transitions(qn_results, particle_db)
     return collect_reaction_info(results, final_state, formalism)
+
+
+QNTransition = FrozenTransition[FrozenDict[Any, Any], FrozenDict[Any, Any]]
+"""Transition whose states and interactions are quantum-number property maps."""
+
+
+def strip_spin_projections(
+    qn_problem_sets: QNProblemSetCollection | dict[float, list[QNProblemSet]],
+) -> QNProblemSetCollection | dict[float, list[QNProblemSet]]:
+    """Remove spin projections from the problem sets, for :math:`J^{P(C)}`-level solving.
+
+    Removes the spin projections of the initial and final state from the facts, the
+    spin-projection domains of the intermediate edges, and the :math:`L`/:math:`S`
+    projection domains of the interaction nodes. Problem sets that thereby become
+    identical — such as the expansion over all spin-projection combinations — are
+    deduplicated. Rules that require spin projections are skipped and reported by the
+    solver through the not-executed-rules mechanism.
+    """
+    if isinstance(qn_problem_sets, QNProblemSetCollection):
+        stripped_collection = copy(qn_problem_sets)
+        stripped_collection.problem_sets = strip_spin_projections(  # type: ignore[assignment]
+            qn_problem_sets.problem_sets
+        )
+        return stripped_collection
+    return {
+        strength: _unique_problem_sets(
+            strip_quantum_numbers(
+                problem_set,
+                edge_qns={EdgeQuantumNumbers.spin_projection},
+                node_qns={
+                    NodeQuantumNumbers.l_projection,
+                    NodeQuantumNumbers.s_projection,
+                },
+            )
+            for problem_set in problem_sets
+        )
+        for strength, problem_sets in qn_problem_sets.items()
+    }
+
+
+def _unique_problem_sets(problem_sets: Iterable[QNProblemSet]) -> list[QNProblemSet]:
+    unique: dict[tuple, QNProblemSet] = {}
+    for problem_set in problem_sets:
+        unique.setdefault(_create_merge_key(problem_set, set()), problem_set)
+    return list(unique.values())
+
+
+def find_qn_transitions(
+    qn_problem_sets: QNProblemSetCollection | dict[float, list[QNProblemSet]],
+) -> tuple[QNTransition, ...]:
+    """Find allowed transitions purely at the quantum-number level.
+
+    Solves the problem sets with the `.CSPSolver` without completing the intermediate
+    states from a particle database: the intermediate states of the returned
+    transitions carry exactly the quantum numbers that the problem sets declare as
+    domains. Combine with `strip_spin_projections` to obtain :math:`J^{P(C)}`-level
+    transitions for e.g. a Dalitz-plot decomposition.
+    """
+    if isinstance(qn_problem_sets, QNProblemSetCollection):
+        qn_problem_sets = qn_problem_sets.problem_sets
+    solver = CSPSolver()
+    qn_results: dict[float, list[tuple[QNProblemSet, QNResult]]] = defaultdict(list)
+    for strength, qn_problems in sorted(qn_problem_sets.items(), reverse=True):
+        qn_results[strength].extend(
+            (qn_problem_set, solver.find_solutions(qn_problem_set))
+            for qn_problem_set in qn_problems
+        )
+    return collect_qn_transitions(qn_results)
+
+
+def collect_qn_transitions(
+    qn_results: dict[float, list[tuple[QNProblemSet, QNResult]]],
+) -> tuple[QNTransition, ...]:
+    """Summarize solver results as unique quantum-number-level transitions.
+
+    The counterpart of `collect_reaction_info` for a quantum-number-only workflow: no
+    particle database is consulted and no `.State` objects are created — each
+    transition carries exactly the quantum numbers that are known from the initial
+    facts or were solved for.
+    """
+    transitions: dict[QNTransition, None] = {}
+    for qn_result_pairs in qn_results.values():
+        for qn_problem_set, qn_result in qn_result_pairs:
+            facts = qn_problem_set.initial_facts
+            for solution in qn_result.solutions:
+                states = dict(solution.states)
+                for edge_id, edge_facts in facts.states.items():
+                    states[edge_id] = {**edge_facts, **states.get(edge_id, {})}
+                interactions = dict(solution.interactions)
+                for node_id, node_facts in facts.interactions.items():
+                    interactions[node_id] = {
+                        **node_facts,
+                        **interactions.get(node_id, {}),
+                    }
+                transition: QNTransition = FrozenTransition(
+                    solution.topology,
+                    states={i: FrozenDict(m) for i, m in states.items()},
+                    interactions={i: FrozenDict(m) for i, m in interactions.items()},
+                )
+                transitions[transition] = None
+    return tuple(transitions)
 
 
 def _match_final_state_ids(
