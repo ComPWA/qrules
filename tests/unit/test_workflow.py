@@ -217,6 +217,9 @@ def test_generate_qn_transitions():
     assert "J/psi(1S)" in dot
     assert "spin_projection" not in dot.replace("isospin_projection", "")
 
+    collapsed_dot = asdot(reaction, collapse_graphs=True)
+    assert "0⁺(0⁺⁺)" in collapsed_dot
+
 
 def test_qn_reaction_info_requires_particle_states():
     particle_db = load_pdg()

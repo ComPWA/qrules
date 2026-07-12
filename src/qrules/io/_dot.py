@@ -19,13 +19,13 @@ from attrs import Attribute, define, field
 from attrs.converters import default_if_none
 
 from qrules.particle import Particle, ParticleWithSpin, Spin, _render_fraction
-from qrules.quantum_numbers import InteractionProperties
+from qrules.quantum_numbers import EdgeQuantumNumbers, InteractionProperties
 from qrules.solving import EdgeSettings, NodeSettings, QNProblemSet, QNResult
 from qrules.topology import FrozenTransition, MutableTransition, Topology, Transition
 from qrules.transition import ProblemSet, ReactionInfo, State
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Iterable, Mapping
 
     from qrules.argument_handling import Rule
 
@@ -531,14 +531,49 @@ def _collapse_graphs(
 def _strip_properties(state: Any) -> Any:
     if isinstance(state, State):
         return state.particle
-    if isinstance(state, str):
-        return state
+    if isinstance(state, abc.Mapping):
+        return _render_quantum_number_signature(state)
     return state
+
+
+def _render_quantum_number_signature(qn_map: Mapping[Any, Any]) -> str:
+    """Summarize a quantum-number property map in PDG-style ``I^G(J^{PC})`` notation.
+
+    >>> from qrules.quantum_numbers import EdgeQuantumNumbers as EQN
+    >>> _render_quantum_number_signature({
+    ...     EQN.spin_magnitude: 1,
+    ...     EQN.parity: -1,
+    ...     EQN.c_parity: -1,
+    ...     EQN.isospin_magnitude: 1,
+    ...     EQN.g_parity: +1,
+    ... })
+    '1⁺(1⁻⁻)'
+    >>> _render_quantum_number_signature({EQN.spin_magnitude: 0.5, EQN.parity: +1})
+    '1/2⁺'
+    """
+    spin = qn_map.get(EdgeQuantumNumbers.spin_magnitude)
+    jpc = "?" if spin is None else _render_fraction(Fraction(spin))
+    jpc += _render_superscript_parity(qn_map.get(EdgeQuantumNumbers.parity))
+    jpc += _render_superscript_parity(qn_map.get(EdgeQuantumNumbers.c_parity))
+    isospin = qn_map.get(EdgeQuantumNumbers.isospin_magnitude)
+    if isospin is None:
+        return jpc
+    ig = _render_fraction(Fraction(isospin))
+    ig += _render_superscript_parity(qn_map.get(EdgeQuantumNumbers.g_parity))
+    return f"{ig}({jpc})"
+
+
+def _render_superscript_parity(parity: int | None) -> str:
+    if parity is None:
+        return ""
+    return "⁺" if parity > 0 else "⁻"
 
 
 def _sorting_key(obj: Any) -> Any:
     if isinstance(obj, State):
         return obj.particle.name
+    if isinstance(obj, Particle):
+        return obj.name
     if isinstance(obj, str):
         return obj.lower()
     return obj
