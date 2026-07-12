@@ -220,19 +220,20 @@ def filter_quantum_number_problem_set(
 QuantumNumberSolution = MutableTransition[GraphEdgePropertyMap, GraphNodePropertyMap]
 
 
+def _get_rule_name(rule: Any) -> str:
+    if inspect.isfunction(rule):
+        return rule.__name__
+    if isinstance(rule, str):
+        return rule
+    return type(rule).__name__
+
+
 def _convert_violated_rules_to_names(
     rules: dict[int, set[Rule]] | dict[int, set[GraphElementRule]],
 ) -> dict[int, set[str]]:
-    def get_name(rule: Any) -> str:
-        if inspect.isfunction(rule):
-            return rule.__name__
-        if isinstance(rule, str):
-            return rule
-        return type(rule).__name__
-
     converted_dict = defaultdict(set)
     for node_id, rule_set in rules.items():
-        converted_dict[node_id] = {get_name(rule) for rule in rule_set}
+        converted_dict[node_id] = {_get_rule_name(rule) for rule in rule_set}
 
     return converted_dict
 
@@ -240,15 +241,8 @@ def _convert_violated_rules_to_names(
 def _convert_non_executed_rules_to_names(
     rules: dict[int, set[Rule]] | dict[int, set[GraphElementRule]],
 ) -> dict[int, set[str]]:
-    def get_name(rule: Any) -> str:
-        if inspect.isfunction(rule):
-            return rule.__name__
-        if isinstance(rule, str):
-            return rule
-        return type(rule).__name__
-
     return {
-        node_id: {get_name(rule) for rule in rule_set}
+        node_id: {_get_rule_name(rule) for rule in rule_set}
         for node_id, rule_set in rules.items()
     }
 
@@ -321,6 +315,86 @@ class Solver(ABC):
         """
 
 
+def complete_intermediate_states(
+    qn_result: QNResult,
+    qn_problem_set: QNProblemSet,
+    allowed_intermediate_states: Iterable[GraphEdgePropertyMap],
+) -> QNResult:
+    """Match the intermediate states of a `QNResult` against a set of allowed states.
+
+    A `Solver` assigns to each intermediate edge only the quantum numbers that were
+    solved for. This post-processing step completes the solutions: each intermediate
+    state is replaced by the full quantum number property maps of the matching entries
+    in :code:`allowed_intermediate_states` (one new solution per match, as e.g. created
+    by `.create_edge_properties` from a `.ParticleCollection`) and solutions without
+    any match are discarded. Conservation rules that the solver could not execute are
+    re-validated against the completed states, which may provide the previously missing
+    quantum numbers.
+    """
+    topology = qn_problem_set.topology
+    completed_solutions = _insert_allowed_states(
+        qn_result.solutions, topology, allowed_intermediate_states
+    )
+    node_not_executed_rules = _find_rules_by_name(
+        qn_problem_set.solving_settings.interactions,
+        qn_result.not_executed_node_rules,
+    )
+    edge_not_executed_rules = _find_rules_by_name(
+        qn_problem_set.solving_settings.states,
+        qn_result.not_executed_edge_rules,
+    )
+    if completed_solutions and (node_not_executed_rules or edge_not_executed_rules):
+        # rerun solver on these graphs using not executed rules and combine results
+        result = QNResult()
+        for completed_solution in completed_solutions:
+            interactions = completed_solution.interactions
+            states = completed_solution.states
+            interactions.update(qn_problem_set.initial_facts.interactions)
+            states.update(qn_problem_set.initial_facts.states)
+            result.extend(
+                validate_full_solution(
+                    QNProblemSet(
+                        initial_facts=MutableTransition(topology, states, interactions),
+                        solving_settings=MutableTransition(
+                            topology,
+                            interactions={
+                                i: NodeSettings(conservation_rules=rules)  # type: ignore[misc]
+                                for i, rules in node_not_executed_rules.items()
+                            },
+                            states={
+                                i: EdgeSettings(conservation_rules=rules)  # type: ignore[misc]
+                                for i, rules in edge_not_executed_rules.items()
+                            },
+                        ),
+                    )
+                )
+            )
+        return result
+    return QNResult(
+        completed_solutions,
+        qn_result.not_executed_node_rules,
+        qn_result.violated_node_rules,
+        qn_result.not_executed_edge_rules,
+        qn_result.violated_edge_rules,
+    )
+
+
+def _find_rules_by_name(
+    settings: dict[int, NodeSettings] | dict[int, EdgeSettings],
+    rule_names: dict[int, set[str]],
+) -> dict[int, set[Rule]]:
+    """Look up rule objects in graph element settings by their reported name."""
+    return {
+        element_id: {
+            rule
+            for rule in settings[element_id].conservation_rules
+            if _get_rule_name(rule) in names
+        }
+        for element_id, names in rule_names.items()
+        if element_id in settings
+    }
+
+
 def _insert_allowed_states(
     solutions: list[QuantumNumberSolution],
     topology: Topology,
@@ -331,7 +405,9 @@ def _insert_allowed_states(
     for solution in solutions:
         current_substituted_graphs = [solution]
         for edge_id in topology.intermediate_edge_ids:
-            incomplete_state = solution.states[edge_id]
+            incomplete_state = solution.states.get(edge_id)
+            if incomplete_state is None:
+                continue
             candidate_states = __get_candidate_states(incomplete_state, allowed_states)
             if len(candidate_states) == 0:
                 message = f"Did not find any QN state candidate for edge id: {edge_id}"
@@ -534,11 +610,13 @@ class CSPSolver(Solver):
     quantum numbers which are attributed to the interaction nodes (such as angular
     momentum :math:`L`). The conservation rules serve as the constraints and a special
     wrapper class serves as an adapter.
+
+    The solutions carry only the quantum numbers that were solved for. Use
+    `complete_intermediate_states` to match the intermediate states against a set of
+    allowed states, such as the entries of a particle database.
     """
 
-    def __init__(
-        self, allowed_intermediate_states: Iterable[GraphEdgePropertyMap]
-    ) -> None:
+    def __init__(self) -> None:
         self.__variables: set[_EdgeVariableInfo | _NodeVariableInfo] = set()
         self.__var_string_to_data: dict[str, _EdgeVariableInfo | _NodeVariableInfo] = {}
         self.__node_rules: dict[int, set[Rule]] = defaultdict(set)
@@ -548,10 +626,9 @@ class CSPSolver(Solver):
             defaultdict(set)
         )
         self.__problem = Problem(BacktrackingSolver(True))
-        self.__allowed_intermediate_states = tuple(allowed_intermediate_states)
         self.__scoresheet = Scoresheet()
 
-    def find_solutions(self, problem_set: QNProblemSet) -> QNResult:  # noqa: C901
+    def find_solutions(self, problem_set: QNProblemSet) -> QNResult:
         self.__initialize_constraints(problem_set)
         solutions = self.__problem.getSolutions()
 
@@ -575,15 +652,8 @@ class CSPSolver(Solver):
 
         solutions = self.__convert_solution_keys(problem_set.topology, solutions)
 
-        # insert particle instances
-        if self.__node_rules or self.__edge_rules:
-            selected_solutions = _insert_allowed_states(
-                solutions,
-                problem_set.topology,
-                self.__allowed_intermediate_states,
-            )
-        else:
-            selected_solutions = [
+        if not self.__node_rules and not self.__edge_rules:
+            solutions = [
                 QuantumNumberSolution(
                     topology=problem_set.topology,
                     interactions=problem_set.initial_facts.interactions,  # type: ignore[arg-type]
@@ -591,39 +661,8 @@ class CSPSolver(Solver):
                 )
             ]
 
-        if selected_solutions and (node_not_executed_rules or edge_not_executed_rules):
-            # rerun solver on these graphs using not executed rules and combine results
-            topology = problem_set.topology
-            result = QNResult()
-            for full_particle_solution in selected_solutions:
-                interactions = full_particle_solution.interactions
-                states = full_particle_solution.states
-                interactions.update(problem_set.initial_facts.interactions)
-                states.update(problem_set.initial_facts.states)
-                result.extend(
-                    validate_full_solution(
-                        QNProblemSet(
-                            initial_facts=MutableTransition(
-                                topology, states, interactions
-                            ),
-                            solving_settings=MutableTransition(
-                                topology,
-                                interactions={
-                                    i: NodeSettings(conservation_rules=rules)  # type: ignore[misc]
-                                    for i, rules in node_not_executed_rules.items()
-                                },
-                                states={
-                                    i: EdgeSettings(conservation_rules=rules)  # type: ignore[misc]
-                                    for i, rules in edge_not_executed_rules.items()
-                                },
-                            ),
-                        )
-                    )
-                )
-            return result
-
         return QNResult(
-            selected_solutions,
+            solutions,
             _convert_non_executed_rules_to_names(node_not_executed_rules),
             _convert_violated_rules_to_names(node_not_satisfied_rules),
             _convert_non_executed_rules_to_names(edge_not_executed_rules),

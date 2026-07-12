@@ -49,7 +49,7 @@ from qrules.settings import (
     NumberOfThreads,
     create_interaction_settings,
 )
-from qrules.solving import CSPSolver
+from qrules.solving import CSPSolver, complete_intermediate_states
 from qrules.system_control import (
     GammaCheck,
     InteractionDeterminator,
@@ -370,9 +370,12 @@ def _solve_single_problem(
     qn_problem_set: QNProblemSet,
     allowed_intermediate_states: Iterable[GraphEdgePropertyMap],
 ) -> tuple[QNProblemSet, QNResult]:
-    solver = CSPSolver(allowed_intermediate_states)
-    solutions = solver.find_solutions(qn_problem_set)
-    return qn_problem_set, solutions
+    solver = CSPSolver()
+    qn_solutions = solver.find_solutions(qn_problem_set)
+    completed_solutions = complete_intermediate_states(
+        qn_solutions, qn_problem_set, allowed_intermediate_states
+    )
+    return qn_problem_set, completed_solutions
 
 
 def solve(
