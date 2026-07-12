@@ -51,7 +51,7 @@ from fractions import Fraction
 from functools import reduce
 from textwrap import dedent
 from types import GenericAlias
-from typing import TYPE_CHECKING, Any, Protocol, TypeVar
+from typing import TYPE_CHECKING, Any, Protocol, TypedDict, TypeVar
 
 from attrs import define, field, frozen
 from attrs.converters import optional
@@ -167,9 +167,26 @@ def additive_quantum_number_rule(
     return decorator
 
 
-@additive_quantum_number_rule(EdgeQN.charge)
+class ChargeFacts(TypedDict):
+    """Facts required by `ChargeConservation`; a subset of `.EdgeFacts`."""
+
+    charge: int
+
+
 class ChargeConservation(EdgeQNConservationRule):
-    pass
+    r"""Check for `~.EdgeQuantumNumbers.charge` conservation.
+
+    Implements :math:`\sum q_{in} = \sum q_{out}`.
+    """
+
+    def __call__(
+        self,
+        ingoing_edge_qns: list[ChargeFacts],
+        outgoing_edge_qns: list[ChargeFacts],
+    ) -> bool:
+        return sum(x["charge"] for x in ingoing_edge_qns) == sum(
+            x["charge"] for x in outgoing_edge_qns
+        )
 
 
 @additive_quantum_number_rule(EdgeQN.baryon_number)
@@ -497,10 +514,23 @@ class SpinNodeInput:
     s_projection: NodeSProjection = field(converter=to_fraction)
 
 
-@frozen
-class SpinMagnitudeNodeInput:
-    l_magnitude: NodeLMagnitude = field(converter=to_fraction)
-    s_magnitude: NodeSMagnitude = field(converter=to_fraction)
+class SpinMagnitudeFacts(TypedDict):
+    """Facts required by `spin_magnitude_conservation`; a subset of `.EdgeFacts`."""
+
+    spin_magnitude: Fraction
+
+
+class HelicityFacts(TypedDict):
+    """Facts required by `helicity_conservation`; a subset of `.EdgeFacts`."""
+
+    spin_projection: Fraction
+
+
+class SpinMagnitudeNodeFacts(TypedDict):
+    """Node facts required by `spin_magnitude_conservation`; a subset of `.NodeFacts`."""
+
+    l_magnitude: Fraction
+    s_magnitude: Fraction
 
 
 def ls_spin_validity(spin_input: SpinNodeInput) -> bool:
@@ -513,7 +543,8 @@ def ls_spin_validity(spin_input: SpinNodeInput) -> bool:
 def _check_magnitude(
     in_part: list[Fraction],
     out_part: list[Fraction],
-    interaction_qns: SpinMagnitudeNodeInput | SpinNodeInput | None,
+    l_magnitude: Fraction,
+    s_magnitude: Fraction,
 ) -> bool:
     def couple_mags(j_1: Fraction, j_2: Fraction) -> list[Fraction]:
         return [
@@ -521,10 +552,7 @@ def _check_magnitude(
             for x in range(int(2 * abs(j_1 - j_2)), int(2 * (j_1 + j_2 + 1)), 2)
         ]
 
-    def couple_magnitudes(
-        magnitudes: list[Fraction],
-        interaction_qns: SpinMagnitudeNodeInput | SpinNodeInput | None,
-    ) -> set[Fraction]:
+    def couple_magnitudes(magnitudes: list[Fraction]) -> set[Fraction]:
         if len(magnitudes) == 1:
             return set(magnitudes)
 
@@ -535,19 +563,12 @@ def _check_magnitude(
             for ref_mag in temp_set:
                 coupled_magnitudes.update(couple_mags(mag, ref_mag))
 
-        if interaction_qns:
-            if interaction_qns.s_magnitude in coupled_magnitudes:
-                return set(
-                    couple_mags(
-                        interaction_qns.s_magnitude,
-                        interaction_qns.l_magnitude,
-                    )
-                )
-            return set()  # in case there the spin coupling fails
-        return coupled_magnitudes
+        if s_magnitude in coupled_magnitudes:
+            return set(couple_mags(s_magnitude, l_magnitude))
+        return set()  # in case there the spin coupling fails
 
-    in_tot_spins = couple_magnitudes(in_part, interaction_qns)
-    out_tot_spins = couple_magnitudes(out_part, interaction_qns)
+    in_tot_spins = couple_magnitudes(in_part)
+    out_tot_spins = couple_magnitudes(out_part)
     matching_spins = in_tot_spins.intersection(out_tot_spins)
 
     return len(matching_spins) > 0
@@ -718,9 +739,9 @@ def spin_conservation(
 
 
 def spin_magnitude_conservation(
-    ingoing_spin_magnitudes: list[EdgeQN.spin_magnitude],
-    outgoing_spin_magnitudes: list[EdgeQN.spin_magnitude],
-    interaction_qns: SpinMagnitudeNodeInput,
+    ingoing_spin_magnitudes: list[SpinMagnitudeFacts],
+    outgoing_spin_magnitudes: list[SpinMagnitudeFacts],
+    interaction_qns: SpinMagnitudeNodeFacts,
 ) -> bool:
     r"""Check for spin conservation.
 
@@ -734,23 +755,26 @@ def spin_magnitude_conservation(
     .. math::
         |L - S| \leq J \leq |L + S|
     """
+    in_magnitudes = [x["spin_magnitude"] for x in ingoing_spin_magnitudes]
+    out_magnitudes = [x["spin_magnitude"] for x in outgoing_spin_magnitudes]
     # L and S can only be used if one side is a single state
     # and the other side contains of two states (isobar)
     # So do a full check if this is the case
-    if (len(ingoing_spin_magnitudes) == 1 and len(outgoing_spin_magnitudes) == 2) or (
-        len(ingoing_spin_magnitudes) == 2 and len(outgoing_spin_magnitudes) == 1
+    if (len(in_magnitudes) == 1 and len(out_magnitudes) == 2) or (
+        len(in_magnitudes) == 2 and len(out_magnitudes) == 1
     ):
         return _check_magnitude(
-            [Fraction(x) for x in ingoing_spin_magnitudes],
-            [Fraction(x) for x in outgoing_spin_magnitudes],
-            interaction_qns,
+            [Fraction(x) for x in in_magnitudes],
+            [Fraction(x) for x in out_magnitudes],
+            l_magnitude=Fraction(interaction_qns["l_magnitude"]),
+            s_magnitude=Fraction(interaction_qns["s_magnitude"]),
         )
 
     # otherwise don't use S and L and just check magnitude
     # are integral or non integral on both sides
     return (
-        sum((float(x) for x in ingoing_spin_magnitudes), 0.0).is_integer()
-        == sum((float(x) for x in outgoing_spin_magnitudes), 0.0).is_integer()
+        sum((float(x) for x in in_magnitudes), 0.0).is_integer()
+        == sum((float(x) for x in out_magnitudes), 0.0).is_integer()
     )
 
 
@@ -801,16 +825,17 @@ def clebsch_gordan_helicity_to_canonical(
 
 
 def helicity_conservation(
-    ingoing_spin_mags: list[EdgeQN.spin_magnitude],
-    outgoing_helicities: list[EdgeQN.spin_projection],
+    ingoing_spin_mags: list[SpinMagnitudeFacts],
+    outgoing_helicities: list[HelicityFacts],
 ) -> bool:
     r"""Implementation of helicity conservation.
 
     Check for :math:`|\lambda_2-\lambda_3| \leq S_1`.
     """
     if len(ingoing_spin_mags) == 1 and len(outgoing_helicities) == 2:
-        mother_spin = ingoing_spin_mags[0]
-        if mother_spin >= abs(outgoing_helicities[0] - outgoing_helicities[1]):
+        mother_spin = ingoing_spin_mags[0]["spin_magnitude"]
+        helicities = [x["spin_projection"] for x in outgoing_helicities]
+        if mother_spin >= abs(helicities[0] - helicities[1]):
             return True
     return False
 

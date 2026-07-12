@@ -5,12 +5,12 @@ from fractions import Fraction
 import pytest
 
 from qrules.conservation_rules import (
-    SpinMagnitudeNodeInput,
+    SpinMagnitudeFacts,
+    SpinMagnitudeNodeFacts,
     spin_conservation,
     spin_magnitude_conservation,
 )
 from qrules.particle import Spin
-from qrules.quantum_numbers import EdgeQuantumNumbers
 
 from tests.unit.conservation_rules.helpers import (
     SpinRuleInputType,
@@ -18,9 +18,9 @@ from tests.unit.conservation_rules.helpers import (
 )
 
 _SpinMagnitudeRuleInputType = tuple[
-    list[EdgeQuantumNumbers.spin_magnitude],
-    list[EdgeQuantumNumbers.spin_magnitude],
-    SpinMagnitudeNodeInput,
+    list[SpinMagnitudeFacts],
+    list[SpinMagnitudeFacts],
+    SpinMagnitudeNodeFacts,
 ]
 
 
@@ -96,9 +96,12 @@ def test_spin_all_defined(rule_input: SpinRuleInputType, expected: bool) -> None
     [
         (
             (
-                [1],
-                [spin2_mag, 1],
-                SpinMagnitudeNodeInput(
+                [SpinMagnitudeFacts(spin_magnitude=Fraction(1))],
+                [
+                    SpinMagnitudeFacts(spin_magnitude=Fraction(spin2_mag)),
+                    SpinMagnitudeFacts(spin_magnitude=Fraction(1)),
+                ],
+                SpinMagnitudeNodeFacts(
                     l_magnitude=Fraction(ang_mom_mag),
                     s_magnitude=Fraction(coupled_spin_mag),
                 ),
@@ -112,9 +115,12 @@ def test_spin_all_defined(rule_input: SpinRuleInputType, expected: bool) -> None
     + [
         (
             (
-                [1],
-                [spin2_mag, 1],
-                SpinMagnitudeNodeInput(
+                [SpinMagnitudeFacts(spin_magnitude=Fraction(1))],
+                [
+                    SpinMagnitudeFacts(spin_magnitude=Fraction(spin2_mag)),
+                    SpinMagnitudeFacts(spin_magnitude=Fraction(1)),
+                ],
+                SpinMagnitudeNodeFacts(
                     l_magnitude=Fraction(ang_mom_mag),
                     s_magnitude=Fraction(coupled_spin_mag),
                 ),
