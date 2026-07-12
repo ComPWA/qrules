@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
     from typing_extensions import TypeIs
 
-    from qrules.argument_handling import Rule, RuleKey
+    from qrules.argument_handling import Rule
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -420,11 +420,11 @@ def __render_settings(
     settings: EdgeSettings | NodeSettings, formatter: _LabelFormatter
 ) -> str:
     lines: list[str] = []
-    if settings.rule_priorities:
+    if settings.conservation_rules:
         lines.append(formatter.text("RULES"))
         rule_descriptions = (
-            f"{__render_rule(rule)} - {__get_priority(rule, settings.rule_priorities)}"
-            for rule in settings.conservation_rules
+            f"{__render_rule(rule)} - {priority}"
+            for rule, priority in settings.conservation_rules.items()
         )
         sorted_names = sorted(rule_descriptions, key=__extract_priority, reverse=True)
         lines.extend(formatter.text(name) for name in sorted_names)
@@ -439,11 +439,6 @@ def __render_settings(
         )
         lines.extend(domains)
     return formatter.lines(lines)
-
-
-def __get_priority(rule: Rule, rule_priorities: dict[RuleKey, int]) -> int | str:
-    rule_type = __get_type(rule)
-    return rule_priorities.get(rule_type, "NA")
 
 
 def __render_rule(rule: Rule) -> str:

@@ -242,7 +242,7 @@ def describe_as_string():
             parity_conservation_helicity - 4
             g_parity_conservation - 3
             identical_particle_symmetrization - 2
-            clebsch_gordan_helicity_to_canonical - NA
+            clebsch_gordan_helicity_to_canonical - 1
             DOMAINS
             l_magnitude ∊ [0, 1]
             l_projection ∊ [0]
