@@ -41,14 +41,7 @@ from qrules.system_control import (
     create_edge_properties,
     create_node_properties,
 )
-from qrules.topology import (
-    FrozenDict,
-    FrozenTransition,
-    MutableTransition,
-    Topology,
-    create_isobar_topologies,
-    create_n_body_topology,
-)
+from qrules.topology import FrozenDict, FrozenTransition, MutableTransition, Topology
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
@@ -213,6 +206,7 @@ class StateTransitionManager:
         self.__number_of_threads = NumberOfThreads.get()
         from qrules.workflow import (  # noqa: PLC0415
             _create_qn_filters,
+            _create_topologies,
             _validate_formalism,
             filter_intermediate_particles,
         )
@@ -244,22 +238,15 @@ class StateTransitionManager:
         filter_remove_qns, filter_ignore_qns = _create_qn_filters(formalism)
         self.filter_remove_qns: set[type[NodeQuantumNumber]] = filter_remove_qns
         self.filter_ignore_qns: set[type[NodeQuantumNumber]] = filter_ignore_qns
-        use_nbody_topology = False
-        topology_building = topology_building.lower()
-        if topology_building == "isobar":
-            self.topologies: tuple[Topology, ...] = create_isobar_topologies(
-                len(final_state)
-            )
-            """`.Topology` instances over which the STM propagates quantum numbers."""
-        elif "n-body" in topology_building or "nbody" in topology_building:
-            self.topologies = (
-                create_n_body_topology(len(initial_state), len(final_state)),
-            )
-            use_nbody_topology = True
-            # turn off mass conservation, in case more than one initial state
-            # particle is present
-            if len(initial_state) > 1:
-                mass_conservation_factor = None
+        topologies, use_nbody_topology = _create_topologies(
+            len(initial_state), len(final_state), topology_building
+        )
+        self.topologies: tuple[Topology, ...] = topologies
+        """`.Topology` instances over which the STM propagates quantum numbers."""
+        # turn off mass conservation, in case more than one initial state
+        # particle is present
+        if use_nbody_topology and len(initial_state) > 1:
+            mass_conservation_factor = None
 
         if reload_pdg or len(self.__particles) == 0:
             self.__particles = load_pdg()
@@ -373,12 +360,9 @@ class StateTransitionManager:
         self, problem_sets: dict[float, list[ProblemSet]]
     ) -> dict[float, list[tuple[QNProblemSet, QNResult]]]:
         """Find allowed transitions purely in terms of quantum number sets."""
-        from qrules.workflow import solve  # noqa: PLC0415
+        from qrules.workflow import _to_qn_problem_sets, solve  # noqa: PLC0415
 
-        qn_problem_sets = {
-            strength: [problem_set.to_qn_problem_set() for problem_set in problems]
-            for strength, problems in problem_sets.items()
-        }
+        qn_problem_sets = _to_qn_problem_sets(problem_sets)
         return solve(
             qn_problem_sets,
             self.__intermediate_particles,
