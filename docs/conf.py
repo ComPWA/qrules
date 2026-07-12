@@ -65,6 +65,7 @@ api_target_substitutions: dict[str, str | tuple[str, str]] = {
     "NodeType": "typing.TypeVar",
     "ParticleWithSpin": ("obj", "qrules.particle.ParticleWithSpin"),
     "Path": "pathlib.Path",
+    "QNTransition": ("obj", "qrules.workflow.QNTransition"),
     "qrules.topology.EdgeType": "typing.TypeVar",
     "qrules.topology.NodeType": "typing.TypeVar",
     "Rule": ("obj", "qrules.argument_handling.Rule"),
@@ -104,6 +105,7 @@ api_target_types: dict[str, str | tuple[str, str]] = {
     "qrules.solving.GraphElementProperties": "obj",
     "qrules.solving.GraphSettings": "obj",
     "qrules.transition.StateTransition": "obj",
+    "qrules.workflow.QNTransition": "obj",
 }
 author = "Common Partial Wave Analysis"
 autodoc_default_options = {
@@ -124,6 +126,7 @@ autodoc_type_aliases = {
     "GraphElementProperties": "qrules.solving.GraphElementProperties",
     "GraphSettings": "qrules.solving.GraphSettings",
     "InitialFacts": "qrules.combinatorics.InitialFacts",
+    "QNTransition": "qrules.workflow.QNTransition",
     "StateTransition": "qrules.transition.StateTransition",
 }
 autodoc_typehints_format = "short"
