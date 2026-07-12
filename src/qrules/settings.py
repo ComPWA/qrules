@@ -13,6 +13,7 @@ import multiprocessing
 from copy import deepcopy
 from enum import Enum, auto
 from fractions import Fraction
+from inspect import isfunction
 from os.path import dirname, join, realpath
 from typing import TYPE_CHECKING, Any
 
@@ -47,11 +48,12 @@ from qrules.conservation_rules import (
 from qrules.quantum_numbers import EdgeQuantumNumbers as EdgeQN
 from qrules.quantum_numbers import NodeQuantumNumbers as NodeQN
 from qrules.quantum_numbers import arange
-from qrules.solving import EdgeSettings, NodeSettings
+from qrules.solving import DEFAULT_RULE_PRIORITY, EdgeSettings, NodeSettings
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterable
+    from collections.abc import Callable, Iterable, Mapping
 
+    from qrules.argument_handling import Rule
     from qrules.particle import Particle, ParticleCollection
     from qrules.transition import SpinFormalism
 
@@ -94,6 +96,24 @@ EDGE_RULE_PRIORITIES: dict[GraphElementRule, int] = {
 """Determines the order with which to verify `.Edge` conservation rules."""
 
 
+def _with_priorities(
+    rules: Iterable[Rule], priorities: Mapping[Any, int] | None = None
+) -> dict[Any, int]:
+    """Map each rule to its default priority, as input for `.EdgeSettings`/`.NodeSettings`.
+
+    Class-based rules are looked up by type, so that parametrized instances such as
+    `.MassConservation` share one priority definition.
+    """
+    if priorities is None:
+        priorities = CONSERVATION_LAW_PRIORITIES
+
+    def get_priority(rule: Rule) -> int:
+        key: Any = rule if isfunction(rule) else type(rule)
+        return priorities.get(key, DEFAULT_RULE_PRIORITY)
+
+    return {rule: get_priority(rule) for rule in rules}
+
+
 class InteractionType(Enum):
     """Types of interactions in the form of an enumerate."""
 
@@ -131,36 +151,40 @@ def create_interaction_settings(  # noqa: PLR0917
 ) -> dict[InteractionType, tuple[EdgeSettings, NodeSettings]]:
     """Create a container that holds the settings for `.InteractionType`."""
     formalism_edge_settings = EdgeSettings(
-        conservation_rules={
-            isospin_validity,
-            gellmann_nishijima,
-            spin_validity,
-        },
-        rule_priorities=EDGE_RULE_PRIORITIES,
+        conservation_rules=_with_priorities(
+            {
+                isospin_validity,
+                gellmann_nishijima,
+                spin_validity,
+            },
+            EDGE_RULE_PRIORITIES,
+        ),
         qn_domains=_create_domains(particle_db),
     )
-    formalism_node_settings = NodeSettings(rule_priorities=CONSERVATION_LAW_PRIORITIES)
+    formalism_node_settings = NodeSettings()
 
     angular_momentum_domain = __get_ang_mom_magnitudes(
         nbody_topology, max_angular_momentum
     )
     spin_magnitude_domain = __get_spin_magnitudes(nbody_topology, max_spin_magnitude)
     if "helicity" in formalism:
-        formalism_node_settings.conservation_rules = {
+        formalism_node_settings.conservation_rules = _with_priorities({
             spin_magnitude_conservation,
             helicity_conservation,
-        }
+        })
         formalism_node_settings.qn_domains = {
             NodeQN.l_magnitude: angular_momentum_domain,
             NodeQN.s_magnitude: spin_magnitude_domain,
         }
     elif formalism == "canonical":
-        formalism_node_settings.conservation_rules = {spin_magnitude_conservation}
+        formalism_node_settings.conservation_rules = _with_priorities({
+            spin_magnitude_conservation
+        })
         if nbody_topology:
-            formalism_node_settings.conservation_rules = {
+            formalism_node_settings.conservation_rules = _with_priorities({
                 spin_conservation,
                 ls_spin_validity,
-            }
+            })
         formalism_node_settings.qn_domains = {
             NodeQN.l_magnitude: angular_momentum_domain,
             NodeQN.l_projection: __extend_negative(angular_momentum_domain),
@@ -168,29 +192,33 @@ def create_interaction_settings(  # noqa: PLR0917
             NodeQN.s_projection: __extend_negative(spin_magnitude_domain),
         }
     if formalism == "canonical-helicity":
-        formalism_node_settings.conservation_rules.update({
-            clebsch_gordan_helicity_to_canonical,
-            ls_spin_validity,
-        })
+        formalism_node_settings.conservation_rules.update(
+            _with_priorities({
+                clebsch_gordan_helicity_to_canonical,
+                ls_spin_validity,
+            })
+        )
         formalism_node_settings.qn_domains.update({
             NodeQN.l_projection: [0],
             NodeQN.s_projection: __extend_negative(spin_magnitude_domain),
         })
     if mass_conservation_factor is not None:
-        formalism_node_settings.conservation_rules.add(
-            MassConservation(mass_conservation_factor)
+        formalism_node_settings.conservation_rules.update(
+            _with_priorities({MassConservation(mass_conservation_factor)})
         )
 
     interaction_type_settings = {}
     weak_node_settings = deepcopy(formalism_node_settings)
-    weak_node_settings.conservation_rules.update([
-        ChargeConservation(),  # type: ignore[abstract]
-        ElectronLNConservation(),  # type: ignore[abstract]
-        MuonLNConservation(),  # type: ignore[abstract]
-        TauLNConservation(),  # type: ignore[abstract]
-        BaryonNumberConservation(),  # type: ignore[abstract]
-        identical_particle_symmetrization,
-    ])
+    weak_node_settings.conservation_rules.update(
+        _with_priorities([
+            ChargeConservation(),  # type: ignore[abstract]
+            ElectronLNConservation(),  # type: ignore[abstract]
+            MuonLNConservation(),  # type: ignore[abstract]
+            TauLNConservation(),  # type: ignore[abstract]
+            BaryonNumberConservation(),  # type: ignore[abstract]
+            identical_particle_symmetrization,
+        ])
+    )
     weak_node_settings.interaction_strength = 10 ** (-4)
     weak_edge_settings = deepcopy(formalism_edge_settings)
 
@@ -200,15 +228,19 @@ def create_interaction_settings(  # noqa: PLR0917
     )
 
     em_node_settings = deepcopy(weak_node_settings)
-    em_node_settings.conservation_rules.update({
-        CharmConservation(),  # type: ignore[abstract]
-        StrangenessConservation(),  # type: ignore[abstract]
-        BottomnessConservation(),  # type: ignore[abstract]
-        parity_conservation,
-        c_parity_conservation,
-    })
+    em_node_settings.conservation_rules.update(
+        _with_priorities({
+            CharmConservation(),  # type: ignore[abstract]
+            StrangenessConservation(),  # type: ignore[abstract]
+            BottomnessConservation(),  # type: ignore[abstract]
+            parity_conservation,
+            c_parity_conservation,
+        })
+    )
     if "helicity" in formalism:
-        em_node_settings.conservation_rules.add(parity_conservation_helicity)
+        em_node_settings.conservation_rules.update(
+            _with_priorities({parity_conservation_helicity})
+        )
         em_node_settings.qn_domains.update({NodeQN.parity_prefactor: [-1, 1]})
 
     em_node_settings.interaction_strength = 1
@@ -219,10 +251,12 @@ def create_interaction_settings(  # noqa: PLR0917
     )
 
     strong_node_settings = deepcopy(em_node_settings)
-    strong_node_settings.conservation_rules.update({
-        isospin_conservation,
-        g_parity_conservation,
-    })
+    strong_node_settings.conservation_rules.update(
+        _with_priorities({
+            isospin_conservation,
+            g_parity_conservation,
+        })
+    )
 
     strong_node_settings.interaction_strength = 60
     strong_edge_settings = deepcopy(em_edge_settings)

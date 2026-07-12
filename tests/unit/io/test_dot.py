@@ -214,7 +214,6 @@ def test_as_string_dict(
     print(src)
     expected_dot = dedent("""
         RULES
-        clebsch_gordan_helicity_to_canonical - NA
         BaryonNumberConservation - 90
         ls_spin_validity - 89
         spin_magnitude_conservation - 8
@@ -233,6 +232,7 @@ def test_as_string_dict(
         identical_particle_symmetrization - 2
         ChargeConservation - 100
         MassConservation - 10
+        clebsch_gordan_helicity_to_canonical - 1
         DOMAINS
         l_magnitude ∊ [0, 1]
         l_projection ∊ [0]

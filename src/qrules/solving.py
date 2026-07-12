@@ -13,6 +13,7 @@ import logging
 import operator
 from abc import ABC, abstractmethod
 from collections import defaultdict
+from collections.abc import Mapping
 from copy import copy
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
@@ -45,13 +46,38 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
+DEFAULT_RULE_PRIORITY = 1
+"""Priority assigned to a conservation rule for which no priority is specified."""
+
+
+def _to_rule_priority_map(
+    rules: Mapping[Any, int] | Iterable[Any],
+) -> dict[Any, int]:
+    """Normalize a rule collection to a rule-to-priority mapping.
+
+    >>> _to_rule_priority_map({"rule": 8})
+    {'rule': 8}
+    >>> _to_rule_priority_map({"rule"})
+    {'rule': 1}
+    """
+    if isinstance(rules, Mapping):
+        return dict(rules)
+    return dict.fromkeys(rules, DEFAULT_RULE_PRIORITY)
+
+
 @implement_pretty_repr
 @define
 class EdgeSettings:
     """Solver settings for a specific edge of a graph."""
 
-    conservation_rules: set[GraphElementRule] = field(factory=set)
-    rule_priorities: dict[GraphElementRule, int] = field(factory=dict)
+    conservation_rules: dict[GraphElementRule, int] = field(
+        factory=dict, converter=_to_rule_priority_map
+    )
+    """Mapping of conservation rules to their priority.
+
+    Rules with a higher priority are evaluated first. A `set` of rules may be given
+    instead, in which case each rule gets the `DEFAULT_RULE_PRIORITY`.
+    """
     qn_domains: dict[EdgeQuantumNumberTypes, list] = field(factory=dict)
 
 
@@ -64,14 +90,20 @@ class NodeSettings:
     settings contain the complete configuration information which is required for the
     solution finding, e.g:
 
-      - set of conservation rules
-      - mapping of rules to priorities (optional)
+      - mapping of conservation rules to their priorities (higher priorities are
+        evaluated first)
       - mapping of quantum numbers to their domains
       - strength scale parameter (higher value means stronger force)
     """
 
-    conservation_rules: set[Rule] = field(factory=set)
-    rule_priorities: dict[Rule, int] = field(factory=dict)
+    conservation_rules: dict[Rule, int] = field(
+        factory=dict, converter=_to_rule_priority_map
+    )
+    """Mapping of conservation rules to their priority.
+
+    Rules with a higher priority are evaluated first. A `set` of rules may be given
+    instead, in which case each rule gets the `DEFAULT_RULE_PRIORITY`.
+    """
     qn_domains: dict[NodeQuantumNumberTypes, list] = field(factory=dict)
     interaction_strength: float = 1.0
 
@@ -126,8 +158,10 @@ def filter_quantum_number_problem_set(
     old_node_properties = quantum_number_problem_set.initial_facts.interactions
     new_edge_settings = {
         edge_id: EdgeSettings(
-            conservation_rules=edge_rules,
-            rule_priorities=edge_setting.rule_priorities,
+            conservation_rules={
+                rule: edge_setting.conservation_rules.get(rule, DEFAULT_RULE_PRIORITY)
+                for rule in edge_rules
+            },
             qn_domains=({
                 key: val
                 for key, val in edge_setting.qn_domains.items()
@@ -138,8 +172,10 @@ def filter_quantum_number_problem_set(
     }
     new_node_settings = {
         node_id: NodeSettings(
-            conservation_rules=node_rules,
-            rule_priorities=node_setting.rule_priorities,
+            conservation_rules={
+                rule: node_setting.conservation_rules.get(rule, DEFAULT_RULE_PRIORITY)
+                for rule in node_rules
+            },
             qn_domains=({
                 key: val
                 for key, val in node_setting.qn_domains.items()
@@ -618,21 +654,12 @@ class CSPSolver(Solver):
         def get_rules_by_priority(
             graph_element_settings: NodeSettings | EdgeSettings,
         ) -> list[Rule]:
-            # first add priorities to the entries
-            priority_list = [
-                (
-                    (x, graph_element_settings.rule_priorities[type(x)])  # type: ignore[index]
-                    if type(x) in graph_element_settings.rule_priorities
-                    else (x, 1)
-                )
-                for x in graph_element_settings.conservation_rules
-            ]
-            # then sort according to priority
-            sorted_list = sorted(
-                priority_list, key=operator.itemgetter(1), reverse=True
+            sorted_rules = sorted(
+                graph_element_settings.conservation_rules.items(),
+                key=operator.itemgetter(1),
+                reverse=True,
             )
-            # and strip away the priorities again
-            return [x[0] for x in sorted_list]
+            return [rule for rule, _ in sorted_rules]
 
         arg_handler = RuleArgumentHandler()
 
