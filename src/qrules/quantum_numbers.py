@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from fractions import Fraction
 from functools import total_ordering
-from typing import TYPE_CHECKING, Any, Literal, NewType
+from typing import TYPE_CHECKING, Any, Literal, NewType, TypedDict
 
 from attrs import field, frozen
 
@@ -187,6 +187,49 @@ NodeQuantumNumberTypes = (
     | type[NodeQuantumNumbers.parity_prefactor]
 )
 """Type-Union for accessing the keys of the dicts in `.NodeSettings`"""
+
+
+class EdgeFacts(TypedDict, total=False):
+    """Quantum numbers that can be known about a state (edge), keyed by name.
+
+    Conservation rules declare the facts they need as a required-key subset of this
+    `~typing.TypedDict` (see e.g. `.ChargeFacts`), so that static type checkers verify
+    calls to a rule, while the :mod:`.solving` module derives the run conditions of the
+    rule from :attr:`~typing.TypedDict.__required_keys__`.
+    """
+
+    pid: int
+    mass: float
+    width: float
+    spin_magnitude: Fraction
+    spin_projection: Fraction
+    charge: int
+    isospin_magnitude: Fraction
+    isospin_projection: Fraction
+    strangeness: int
+    charmness: int
+    bottomness: int
+    topness: int
+    baryon_number: int
+    electron_lepton_number: int
+    muon_lepton_number: int
+    tau_lepton_number: int
+    parity: Parity
+    c_parity: Parity | None
+    g_parity: Parity | None
+
+
+class NodeFacts(TypedDict, total=False):
+    """Quantum numbers that can be known about an interaction (node), keyed by name.
+
+    The node-level counterpart of `EdgeFacts`.
+    """
+
+    l_magnitude: Fraction
+    l_projection: Fraction
+    s_magnitude: Fraction
+    s_projection: Fraction
+    parity_prefactor: float
 
 
 def _to_optional_float(optional_float: float | None) -> float | None:

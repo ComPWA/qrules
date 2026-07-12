@@ -1,21 +1,23 @@
+from fractions import Fraction
 from itertools import product
 
 import pytest
 
-from qrules.conservation_rules import helicity_conservation
-from qrules.quantum_numbers import EdgeQuantumNumbers
+from qrules.conservation_rules import (
+    HelicityFacts,
+    SpinMagnitudeFacts,
+    helicity_conservation,
+)
 
 
 @pytest.mark.parametrize(
     ("in_edge_qns", "out_edge_qns", "expected"),
     [
         (
+            [SpinMagnitudeFacts(spin_magnitude=Fraction(s_magnitude))],
             [
-                EdgeQuantumNumbers.spin_magnitude(s_magnitude),  # type:ignore[arg-type]
-            ],
-            [
-                EdgeQuantumNumbers.spin_projection(lambda1),  # type:ignore[arg-type]
-                EdgeQuantumNumbers.spin_projection(lambda2),  # type:ignore[arg-type]
+                HelicityFacts(spin_projection=Fraction(lambda1)),
+                HelicityFacts(spin_projection=Fraction(lambda2)),
             ],
             abs(lambda1 - lambda2) <= s_magnitude,
         )

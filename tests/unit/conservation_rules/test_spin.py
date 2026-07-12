@@ -6,17 +6,18 @@ import pytest
 
 from qrules.conservation_rules import (
     SpinEdgeInput,
+    SpinMagnitudeFacts,
+    SpinMagnitudeNodeFacts,
     SpinNodeInput,
     spin_conservation,
     spin_magnitude_conservation,
 )
 from qrules.particle import Spin
-from qrules.quantum_numbers import EdgeQuantumNumbers
 
 _SpinMagnitudeRuleInputType = tuple[
-    list[EdgeQuantumNumbers.spin_magnitude],
-    list[EdgeQuantumNumbers.spin_magnitude],
-    SpinNodeInput,
+    list[SpinMagnitudeFacts],
+    list[SpinMagnitudeFacts],
+    SpinMagnitudeNodeFacts,
 ]
 _SpinRuleInputType = tuple[
     list[SpinEdgeInput],
@@ -130,13 +131,14 @@ def test_spin_all_defined(rule_input: _SpinRuleInputType, expected: bool) -> Non
     [
         (
             (
-                [1],
-                [spin2_mag, 1],
-                SpinNodeInput(
-                    Fraction(ang_mom_mag),
-                    Fraction(0),
-                    Fraction(coupled_spin_mag),
-                    Fraction(-1),
+                [SpinMagnitudeFacts(spin_magnitude=Fraction(1))],
+                [
+                    SpinMagnitudeFacts(spin_magnitude=Fraction(spin2_mag)),
+                    SpinMagnitudeFacts(spin_magnitude=Fraction(1)),
+                ],
+                SpinMagnitudeNodeFacts(
+                    l_magnitude=Fraction(ang_mom_mag),
+                    s_magnitude=Fraction(coupled_spin_mag),
                 ),
             ),
             True,
@@ -148,13 +150,14 @@ def test_spin_all_defined(rule_input: _SpinRuleInputType, expected: bool) -> Non
     + [
         (
             (
-                [1],
-                [spin2_mag, 1],
-                SpinNodeInput(
-                    Fraction(ang_mom_mag),
-                    Fraction(0),
-                    Fraction(coupled_spin_mag),
-                    Fraction(0),
+                [SpinMagnitudeFacts(spin_magnitude=Fraction(1))],
+                [
+                    SpinMagnitudeFacts(spin_magnitude=Fraction(spin2_mag)),
+                    SpinMagnitudeFacts(spin_magnitude=Fraction(1)),
+                ],
+                SpinMagnitudeNodeFacts(
+                    l_magnitude=Fraction(ang_mom_mag),
+                    s_magnitude=Fraction(coupled_spin_mag),
                 ),
             ),
             False,
@@ -167,4 +170,4 @@ def test_spin_all_defined(rule_input: _SpinRuleInputType, expected: bool) -> Non
 def test_spin_ignore_z_component(
     rule_input: _SpinMagnitudeRuleInputType, expected: bool
 ) -> None:
-    assert spin_magnitude_conservation(*rule_input) is expected  # type: ignore[arg-type]
+    assert spin_magnitude_conservation(*rule_input) is expected

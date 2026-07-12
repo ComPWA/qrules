@@ -43,7 +43,6 @@ def test_protocol_compliance():
         conservation_rules.CParityNodeInput,
         conservation_rules.GParityNodeInput,
         conservation_rules.SpinNodeInput,
-        conservation_rules.SpinMagnitudeNodeInput,
     }
     assert edge_input_classes | node_input_classes == RULE_INPUT_CLASSES
 

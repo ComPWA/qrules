@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import inspect
 from fractions import Fraction
-from typing import TYPE_CHECKING, Any, Generic, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, Union, is_typeddict
 
 import attrs
 
@@ -18,7 +18,13 @@ from qrules.conservation_rules import (
     EdgeQNConservationRule,
     GraphElementRule,
 )
-from qrules.quantum_numbers import EdgeQuantumNumber, NodeQuantumNumber, Parity
+from qrules.quantum_numbers import (
+    EdgeQuantumNumber,
+    EdgeQuantumNumbers,
+    NodeQuantumNumber,
+    NodeQuantumNumbers,
+    Parity,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
@@ -48,6 +54,15 @@ def _is_sequence_type(input_type: type) -> bool:
     return origin in {list, tuple}
 
 
+_QN_TYPE_BY_NAME: dict[str, Any] = {
+    name: qn_type
+    for qn_container in (EdgeQuantumNumbers, NodeQuantumNumbers)
+    for name, qn_type in qn_container.__dict__.items()
+    if not name.startswith("__")
+}
+"""Mapping of `.EdgeFacts`/`.NodeFacts` keys to their quantum number types."""
+
+
 def _is_edge_quantum_number(qn_type: Any) -> bool:
     return qn_type in EdgeQuantumNumber.__args__  # type: ignore[attr-defined]
 
@@ -70,6 +85,38 @@ class _CompositeArgumentCheck:
         return all(
             class_field_type in props for class_field_type in self.__class_field_types
         )
+
+
+class _TypedDictArgumentCheck:
+    """Check that the required keys of a `~typing.TypedDict` rule input are present."""
+
+    def __init__(self, typed_dict: type) -> None:
+        self.__required_qn_types = [
+            _QN_TYPE_BY_NAME[name]
+            for name in typed_dict.__required_keys__  # type: ignore[attr-defined]
+        ]
+
+    def __call__(self, props: GraphElementPropertyMap) -> bool:
+        return all(qn_type in props for qn_type in self.__required_qn_types)
+
+
+class _TypedDictArgumentCreator:
+    """Extract a `~typing.TypedDict` rule argument from a property map.
+
+    The values are passed on as-is, without coercion.
+    """
+
+    def __init__(self, typed_dict: type) -> None:
+        self.__qn_types = {
+            name: _QN_TYPE_BY_NAME[name] for name in typed_dict.__annotations__
+        }
+
+    def __call__(self, props: GraphElementPropertyMap) -> dict[str, Any]:
+        return {
+            name: props[qn_type]
+            for name, qn_type in self.__qn_types.items()
+            if qn_type in props
+        }
 
 
 def _direct_qn_check(
@@ -195,13 +242,17 @@ class RuleArgumentHandler:
                 qn_type = input_type.__args__[0]  # type: ignore[attr-defined]
                 is_list = True
 
-            if attrs.has(qn_type):
+            if is_typeddict(qn_type):
+                qn_check_function: Callable[..., bool] = _TypedDictArgumentCheck(
+                    qn_type
+                )
+            elif attrs.has(qn_type):
                 class_field_types = [
                     class_field.type
                     for class_field in attrs.fields(qn_type)  # type: ignore[misc]
                     if not _is_optional(class_field.type)
                 ]
-                qn_check_function: Callable[..., bool] = _CompositeArgumentCheck(
+                qn_check_function = _CompositeArgumentCheck(
                     class_field_types  # type: ignore[arg-type]
                 )
             else:
@@ -226,8 +277,10 @@ class RuleArgumentHandler:
                 qn_type = input_type.__args__[0]  # type: ignore[attr-defined]
                 is_list = True
 
-            if attrs.has(qn_type):
-                arg_builder: Callable[..., Any] = _CompositeArgumentCreator(qn_type)
+            if is_typeddict(qn_type):
+                arg_builder: Callable[..., Any] = _TypedDictArgumentCreator(qn_type)
+            elif attrs.has(qn_type):
+                arg_builder = _CompositeArgumentCreator(qn_type)
             else:
                 if _is_edge_quantum_number(qn_type):
                     arg_builder = _ValueExtractor[EdgeQuantumNumber](qn_type)
@@ -317,21 +370,26 @@ def get_required_qns(
         if _is_sequence_type(input_type):
             class_type = input_type.__args__[0]
 
-        if attrs.has(class_type):
-            for class_field in attrs.fields(class_type):  # type: ignore[misc]
-                field_type = (
-                    class_field.type.__args__[0]  # type: ignore[union-attr]
-                    if _is_optional(class_field.type)
-                    else class_field.type
-                )
-                if _is_edge_quantum_number(field_type):
-                    required_edge_qns.add(field_type)
-                else:
-                    required_node_qns.add(field_type)
-        else:
-            if _is_edge_quantum_number(class_type):
-                required_edge_qns.add(class_type)
+        for qn_type in _get_qn_types(class_type):
+            if _is_edge_quantum_number(qn_type):
+                required_edge_qns.add(qn_type)
             else:
-                required_node_qns.add(class_type)
+                required_node_qns.add(qn_type)
 
     return required_edge_qns, required_node_qns
+
+
+def _get_qn_types(class_type: Any) -> list[Any]:
+    """Get the quantum number types behind a rule input type annotation."""
+    if is_typeddict(class_type):
+        return [_QN_TYPE_BY_NAME[name] for name in class_type.__annotations__]
+    if attrs.has(class_type):
+        return [
+            (
+                class_field.type.__args__[0]  # type: ignore[union-attr]
+                if _is_optional(class_field.type)
+                else class_field.type
+            )
+            for class_field in attrs.fields(class_type)  # type: ignore[misc]
+        ]
+    return [class_type]
