@@ -201,13 +201,27 @@ def create_initial_facts(
     initial_state: Sequence[StateDefinitionInput],
     final_state: Sequence[StateDefinitionInput],
     particle_db: ParticleCollection,
+    expand_spin_projections: bool = True,
 ) -> list[InitialFacts]:
+    """Attach the initial and final states to the external edges of a `.Topology`.
+
+    By default, one `.InitialFacts` is created for every combination of allowed spin
+    projections of the initial and final state. With
+    :code:`expand_spin_projections=False`, this Cartesian expansion is skipped and a
+    single `.InitialFacts` without spin projections is returned, for solving at the
+    :math:`J^{P(C)}` level (see `.strip_spin_projections`).
+    """
     states = __create_states_with_spin_projections(
         list(topology.incoming_edge_ids) + list(topology.outgoing_edge_ids),
         list(map(as_state_definition, initial_state))
         + list(map(as_state_definition, final_state)),
         particle_db,
     )
+    if not expand_spin_projections:
+        projection_free_states = {
+            edge_id: (particle_db[name], None) for edge_id, (name, _) in states.items()
+        }
+        return [MutableTransition(topology, projection_free_states)]  # type: ignore[arg-type]
     spin_states = __generate_spin_combinations(states, particle_db)
     return [MutableTransition(topology, state) for state in spin_states]  # type: ignore[arg-type]
 

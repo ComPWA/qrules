@@ -37,6 +37,25 @@ def test_create_initial_facts(three_body_decay, particle_database):
         assert initial_polarization in {-1, +1}
 
 
+def test_create_initial_facts_without_spin_projections(
+    three_body_decay, particle_database
+):
+    initial_facts = create_initial_facts(
+        three_body_decay,
+        initial_state=[("J/psi(1S)", [-1, +1])],
+        final_state=["gamma", "pi0", "pi0"],
+        particle_db=particle_database,
+        expand_spin_projections=False,
+    )
+    assert len(initial_facts) == 1
+    fact = initial_facts[0]
+    edge_ids = sorted(fact.states)
+    assert edge_ids == [-1, 0, 1, 2]
+    particle_names = [fact.states[i][0].name for i in edge_ids]
+    assert particle_names == ["J/psi(1S)", "gamma", "pi0", "pi0"]
+    assert all(projection is None for _, projection in fact.states.values())
+
+
 def test_generate_kinematic_permutations_groupings(three_body_decay: Topology):
     topology = three_body_decay
     particle_names = {

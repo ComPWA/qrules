@@ -377,6 +377,7 @@ def create_problem_sets(  # noqa: PLR0917
     intermediate_particles: AllowedIntermediateParticles,
     topologies: Iterable[Topology],
     final_state_groupings: list[list[list[str]]] | None = None,
+    expand_spin_projections: bool = True,
 ) -> dict[float, list[ProblemSet]]:
     """Create a `.ProblemSet` collection over all topologies, grouped by strength."""
     initial_state = list(map(as_state_definition, initial_state))
@@ -391,7 +392,11 @@ def create_problem_sets(  # noqa: PLR0917
             final_state_groupings,
         )
         for initial_facts in create_initial_facts(
-            permutation, initial_state, final_state, particle_db
+            permutation,
+            initial_state,
+            final_state,
+            particle_db,
+            expand_spin_projections,
         )
         for settings in create_graph_settings(
             permutation, initial_facts, interaction_config, intermediate_particles
@@ -660,6 +665,7 @@ def create_qn_problem_sets(  # noqa: PLR0917
     max_spin_magnitude: float = 2,
     final_state_groupings: list[list[list[str]]] | None = None,
     merge_spin_projections: bool = False,
+    spin_projections: bool = True,
 ) -> QNProblemSetCollection:
     """Create a `.QNProblemSet` collection for a reaction, grouped by strength.
 
@@ -673,7 +679,16 @@ def create_qn_problem_sets(  # noqa: PLR0917
     initial and final state are merged into value ranges on a single `.QNProblemSet`
     (see `.merge_qn_problem_sets`), which reduces the number of problem sets and
     speeds up solving.
+
+    With :code:`spin_projections=False`, the problem sets contain no spin projections
+    at all: the Cartesian expansion over spin-projection combinations is skipped
+    entirely, so the problem sets can only be solved at the :math:`J^{P(C)}` level
+    with `find_qn_transitions`. This is equivalent to — but much cheaper than —
+    passing the collection through `strip_spin_projections` afterwards.
     """
+    if not spin_projections and merge_spin_projections:
+        msg = "merge_spin_projections has no effect when spin_projections=False"
+        raise ValueError(msg)
     _validate_formalism(formalism)
     if particle_db is None:
         particle_db = load_pdg()
@@ -706,6 +721,7 @@ def create_qn_problem_sets(  # noqa: PLR0917
         intermediate_particles,
         topologies,
         final_state_groupings,
+        expand_spin_projections=spin_projections,
     )
     qn_problem_sets = _to_qn_problem_sets(problem_sets)
     if merge_spin_projections:
@@ -713,12 +729,15 @@ def create_qn_problem_sets(  # noqa: PLR0917
             strength: merge_qn_problem_sets(problems)
             for strength, problems in qn_problem_sets.items()
         }
-    return QNProblemSetCollection(
+    collection = QNProblemSetCollection(
         problem_sets=qn_problem_sets,
         intermediate_particles=intermediate_particles,
         final_state=list(map(as_state_definition, final_state)),
         formalism=formalism,
     )
+    if not spin_projections:
+        return strip_spin_projections(collection)
+    return collection
 
 
 def _to_qn_problem_sets(
@@ -777,6 +796,14 @@ QNTransition = FrozenTransition[FrozenDict[Any, Any], FrozenDict[Any, Any]]
 """Transition whose states and interactions are quantum-number property maps."""
 
 
+@overload
+def strip_spin_projections(
+    qn_problem_sets: QNProblemSetCollection,
+) -> QNProblemSetCollection: ...
+@overload
+def strip_spin_projections(
+    qn_problem_sets: dict[float, list[QNProblemSet]],
+) -> dict[float, list[QNProblemSet]]: ...
 def strip_spin_projections(
     qn_problem_sets: QNProblemSetCollection | dict[float, list[QNProblemSet]],
 ) -> QNProblemSetCollection | dict[float, list[QNProblemSet]]:
@@ -788,10 +815,15 @@ def strip_spin_projections(
     identical — such as the expansion over all spin-projection combinations — are
     deduplicated. Rules that require spin projections are skipped and reported by the
     solver through the not-executed-rules mechanism.
+
+    .. tip:: `create_qn_problem_sets` with :code:`spin_projections=False` produces the
+        same problem sets without generating the spin-projection expansion in the
+        first place, which is considerably faster for reactions with many spin-carrying
+        states.
     """
     if isinstance(qn_problem_sets, QNProblemSetCollection):
         stripped_collection = copy(qn_problem_sets)
-        stripped_collection.problem_sets = strip_spin_projections(  # type: ignore[assignment]
+        stripped_collection.problem_sets = strip_spin_projections(
             qn_problem_sets.problem_sets
         )
         return stripped_collection

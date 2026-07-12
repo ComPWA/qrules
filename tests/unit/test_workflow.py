@@ -10,6 +10,7 @@ from qrules.settings import (
     InteractionType,
     create_interaction_settings,
 )
+from qrules.solving import _create_merge_key
 from qrules.transition import ReactionInfo
 from qrules.workflow import (
     InteractionConfig,
@@ -160,3 +161,37 @@ def test_projection_free_qn_transitions():
     serialized = json.dumps(asdict(qn_transitions[0]))
     assert '"spin_projection"' not in serialized
     assert '"spin_magnitude"' in serialized
+
+    unexpanded = create_qn_problem_sets(
+        initial_state=[("J/psi(1S)", [-1, 1])],
+        final_state=["gamma", "pi0", "pi0"],
+        particle_db=particle_db,
+        allowed_intermediate_particles=["f(0)(980)", "f(0)(1500)"],
+        interaction_config=InteractionConfig(
+            type_settings=create_interaction_settings(
+                "helicity", particle_db=particle_db, max_angular_momentum=2
+            ),
+            allowed_types=[InteractionType.STRONG],
+        ),
+        spin_projections=False,
+    )
+    assert _to_merge_keys(unexpanded) == _to_merge_keys(stripped)
+    assert find_qn_transitions(unexpanded) == qn_transitions
+
+
+def _to_merge_keys(collection: QNProblemSetCollection) -> set[tuple]:
+    return {
+        (strength, _create_merge_key(problem_set, set()))
+        for strength, problem_sets in collection.problem_sets.items()
+        for problem_set in problem_sets
+    }
+
+
+def test_incompatible_spin_projection_flags_raise():
+    with pytest.raises(ValueError, match="merge_spin_projections has no effect"):
+        create_qn_problem_sets(
+            initial_state=["J/psi(1S)"],
+            final_state=["gamma", "pi0", "pi0"],
+            merge_spin_projections=True,
+            spin_projections=False,
+        )
