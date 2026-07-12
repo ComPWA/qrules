@@ -85,9 +85,11 @@ class GraphvizPrinter:
         ]
 
     def _render(self, obj: Any) -> list[str]:
+        from qrules.workflow import QNReactionInfo  # ruff: ignore[import-outside-top-level]
+
         if isinstance(obj, QNResult):
             obj = obj.solutions
-        if isinstance(obj, ReactionInfo):
+        if isinstance(obj, (QNReactionInfo, ReactionInfo)):
             obj = obj.transitions
         if isinstance(obj, abc.Iterable):
             return self._render_multiple_transitions(obj)
