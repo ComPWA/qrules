@@ -38,7 +38,7 @@ from qrules.combinatorics import (
     match_external_edges,
     permutate_topology_kinematically,
 )
-from qrules.particle import ParticleCollection, load_pdg
+from qrules.particle import Particle, ParticleCollection, load_pdg
 from qrules.quantum_numbers import (
     EdgeQuantumNumbers,
     InteractionProperties,
@@ -88,7 +88,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
 
     from qrules.combinatorics import InitialFacts, StateDefinition, StateDefinitionInput
-    from qrules.particle import Particle, ParticleWithSpin
+    from qrules.particle import ParticleWithSpin
     from qrules.quantum_numbers import EdgeQuantumNumber, NodeQuantumNumber
     from qrules.solving import (
         EdgeSettings,
@@ -658,6 +658,7 @@ def create_qn_problem_sets(  # noqa: PLR0917
     | str
     | None = None,
     interaction_config: InteractionConfig | None = None,
+    allowed_interaction_types: str | Iterable[str] | None = None,
     formalism: SpinFormalism = "helicity",
     topology_building: str = "isobar",
     mass_conservation_factor: float | None = 3.0,
@@ -685,6 +686,10 @@ def create_qn_problem_sets(  # noqa: PLR0917
     entirely, so the problem sets can only be solved at the :math:`J^{P(C)}` level
     with `find_qn_transitions`. This is equivalent to — but much cheaper than —
     passing the collection through `strip_spin_projections` afterwards.
+
+    The :code:`allowed_interaction_types` (e.g. :code:`"strong"` or
+    :code:`["em", "weak"]`) restrict the interaction types of the default or given
+    :code:`interaction_config`.
     """
     if not spin_projections and merge_spin_projections:
         msg = "merge_spin_projections has no effect when spin_projections=False"
@@ -709,6 +714,11 @@ def create_qn_problem_sets(  # noqa: PLR0917
                 max_angular_momentum=max_angular_momentum,
                 max_spin_magnitude=max_spin_magnitude,
             )
+        )
+    if allowed_interaction_types is not None:
+        interaction_config = copy(interaction_config)  # do not mutate the argument
+        interaction_config.set_allowed_interaction_types(
+            _parse_interaction_types(allowed_interaction_types)
         )
     intermediate_particles = _resolve_intermediate_particles(
         allowed_intermediate_particles, particle_db
@@ -792,8 +802,119 @@ def find_solutions(  # noqa: PLR0917
     return collect_reaction_info(results, final_state, formalism)
 
 
-QNTransition = FrozenTransition[FrozenDict[Any, Any], FrozenDict[Any, Any]]
-"""Transition whose states and interactions are quantum-number property maps."""
+QNTransition = FrozenTransition[Particle | FrozenDict[Any, Any], FrozenDict[Any, Any]]
+"""Transition whose states and interactions are quantum-number property maps.
+
+The initial and final states are resolved to `.Particle` instances if a particle
+database is provided (see `collect_qn_transitions`); intermediate states always remain
+quantum-number property maps, as they represent a *set* of allowed states.
+"""
+
+
+def _to_qn_transition_tuple(
+    transitions: Iterable[QNTransition],
+) -> tuple[QNTransition, ...]:
+    return tuple(transitions)
+
+
+@implement_pretty_repr
+@frozen
+class QNReactionInfo:
+    """Ordered collection of `QNTransition` instances.
+
+    The quantum-number-level counterpart of `.ReactionInfo`: the initial and final
+    states are `.Particle` instances, while each intermediate state is a property map
+    of the quantum numbers that any particle appearing there must carry. Create an
+    instance with `generate_qn_transitions`.
+    """
+
+    transitions: tuple[QNTransition, ...] = field(converter=_to_qn_transition_tuple)
+    initial_state: FrozenDict[int, Particle] = field(init=False, repr=False, eq=False)
+    final_state: FrozenDict[int, Particle] = field(init=False, repr=False, eq=False)
+
+    def __attrs_post_init__(self) -> None:
+        if not self.transitions:
+            object.__setattr__(self, "initial_state", FrozenDict({}))
+            object.__setattr__(self, "final_state", FrozenDict({}))
+            return
+        transition = self.transitions[0]
+        external_states = {
+            **transition.initial_states,
+            **transition.final_states,
+        }
+        for edge_id, state in external_states.items():
+            if not isinstance(state, Particle):
+                msg = (
+                    f"External state {edge_id} is of type {type(state).__name__}, not"
+                    f" {Particle.__name__}. Solve with a particle database, e.g."
+                    " through generate_qn_transitions()."
+                )
+                raise TypeError(msg)
+        object.__setattr__(self, "initial_state", FrozenDict(transition.initial_states))
+        object.__setattr__(self, "final_state", FrozenDict(transition.final_states))
+
+    def get_intermediate_quantum_numbers(self) -> list[FrozenDict[Any, Any]]:
+        """Collect the distinct quantum-number sets of the intermediate states."""
+        unique: dict[FrozenDict[Any, Any], None] = {}
+        for transition in self.transitions:
+            for state in transition.intermediate_states.values():
+                if not isinstance(state, Particle):
+                    unique.setdefault(state, None)
+        return list(unique)
+
+    def group_by_topology(self) -> dict[Topology, list[QNTransition]]:
+        groupings = defaultdict(list)
+        for transition in self.transitions:
+            groupings[transition.topology].append(transition)
+        return dict(groupings)
+
+
+def generate_qn_transitions(  # noqa: PLR0917
+    initial_state: StateDefinitionInput | Sequence[StateDefinitionInput],
+    final_state: Sequence[StateDefinitionInput],
+    particle_db: ParticleCollection | None = None,
+    allowed_intermediate_particles: Iterable[str] | str | None = None,
+    allowed_interaction_types: str | Iterable[str] | None = None,
+    formalism: SpinFormalism = "helicity",
+    mass_conservation_factor: float | None = 3.0,
+    max_angular_momentum: int = 1,
+    max_spin_magnitude: float = 2,
+    final_state_groupings: list[list[list[str]]] | None = None,
+    topology_building: str = "isobar",
+) -> QNReactionInfo:
+    """Generate allowed transitions without spin projections.
+
+    The quantum-number-level counterpart of `.generate_transitions`: chains
+    `create_qn_problem_sets` with :code:`spin_projections=False` and
+    `find_qn_transitions`, so that the reaction is solved at the :math:`J^{P(C)}`
+    level. Since the spin-projection combinatorics is avoided both in the problem sets
+    and in the constraint problem, this is feasible for reactions with many-body final
+    states, for which `.generate_transitions` would take impractically long. The
+    arguments mirror those of `.generate_transitions`.
+    """
+    if not isinstance(initial_state, (list, tuple)):
+        initial_state = [initial_state]  # type: ignore[list-item]
+    if particle_db is None:
+        particle_db = load_pdg()
+    qn_problem_sets = create_qn_problem_sets(
+        initial_state,  # type: ignore[arg-type]
+        final_state,
+        particle_db=particle_db,
+        allowed_intermediate_particles=allowed_intermediate_particles,
+        allowed_interaction_types=allowed_interaction_types,
+        formalism=formalism,
+        topology_building=topology_building,
+        mass_conservation_factor=mass_conservation_factor,
+        max_angular_momentum=max_angular_momentum,
+        max_spin_magnitude=max_spin_magnitude,
+        final_state_groupings=final_state_groupings,
+        spin_projections=False,
+    )
+    transitions = find_qn_transitions(qn_problem_sets, particle_db)
+    if not transitions:
+        msg = "No solutions were found"
+        raise RuntimeError(msg)
+    return QNReactionInfo(transitions)
 
 
 @overload
@@ -852,6 +973,7 @@ def _unique_problem_sets(problem_sets: Iterable[QNProblemSet]) -> list[QNProblem
 
 def find_qn_transitions(
     qn_problem_sets: QNProblemSetCollection | dict[float, list[QNProblemSet]],
+    particle_db: ParticleCollection | None = None,
 ) -> tuple[QNTransition, ...]:
     """Find allowed transitions purely at the quantum-number level.
 
@@ -859,7 +981,9 @@ def find_qn_transitions(
     states from a particle database: the intermediate states of the returned
     transitions carry exactly the quantum numbers that the problem sets declare as
     domains. Combine with `strip_spin_projections` to obtain :math:`J^{P(C)}`-level
-    transitions for e.g. a Dalitz-plot decomposition.
+    transitions for e.g. a Dalitz-plot decomposition. A :code:`particle_db` is only
+    used to resolve the initial and final states to `.Particle` instances (see
+    `collect_qn_transitions`).
     """
     if isinstance(qn_problem_sets, QNProblemSetCollection):
         qn_problem_sets = qn_problem_sets.problem_sets
@@ -870,27 +994,36 @@ def find_qn_transitions(
             (qn_problem_set, solver.find_solutions(qn_problem_set))
             for qn_problem_set in qn_problems
         )
-    return collect_qn_transitions(qn_results)
+    return collect_qn_transitions(qn_results, particle_db)
 
 
 def collect_qn_transitions(
     qn_results: dict[float, list[tuple[QNProblemSet, QNResult]]],
+    particle_db: ParticleCollection | None = None,
 ) -> tuple[QNTransition, ...]:
     """Summarize solver results as unique quantum-number-level transitions.
 
     The counterpart of `collect_reaction_info` for a quantum-number-only workflow: no
-    particle database is consulted and no `.State` objects are created — each
-    transition carries exactly the quantum numbers that are known from the initial
-    facts or were solved for.
+    `.State` objects are created — each transition carries exactly the quantum numbers
+    that are known from the initial facts or were solved for. If a :code:`particle_db`
+    is given, the initial and final states — which are fully determined by their
+    `~.EdgeQuantumNumbers.pid` — are resolved to `.Particle` instances;
+    intermediate states always remain quantum-number property maps.
     """
     transitions: dict[QNTransition, None] = {}
     for qn_result_pairs in qn_results.values():
         for qn_problem_set, qn_result in qn_result_pairs:
             facts = qn_problem_set.initial_facts
+            topology = facts.topology
+            external_edge_ids = topology.incoming_edge_ids | topology.outgoing_edge_ids
             for solution in qn_result.solutions:
-                states = dict(solution.states)
+                states: dict[int, Any] = dict(solution.states)
                 for edge_id, edge_facts in facts.states.items():
                     states[edge_id] = {**edge_facts, **states.get(edge_id, {})}
+                if particle_db is not None:
+                    for edge_id in external_edge_ids:
+                        pid = states[edge_id][EdgeQuantumNumbers.pid]
+                        states[edge_id] = particle_db.find(int(pid))
                 interactions = dict(solution.interactions)
                 for node_id, node_facts in facts.interactions.items():
                     interactions[node_id] = {
@@ -899,7 +1032,10 @@ def collect_qn_transitions(
                     }
                 transition: QNTransition = FrozenTransition(
                     solution.topology,
-                    states={i: FrozenDict(m) for i, m in states.items()},
+                    states={
+                        i: s if isinstance(s, Particle) else FrozenDict(s)
+                        for i, s in states.items()
+                    },
                     interactions={i: FrozenDict(m) for i, m in interactions.items()},
                 )
                 transitions[transition] = None
@@ -935,6 +1071,14 @@ def _strip_spin(state_definition: Sequence[StateDefinition]) -> list[str]:
         else:
             particle_names.append(state[0])
     return particle_names
+
+
+def _parse_interaction_types(
+    description: str | Iterable[str],
+) -> list[InteractionType]:
+    if isinstance(description, str):
+        return [InteractionType.from_str(description)]
+    return [InteractionType.from_str(i) for i in description]
 
 
 def _resolve_intermediate_particles(

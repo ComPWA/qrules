@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from qrules.io import asdict
+from qrules.io import asdict, asdot
 from qrules.particle import ParticleCollection, load_pdg
 from qrules.quantum_numbers import EdgeQuantumNumbers
 from qrules.settings import (
@@ -15,10 +15,12 @@ from qrules.transition import ReactionInfo
 from qrules.workflow import (
     InteractionConfig,
     QNProblemSetCollection,
+    QNReactionInfo,
     create_qn_problem_sets,
     filter_intermediate_particles,
     find_qn_transitions,
     find_solutions,
+    generate_qn_transitions,
     strip_spin_projections,
 )
 
@@ -185,6 +187,49 @@ def _to_merge_keys(collection: QNProblemSetCollection) -> set[tuple]:
         for strength, problem_sets in collection.problem_sets.items()
         for problem_set in problem_sets
     }
+
+
+def test_generate_qn_transitions():
+    particle_db = load_pdg()
+    reaction = generate_qn_transitions(
+        initial_state="J/psi(1S)",
+        final_state=["gamma", "pi0", "pi0"],
+        particle_db=particle_db,
+        allowed_intermediate_particles=["f(0)(980)", "f(0)(1500)"],
+        allowed_interaction_types=["strong", "em"],
+    )
+    assert isinstance(reaction, QNReactionInfo)
+    assert len(reaction.transitions) > 0
+    assert {p.name for p in reaction.initial_state.values()} == {"J/psi(1S)"}
+    assert [p.name for _, p in sorted(reaction.final_state.items())] == [
+        "gamma",
+        "pi0",
+        "pi0",
+    ]
+    for qn_set in reaction.get_intermediate_quantum_numbers():
+        assert qn_set[EdgeQuantumNumbers.spin_magnitude] == 0
+        assert qn_set[EdgeQuantumNumbers.parity] == +1
+        assert qn_set[EdgeQuantumNumbers.c_parity] == +1
+    assert len(reaction.group_by_topology()) == 1
+
+    dot = asdot(reaction)
+    assert dot.startswith("digraph {")
+    assert "J/psi(1S)" in dot
+    assert "spin_projection" not in dot.replace("isospin_projection", "")
+
+
+def test_qn_reaction_info_requires_particle_states():
+    particle_db = load_pdg()
+    qn_problem_sets = create_qn_problem_sets(
+        initial_state=["J/psi(1S)"],
+        final_state=["gamma", "pi0", "pi0"],
+        particle_db=particle_db,
+        allowed_intermediate_particles=["f(0)(980)"],
+        spin_projections=False,
+    )
+    qn_transitions = find_qn_transitions(qn_problem_sets)
+    with pytest.raises(TypeError, match="is of type FrozenDict, not Particle"):
+        QNReactionInfo(qn_transitions)
 
 
 def test_incompatible_spin_projection_flags_raise():
