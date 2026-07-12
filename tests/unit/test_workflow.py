@@ -157,7 +157,10 @@ def test_initial_state_restricts_interaction_types(
     assert sorted(qn_problem_sets.problem_sets) == expected_strengths
 
 
-def test_pipeline_reproduces_state_transition_manager(reaction: ReactionInfo):
+@pytest.mark.parametrize("merge_spin_projections", [False, True])
+def test_pipeline_reproduces_state_transition_manager(
+    reaction: ReactionInfo, merge_spin_projections: bool
+):
     particle_db = load_pdg()
     qn_problem_sets = create_qn_problem_sets(
         initial_state=[("J/psi(1S)", [-1, 1])],
@@ -173,6 +176,7 @@ def test_pipeline_reproduces_state_transition_manager(reaction: ReactionInfo):
             allowed_types=[InteractionType.STRONG],
         ),
         formalism=reaction.formalism,
+        merge_spin_projections=merge_spin_projections,
     )
     assert isinstance(qn_problem_sets, QNProblemSetCollection)
     assert qn_problem_sets.formalism == reaction.formalism
