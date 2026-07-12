@@ -5,8 +5,8 @@ explicit data structures, so that intermediate results — most notably the
 `.QNProblemSet` collections — can be inspected, modified, and fed back into the
 pipeline. The default use-case is covered by two functions:
 
-1. `create_qn_problem_sets`, which turns initial and final state definitions into
-   `.QNProblemSet` collections, grouped by interaction strength.
+1. `create_qn_problem_sets`, which turns initial and final state definitions into a
+   `QNProblemSetCollection`: `.QNProblemSet` groups per interaction strength.
 2. `find_solutions`, which solves them and summarizes the solutions as a
    `.ReactionInfo` object.
 
@@ -570,6 +570,27 @@ def collect_reaction_info(  # noqa: C901, PLR0912
     return ReactionInfo(transitions, formalism)
 
 
+@implement_pretty_repr
+@define
+class QNProblemSetCollection:
+    """`.QNProblemSet` groups plus the context needed to solve them consistently.
+
+    Carries the intermediate-particle selection, final state, and formalism with which
+    the problem sets were created by `create_qn_problem_sets`, so that `find_solutions`
+    solves and summarizes them with those same values by default. The
+    :attr:`problem_sets` can be inspected and modified in between.
+    """
+
+    problem_sets: dict[float, list[QNProblemSet]]
+    """`.QNProblemSet` collections, grouped by interaction strength."""
+    intermediate_particles: AllowedIntermediateParticles
+    """Selection that built the intermediate edge domains; reused by `solve`."""
+    final_state: list[StateDefinition]
+    """Final state with which `collect_reaction_info` orders the edge IDs."""
+    formalism: SpinFormalism = "helicity"
+    """Spin formalism that determines the quantum-number filters."""
+
+
 def create_qn_problem_sets(  # noqa: PLR0917
     initial_state: Sequence[StateDefinitionInput],
     final_state: Sequence[StateDefinitionInput],
@@ -585,14 +606,14 @@ def create_qn_problem_sets(  # noqa: PLR0917
     max_angular_momentum: int = 1,
     max_spin_magnitude: float = 2,
     final_state_groupings: list[list[list[str]]] | None = None,
-) -> dict[float, list[QNProblemSet]]:
+) -> QNProblemSetCollection:
     """Create a `.QNProblemSet` collection for a reaction, grouped by strength.
 
     This function covers the default use-case in a single call: it fans the initial
     and final state definitions out into `.QNProblemSet` objects over all topologies,
-    kinematic permutations, and allowed interaction types. Solve the returned problem
-    sets with `find_solutions`, optionally after inspecting or modifying them (see e.g.
-    `.filter_quantum_number_problem_set`).
+    kinematic permutations, and allowed interaction types. Solve the returned
+    collection with `find_solutions`, optionally after inspecting or modifying its
+    problem sets (see e.g. `.filter_quantum_number_problem_set`).
     """
     _validate_formalism(formalism)
     if particle_db is None:
@@ -615,15 +636,29 @@ def create_qn_problem_sets(  # noqa: PLR0917
                 max_spin_magnitude=max_spin_magnitude,
             )
         )
+    intermediate_particles = _resolve_intermediate_particles(
+        allowed_intermediate_particles, particle_db
+    )
     problem_sets = create_problem_sets(
         initial_state,
         final_state,
         particle_db,
         interaction_config,
-        _resolve_intermediate_particles(allowed_intermediate_particles, particle_db),
+        intermediate_particles,
         topologies,
         final_state_groupings,
     )
+    return QNProblemSetCollection(
+        problem_sets=_to_qn_problem_sets(problem_sets),
+        intermediate_particles=intermediate_particles,
+        final_state=list(map(as_state_definition, final_state)),
+        formalism=formalism,
+    )
+
+
+def _to_qn_problem_sets(
+    problem_sets: dict[float, list[ProblemSet]],
+) -> dict[float, list[QNProblemSet]]:
     return {
         strength: [problem_set.to_qn_problem_set() for problem_set in problems]
         for strength, problems in problem_sets.items()
@@ -631,10 +666,10 @@ def create_qn_problem_sets(  # noqa: PLR0917
 
 
 def find_solutions(  # noqa: PLR0917
-    qn_problem_sets: dict[float, list[QNProblemSet]],
+    qn_problem_sets: QNProblemSetCollection | dict[float, list[QNProblemSet]],
     particle_db: ParticleCollection,
     final_state: Sequence[StateDefinitionInput] | None = None,
-    formalism: SpinFormalism = "helicity",
+    formalism: SpinFormalism | None = None,
     allowed_intermediate_particles: AllowedIntermediateParticles
     | Iterable[str]
     | str
@@ -645,10 +680,23 @@ def find_solutions(  # noqa: PLR0917
     """Solve a `.QNProblemSet` collection and summarize it as `.ReactionInfo`.
 
     This function covers the default use-case in a single call: it chains `solve`,
-    `convert_to_particle_transitions`, and `collect_reaction_info`. The
-    :code:`particle_db` is required, because a `.QNProblemSet` contains quantum
-    numbers only — particles are re-matched by PID via `.find_particle`.
+    `convert_to_particle_transitions`, and `collect_reaction_info`. Given a
+    `QNProblemSetCollection`, the final state, formalism, and intermediate-particle
+    selection default to the values with which the problem sets were created;
+    explicit arguments override them. The :code:`particle_db` is required, because a
+    `.QNProblemSet` contains quantum numbers only — particles are re-matched by PID
+    via `.find_particle`.
     """
+    if isinstance(qn_problem_sets, QNProblemSetCollection):
+        if final_state is None:
+            final_state = qn_problem_sets.final_state
+        if formalism is None:
+            formalism = qn_problem_sets.formalism
+        if allowed_intermediate_particles is None:
+            allowed_intermediate_particles = qn_problem_sets.intermediate_particles
+        qn_problem_sets = qn_problem_sets.problem_sets
+    if formalism is None:
+        formalism = "helicity"
     _validate_formalism(formalism)
     qn_results = solve(
         qn_problem_sets,
