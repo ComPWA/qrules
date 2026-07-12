@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import inspect
 import logging
+import math
 import operator
 from abc import ABC, abstractmethod
 from collections import defaultdict
@@ -217,6 +218,136 @@ def filter_quantum_number_problem_set(
     )
 
 
+def merge_qn_problem_sets(
+    qn_problem_sets: Iterable[QNProblemSet],
+    merge_qns: Iterable[EdgeQuantumNumberTypes] | None = None,
+) -> list[QNProblemSet]:
+    """Merge problem sets whose initial facts differ only in the given quantum numbers.
+
+    Problem sets with equal solving settings and equal remaining initial facts are
+    grouped. If the differing fact values of a group form a full Cartesian product over
+    the graph edges, the group is merged into a single `QNProblemSet` whose facts carry
+    the values as a `list`. The `CSPSolver` registers such value ranges as regular
+    variables, so that all cases — by default, all spin-projection combinations of the
+    initial and final state — are solved within a single constraint problem instead of
+    one problem set per combination.
+    """
+    if merge_qns is None:
+        merge_qns = {EdgeQuantumNumbers.spin_projection}
+    merge_qn_set = set(merge_qns)
+    groups: dict[tuple, list[QNProblemSet]] = defaultdict(list)
+    for problem_set in qn_problem_sets:
+        groups[_create_merge_key(problem_set, merge_qn_set)].append(problem_set)
+    merged_problem_sets: list[QNProblemSet] = []
+    for group in groups.values():
+        merged_problem_sets.extend(_merge_problem_set_group(group, merge_qn_set))
+    return merged_problem_sets
+
+
+def _create_merge_key(
+    problem_set: QNProblemSet, merge_qns: set[EdgeQuantumNumberTypes]
+) -> tuple:
+    facts = problem_set.initial_facts
+    states_key = tuple(
+        sorted(
+            (edge_id, qn_type.__name__, repr(value))
+            for edge_id, prop_map in facts.states.items()
+            for qn_type, value in prop_map.items()
+            if qn_type not in merge_qns
+        )
+    )
+    interactions_key = tuple(
+        sorted(
+            (node_id, qn_type.__name__, repr(value))
+            for node_id, prop_map in facts.interactions.items()
+            for qn_type, value in prop_map.items()
+        )
+    )
+    return (
+        problem_set.topology,
+        states_key,
+        interactions_key,
+        _create_settings_key(problem_set.solving_settings),
+    )
+
+
+def _create_settings_key(settings: GraphSettings) -> tuple:
+    """Create a hashable representation of a `GraphSettings`.
+
+    Deep copies of rule instances do not compare equal, so the rules are represented by
+    their name and priority.
+    """
+
+    def element_key(element_settings: EdgeSettings | NodeSettings) -> tuple:
+        rules = tuple(
+            sorted(
+                (_get_rule_name(rule), priority)
+                for rule, priority in element_settings.conservation_rules.items()
+            )
+        )
+        domains = tuple(
+            sorted(
+                (qn_type.__name__, repr(domain))
+                for qn_type, domain in element_settings.qn_domains.items()
+            )
+        )
+        strength = getattr(element_settings, "interaction_strength", None)
+        return (rules, domains, strength)
+
+    return (
+        tuple(sorted((i, element_key(s)) for i, s in settings.states.items())),
+        tuple(sorted((i, element_key(s)) for i, s in settings.interactions.items())),
+    )
+
+
+def _merge_problem_set_group(
+    group: list[QNProblemSet], merge_qns: set[EdgeQuantumNumberTypes]
+) -> list[QNProblemSet]:
+    if len(group) == 1:
+        return group
+    template = group[0]
+    locations = sorted(
+        {
+            (edge_id, qn_type)
+            for problem_set in group
+            for edge_id, prop_map in problem_set.initial_facts.states.items()
+            for qn_type in prop_map
+            if qn_type in merge_qns
+        },
+        key=lambda location: (location[0], location[1].__name__),
+    )
+    values: dict[tuple[int, Any], dict[str, Any]] = {loc: {} for loc in locations}
+    combinations: set[tuple[str, ...]] = set()
+    for problem_set in group:
+        combination = []
+        for edge_id, qn_type in locations:
+            if qn_type not in problem_set.initial_facts.states.get(edge_id, {}):
+                return group  # inhomogeneous facts, do not merge
+            value = problem_set.initial_facts.states[edge_id][qn_type]
+            combination.append(repr(value))
+            values[edge_id, qn_type][repr(value)] = value
+        combinations.add(tuple(combination))
+    n_product = math.prod(len(v) for v in values.values())
+    if len(combinations) != len(group) or len(group) != n_product:
+        return group  # duplicates or not a full Cartesian product, do not merge
+    new_states = {}
+    for edge_id, prop_map in template.initial_facts.states.items():
+        new_prop_map: dict[Any, Any] = dict(prop_map)
+        for (location_edge_id, qn_type), value_map in values.items():
+            if location_edge_id == edge_id:
+                sorted_values = sorted(value_map.values())
+                new_prop_map[qn_type] = (
+                    sorted_values if len(sorted_values) > 1 else sorted_values[0]
+                )
+        new_states[edge_id] = new_prop_map
+    merged_facts = MutableTransition(
+        template.topology,
+        new_states,  # type: ignore[arg-type]
+        dict(template.initial_facts.interactions),  # type: ignore[arg-type]
+    )
+    return [attrs.evolve(template, initial_facts=merged_facts)]
+
+
 QuantumNumberSolution = MutableTransition[GraphEdgePropertyMap, GraphNodePropertyMap]
 
 
@@ -347,10 +478,20 @@ def complete_intermediate_states(
         # rerun solver on these graphs using not executed rules and combine results
         result = QNResult()
         for completed_solution in completed_solutions:
-            interactions = completed_solution.interactions
-            states = completed_solution.states
-            interactions.update(qn_problem_set.initial_facts.interactions)
-            states.update(qn_problem_set.initial_facts.states)
+            # merge in the initial facts, without overwriting solved values (facts may
+            # carry value ranges, of which the solution contains the solved case)
+            interactions = dict(completed_solution.interactions)
+            for (
+                node_id,
+                node_facts,
+            ) in qn_problem_set.initial_facts.interactions.items():
+                interactions[node_id] = {
+                    **node_facts,
+                    **interactions.get(node_id, {}),
+                }
+            states = dict(completed_solution.states)
+            for edge_id, edge_facts in qn_problem_set.initial_facts.states.items():
+                states[edge_id] = {**edge_facts, **states.get(edge_id, {})}
             result.extend(
                 validate_full_solution(
                     QNProblemSet(
@@ -685,10 +826,10 @@ class CSPSolver(Solver):
         For each interaction node a set of independent constraints/conservation laws are
         created. For each conservation law a new CSP wrapper is created. This wrapper
         needs all of the qn numbers/variables which enter or exit the node and play a
-        role for this conservation law. Hence variables are also created within this
-        method.
+        role for this conservation law.
         """
         self.__clear()
+        self.__create_variables(problem_set)
 
         def get_rules_by_priority(
             graph_element_settings: NodeSettings | EdgeSettings,
@@ -789,17 +930,49 @@ class CSPSolver(Solver):
                 else:
                     self.__non_executable_node_rules[node_id].add(rule)
 
+    def __create_variables(self, problem_set: QNProblemSet) -> None:
+        """Create the CSP variables that the problem set declares.
+
+        A variable is created for every quantum number domain that the solving settings
+        declare for a graph element without initial facts — the intermediate edges and,
+        typically, the interaction nodes. An initial fact defines a fixed value, unless
+        it carries a `list` or `tuple` of values: such a range is registered as a
+        variable with the range as its domain, so that several cases (e.g. the spin
+        projections of the initial and final state) are solved within a single problem
+        set (see `merge_qn_problem_sets`).
+        """
+        facts = problem_set.initial_facts
+        settings = problem_set.solving_settings
+        self.__register_element_variables(settings.states, facts.states)
+        self.__register_element_variables(settings.interactions, facts.interactions)
+
+    def __register_element_variables(
+        self,
+        settings_map: Mapping[int, EdgeSettings] | Mapping[int, NodeSettings],
+        facts_map: Mapping[int, GraphEdgePropertyMap]
+        | Mapping[int, GraphNodePropertyMap],
+    ) -> None:
+        for element_id, element_settings in settings_map.items():
+            if element_id in facts_map:
+                for qn_type, value in facts_map[element_id].items():
+                    if isinstance(value, (list, tuple)):
+                        self.__add_variable((element_id, qn_type), list(value))
+            else:
+                for qn_type, qn_domain in element_settings.qn_domains.items():  # type: ignore[assignment]
+                    self.__add_variable((element_id, qn_type), qn_domain)  # type: ignore[arg-type]
+
     def __create_node_variables(
         self,
         node_id: int,
         qn_list: set[type[NodeQuantumNumber]],
         problem_set: QNProblemSet,
     ) -> tuple[set[_NodeVariableInfo], GraphNodePropertyMap]:
-        """Create variables for the quantum numbers of the specified node.
+        """Select the node variables and fixed values that a rule can use.
 
-        If a quantum number is already defined for a node, then a fixed variable is
-        created, which cannot be changed by the csp solver. Otherwise the node is
-        initialized with the specified domain of that quantum number.
+        Quantum numbers that are defined by the initial facts become fixed values,
+        which cannot be changed by the csp solver. The remaining quantum numbers are
+        matched against the variables declared by the problem set (see
+        :meth:`__create_variables`).
         """
         variables: tuple[set[_NodeVariableInfo], GraphNodePropertyMap] = (
             set(),
@@ -810,14 +983,15 @@ class CSPSolver(Solver):
             interactions = problem_set.initial_facts.interactions[node_id]
             for qn_type in qn_list:
                 if qn_type in interactions:
-                    variables[1].update({qn_type: interactions[qn_type]})
+                    value = interactions[qn_type]
+                    if isinstance(value, (list, tuple)):
+                        variables[0].add((node_id, qn_type))
+                    else:
+                        variables[1].update({qn_type: value})
         else:
-            node_settings = problem_set.solving_settings.interactions[node_id]
             for qn_type in qn_list:
                 var_info = (node_id, qn_type)
-                if qn_type in node_settings.qn_domains:
-                    qn_domain = node_settings.qn_domains[qn_type]
-                    self.__add_variable(var_info, qn_domain)
+                if var_info in self.__variables:
                     variables[0].add(var_info)
         return variables
 
@@ -827,12 +1001,12 @@ class CSPSolver(Solver):
         qn_list: set[type[EdgeQuantumNumber]],
         problem_set: QNProblemSet,
     ) -> tuple[set[_EdgeVariableInfo], dict[int, GraphEdgePropertyMap]]:
-        """Create variables for the quantum numbers of the specified edges.
+        """Select the edge variables and fixed values that a rule can use.
 
-        If a quantum number is already defined for an edge, then a fixed variable is
-        created, which cannot be changed by the csp solver. This is the case for initial
-        and final state edges. Otherwise the edges are initialized with the specified
-        domains of that quantum number.
+        Quantum numbers that are defined by the initial facts become fixed values,
+        which cannot be changed by the csp solver. This is the case for initial and
+        final state edges. The remaining quantum numbers are matched against the
+        variables declared by the problem set (see :meth:`__create_variables`).
         """
         variables: tuple[
             set[_EdgeVariableInfo],
@@ -848,14 +1022,15 @@ class CSPSolver(Solver):
                 states = problem_set.initial_facts.states[edge_id]
                 for qn_type in qn_list:
                     if qn_type in states:
-                        variables[1][edge_id].update({qn_type: states[qn_type]})
+                        value = states[qn_type]
+                        if isinstance(value, (list, tuple)):
+                            variables[0].add((edge_id, qn_type))
+                        else:
+                            variables[1][edge_id].update({qn_type: value})
             else:
-                edge_settings = problem_set.solving_settings.states[edge_id]
                 for qn_type in qn_list:
                     var_info = (edge_id, qn_type)
-                    if qn_type in edge_settings.qn_domains:
-                        qn_domain = edge_settings.qn_domains[qn_type]
-                        self.__add_variable(var_info, qn_domain)
+                    if var_info in self.__variables:
                         variables[0].add(var_info)
         return variables
 

@@ -31,6 +31,7 @@ from attrs import define, field, frozen
 from tqdm.auto import tqdm
 
 from qrules._implementers import implement_pretty_repr
+from qrules.argument_handling import get_required_qns
 from qrules.combinatorics import (
     as_state_definition,
     create_initial_facts,
@@ -49,7 +50,11 @@ from qrules.settings import (
     NumberOfThreads,
     create_interaction_settings,
 )
-from qrules.solving import CSPSolver, complete_intermediate_states
+from qrules.solving import (
+    CSPSolver,
+    complete_intermediate_states,
+    merge_qn_problem_sets,
+)
 from qrules.system_control import (
     GammaCheck,
     InteractionDeterminator,
@@ -316,7 +321,48 @@ def create_graph_settings(  # noqa: C901, PLR0914
                 )
                 graph_settings.append(updated_setting)
 
+    for settings in graph_settings:
+        _restrict_domains_to_rules(settings)
     return graph_settings
+
+
+def _restrict_domains_to_rules(graph_settings: GraphSettings) -> None:
+    """Restrict the declared quantum number domains to what the rules can consume.
+
+    The `.CSPSolver` creates a variable for every quantum number domain declared in a
+    `.QNProblemSet`, so a domain that no conservation rule of the surrounding graph
+    elements can consume would only inflate the solution space. An edge domain is kept
+    if an edge rule of that edge or a node rule of an adjacent node requires the
+    quantum number; a node domain is kept if a rule of that node requires it.
+    """
+    topology = graph_settings.topology
+    node_edge_requirements: dict[int, set[type[EdgeQuantumNumber]]] = {}
+    for node_id, node_settings in graph_settings.interactions.items():
+        edge_qns: set[type[EdgeQuantumNumber]] = set()
+        node_qns: set[type[NodeQuantumNumber]] = set()
+        for rule in node_settings.conservation_rules:
+            rule_edge_qns, rule_node_qns = get_required_qns(rule)
+            edge_qns |= rule_edge_qns
+            node_qns |= rule_node_qns
+        node_edge_requirements[node_id] = edge_qns
+        node_settings.qn_domains = {
+            qn_type: domain
+            for qn_type, domain in node_settings.qn_domains.items()
+            if qn_type in node_qns
+        }
+    for edge_id, edge_settings in graph_settings.states.items():
+        required_qns: set[type[EdgeQuantumNumber]] = set()
+        for rule in edge_settings.conservation_rules:
+            rule_edge_qns, _ = get_required_qns(rule)
+            required_qns |= rule_edge_qns
+        edge = topology.edges[edge_id]
+        for node_id in (edge.originating_node_id, edge.ending_node_id):
+            required_qns |= node_edge_requirements.get(node_id, set())  # type: ignore[arg-type]
+        edge_settings.qn_domains = {
+            qn_type: domain
+            for qn_type, domain in edge_settings.qn_domains.items()
+            if qn_type in required_qns
+        }
 
 
 def create_problem_sets(  # noqa: PLR0917
@@ -609,6 +655,7 @@ def create_qn_problem_sets(  # noqa: PLR0917
     max_angular_momentum: int = 1,
     max_spin_magnitude: float = 2,
     final_state_groupings: list[list[list[str]]] | None = None,
+    merge_spin_projections: bool = False,
 ) -> QNProblemSetCollection:
     """Create a `.QNProblemSet` collection for a reaction, grouped by strength.
 
@@ -617,6 +664,11 @@ def create_qn_problem_sets(  # noqa: PLR0917
     kinematic permutations, and allowed interaction types. Solve the returned
     collection with `find_solutions`, optionally after inspecting or modifying its
     problem sets (see e.g. `.filter_quantum_number_problem_set`).
+
+    With :code:`merge_spin_projections`, the spin-projection combinations of the
+    initial and final state are merged into value ranges on a single `.QNProblemSet`
+    (see `.merge_qn_problem_sets`), which reduces the number of problem sets and
+    speeds up solving.
     """
     _validate_formalism(formalism)
     if particle_db is None:
@@ -651,8 +703,14 @@ def create_qn_problem_sets(  # noqa: PLR0917
         topologies,
         final_state_groupings,
     )
+    qn_problem_sets = _to_qn_problem_sets(problem_sets)
+    if merge_spin_projections:
+        qn_problem_sets = {
+            strength: merge_qn_problem_sets(problems)
+            for strength, problems in qn_problem_sets.items()
+        }
     return QNProblemSetCollection(
-        problem_sets=_to_qn_problem_sets(problem_sets),
+        problem_sets=qn_problem_sets,
         intermediate_particles=intermediate_particles,
         final_state=list(map(as_state_definition, final_state)),
         formalism=formalism,

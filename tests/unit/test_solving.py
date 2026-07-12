@@ -18,6 +18,7 @@ from qrules.solving import (
     QNProblemSet,
     complete_intermediate_states,
     filter_quantum_number_problem_set,
+    merge_qn_problem_sets,
 )
 
 if TYPE_CHECKING:
@@ -75,6 +76,28 @@ def test_solve_with_filtered_quantum_number_problem_set(
         assert len(result.solutions) == 319
     else:
         assert len(result.solutions) == 127
+
+
+def test_merge_qn_problem_sets() -> None:
+    stm = qrules.StateTransitionManager(
+        initial_state=["psi(2S)"],
+        final_state=["gamma", "eta", "eta"],
+        formalism="helicity",
+    )
+    problem_sets = stm.create_problem_sets()
+    qn_problem_sets = [
+        p.to_qn_problem_set()
+        for strength in sorted(problem_sets)
+        for p in problem_sets[strength]
+    ]
+    merged_problem_sets = merge_qn_problem_sets(qn_problem_sets)
+    assert len(merged_problem_sets) < len(qn_problem_sets)
+
+    def n_total_solutions(problem_sets: list[QNProblemSet]) -> int:
+        solver = CSPSolver()
+        return sum(len(solver.find_solutions(p).solutions) for p in problem_sets)
+
+    assert n_total_solutions(merged_problem_sets) == n_total_solutions(qn_problem_sets)
 
 
 @pytest.fixture(scope="session")
