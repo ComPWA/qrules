@@ -13,7 +13,12 @@ from qrules.conservation_rules import (
     spin_validity,
 )
 from qrules.quantum_numbers import EdgeQuantumNumbers, NodeQuantumNumbers
-from qrules.solving import CSPSolver, QNProblemSet, filter_quantum_number_problem_set
+from qrules.solving import (
+    CSPSolver,
+    QNProblemSet,
+    complete_intermediate_states,
+    filter_quantum_number_problem_set,
+)
 
 if TYPE_CHECKING:
     from qrules.argument_handling import GraphEdgePropertyMap
@@ -24,8 +29,11 @@ def describe_CSPSolver():
         all_particles: qrules.particle.ParticleCollection,
         quantum_number_problem_set: QNProblemSet,
     ) -> None:
-        solver = CSPSolver(all_particles)
-        result = solver.find_solutions(quantum_number_problem_set)
+        solver = CSPSolver()
+        qn_result = solver.find_solutions(quantum_number_problem_set)
+        result = complete_intermediate_states(
+            qn_result, quantum_number_problem_set, all_particles
+        )
         assert len(result.solutions) == 19
 
     @pytest.mark.parametrize("with_spin_projection", [True, False])
@@ -34,7 +42,7 @@ def describe_CSPSolver():
         quantum_number_problem_set: QNProblemSet,
         with_spin_projection: bool,
     ) -> None:
-        solver = CSPSolver(all_particles)
+        solver = CSPSolver()
         parametrized_edge_properties_and_domains = {
             EdgeQuantumNumbers.pid,  # had to be added for c_parity_conservation to work
             EdgeQuantumNumbers.spin_magnitude,
@@ -60,7 +68,10 @@ def describe_CSPSolver():
                 NodeQuantumNumbers.s_magnitude,
             ),
         )
-        result = solver.find_solutions(new_quantum_number_problem_set)
+        qn_result = solver.find_solutions(new_quantum_number_problem_set)
+        result = complete_intermediate_states(
+            qn_result, new_quantum_number_problem_set, all_particles
+        )
 
         if with_spin_projection:
             assert len(result.solutions) == 319
