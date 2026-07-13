@@ -21,7 +21,13 @@ from attrs.converters import default_if_none
 from qrules.particle import Particle, ParticleWithSpin, Spin, _render_fraction
 from qrules.quantum_numbers import EdgeQuantumNumbers, InteractionProperties
 from qrules.solving import EdgeSettings, NodeSettings, QNProblemSet, QNResult
-from qrules.topology import FrozenTransition, MutableTransition, Topology, Transition
+from qrules.topology import (
+    FrozenTransition,
+    MutableTransition,
+    Topology,
+    Transition,
+    determine_mandelstam_channel,
+)
 from qrules.transition import ProblemSet, ReactionInfo, State
 
 if TYPE_CHECKING:
@@ -145,6 +151,7 @@ class GraphPrinter:
             lines += [self._create_graphviz_node(graphviz_node, label, self.edge_style)]
         lines += [_create_same_rank_line(topology.incoming_edge_ids, prefix)]
         lines += [_create_same_rank_line(topology.outgoing_edge_ids, prefix)]
+        lines += _create_exchange_same_rank_lines(topology, prefix)
         for i, edge in topology.edges.items():
             j, k = edge.ending_node_id, edge.originating_node_id
             from_node = prefix + _get_graphviz_node(i, k)
@@ -251,6 +258,22 @@ def _create_same_rank_line(node_edge_ids: Iterable[int], prefix: str = "") -> st
     name_list = [f"{prefix}{_get_graphviz_node(i)}" for i in node_edge_ids]
     name_string = " ".join(name_list)
     return f"{{ rank=same; {name_string} }}"
+
+
+def _create_exchange_same_rank_lines(topology: Topology, prefix: str = "") -> list[str]:
+    """Align the two nodes of each exchange edge at the same rank.
+
+    Without this constraint, Graphviz places the vertices of :math:`t`- and
+    :math:`u`-channel exchanges at subsequent ranks, which makes them look
+    time-ordered like a decay chain.
+    """
+    return [
+        f"{{ rank=same; {prefix}N{edge.originating_node_id}"
+        f" {prefix}N{edge.ending_node_id} }}"
+        for edge_id in sorted(topology.intermediate_edge_ids)
+        for edge in [topology.edges[edge_id]]
+        if determine_mandelstam_channel(topology, edge_id) != "s"
+    ]
 
 
 def _create_edge_label(
