@@ -41,7 +41,13 @@ from qrules.system_control import (
     create_edge_properties,
     create_node_properties,
 )
-from qrules.topology import FrozenDict, FrozenTransition, MutableTransition, Topology
+from qrules.topology import (
+    FrozenDict,
+    FrozenTransition,
+    MutableTransition,
+    Topology,
+    determine_reaction_channel,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
@@ -422,3 +428,12 @@ class ReactionInfo:
         for transition in self.transitions:
             groupings[transition.topology].append(transition)
         return dict(groupings)
+
+    def group_by_channel(self) -> dict[str, list[StateTransition]]:
+        """Group transitions by Mandelstam channel (`.determine_reaction_channel`)."""
+        groupings = defaultdict(list)
+        for transition in self.transitions:
+            groupings[determine_reaction_channel(transition.topology)].append(
+                transition
+            )
+        return dict(sorted(groupings.items()))

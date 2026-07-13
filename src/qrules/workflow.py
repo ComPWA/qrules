@@ -73,6 +73,7 @@ from qrules.topology import (
     MutableTransition,
     create_isobar_topologies,
     create_n_body_topology,
+    determine_reaction_channel,
 )
 from qrules.transition import (
     ExecutionInfo,
@@ -378,8 +379,15 @@ def create_problem_sets(  # noqa: PLR0917
     topologies: Iterable[Topology],
     final_state_groupings: list[list[list[str]]] | None = None,
     expand_spin_projections: bool = True,
+    allowed_channels: Iterable[str] | None = None,
 ) -> dict[float, list[ProblemSet]]:
-    """Create a `.ProblemSet` collection over all topologies, grouped by strength."""
+    """Create a `.ProblemSet` collection over all topologies, grouped by strength.
+
+    With :code:`allowed_channels`, only the kinematic permutations whose
+    `.determine_reaction_channel` label is in the given selection (e.g.
+    :code:`["s"]` or :code:`["t", "u"]`) are turned into problem sets.
+    """
+    allowed_channels = _validate_channels(allowed_channels)
     initial_state = list(map(as_state_definition, initial_state))
     final_state = list(map(as_state_definition, final_state))
     problem_sets = [
@@ -391,6 +399,8 @@ def create_problem_sets(  # noqa: PLR0917
             final_state,
             final_state_groupings,
         )
+        if allowed_channels is None
+        or determine_reaction_channel(permutation) in allowed_channels
         for initial_facts in create_initial_facts(
             permutation,
             initial_state,
@@ -403,6 +413,36 @@ def create_problem_sets(  # noqa: PLR0917
         )
     ]
     return _group_by_strength(problem_sets)
+
+
+def _validate_channels(allowed_channels: Iterable[str] | None) -> set[str] | None:
+    """Normalize a Mandelstam channel selection to `.determine_reaction_channel` labels.
+
+    >>> _validate_channels("t") == {"t"}
+    True
+    >>> _validate_channels(["s", "ut"]) == {"s", "tu"}
+    True
+    >>> _validate_channels(None) is None
+    True
+    >>> _validate_channels(["x"])
+    Traceback (most recent call last):
+        ...
+    ValueError: Invalid Mandelstam channel 'x'. Valid examples: 's', 't', 'u', 'tt'
+    """
+    if allowed_channels is None:
+        return None
+    if isinstance(allowed_channels, str):
+        allowed_channels = [allowed_channels]
+    channels = set()
+    for channel in allowed_channels:
+        if channel != "s" and (not channel or set(channel) - {"t", "u"}):
+            msg = (
+                f"Invalid Mandelstam channel {channel!r}."
+                " Valid examples: 's', 't', 'u', 'tt'"
+            )
+            raise ValueError(msg)
+        channels.add("".join(sorted(channel)))
+    return channels
 
 
 def _group_by_strength(
@@ -665,6 +705,7 @@ def create_qn_problem_sets(  # noqa: PLR0917
     max_angular_momentum: int = 1,
     max_spin_magnitude: float = 2,
     final_state_groupings: list[list[list[str]]] | None = None,
+    allowed_channels: Iterable[str] | None = None,
     merge_spin_projections: bool = False,
     spin_projections: bool = True,
 ) -> QNProblemSetCollection:
@@ -689,7 +730,10 @@ def create_qn_problem_sets(  # noqa: PLR0917
 
     The :code:`allowed_interaction_types` (e.g. :code:`"strong"` or
     :code:`["em", "weak"]`) restrict the interaction types of the default or given
-    :code:`interaction_config`.
+    :code:`interaction_config`. For reactions with more than one initial state,
+    :code:`allowed_channels` (e.g. :code:`["s"]` or :code:`["t", "u"]`) restricts the
+    problem sets to specific Mandelstam channels (see
+    `.determine_reaction_channel`).
     """
     if not spin_projections and merge_spin_projections:
         msg = "merge_spin_projections has no effect when spin_projections=False"
@@ -732,6 +776,7 @@ def create_qn_problem_sets(  # noqa: PLR0917
         topologies,
         final_state_groupings,
         expand_spin_projections=spin_projections,
+        allowed_channels=allowed_channels,
     )
     qn_problem_sets = _to_qn_problem_sets(problem_sets)
     if merge_spin_projections:
@@ -868,6 +913,15 @@ class QNReactionInfo:
             groupings[transition.topology].append(transition)
         return dict(groupings)
 
+    def group_by_channel(self) -> dict[str, list[QNTransition]]:
+        """Group transitions by Mandelstam channel (`.determine_reaction_channel`)."""
+        groupings = defaultdict(list)
+        for transition in self.transitions:
+            groupings[determine_reaction_channel(transition.topology)].append(
+                transition
+            )
+        return dict(sorted(groupings.items()))
+
 
 def generate_qn_transitions(  # noqa: PLR0917
     initial_state: StateDefinitionInput | Sequence[StateDefinitionInput],
@@ -880,6 +934,7 @@ def generate_qn_transitions(  # noqa: PLR0917
     max_angular_momentum: int = 1,
     max_spin_magnitude: float = 2,
     final_state_groupings: list[list[list[str]]] | None = None,
+    allowed_channels: Iterable[str] | None = None,
     topology_building: str = "isobar",
 ) -> QNReactionInfo:
     """Generate allowed transitions without spin projections.
@@ -908,6 +963,7 @@ def generate_qn_transitions(  # noqa: PLR0917
         max_angular_momentum=max_angular_momentum,
         max_spin_magnitude=max_spin_magnitude,
         final_state_groupings=final_state_groupings,
+        allowed_channels=allowed_channels,
         spin_projections=False,
     )
     transitions = find_qn_transitions(qn_problem_sets, particle_db)

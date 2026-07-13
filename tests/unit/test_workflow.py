@@ -1,5 +1,6 @@
 import json
 from fractions import Fraction
+from typing import Any
 
 import pytest
 
@@ -251,6 +252,45 @@ def test_generate_qn_transitions_two_to_n():
     assert (1, Fraction(3, 2)) in intermediate_signatures  # s-channel Delta(1232)
     assert (0, Fraction(1)) in intermediate_signatures  # t-channel vector exchange
     assert len(reaction.group_by_topology()) > 1
+
+
+def test_group_by_channel_and_channel_selection():
+    """Mandelstam channel encoding for 2-to-n reactions (ComPWA/qrules#29)."""
+    particle_db = load_pdg()
+    reaction_kwargs: dict[str, Any] = dict(
+        initial_state=["gamma", "p"],
+        final_state=["pi0", "p"],
+        particle_db=particle_db,
+        allowed_intermediate_particles=[
+            "Delta(1232)",
+            "N(1440)",
+            "rho(770)",
+            "omega(782)",
+        ],
+        allowed_interaction_types=["strong", "em"],
+    )
+    reaction = generate_qn_transitions(**reaction_kwargs)
+    channels = reaction.group_by_channel()
+    assert sorted(channels) == ["s", "t", "u"]
+    assert sum(map(len, channels.values())) == len(reaction.transitions)
+
+    def get_baryon_numbers(channel: str) -> set:
+        return {
+            state[EdgeQuantumNumbers.baryon_number]
+            for transition in channels[channel]
+            for state in transition.intermediate_states.values()
+        }
+
+    assert get_baryon_numbers("s") == {+1}  # Delta/N* resonances
+    assert get_baryon_numbers("t") == {0}  # meson exchange
+    assert get_baryon_numbers("u") == {-1, +1}  # baryon exchange
+
+    t_channel_only = generate_qn_transitions(**reaction_kwargs, allowed_channels="t")
+    assert sorted(t_channel_only.group_by_channel()) == ["t"]
+    assert len(t_channel_only.transitions) == len(channels["t"])
+
+    with pytest.raises(ValueError, match="Invalid Mandelstam channel 'x'"):
+        generate_qn_transitions(**reaction_kwargs, allowed_channels=["x"])
 
 
 def test_qn_reaction_info_requires_particle_states():

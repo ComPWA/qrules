@@ -22,7 +22,7 @@ import logging
 from abc import ABC, abstractmethod
 from collections import abc, defaultdict
 from functools import total_ordering
-from typing import TYPE_CHECKING, Any, Generic, Protocol, TypeVar, overload
+from typing import TYPE_CHECKING, Any, Generic, Literal, Protocol, TypeVar, overload
 
 import attrs
 from attrs import define, field, frozen
@@ -782,6 +782,101 @@ def create_isobar_topologies(
         number_of_final_edges=number_of_final_states,
     )
     return _remove_isomorphic_topologies(topologies)
+
+
+def determine_mandelstam_channel(
+    topology: Topology, intermediate_edge_id: int
+) -> Literal["s", "t", "u"]:
+    r"""Determine which Mandelstam channel an intermediate edge represents.
+
+    Cutting the intermediate edge splits a tree topology into two sides. If one side
+    contains all initial states, the edge carries the invariant mass of the final
+    states on the other side, that is, an :math:`s`-type channel. Otherwise, the edge
+    is an exchange between the initial states. Following the Mandelstam convention
+    :math:`t = (p_1 - p_3)^2` and :math:`u = (p_1 - p_4)^2` for :math:`1\,2 \to 3\,4`,
+    the exchange is labeled :math:`t` if the first initial state and the first final
+    state lie on the same side of the cut and :math:`u` otherwise. Reorder the final
+    states to switch between the two.
+
+    >>> topologies = create_isobar_topologies(
+    ...     number_of_final_states=2,
+    ...     number_of_initial_states=2,
+    ... )
+    >>> [determine_mandelstam_channel(t, intermediate_edge_id=2) for t in topologies]
+    ['s', 't']
+    >>> u_channel_topology = topologies[1].relabel_edges({0: 1, 1: 0})
+    >>> determine_mandelstam_channel(u_channel_topology, intermediate_edge_id=2)
+    'u'
+    >>> determine_mandelstam_channel(topologies[0], intermediate_edge_id=0)
+    Traceback (most recent call last):
+        ...
+    ValueError: Edge 0 is not an intermediate edge
+    """
+    if intermediate_edge_id not in topology.intermediate_edge_ids:
+        msg = f"Edge {intermediate_edge_id} is not an intermediate edge"
+        raise ValueError(msg)
+    cut_edge = topology.edges[intermediate_edge_id]
+    originating_side_node_ids = __collect_node_ids_on_side(
+        topology,
+        start_node_id=cut_edge.originating_node_id,  # type: ignore[arg-type]
+        cut_edge_id=intermediate_edge_id,
+    )
+
+    def is_on_originating_side(external_edge_id: int) -> bool:
+        (node_id,) = topology.edges[external_edge_id].get_connected_nodes()
+        return node_id in originating_side_node_ids
+
+    initial_state_sides = {
+        is_on_originating_side(i) for i in topology.incoming_edge_ids
+    }
+    if len(initial_state_sides) == 1:
+        return "s"
+    beam_side = is_on_originating_side(min(topology.incoming_edge_ids))
+    first_final_state_side = is_on_originating_side(min(topology.outgoing_edge_ids))
+    if beam_side == first_final_state_side:
+        return "t"
+    return "u"
+
+
+def __collect_node_ids_on_side(
+    topology: Topology, start_node_id: int, cut_edge_id: int
+) -> set[int]:
+    connected_node_ids = {start_node_id}
+    queue = [start_node_id]
+    while queue:
+        node_id = queue.pop()
+        for edge_id, edge in topology.edges.items():
+            if edge_id == cut_edge_id or node_id not in edge.get_connected_nodes():
+                continue
+            new_node_ids = edge.get_connected_nodes() - connected_node_ids
+            connected_node_ids |= new_node_ids
+            queue += new_node_ids
+    return connected_node_ids
+
+
+def determine_reaction_channel(topology: Topology) -> str:
+    """Summarize the Mandelstam channels of a topology as a single label.
+
+    The label is :code:`"s"` if none of the intermediate edges is an exchange between
+    the initial states, and otherwise the alphabetically sorted concatenation of the
+    `.determine_mandelstam_channel` letters of the exchange edges — :code:`"t"` or
+    :code:`"u"` for a single exchange, :code:`"tt"` etc. for double exchange.
+
+    >>> topologies = create_isobar_topologies(
+    ...     number_of_final_states=2,
+    ...     number_of_initial_states=2,
+    ... )
+    >>> [determine_reaction_channel(t) for t in topologies]
+    ['s', 't']
+    """
+    channels = [
+        determine_mandelstam_channel(topology, edge_id)
+        for edge_id in topology.intermediate_edge_ids
+    ]
+    exchange_channels = [channel for channel in channels if channel != "s"]
+    if not exchange_channels:
+        return "s"
+    return "".join(sorted(exchange_channels))
 
 
 def create_n_body_topology(
