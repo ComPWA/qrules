@@ -31,6 +31,7 @@ def test_protocol_compliance():
     assert edge_input_classes == {
         conservation_rules.CParityEdgeInput,
         conservation_rules.GParityEdgeInput,
+        conservation_rules.GParityValidityInput,
         conservation_rules.HelicityParityEdgeInput,
         conservation_rules.IdenticalParticleSymmetryOutEdgeInput,
         conservation_rules.IsoSpinEdgeInput,

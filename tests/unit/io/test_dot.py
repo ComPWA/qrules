@@ -188,6 +188,7 @@ def test_as_string_dict(
         RULES
         spin_validity - 62
         isospin_validity - 61
+        g_parity_validity - 60
         gellmann_nishijima - 50
         DOMAINS
         baryon_number ∊ [-1, +1]

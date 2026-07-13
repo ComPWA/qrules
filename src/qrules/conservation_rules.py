@@ -334,6 +334,66 @@ class GParityNodeInput:
     s_magnitude: NodeQN.s_magnitude = field(converter=to_fraction)
 
 
+@frozen
+class GParityValidityInput:
+    isospin_magnitude: EdgeQN.isospin_magnitude = field(converter=to_fraction)
+    charge: EdgeQN.charge = field(converter=int)
+    c_parity: EdgeQN.c_parity | None = field(
+        converter=optional(to_parity), default=None
+    )
+    g_parity: EdgeQN.g_parity | None = field(
+        converter=optional(to_parity), default=None
+    )
+
+
+def g_parity_validity(state: GParityValidityInput) -> bool:
+    r"""Check that the :math:`G`-parity is consistent with isospin and :math:`C`-parity.
+
+    :math:`G`-parity is only defined for states with integer isospin and satisfies
+    :math:`G = C \cdot (-1)^I`, with :math:`C` the :math:`C`-parity of the neutral
+    member of the isospin multiplet. A neutral state that carries a :math:`G`-parity
+    is such a neutral member, so its :math:`C`-parity must be defined and satisfy this
+    relation. For charged states, the relation cannot be checked, since their
+    :math:`C`-parity is undefined.
+
+    >>> from fractions import Fraction
+    >>> from qrules.quantum_numbers import Parity
+    >>> rho_meson = GParityValidityInput(
+    ...     isospin_magnitude=Fraction(1),
+    ...     charge=0,
+    ...     c_parity=Parity(-1),
+    ...     g_parity=Parity(+1),
+    ... )
+    >>> g_parity_validity(rho_meson)
+    True
+    >>> undefined_c_parity = GParityValidityInput(
+    ...     isospin_magnitude=Fraction(1),
+    ...     charge=0,
+    ...     g_parity=Parity(-1),
+    ... )
+    >>> g_parity_validity(undefined_c_parity)
+    False
+    >>> charged_rho_meson = GParityValidityInput(
+    ...     isospin_magnitude=Fraction(1),
+    ...     charge=+1,
+    ...     g_parity=Parity(+1),
+    ... )
+    >>> g_parity_validity(charged_rho_meson)
+    True
+    """
+    if state.g_parity is None:
+        return True
+    if state.isospin_magnitude.denominator != 1:
+        return False
+    if state.charge != 0:
+        return True
+    if state.c_parity is None:
+        return False
+    return state.g_parity.value == state.c_parity.value * (-1) ** int(
+        state.isospin_magnitude
+    )
+
+
 def g_parity_conservation(  # noqa: C901
     ingoing_edge_qns: list[GParityEdgeInput],
     outgoing_edge_qns: list[GParityEdgeInput],
