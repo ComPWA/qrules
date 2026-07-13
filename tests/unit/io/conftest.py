@@ -19,8 +19,8 @@ def particle_selection(particle_database: ParticleCollection):
 @pytest.fixture
 def stm() -> StateTransitionManager:
     stm = StateTransitionManager(
-        initial_state=[("J/psi(1S)", [+1])],
-        final_state=["K0", ("Sigma+", [+0.5]), ("p~", [+0.5])],
+        initial_state=["J/psi(1S)"],
+        final_state=["K0", "Sigma+", "p~"],
         allowed_intermediate_particles=["Sigma(1750)"],
         formalism="canonical-helicity",
     )
@@ -40,4 +40,4 @@ def qn_problem_and_result(
 ) -> tuple[QNProblemSet, QNResult]:
     qn_solutions = stm.find_quantum_number_transitions(problem_sets)
     strong_qn_solutions = qn_solutions[3600.0]
-    return strong_qn_solutions[1]
+    return next(pair for pair in strong_qn_solutions if pair[1].solutions)

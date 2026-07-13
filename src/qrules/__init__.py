@@ -24,13 +24,7 @@ import attrs
 
 from qrules import io
 from qrules import system_control as system_control
-from qrules.combinatorics import (
-    InitialFacts,
-    StateDefinitionInput,
-    create_initial_facts,
-    to_state_definitions,
-)
-from qrules.combinatorics import StateDefinition as StateDefinition
+from qrules.combinatorics import InitialFacts, create_initial_facts
 from qrules.conservation_rules import (
     BaryonNumberConservation,
     BottomnessConservation,
@@ -43,10 +37,8 @@ from qrules.conservation_rules import (
     StrangenessConservation,
     TauLNConservation,
     c_parity_conservation,
-    clebsch_gordan_helicity_to_canonical,
     g_parity_conservation,
     gellmann_nishijima,
-    identical_particle_symmetrization,
     isospin_conservation,
     isospin_validity,
     parity_conservation,
@@ -75,8 +67,8 @@ if TYPE_CHECKING:
 
 
 def check_reaction_violations(  # ruff: ignore[complex-structure, too-many-positional-arguments]
-    initial_state: StateDefinitionInput | Sequence[StateDefinitionInput],
-    final_state: Sequence[StateDefinitionInput],
+    initial_state: str | Sequence[str],
+    final_state: Sequence[str],
     mass_conservation_factor: float | None = 3.0,
     particle_db: ParticleCollection | None = None,
     max_angular_momentum: int = 1,
@@ -90,10 +82,8 @@ def check_reaction_violations(  # ruff: ignore[complex-structure, too-many-posit
       correctly.
 
     Args:
-      initial_state: Shortform description of the initial state w/o spin
-        projections.
-      final_state: Shortform description of the final state w/o spin
-        projections.
+      initial_state: Particle names of the initial state.
+      final_state: Particle names of the final state.
       mass_conservation_factor: Factor with which the width is multiplied when
         checking for `.MassConservation`. Set to `None` in order to deactivate mass
         conservation.
@@ -119,7 +109,8 @@ def check_reaction_violations(  # ruff: ignore[complex-structure, too-many-posit
 
     .. seealso:: :ref:`usage:Check allowed reactions`
     """
-    initial_state_definitions = to_state_definitions(initial_state)
+    if isinstance(initial_state, str):
+        initial_state = [initial_state]
 
     if particle_db is None:
         particle_db = load_pdg()
@@ -153,7 +144,7 @@ def check_reaction_violations(  # ruff: ignore[complex-structure, too-many-posit
         }
 
         edge_check_result = _check_violations(
-            initial_facts[0],
+            initial_facts,
             node_rules={},
             edge_rules=dict.fromkeys(
                 topology.incoming_edge_ids | topology.outgoing_edge_ids, pure_edge_rules
@@ -182,13 +173,13 @@ def check_reaction_violations(  # ruff: ignore[complex-structure, too-many-posit
             TauLNConservation(),
             isospin_conservation,
         }
-        if len(initial_state_definitions) == 1 and mass_conservation_factor is not None:
+        if len(initial_state) == 1 and mass_conservation_factor is not None:
             edge_qn_conservation_rules.add(MassConservation(mass_conservation_factor))
 
         return {
             frozenset((x,))
             for x in _check_violations(
-                initial_facts[0],
+                initial_facts,
                 node_rules=dict.fromkeys(topology.nodes, edge_qn_conservation_rules),
                 edge_rules={},
             ).violated_node_rules[node_id]
@@ -198,13 +189,13 @@ def check_reaction_violations(  # ruff: ignore[complex-structure, too-many-posit
     # since only certain spin rules require the isobar model. These spin rules
     # are not required here though.
     topology = create_n_body_topology(
-        number_of_initial_states=len(initial_state_definitions),
+        number_of_initial_states=len(initial_state),
         number_of_final_states=len(final_state),
     )
     node_id = next(iter(topology.nodes))
 
     initial_facts = create_initial_facts(
-        topology, initial_state_definitions, final_state, particle_db
+        topology, initial_state, final_state, particle_db
     )
 
     check_pure_edge_rules()
@@ -220,14 +211,13 @@ def check_reaction_violations(  # ruff: ignore[complex-structure, too-many-posit
         )
     ]
 
-    initial_facts_list = []
-    for ls_combi in ls_combinations:
-        for facts_combination in initial_facts:
-            new_facts = attrs.evolve(
-                facts_combination,
-                interactions={node_id: ls_combi},
-            )
-            initial_facts_list.append(new_facts)
+    initial_facts_list = [
+        attrs.evolve(
+            initial_facts,
+            interactions={node_id: ls_combi},
+        )
+        for ls_combi in ls_combinations
+    ]
 
     # Verify each graph with the interaction rules.
     # Spin projection rules are skipped as they can only be checked reliably
@@ -235,11 +225,9 @@ def check_reaction_violations(  # ruff: ignore[complex-structure, too-many-posit
     conservation_rules: dict[int, set[Rule]] = {
         node_id: {
             c_parity_conservation,
-            clebsch_gordan_helicity_to_canonical,
             g_parity_conservation,
             parity_conservation,
             spin_magnitude_conservation,
-            identical_particle_symmetrization,
         }
     }
 
@@ -273,8 +261,8 @@ def check_reaction_violations(  # ruff: ignore[complex-structure, too-many-posit
 
 
 def generate_transitions(  # ruff: ignore[too-many-positional-arguments]
-    initial_state: StateDefinitionInput | Sequence[StateDefinitionInput],
-    final_state: Sequence[StateDefinitionInput],
+    initial_state: str | Sequence[str],
+    final_state: Sequence[str],
     allowed_intermediate_particles: list[str] | None = None,
     allowed_interaction_types: str | Iterable[str] | None = None,
     formalism: SpinFormalism = "canonical-helicity",
@@ -290,11 +278,7 @@ def generate_transitions(  # ruff: ignore[too-many-positional-arguments]
     Serves as a facade to the `.StateTransitionManager` (see :doc:`/usage/reaction`).
 
     Arguments:
-        initial_state (list): A list of particle names in the initial
-            state. You can specify spin projections for these particles with a `tuple`,
-            e.g. :code:`("J/psi(1S)", [-1, 0, +1])`. If spin projections are not
-            specified, all projections are taken, so the example here would be
-            equivalent to :code:`"J/psi(1S)"`.
+        initial_state (list): A list of particle names in the initial state.
 
         final_state (list): Same as :code:`initial_state`, but for final state
             particles.
@@ -355,9 +339,10 @@ def generate_transitions(  # ruff: ignore[too-many-positional-arguments]
     >>> len(reaction.group_by_topology())
     3
     """
-    initial_state_definitions = to_state_definitions(initial_state)
+    if isinstance(initial_state, str):
+        initial_state = [initial_state]
     stm = StateTransitionManager(
-        initial_state=initial_state_definitions,
+        initial_state=initial_state,
         final_state=final_state,
         particle_db=particle_db,
         allowed_intermediate_particles=allowed_intermediate_particles,

@@ -9,56 +9,23 @@ from __future__ import annotations
 
 import itertools
 from collections import OrderedDict
-from collections.abc import Callable, Iterable, Mapping, Sequence
 from copy import deepcopy
-from fractions import Fraction
 from typing import TYPE_CHECKING, Any
 
-from qrules.argument_handling import Scalar
-from qrules.particle import ParticleWithSpin
-from qrules.quantum_numbers import InteractionProperties, arange
+from qrules.particle import Particle
+from qrules.quantum_numbers import InteractionProperties
 from qrules.topology import MutableTransition, Topology, get_originating_node_list
 
 if TYPE_CHECKING:
+    from collections.abc import Callable, Iterable, Mapping, Sequence
+
     from typing_extensions import TypeIs
 
     from qrules.particle import ParticleCollection
 
 
-StateWithSpins = tuple[str, Sequence[Fraction]]
-StateDefinition = str | StateWithSpins
-"""Particle name, optionally with a list of spin projections."""
-StateDefinitionInput = str | tuple[str, Sequence[Scalar]]
-"""Input type for `StateDefinition` permitting also `int` and `float`"""
-InitialFacts = MutableTransition[ParticleWithSpin, InteractionProperties]
+InitialFacts = MutableTransition[Particle, InteractionProperties]
 """A `.Transition` with only initial and final state information."""
-
-
-def as_state_definition(
-    definition: StateDefinitionInput,
-) -> StateDefinition:
-    if type(definition) is str:
-        return definition
-    if type(definition) is tuple:
-        name, state = definition
-        return name, [Fraction(x) for x in state]
-    msg = f"value has to be of type {StateDefinitionInput}, got {type(definition)}"
-    raise ValueError(msg)
-
-
-def to_state_definitions(
-    state: StateDefinitionInput | Sequence[StateDefinitionInput], /
-) -> list[StateDefinitionInput]:
-    """Wrap a single state definition in a `list`, or copy a sequence of them."""
-    if _is_state_definition_input(state):
-        return [state]
-    return list(state)
-
-
-def _is_state_definition_input(value: object, /) -> TypeIs[StateDefinitionInput]:
-    return isinstance(value, str) or (
-        isinstance(value, tuple) and len(value) == 2 and isinstance(value[0], str)
-    )
 
 
 class _KinematicRepresentation:  # ruff: ignore[eq-without-hash]
@@ -222,114 +189,37 @@ def _get_kinematic_representation(
 
 def create_initial_facts(
     topology: Topology,
-    initial_state: Sequence[StateDefinitionInput],
-    final_state: Sequence[StateDefinitionInput],
+    initial_state: Sequence[str],
+    final_state: Sequence[str],
     particle_db: ParticleCollection,
-    expand_spin_projections: bool = True,
-) -> list[InitialFacts]:
-    """Attach the initial and final states to the external edges of a `.Topology`.
-
-    By default, one `.InitialFacts` is created for every combination of allowed spin
-    projections of the initial and final state. With
-    :code:`expand_spin_projections=False`, this Cartesian expansion is skipped and a
-    single `.InitialFacts` without spin projections is returned, for solving at the
-    :math:`J^{P(C)}` level (see `.strip_spin_projections`).
-    """
-    states = __create_states_with_spin_projections(
-        sorted(topology.incoming_edge_ids) + sorted(topology.outgoing_edge_ids),
-        list(map(as_state_definition, initial_state))
-        + list(map(as_state_definition, final_state)),
-        particle_db,
-    )
-    if not expand_spin_projections:
-        projection_free_states = {
-            edge_id: (particle_db[name], None) for edge_id, (name, _) in states.items()
-        }
-        return [MutableTransition(topology, projection_free_states)]  # type: ignore[arg-type]
-    spin_states = __generate_spin_combinations(states, particle_db)
-    return [MutableTransition(topology, states) for states in spin_states]
-
-
-def __create_states_with_spin_projections(
-    edge_ids: Sequence[int],
-    state_definitions: Sequence[StateDefinition],
-    particle_db: ParticleCollection,
-) -> dict[int, StateWithSpins]:
-    if len(edge_ids) != len(state_definitions):
+) -> InitialFacts:
+    """Attach the initial and final state particles to the external edges of a `.Topology`."""
+    edge_ids = sorted(topology.incoming_edge_ids) + sorted(topology.outgoing_edge_ids)
+    particle_names = list(initial_state) + list(final_state)
+    if len(edge_ids) != len(particle_names):
         msg = "Number of state definitions is not same as number of edge IDs"
         raise ValueError(msg)
-    states = __safe_set_spin_projections(state_definitions, particle_db)
-    return dict(zip(edge_ids, states, strict=True))
-
-
-def __safe_set_spin_projections(
-    state_definitions: Sequence[StateDefinition],
-    particle_db: ParticleCollection,
-) -> Sequence[StateWithSpins]:
-    def fill_spin_projections(state: StateDefinition) -> StateWithSpins:
-        if isinstance(state, str):
-            particle_name = state
-            particle = particle_db[particle_name]
-            spin_projections = set(arange(-particle.spin, particle.spin + 1))
-            if particle.mass == 0.0 and Fraction(0) in spin_projections:  # ruff: ignore[float-equality-comparison]
-                spin_projections.remove(Fraction(0))
-            return particle_name, sorted(spin_projections)
-        return state
-
-    return [fill_spin_projections(state) for state in state_definitions]
-
-
-def __generate_spin_combinations(
-    states_with_spin_projections: dict[int, StateWithSpins],
-    particle_db: ParticleCollection,
-) -> list[dict[int, ParticleWithSpin]]:
-    def populate_edge_with_spin_projections(
-        permutation: dict[int, ParticleWithSpin],
-        edge_id: int,
-        state: StateWithSpins,
-    ) -> list[dict[int, ParticleWithSpin]]:
-        particle_name, spin_projections = state
-        particle = particle_db[particle_name]
-        new_permutations = []
-        for projection in spin_projections:
-            temp_permutation = deepcopy(permutation)
-            temp_permutation.update({edge_id: (particle, projection)})
-            new_permutations.append(temp_permutation)
-        return new_permutations
-
-    initial_facts_permutations: list[dict[int, ParticleWithSpin]] = [{}]
-    for edge_id, state in states_with_spin_projections.items():
-        temp_permutations = initial_facts_permutations
-        initial_facts_permutations = []
-        for temp_permutation in temp_permutations:
-            initial_facts_permutations.extend(
-                populate_edge_with_spin_projections(temp_permutation, edge_id, state)
-            )
-
-    return initial_facts_permutations
+    states = {
+        edge_id: particle_db[name]
+        for edge_id, name in zip(edge_ids, particle_names, strict=True)
+    }
+    return MutableTransition(topology, states)
 
 
 def permutate_topology_kinematically(
     topology: Topology,
-    initial_state: Sequence[StateDefinitionInput] | Sequence[StateDefinition],
-    final_state: Sequence[StateDefinitionInput] | Sequence[StateDefinition],
+    initial_state: Sequence[str],
+    final_state: Sequence[str],
     final_state_groupings: list[list[list[str]]]
     | list[list[str]]
     | list[str]
     | None = None,
 ) -> list[Topology]:
-    def strip_spin(state: StateDefinitionInput) -> str:
-        if isinstance(state, tuple):
-            return state[0]
-        return state
-
     edge_ids = sorted(topology.incoming_edge_ids) + sorted(topology.outgoing_edge_ids)
     states = list(initial_state) + list(final_state)
     return _generate_kinematic_permutations(
         topology,
-        particle_names={
-            i: strip_spin(s) for i, s in zip(edge_ids, states, strict=True)
-        },
+        particle_names=dict(zip(edge_ids, states, strict=True)),
         allowed_kinematic_groupings=__get_kinematic_groupings(final_state_groupings),
     )
 
@@ -395,7 +285,7 @@ def __get_kinematic_groupings(
 
 
 def match_external_edges(
-    graphs: list[MutableTransition[ParticleWithSpin, InteractionProperties]],
+    graphs: list[MutableTransition[Particle, InteractionProperties]],
 ) -> None:
     if not isinstance(graphs, list):
         msg = "graphs argument is not of type list"
@@ -408,7 +298,7 @@ def match_external_edges(
 
 
 def _match_external_edge_ids(
-    graphs: list[MutableTransition[ParticleWithSpin, InteractionProperties]],
+    graphs: list[MutableTransition[Particle, InteractionProperties]],
     ref_graph_id: int,
     external_edge_getter_function: Callable[[MutableTransition], Iterable[int]],
 ) -> None:
@@ -443,13 +333,13 @@ def _match_external_edge_ids(
 
 
 def __get_initial_state_edge_ids(
-    graph: MutableTransition[ParticleWithSpin, InteractionProperties],
+    graph: MutableTransition[Particle, InteractionProperties],
 ) -> Iterable[int]:
     return graph.topology.incoming_edge_ids
 
 
 def __get_final_state_edge_ids(
-    graph: MutableTransition[ParticleWithSpin, InteractionProperties],
+    graph: MutableTransition[Particle, InteractionProperties],
 ) -> Iterable[int]:
     return graph.topology.outgoing_edge_ids
 
@@ -479,7 +369,7 @@ def perform_external_edge_identical_particle_combinatorics(
 
 
 def _external_edge_identical_particle_combinatorics(
-    graph: MutableTransition[ParticleWithSpin, InteractionProperties],
+    graph: MutableTransition[Particle, InteractionProperties],
     external_edge_getter_function: Callable[[MutableTransition], Iterable[int]],
 ) -> list[MutableTransition]:
     new_graphs = [graph]
@@ -536,7 +426,7 @@ def _calculate_swappings(id_mapping: dict[int, int]) -> OrderedDict:
 
 
 def _create_edge_id_particle_mapping(
-    graph: MutableTransition[ParticleWithSpin, InteractionProperties],
+    graph: MutableTransition[Particle, InteractionProperties],
     edge_ids: Iterable[int],
 ) -> dict[int, str]:
-    return {i: graph.states[i][0].name for i in edge_ids}
+    return {i: graph.states[i].name for i in edge_ids}
