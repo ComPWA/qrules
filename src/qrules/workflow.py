@@ -763,7 +763,7 @@ def create_qn_problem_sets(  # ruff: ignore[too-many-positional-arguments]
     )
     # turn off mass conservation, in case more than one initial state
     # particle is present
-    if use_nbody_topology and len(initial_state) > 1:
+    if len(initial_state) > 1:
         mass_conservation_factor = None
     if interaction_config is None:
         interaction_config = InteractionConfig(
@@ -1172,7 +1172,10 @@ def _create_topologies(
 ) -> tuple[tuple[Topology, ...], bool]:
     topology_building = topology_building.lower()
     if topology_building == "isobar":
-        return create_isobar_topologies(number_of_final_states), False
+        return (
+            create_isobar_topologies(number_of_final_states, number_of_initial_states),
+            False,
+        )
     if "n-body" in topology_building or "nbody" in topology_building:
         return (
             create_n_body_topology(number_of_initial_states, number_of_final_states),
