@@ -1,6 +1,7 @@
 from fractions import Fraction
 from textwrap import dedent
 
+import attrs
 import pydot
 import pytest
 
@@ -50,19 +51,19 @@ digraph {
     node [shape=none, width=0]
     edge [arrowhead=none]
     bgcolor=none
-    0 [label="0: gamma[-1]"]
-    1 [label="1: pi0[0]"]
-    2 [label="2: pi0[0]"]
-    A [label="J/psi(1S)[-1]"]
+    0 [label="0: gamma"]
+    1 [label="1: pi0"]
+    2 [label="2: pi0"]
+    A [label="J/psi(1S)"]
     { rank=same; A }
     { rank=same; 0 1 2 }
     A -> N0
-    N0 -> N1 [label="f(0)(980)[0]"]
+    N0 -> N1 [label="f(0)(980)"]
     N0 -> 0
     N1 -> 1
     N1 -> 2
-    N0 [label="P=+1"]
-    N1 [label="P=+1"]
+    N0 [label=""]
+    N1 [label=""]
 }
         """
     else:
@@ -72,19 +73,19 @@ digraph {
     node [shape=none, width=0]
     edge [arrowhead=none]
     bgcolor=none
-    0 [label="0: gamma[-1]"]
-    1 [label="1: pi0[0]"]
-    2 [label="2: pi0[0]"]
-    A [label="J/psi(1S)[-1]"]
+    0 [label="0: gamma"]
+    1 [label="1: pi0"]
+    2 [label="2: pi0"]
+    A [label="J/psi(1S)"]
     { rank=same; A }
     { rank=same; 0 1 2 }
     A -> N0
-    N0 -> N1 [label="f(0)(980)[0]"]
+    N0 -> N1 [label="f(0)(980)"]
     N0 -> 0
     N1 -> 1
     N1 -> 2
-    N0 [label="L=|0,0⟩\nS=|1,-1⟩\nP=+1"]
-    N1 [label="L=|0,0⟩\nS=|0,0⟩\nP=+1"]
+    N0 [label="L=0\nS=1"]
+    N1 [label="L=0\nS=0"]
 }
         """
     assert src.strip() == expected_dot.strip()
@@ -116,8 +117,8 @@ def test_asdot_with_styled_edges_and_nodes(reaction: ReactionInfo, output_dir):
     assert is_valid_dot(src)
     with open(output_dir + f"styled_{reaction.formalism}.gv", "w") as stream:
         stream.write(src)
-    assert '0 [fontcolor="blue", label="0: gamma[-1]"]' in src
-    assert 'N0 -> N1 [fontcolor="blue", label="f(0)(980)[0]"]' in src
+    assert '0 [fontcolor="blue", label="0: gamma"]' in src
+    assert 'N0 -> N1 [fontcolor="blue", label="f(0)(980)"]' in src
     assert 'N0 [fontcolor="darkgreen", shape="ellipse", label=""]' in src
 
 
@@ -139,7 +140,7 @@ def test_asdot_no_label_overwriting(reaction: ReactionInfo):
 )
 def test_asdot_problemset(formalism: SpinFormalism):
     stm = StateTransitionManager(
-        initial_state=[("J/psi(1S)", [+1])],
+        initial_state=["J/psi(1S)"],
         final_state=["gamma", "pi0", "pi0"],
         formalism=formalism,
     )
@@ -186,7 +187,6 @@ def test_as_string_dict(
     print(src)
     expected_dot = dedent("""
         RULES
-        spin_validity - 62
         isospin_validity - 61
         g_parity_validity - 60
         gellmann_nishijima - 50
@@ -203,7 +203,6 @@ def test_as_string_dict(
         muon_lepton_number ∊ [0]
         parity ∊ [-1, +1]
         spin_magnitude ∊ [1/2]
-        spin_projection ∊ [-4, -7/2, -3, -5/2, -2, -3/2, -1, -1/2, 0, +1/2, +1, +3/2, +2, +5/2, +3, +7/2, +4]
         strangeness ∊ [-1, +1]
         tau_lepton_number ∊ [0]
         topness ∊ [0]
@@ -216,10 +215,8 @@ def test_as_string_dict(
     expected_dot = dedent("""
         RULES
         BaryonNumberConservation - 90
-        ls_spin_validity - 89
         spin_magnitude_conservation - 8
         CharmConservation - 70
-        helicity_conservation - 7
         StrangenessConservation - 69
         BottomnessConservation - 68
         isospin_conservation - 60
@@ -228,18 +225,12 @@ def test_as_string_dict(
         ElectronLNConservation - 45
         MuonLNConservation - 44
         TauLNConservation - 43
-        parity_conservation_helicity - 4
         g_parity_conservation - 3
-        identical_particle_symmetrization - 2
         ChargeConservation - 100
         MassConservation - 10
-        clebsch_gordan_helicity_to_canonical - 1
         DOMAINS
         l_magnitude ∊ [0, 1]
-        l_projection ∊ [0]
-        parity_prefactor ∊ [-1, +1]
         s_magnitude ∊ [0, 1/2, 1, 3/2, 2]
-        s_projection ∊ [-2, -3/2, -1, -1/2, 0, +1/2, +1, +3/2, +2]
     """).strip()
     assert src == expected_dot
 
@@ -249,9 +240,6 @@ def test_as_string_dict(
     expected_dot = dedent("""
         l_magnitude = 0
         s_magnitude = 1/2
-        l_projection = 0
-        s_projection = -1/2
-        parity_prefactor = +1
     """).strip()
     assert src == expected_dot
 
@@ -259,7 +247,6 @@ def test_as_string_dict(
     lines = set(src.splitlines())
     expected_lines = {
         "spin_magnitude = 1/2",
-        "spin_projection = +1/2",
         "parity = +1",
         "isospin_magnitude = 1",
         "isospin_projection = -1",
@@ -273,7 +260,7 @@ def test_as_string_dict(
     assert lines == expected_lines
 
 
-def test_as_string_spin_tuple(particle_database: ParticleCollection):
+def test_as_string_spin_tuple():
     # non-spin
     src = as_string(("a", "b", "c"))
     assert src == "a\nb\nc"
@@ -283,13 +270,8 @@ def test_as_string_spin_tuple(particle_database: ParticleCollection):
     # spin
     src = as_string((2, 1))
     assert src == "|2,+1⟩"
-
-    # particle with spin projection
-    pion = particle_database["J/psi(1S)"]
-    src = as_string((pion, 1))
-    assert src == "J/psi(1S)[+1]"
-    src = as_string((pion, Fraction(-1)))
-    assert src == "J/psi(1S)[-1]"
+    src = as_string((Fraction(1, 2), Fraction(-1, 2)))
+    assert src == "|1/2,-1/2⟩"
 
 
 class TestWrite:
@@ -377,36 +359,35 @@ def test_strip_projections(skh_particle_version: str):
     assert skh_particle_version is not None  # skips test if particle version too low
     resonance = "Sigma(1670)~-"
     reaction = qrules.generate_transitions(
-        initial_state=[("J/psi(1S)", [+1])],
-        final_state=["K0", ("Sigma+", [+0.5]), ("p~", [+0.5])],
+        initial_state="J/psi(1S)",
+        final_state=["K0", "Sigma+", "p~"],
         allowed_intermediate_particles=[resonance],
         allowed_interaction_types="strong",
     )
-
-    assert len(reaction.transitions) == 5
     transition = reaction.transitions[0]
-
-    assert transition.intermediate_states[3].particle.name == resonance
-    assert transition.intermediate_states[3].spin_projection == -0.5
+    assert transition.intermediate_states[3].name == resonance
     assert len(transition.interactions) == 2
-    assert transition.interactions[0].s_projection == 1
-    assert transition.interactions[0].l_projection == 0
-    assert transition.interactions[1].s_projection == -0.5
-    assert transition.interactions[1].l_projection == 0
 
-    stripped_transition = _strip_projections(transition)  # type: ignore[arg-type]
+    # attach projections to the interactions, as a spin-projection extension would
+    transition_with_projections = transition.convert(
+        interaction_converter=lambda interaction: attrs.evolve(
+            interaction, l_projection=0, s_projection=interaction.s_magnitude
+        )
+    )
+    stripped_transition = _strip_projections(transition_with_projections)
     assert stripped_transition.states[3].name == resonance
-    assert stripped_transition.interactions[0].s_projection is None
-    assert stripped_transition.interactions[0].l_projection is None
-    assert stripped_transition.interactions[1].s_projection is None
-    assert stripped_transition.interactions[1].l_projection is None
+    for interaction in stripped_transition.interactions.values():
+        assert interaction.l_projection is None
+        assert interaction.s_projection is None
+        assert interaction.l_magnitude is not None
+        assert interaction.s_magnitude is not None
 
 
 @pytest.fixture
 def stm() -> StateTransitionManager:
     stm = StateTransitionManager(
-        initial_state=[("J/psi(1S)", [+1])],
-        final_state=["K0", ("Sigma+", [+0.5]), ("p~", [+0.5])],
+        initial_state=["J/psi(1S)"],
+        final_state=["K0", "Sigma+", "p~"],
         allowed_intermediate_particles=["Sigma(1750)"],
         formalism="canonical-helicity",
     )
@@ -426,7 +407,7 @@ def qn_problem_and_result(
 ) -> tuple[QNProblemSet, QNResult]:
     qn_solutions = stm.find_quantum_number_transitions(problem_sets)
     strong_qn_solutions = qn_solutions[3600.0]
-    return strong_qn_solutions[1]
+    return next(pair for pair in strong_qn_solutions if pair[1].solutions)
 
 
 def is_valid_dot(src: str) -> bool:

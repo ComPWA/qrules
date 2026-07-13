@@ -22,38 +22,26 @@ def three_body_decay() -> Topology:
 def test_create_initial_facts(three_body_decay, particle_database):
     initial_facts = create_initial_facts(
         three_body_decay,
-        initial_state=[("J/psi(1S)", [-1, +1])],
+        initial_state=["J/psi(1S)"],
         final_state=["gamma", "pi0", "pi0"],
         particle_db=particle_database,
     )
-    assert len(initial_facts) == 4
-
-    for fact in initial_facts:
-        edge_ids = sorted(fact.states)
-        assert edge_ids == [-1, 0, 1, 2]
-        particle_names = [fact.states[i][0].name for i in edge_ids]
-        assert particle_names == ["J/psi(1S)", "gamma", "pi0", "pi0"]
-        _, initial_polarization = fact.states[-1]
-        assert initial_polarization in {-1, +1}
+    edge_ids = sorted(initial_facts.states)
+    assert edge_ids == [-1, 0, 1, 2]
+    particle_names = [initial_facts.states[i].name for i in edge_ids]
+    assert particle_names == ["J/psi(1S)", "gamma", "pi0", "pi0"]
 
 
-def test_create_initial_facts_without_spin_projections(
+def test_create_initial_facts_wrong_number_of_states_raises(
     three_body_decay, particle_database
 ):
-    initial_facts = create_initial_facts(
-        three_body_decay,
-        initial_state=[("J/psi(1S)", [-1, +1])],
-        final_state=["gamma", "pi0", "pi0"],
-        particle_db=particle_database,
-        expand_spin_projections=False,
-    )
-    assert len(initial_facts) == 1
-    fact = initial_facts[0]
-    edge_ids = sorted(fact.states)
-    assert edge_ids == [-1, 0, 1, 2]
-    particle_names = [fact.states[i][0].name for i in edge_ids]
-    assert particle_names == ["J/psi(1S)", "gamma", "pi0", "pi0"]
-    assert all(projection is None for _, projection in fact.states.values())
+    with pytest.raises(ValueError, match="Number of state definitions"):
+        create_initial_facts(
+            three_body_decay,
+            initial_state=["J/psi(1S)"],
+            final_state=["gamma", "pi0"],
+            particle_db=particle_database,
+        )
 
 
 def test_generate_kinematic_permutations_groupings(three_body_decay: Topology):
@@ -117,7 +105,7 @@ def test_permutate_topology_kinematically(
 ):
     permutations = permutate_topology_kinematically(
         topology=three_body_decay,
-        initial_state=[("J/psi(1S)", [-1, +1])],
+        initial_state=["J/psi(1S)"],
         final_state=["gamma", "pi0", "pi0"],
         final_state_groupings=final_state_groupings,
     )

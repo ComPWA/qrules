@@ -7,13 +7,13 @@ from qrules import InteractionType, StateTransitionManager
 @pytest.mark.parametrize(
     ("formalism", "n_solutions"),
     [
-        ("helicity", 14),
-        ("canonical-helicity", 28),  # two different LS couplings 2*14 = 28
+        ("helicity", 1),
+        ("canonical-helicity", 3),  # three different LS couplings
     ],
 )
 def test_simple(formalism, n_solutions, particle_database):
     reaction = qrules.generate_transitions(
-        initial_state=[("Y(4260)", [-1, +1])],
+        initial_state=["Y(4260)"],
         final_state=["D*(2007)0", "D*(2007)~0"],
         particle_db=particle_database,
         formalism=formalism,
@@ -27,13 +27,13 @@ def test_simple(formalism, n_solutions, particle_database):
 @pytest.mark.parametrize(
     ("formalism", "n_solutions"),
     [
-        ("helicity", 14),
-        ("canonical-helicity", 28),  # two different LS couplings 2*14 = 28
+        ("helicity", 1),
+        ("canonical-helicity", 3),  # three different LS couplings
     ],
 )
 def test_full(formalism, n_solutions, particle_database):
     stm = StateTransitionManager(
-        initial_state=[("Y(4260)", [-1, +1])],
+        initial_state=["Y(4260)"],
         final_state=["D0", "D~0", "pi0", "pi0"],
         particle_db=particle_database,
         allowed_intermediate_particles=["D*"],
@@ -50,7 +50,7 @@ def test_full(formalism, n_solutions, particle_database):
 def test_resonance_filter(particle_database):
     # https://github.com/ComPWA/qrules/issues/33
     stm = StateTransitionManager(
-        initial_state=[("Y(4260)", [-1, +1])],
+        initial_state=["Y(4260)"],
         final_state=["D0", "D~0", "pi0", "pi0"],
         allowed_intermediate_particles=["D"],
         particle_db=particle_database,

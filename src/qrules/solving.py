@@ -34,7 +34,6 @@ from qrules.argument_handling import (
 )
 from qrules.quantum_numbers import (
     EdgeQuantumNumber,
-    EdgeQuantumNumbers,
     EdgeQuantumNumberTypes,
     NodeQuantumNumber,
     NodeQuantumNumberTypes,
@@ -282,7 +281,7 @@ def strip_quantum_numbers(
 
 def merge_qn_problem_sets(
     qn_problem_sets: Iterable[QNProblemSet],
-    merge_qns: Iterable[EdgeQuantumNumberTypes] | None = None,
+    merge_qns: Iterable[EdgeQuantumNumberTypes],
 ) -> list[QNProblemSet]:
     """Merge problem sets whose initial facts differ only in the given quantum numbers.
 
@@ -290,12 +289,10 @@ def merge_qn_problem_sets(
     grouped. If the differing fact values of a group form a full Cartesian product over
     the graph edges, the group is merged into a single `QNProblemSet` whose facts carry
     the values as a `list`. The `CSPSolver` registers such value ranges as regular
-    variables, so that all cases — by default, all spin-projection combinations of the
-    initial and final state — are solved within a single constraint problem instead of
-    one problem set per combination.
+    variables, so that all cases — for instance, an expansion over spin-projection
+    combinations of the initial and final state — are solved within a single
+    constraint problem instead of one problem set per combination.
     """
-    if merge_qns is None:
-        merge_qns = {EdgeQuantumNumbers.spin_projection}
     merge_qn_set = set(merge_qns)
     groups: dict[tuple, list[QNProblemSet]] = defaultdict(list)
     for problem_set in qn_problem_sets:
@@ -621,7 +618,7 @@ def _insert_allowed_states(
                 for candidate in candidate_states:
                     # need "shallow" copy of the nested dicts
                     new_states = {i: copy(s) for i, s in new_solution.states.items()}
-                    new_states[edge_id].update(candidate)  # keep spin_projection
+                    new_states[edge_id].update(candidate)
                     graph = attrs.evolve(new_solution, states=new_states)  # type: ignore[arg-type]
                     graphs_with_candidates.append(graph)
             current_substituted_graphs = graphs_with_candidates
@@ -642,8 +639,6 @@ def __is_sub_mapping(
     state: GraphEdgePropertyMap, reference_state: GraphEdgePropertyMap
 ) -> bool:
     for qn_type, qn_value in state.items():
-        if qn_type is EdgeQuantumNumbers.spin_projection:
-            continue
         if qn_type not in reference_state:
             return False
         if qn_value != reference_state[qn_type]:

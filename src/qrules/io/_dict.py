@@ -13,7 +13,7 @@ import attrs
 from qrules.particle import Parity, Particle, ParticleCollection, Spin
 from qrules.quantum_numbers import InteractionProperties
 from qrules.topology import Edge, FrozenTransition, Topology
-from qrules.transition import ReactionInfo, State
+from qrules.transition import ReactionInfo
 
 
 def from_particle_collection(particles: ParticleCollection) -> dict:
@@ -33,7 +33,9 @@ def _value_serializer(inst: type, field: attrs.Attribute, value: Any) -> Any:  #
     if isinstance(value, (frozenset, set)):
         return sorted(value)
     if isinstance(value, abc.Mapping):
-        if all(isinstance(p, Particle) for p in value.values()):
+        if not isinstance(inst, FrozenTransition) and all(
+            isinstance(p, Particle) for p in value.values()
+        ):
             return {k: v.name for k, v in value.items()}
         return {
             (key.__name__ if callable(key) else key): _value_serializer(
@@ -41,7 +43,7 @@ def _value_serializer(inst: type, field: attrs.Attribute, value: Any) -> Any:  #
             )
             for key, item in value.items()
         }
-    if not isinstance(inst, (ReactionInfo, State, FrozenTransition)):  # noqa: SIM102
+    if not isinstance(inst, (ReactionInfo, FrozenTransition)):  # noqa: SIM102
         if isinstance(value, Particle):
             return value.name
     if isinstance(value, Parity):
@@ -84,30 +86,18 @@ def build_reaction_info(definition: dict) -> ReactionInfo:
 
 def build_transition(
     definition: dict,
-) -> FrozenTransition[State, InteractionProperties]:
+) -> FrozenTransition[Particle, InteractionProperties]:
     topology = build_topology(definition["topology"])
     states_def: dict[int, dict] = definition["states"]
-    states: dict[int, State] = {}
+    states: dict[int, Particle] = {}
     for i, edge_def in states_def.items():
-        states[int(i)] = build_state(edge_def)
+        states[int(i)] = build_particle(edge_def)
     interactions_def: dict[int, dict] = definition["interactions"]
     interactions = {
         int(i): InteractionProperties(**node_def)
         for i, node_def in interactions_def.items()
     }
     return FrozenTransition(topology, states, interactions)
-
-
-def build_state(definition: Any) -> State:
-    if isinstance(definition, (list, tuple)) and len(definition) == 2:
-        particle = build_particle(definition[0])
-        spin_projection = float(definition[1])
-        return State(particle, spin_projection)
-    if isinstance(definition, dict):
-        particle = build_particle(definition["particle"])
-        spin_projection = float(definition["spin_projection"])
-        return State(particle, spin_projection)
-    raise NotImplementedError
 
 
 def build_topology(definition: dict) -> Topology:

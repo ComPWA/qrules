@@ -18,7 +18,7 @@ from qrules.topology import (  # noqa: F401
     MutableTransition,
     Topology,
 )
-from qrules.transition import ReactionInfo, State, StateTransitionManager
+from qrules.transition import ReactionInfo, StateTransitionManager
 
 NAMESPACE_WITH_FRACTIONS = globals()
 NAMESPACE_WITH_FRACTIONS["Fraction"] = Fraction
@@ -27,7 +27,7 @@ NAMESPACE_WITH_FRACTIONS["Fraction"] = Fraction
 class TestMutableTransition:
     def test_intermediate_states(self):
         stm = StateTransitionManager(
-            initial_state=[("J/psi(1S)", [-1, +1])],
+            initial_state=["J/psi(1S)"],
             final_state=["K0", "Sigma+", "p~"],
             allowed_intermediate_particles=["N(1700)", "Sigma(1750)"],
             formalism="helicity",
@@ -49,9 +49,9 @@ class TestReactionInfo:
         assert reaction.final_state[2].name == "pi0"
         assert len(reaction.group_by_topology()) == 1
         if reaction.formalism.startswith("cano"):
-            assert len(reaction.transitions) == 16
+            assert len(reaction.transitions) == 4
         else:
-            assert len(reaction.transitions) == 8
+            assert len(reaction.transitions) == 2
         for transition in reaction.transitions:
             assert isinstance(transition, FrozenTransition)
 
@@ -67,49 +67,27 @@ class TestReactionInfo:
     def test_hash_value(self, reaction: ReactionInfo):
         if sys.version_info >= (3, 11) and not sys.version_info >= (3, 14):
             expected_hash = {
-                "canonical-helicity": "65106a44301f9340e633d09f66ad7d17",
-                "helicity": "9646d3ee5c5e8534deb8019435161f2e",
+                "canonical-helicity": "75f6d331aceefda11d14e61bea24b076",
+                "helicity": "9a5dad546caec7d2873ba7c745e8b321",
             }[reaction.formalism]
         elif sys.version_info >= (3, 14):
             expected_hash = {
-                "canonical-helicity": "762cc006a8c4c0a0a88fce934a32577d",
-                "helicity": "17fefe55a7da0810371e90bd762a176a",
+                "canonical-helicity": "9e6b4b5ea854785ac33e6049b6ab86d1",
+                "helicity": "a6880e15ca68c5d728574ffc3b5c59e4",
             }[reaction.formalism]
         else:
             expected_hash = {
-                "canonical-helicity": "0d8bc378677986e0dc2d3b02f5627e0b",
-                "helicity": "71404ad43550850a02109e8db044bd28",
+                "canonical-helicity": "995925fb32a00be871211bf9d3ac78bc",
+                "helicity": "1c1441c16cfbec426239b9c0e92d19c9",
             }[reaction.formalism]
 
         assert _compute_hash(reaction) == expected_hash
 
 
-class TestState:
-    @pytest.mark.parametrize(
-        ("state_def_1", "state_def_2"),
-        [
-            (("a", -1), ("a", +1)),
-            (("a", 0), ("a", 0)),
-            (("a", 0), ("b", 0)),
-            (("a", -1), ("b", +1)),
-        ],
-    )
-    def test_ordering(self, state_def_1, state_def_2):
-        def create_state(state_def) -> State:
-            return State(
-                particle=Particle(name=state_def[0], pid=0, spin=0, mass=0),
-                spin_projection=state_def[1],
-            )
-
-        state1 = create_state(state_def_1)
-        state2 = create_state(state_def_2)
-        assert state2 >= state1
-
-
 class TestStateTransitionManager:
     def test_allowed_intermediate_particles(self):
         stm = StateTransitionManager(
-            initial_state=[("J/psi(1S)", list(map(Fraction, [-1, +1])))],
+            initial_state=["J/psi(1S)"],
             final_state=["p", "p~", "eta"],
         )
         particle_name = "N(753)"

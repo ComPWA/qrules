@@ -15,7 +15,6 @@ from qrules.settings import (
 
 if TYPE_CHECKING:
     from qrules.particle import ParticleCollection
-    from qrules.transition import SpinFormalism
 
 
 class TestInteractionType:
@@ -45,32 +44,26 @@ def test_create_domains(particle_database: ParticleCollection):
     pdg = particle_database
     pions = pdg.filter(lambda p: p.name.startswith("pi"))
     domains = _create_domains(pions)
-    assert len(domains) == 15
+    assert len(domains) == 14
+    assert EdgeQN.spin_projection not in domains
     assert domains[EdgeQN.baryon_number] == [0]
     assert domains[EdgeQN.strangeness] == [0]
     assert domains[EdgeQN.charmness] == [0]
     assert domains[EdgeQN.bottomness] == [0]
     assert domains[EdgeQN.charge] == [-1, 0, +1]
     assert domains[EdgeQN.spin_magnitude] == [0, 0.5, 1, 1.5, 2]
-    assert (
-        domains[EdgeQN.spin_projection]
-        == [-2, -1.5, -1, -0.5] + domains[EdgeQN.spin_magnitude]
-    )
     assert domains[EdgeQN.isospin_magnitude] == [0, 0.5, 1]
     assert domains[EdgeQN.isospin_projection] == [-1, -0.5, 0, 0.5, 1]
 
 
 @pytest.mark.parametrize("interaction_type", list(InteractionType))
 @pytest.mark.parametrize("nbody_topology", [False, True])
-@pytest.mark.parametrize("formalism", ["canonical", "canonical-helicity", "helicity"])
 def test_create_interaction_settings(
     particle_database: ParticleCollection,
     interaction_type: InteractionType,
     nbody_topology: bool,
-    formalism: SpinFormalism,
 ):
     settings = create_interaction_settings(
-        formalism,
         particle_db=particle_database,
         nbody_topology=nbody_topology,
     )
@@ -89,7 +82,6 @@ def test_create_interaction_settings(
         "c_parity": [-1, +1, None],
         "g_parity": [-1, +1, None],
         "spin_magnitude": _halves_domain(0, 4),
-        "spin_projection": _halves_domain(-4, 4),
         "charge": _int_domain(-2, 2),
         "isospin_magnitude": _halves_domain(0, 1.5),
         "isospin_projection": _halves_domain(-1.5, +1.5),
@@ -102,19 +94,9 @@ def test_create_interaction_settings(
         "l_magnitude": _int_domain(0, 2),
         "s_magnitude": _halves_domain(0, 2),
     }
-    if "canonical" in formalism:
-        expected["l_projection"] = [-2, -1, 0, 1, 2]
-        expected["s_projection"] = _halves_domain(-2, 2)
-    if formalism == "canonical-helicity":
-        expected["l_projection"] = [0]
-    if "helicity" in formalism and interaction_type != InteractionType.WEAK:
-        expected["parity_prefactor"] = [-1, 1]
     if nbody_topology:
         expected["l_magnitude"] = [0]
         expected["s_magnitude"] = [0]
-    if nbody_topology and formalism != "helicity":
-        expected["l_projection"] = [0]
-        expected["s_projection"] = [0]
 
     node_qn_domains_str = {  # strings are easier to compare with pytest
         qn_type.__name__: domain for qn_type, domain in node_settings.qn_domains.items()

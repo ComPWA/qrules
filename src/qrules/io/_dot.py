@@ -18,7 +18,7 @@ import attrs
 from attrs import Attribute, define, field
 from attrs.converters import default_if_none
 
-from qrules.particle import Particle, ParticleWithSpin, Spin, _render_fraction
+from qrules.particle import Particle, Spin, _render_fraction
 from qrules.quantum_numbers import EdgeQuantumNumbers, InteractionProperties
 from qrules.solving import EdgeSettings, NodeSettings, QNProblemSet, QNResult
 from qrules.topology import (
@@ -28,7 +28,7 @@ from qrules.topology import (
     Transition,
     determine_mandelstam_channel,
 )
-from qrules.transition import ProblemSet, ReactionInfo, State
+from qrules.transition import ProblemSet, ReactionInfo
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Mapping
@@ -288,7 +288,7 @@ def _create_edge_label(
     if isinstance(graph, (ProblemSet, QNProblemSet)):
         edge_setting = graph.solving_settings.states.get(edge_id)
         initial_fact = graph.initial_facts.states.get(edge_id)
-        edge_property: EdgeSettings | ParticleWithSpin | None = None
+        edge_property: EdgeSettings | Particle | dict | None = None
         if edge_setting:
             edge_property = edge_setting
         if initial_fact:
@@ -449,39 +449,26 @@ def _spin_to_str(spin: Spin) -> str:
     return f"|{spin_magnitude},{spin_projection}⟩"
 
 
-@as_string.register(State)
-def _state_to_str(state: State) -> str:
-    particle = state.particle.name
-    spin_projection = _render_fraction(state.spin_projection, plusminus=True)
-    return f"{particle}[{spin_projection}]"
-
-
 @as_string.register(tuple)
 def _(obj: tuple) -> str:
-    if len(obj) == 2:
-        if isinstance(obj[0], Particle) and isinstance(obj[1], (Fraction, float, int)):
-            state = State(*obj)
-            return _state_to_str(state)
-        if all(isinstance(o, (Fraction, float, int)) for o in obj):
-            spin = Spin(*obj)
-            return _spin_to_str(spin)
+    if len(obj) == 2 and all(isinstance(o, (Fraction, float, int)) for o in obj):
+        spin = Spin(*obj)
+        return _spin_to_str(spin)
     return "\n".join(map(as_string, obj))
 
 
 def _get_particle_graphs(
-    graphs: Iterable[Transition[ParticleWithSpin, InteractionProperties]],
+    graphs: Iterable[Transition[Particle, InteractionProperties]],
 ) -> list[FrozenTransition[Particle, None]]:
-    """Strip `list` of `.Transition` s of the spin projections.
+    """Strip `list` of `.Transition` s of their interaction properties.
 
-    Extract a `list` of `.Transition` instances with only `.Particle` instances on the
-    edges.
+    Extract a `list` of unique `.Transition` instances with only `.Particle` instances
+    on the edges and no interaction properties.
 
     .. seealso:: :doc:`/usage/visualize`
     """
     inventory = set()
     for transition in graphs:
-        if isinstance(transition, FrozenTransition):
-            transition = transition.convert(lambda s: (s.particle, s.spin_projection))
         stripped_transition = _strip_projections(transition)
         topology = stripped_transition.topology
         particle_transition: FrozenTransition[Particle, None] = FrozenTransition(
@@ -511,10 +498,8 @@ def _strip_projections(
 
 
 def __to_particle(state: Any) -> Particle:
-    if isinstance(state, State):
-        return state.particle
-    if isinstance(state, tuple) and len(state) == 2:
-        return state[0]
+    if isinstance(state, Particle):
+        return state
     msg = f"Cannot extract a particle from type {type(state).__name__}"
     raise NotImplementedError(msg)
 
@@ -534,7 +519,7 @@ def _collapse_graphs(
         topology = transition.topology
         group = transition_groups[topology]
         for state_id, state in transition.states.items():
-            group.states[state_id].add(_strip_properties(state))
+            group.states[state_id].add(state)
     collected_graphs: list[FrozenTransition[tuple[Particle, ...], None]] = []
     for topology in sorted(transition_groups):
         group = transition_groups[topology]
@@ -549,12 +534,6 @@ def _collapse_graphs(
             )
         )
     return collected_graphs
-
-
-def _strip_properties(state: Any) -> Any:
-    if isinstance(state, State):
-        return state.particle
-    return state
 
 
 def _render_property_maps(states: Iterable[Any]) -> set[Any]:
@@ -631,8 +610,6 @@ def _render_superscript_parity(parity: int | None) -> str:
 
 
 def _sorting_key(obj: Any) -> Any:
-    if isinstance(obj, State):
-        return obj.particle.name
     if isinstance(obj, Particle):
         return obj.name
     if isinstance(obj, str):

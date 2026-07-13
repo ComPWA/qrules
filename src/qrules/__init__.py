@@ -23,12 +23,7 @@ from typing import TYPE_CHECKING
 import attrs
 
 from qrules import io
-from qrules.combinatorics import (
-    InitialFacts,
-    StateDefinition,
-    StateDefinitionInput,
-    create_initial_facts,
-)
+from qrules.combinatorics import InitialFacts, create_initial_facts
 from qrules.conservation_rules import (
     BaryonNumberConservation,
     BottomnessConservation,
@@ -41,10 +36,8 @@ from qrules.conservation_rules import (
     StrangenessConservation,
     TauLNConservation,
     c_parity_conservation,
-    clebsch_gordan_helicity_to_canonical,
     g_parity_conservation,
     gellmann_nishijima,
-    identical_particle_symmetrization,
     isospin_conservation,
     isospin_validity,
     parity_conservation,
@@ -73,8 +66,8 @@ if TYPE_CHECKING:
 
 
 def check_reaction_violations(  # noqa: C901, PLR0917
-    initial_state: StateDefinition | Sequence[StateDefinition],
-    final_state: Sequence[StateDefinition],
+    initial_state: str | Sequence[str],
+    final_state: Sequence[str],
     mass_conservation_factor: float | None = 3.0,
     particle_db: ParticleCollection | None = None,
     max_angular_momentum: int = 1,
@@ -88,10 +81,8 @@ def check_reaction_violations(  # noqa: C901, PLR0917
       correctly.
 
     Args:
-      initial_state: Shortform description of the initial state w/o spin
-        projections.
-      final_state: Shortform description of the final state w/o spin
-        projections.
+      initial_state: Particle names of the initial state.
+      final_state: Particle names of the final state.
       mass_conservation_factor: Factor with which the width is multiplied when
         checking for `.MassConservation`. Set to `None` in order to deactivate mass
         conservation.
@@ -152,7 +143,7 @@ def check_reaction_violations(  # noqa: C901, PLR0917
         }
 
         edge_check_result = _check_violations(
-            initial_facts[0],
+            initial_facts,
             node_rules={},
             edge_rules=dict.fromkeys(
                 topology.incoming_edge_ids | topology.outgoing_edge_ids, pure_edge_rules
@@ -187,7 +178,7 @@ def check_reaction_violations(  # noqa: C901, PLR0917
         return {
             frozenset((x,))
             for x in _check_violations(
-                initial_facts[0],
+                initial_facts,
                 node_rules=dict.fromkeys(topology.nodes, edge_qn_conservation_rules),
                 edge_rules={},
             ).violated_node_rules[node_id]
@@ -216,14 +207,13 @@ def check_reaction_violations(  # noqa: C901, PLR0917
         )
     ]
 
-    initial_facts_list = []
-    for ls_combi in ls_combinations:
-        for facts_combination in initial_facts:
-            new_facts = attrs.evolve(
-                facts_combination,  # type: ignore[arg-type]
-                interactions={node_id: ls_combi},  # type: ignore[dict-item]
-            )
-            initial_facts_list.append(new_facts)
+    initial_facts_list = [
+        attrs.evolve(
+            initial_facts,  # type: ignore[arg-type]
+            interactions={node_id: ls_combi},  # type: ignore[dict-item]
+        )
+        for ls_combi in ls_combinations
+    ]
 
     # Verify each graph with the interaction rules.
     # Spin projection rules are skipped as they can only be checked reliably
@@ -231,11 +221,9 @@ def check_reaction_violations(  # noqa: C901, PLR0917
     conservation_rules: dict[int, set[Rule]] = {
         node_id: {
             c_parity_conservation,
-            clebsch_gordan_helicity_to_canonical,
             g_parity_conservation,
             parity_conservation,
             spin_magnitude_conservation,
-            identical_particle_symmetrization,
         }
     }
 
@@ -269,8 +257,8 @@ def check_reaction_violations(  # noqa: C901, PLR0917
 
 
 def generate_transitions(  # noqa: PLR0917
-    initial_state: StateDefinitionInput | Sequence[StateDefinitionInput],
-    final_state: Sequence[StateDefinitionInput],
+    initial_state: str | Sequence[str],
+    final_state: Sequence[str],
     allowed_intermediate_particles: list[str] | None = None,
     allowed_interaction_types: str | Iterable[str] | None = None,
     formalism: SpinFormalism = "canonical-helicity",
@@ -286,11 +274,7 @@ def generate_transitions(  # noqa: PLR0917
     Serves as a facade to the `.StateTransitionManager` (see :doc:`/usage/reaction`).
 
     Arguments:
-        initial_state (list): A list of particle names in the initial
-            state. You can specify spin projections for these particles with a `tuple`,
-            e.g. :code:`("J/psi(1S)", [-1, 0, +1])`. If spin projections are not
-            specified, all projections are taken, so the example here would be
-            equivalent to :code:`"J/psi(1S)"`.
+        initial_state (list): A list of particle names in the initial state.
 
         final_state (list): Same as :code:`initial_state`, but for final state
             particles.
@@ -351,12 +335,8 @@ def generate_transitions(  # noqa: PLR0917
     >>> len(reaction.group_by_topology())
     3
     """
-    if isinstance(initial_state, str) or (
-        isinstance(initial_state, tuple)
-        and len(initial_state) == 2
-        and isinstance(initial_state[0], str)
-    ):
-        initial_state = [initial_state]  # type: ignore[list-item]
+    if isinstance(initial_state, str):
+        initial_state = [initial_state]
     stm = StateTransitionManager(
         initial_state=initial_state,  # type: ignore[arg-type]
         final_state=final_state,
