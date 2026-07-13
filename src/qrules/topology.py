@@ -20,7 +20,7 @@ import copy
 import itertools
 import logging
 from abc import ABC, abstractmethod
-from collections import abc
+from collections import abc, defaultdict
 from functools import total_ordering
 from typing import TYPE_CHECKING, Any, Generic, Protocol, TypeVar, overload
 
@@ -338,7 +338,11 @@ def get_originating_node_list(topology: Topology, edge_ids: Iterable[int]) -> li
     def __get_originating_node(edge_id: int) -> int | None:
         return topology.edges[edge_id].originating_node_id
 
-    return [node_id for node_id in map(__get_originating_node, edge_ids) if node_id]
+    return [
+        node_id
+        for node_id in map(__get_originating_node, edge_ids)
+        if node_id is not None
+    ]
 
 
 def _to_mutable_topology_nodes(inst: Iterable[int]) -> set[int]:
@@ -546,15 +550,21 @@ class SimpleStateTransitionTopologyBuilder:
             active_graph_list = extendable_graph_list
             extendable_graph_list = []
             for active_graph in active_graph_list:
-                # check if finished
+                topology, open_end_edges = active_graph
+                connected_edge_groups = _group_connected_edge_ids(topology)
                 if (
-                    len(active_graph[1]) == number_of_final_edges
-                    and len(active_graph[0].nodes) > 0
+                    len(open_end_edges) == number_of_final_edges
+                    and len(topology.nodes) > 0
+                    and len(connected_edge_groups) == 1
                 ):
                     graph_tuple_list.append(active_graph)
                     continue
-
-                extendable_graph_list.extend(self._extend_graph(active_graph))
+                if self.__may_still_reach_final_state(
+                    open_end_edges, len(connected_edge_groups), number_of_final_edges
+                ):
+                    extendable_graph_list.extend(
+                        self._extend_graph(active_graph, connected_edge_groups)
+                    )
 
         _LOGGER.info("finished building topology graphs...")
         # strip the current open end edges list from the result graph tuples
@@ -565,54 +575,178 @@ class SimpleStateTransitionTopologyBuilder:
             topologies.append(topology.freeze())
         return tuple(topologies)
 
+    def __may_still_reach_final_state(
+        self,
+        open_end_edges: Sequence[int],
+        number_of_connected_groups: int,
+        number_of_final_edges: int,
+    ) -> bool:
+        r"""Check whether extending a graph can still lead to a valid final state.
+
+        Only interaction nodes with more than one ingoing edge can reduce the number
+        of open edges, and — since attaching such a node to already-connected edges is
+        forbidden (see `._extend_graph`) — each one merges at least two of the
+        graph's connected groups. Graphs whose open edges exceed the number of final
+        edges by more than these merges can compensate are dead ends. Pruning them
+        keeps the recursive search finite when the interaction node set contains
+        :math:`2 \to 1` building blocks.
+        """
+        merging_nodes = [
+            node
+            for node in self.interaction_node_set
+            if node.number_of_ingoing_edges > 1
+        ]
+        if number_of_connected_groups > 1 and not merging_nodes:
+            return False
+        max_reduction_per_merge = max(
+            (
+                node.number_of_ingoing_edges - node.number_of_outgoing_edges
+                for node in merging_nodes
+            ),
+            default=0,
+        )
+        max_reduction = max(max_reduction_per_merge, 0) * (
+            number_of_connected_groups - 1
+        )
+        return len(open_end_edges) - max_reduction <= number_of_final_edges
+
     def _extend_graph(
-        self, pair: tuple[MutableTopology, Sequence[int]]
+        self,
+        pair: tuple[MutableTopology, Sequence[int]],
+        connected_edge_groups: list[set[int]],
     ) -> list[tuple[MutableTopology, list[int]]]:
         extended_graph_list: list[tuple[MutableTopology, list[int]]] = []
 
         topology, current_open_end_edges = pair
+        group_index = {
+            edge_id: i
+            for i, group in enumerate(connected_edge_groups)
+            for edge_id in group
+        }
 
         # Try to extend the graph with interaction nodes
         # that have equal or less ingoing lines than active lines
         for interaction_node in self.interaction_node_set:
-            if interaction_node.number_of_ingoing_edges <= len(current_open_end_edges):
-                # make all combinations
-                combis = list(
-                    itertools.combinations(
-                        current_open_end_edges,
-                        interaction_node.number_of_ingoing_edges,
-                    )
+            number_of_ingoing_edges = interaction_node.number_of_ingoing_edges
+            if number_of_ingoing_edges > len(current_open_end_edges):
+                continue
+            seen_originating_nodes: list[list[int]] = []
+            for combination in itertools.combinations(
+                current_open_end_edges, number_of_ingoing_edges
+            ):
+                groups = {group_index[edge_id] for edge_id in combination}
+                if len(groups) < number_of_ingoing_edges:
+                    # attaching already-connected edges to one node creates a cycle
+                    continue
+                originating_nodes = get_originating_node_list(
+                    topology,  # type: ignore[arg-type]
+                    combination,
                 )
-                # remove all combinations that originate from the same nodes
-                for comb1, comb2 in itertools.combinations(combis, 2):
-                    if get_originating_node_list(
-                        topology,  # type: ignore[arg-type]
-                        comb1,
-                    ) == get_originating_node_list(
-                        topology,  # type: ignore[arg-type]
-                        comb2,
-                    ):
-                        combis.remove(comb2)
-
-                for combi in combis:
-                    new_graph = _attach_node_to_edges(pair, interaction_node, combi)
-                    extended_graph_list.append(new_graph)
+                # skip combinations that are symmetric to an earlier one
+                if originating_nodes in seen_originating_nodes:
+                    continue
+                seen_originating_nodes.append(originating_nodes)
+                extended_graph_list.append(
+                    _attach_node_to_edges(pair, interaction_node, combination)
+                )
 
         return extended_graph_list
 
 
+def _group_connected_edge_ids(topology: MutableTopology) -> list[set[int]]:
+    """Group the edge IDs of a topology into connected components.
+
+    Two edges are connected when they are attached to a common node. Edges that are
+    not attached to any node form a component of their own.
+
+    >>> topology = MutableTopology()
+    >>> topology.add_edges([0, 1, 2])
+    >>> topology.add_node(0)
+    >>> topology.attach_edges_to_node_ingoing([0, 1], node_id=0)
+    >>> _group_connected_edge_ids(topology)
+    [{0, 1}, {2}]
+    """
+    edge_ids_per_node: defaultdict[int, set[int]] = defaultdict(set)
+    for edge_id, edge in topology.edges.items():
+        for node_id in (edge.originating_node_id, edge.ending_node_id):
+            if node_id is not None:
+                edge_ids_per_node[node_id].add(edge_id)
+    components: list[set[int]] = []
+    remaining_edge_ids = set(topology.edges)
+    while remaining_edge_ids:
+        component = {remaining_edge_ids.pop()}
+        queue = list(component)
+        while queue:
+            edge = topology.edges[queue.pop()]
+            for node_id in (edge.originating_node_id, edge.ending_node_id):
+                if node_id is None:
+                    continue
+                new_neighbors = edge_ids_per_node[node_id] - component
+                component |= new_neighbors
+                queue += new_neighbors
+        remaining_edge_ids -= component
+        components.append(component)
+    return sorted(components, key=min)
+
+
+def _create_isomorphism_invariant(topology: Topology) -> tuple[tuple[int, int], ...]:
+    """Compute a canonical form of a topology under node and edge relabeling.
+
+    Two topologies have the same invariant if and only if they are isomorphic as
+    directed graphs, i.e. equal up to a relabeling of their nodes and edges. The
+    invariant is the lexicographically smallest sorted tuple of
+    ``(originating_node_id, ending_node_id)`` pairs over all node relabelings, with
+    ``-1`` for open edge ends.
+    """
+    nodes = sorted(topology.nodes)
+    return min(
+        tuple(
+            sorted(
+                (
+                    -1
+                    if e.originating_node_id is None
+                    else relabel[e.originating_node_id],
+                    -1 if e.ending_node_id is None else relabel[e.ending_node_id],
+                )
+                for e in topology.edges.values()
+            )
+        )
+        for permutation in itertools.permutations(nodes)
+        for relabel in [dict(zip(nodes, permutation, strict=True))]
+    )
+
+
+def _remove_isomorphic_topologies(
+    topologies: Iterable[Topology],
+) -> tuple[Topology, ...]:
+    unique_topologies: dict[tuple, Topology] = {}
+    for topology in sorted(topologies):
+        unique_topologies.setdefault(_create_isomorphism_invariant(topology), topology)
+    return tuple(unique_topologies.values())
+
+
 def create_isobar_topologies(
     number_of_final_states: int,
+    number_of_initial_states: int = 1,
 ) -> tuple[Topology, ...]:
-    """Builder function to create a set of unique isobar decay topologies.
+    r"""Builder function to create a set of unique isobar decay topologies.
+
+    All topologies are built from two-body interaction nodes only: :math:`1 \to 2`
+    decay nodes and — when there is more than one initial state — :math:`2 \to 1`
+    production nodes. For two initial states, this covers both :math:`s`-channel
+    topologies (the initial states annihilate into a single intermediate edge) and
+    :math:`t`-channel-like topologies (the initial states are connected through an
+    exchange edge). See `ComPWA/qrules#29 <https://github.com/ComPWA/qrules/issues/29>`_.
 
     Args:
         number_of_final_states: The number of `~Topology.outgoing_edge_ids`
             (`~.Transition.final_states`).
+        number_of_initial_states: The number of `~Topology.incoming_edge_ids`
+            (`~.Transition.initial_states`).
 
     Returns:
         A sorted `tuple` of non-isomorphic `Topology` instances, all with the same
-        number of final states.
+        number of initial and final states.
 
     Example:
         >>> topologies = create_isobar_topologies(number_of_final_states=4)
@@ -624,16 +758,30 @@ def create_isobar_topologies(
         2
         >>> list(topologies) == sorted(topologies)  # ordered
         True
+        >>> topologies = create_isobar_topologies(
+        ...     number_of_final_states=2,
+        ...     number_of_initial_states=2,
+        ... )
+        >>> len(topologies)
+        2
+        >>> {len(t.incoming_edge_ids) for t in topologies}
+        {2}
     """
+    if number_of_initial_states < 1:
+        msg = "At least one initial state required"
+        raise ValueError(msg)
     if number_of_final_states < 2:
         msg = "At least two final states required for an isobar decay"
         raise ValueError(msg)
-    builder = SimpleStateTransitionTopologyBuilder([InteractionNode(1, 2)])
+    interaction_nodes = [InteractionNode(1, 2)]
+    if number_of_initial_states > 1:
+        interaction_nodes.append(InteractionNode(2, 1))
+    builder = SimpleStateTransitionTopologyBuilder(interaction_nodes)
     topologies = builder.build(
-        number_of_initial_edges=1,
+        number_of_initial_edges=number_of_initial_states,
         number_of_final_edges=number_of_final_states,
     )
-    return tuple(sorted(topologies))
+    return _remove_isomorphic_topologies(topologies)
 
 
 def create_n_body_topology(

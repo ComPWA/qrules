@@ -285,10 +285,12 @@ class TestTopology:
         (2, 1, None),
         (3, 1, None),
         (4, 2, None),
-        (5, 5, None),
-        (6, 16, None),
-        (7, 61, None),
-        (8, 272, None),
+        # the number of topologies follows the Wedderburn-Etherington numbers
+        # (number of unordered rooted binary trees, https://oeis.org/A001190)
+        (5, 3, None),
+        (6, 6, None),
+        (7, 11, None),
+        (8, 23, None),
     ],
 )
 def test_create_isobar_topologies(
@@ -308,6 +310,41 @@ def test_create_isobar_topologies(
             assert len(topology.outgoing_edge_ids) == n_final
             assert len(topology.intermediate_edge_ids) == n_intermediate_edges
             assert len(topology.nodes) == n_expected_nodes
+
+
+@pytest.mark.parametrize(
+    ("n_final", "n_topologies"),
+    [
+        (2, 2),
+        (3, 5),
+        (4, 12),
+        (5, 30),
+    ],
+)
+def test_create_isobar_topologies_two_initial_states(n_final: int, n_topologies: int):
+    topologies = create_isobar_topologies(n_final, number_of_initial_states=2)
+    assert len(topologies) == n_topologies
+    for topology in topologies:
+        assert len(topology.incoming_edge_ids) == 2
+        assert len(topology.outgoing_edge_ids) == n_final
+        assert len(topology.intermediate_edge_ids) == n_final - 1
+        assert len(topology.nodes) == n_final
+
+
+def test_topology_builder_two_to_n():
+    """The builder terminates on 2-to-1 building blocks (ComPWA/qrules#29)."""
+    builder = SimpleStateTransitionTopologyBuilder([
+        InteractionNode(1, 2),
+        InteractionNode(2, 1),
+    ])
+    topologies = builder.build(
+        number_of_initial_edges=2,
+        number_of_final_edges=3,
+    )
+    assert len(topologies) == 6
+    for topology in topologies:
+        assert len(topology.incoming_edge_ids) == 2
+        assert len(topology.outgoing_edge_ids) == 3
 
 
 @pytest.mark.parametrize(

@@ -1,4 +1,5 @@
 import json
+from fractions import Fraction
 
 import pytest
 
@@ -219,6 +220,37 @@ def test_generate_qn_transitions():
 
     collapsed_dot = asdot(reaction, collapse_graphs=True)
     assert "0⁺(0⁺⁺)" in collapsed_dot
+
+
+def test_generate_qn_transitions_two_to_n():
+    """Production reactions with two initial states (ComPWA/qrules#29)."""
+    particle_db = load_pdg()
+    reaction = generate_qn_transitions(
+        initial_state=["gamma", "p"],
+        final_state=["p", "pi0"],
+        particle_db=particle_db,
+        allowed_intermediate_particles=[
+            "Delta(1232)",
+            "N(1440)",
+            "rho(770)",
+            "omega(782)",
+        ],
+        allowed_interaction_types=["strong", "em"],
+    )
+    assert len(reaction.transitions) > 0
+    assert {p.name for p in reaction.initial_state.values()} == {"gamma", "p"}
+    assert {p.name for p in reaction.final_state.values()} == {"p", "pi0"}
+    intermediate_signatures = {
+        (
+            state[EdgeQuantumNumbers.baryon_number],
+            state[EdgeQuantumNumbers.spin_magnitude],
+        )
+        for transition in reaction.transitions
+        for state in transition.intermediate_states.values()
+    }
+    assert (1, Fraction(3, 2)) in intermediate_signatures  # s-channel Delta(1232)
+    assert (0, Fraction(1)) in intermediate_signatures  # t-channel vector exchange
+    assert len(reaction.group_by_topology()) > 1
 
 
 def test_qn_reaction_info_requires_particle_states():

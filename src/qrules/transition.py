@@ -245,7 +245,7 @@ class StateTransitionManager:
         """`.Topology` instances over which the STM propagates quantum numbers."""
         # turn off mass conservation, in case more than one initial state
         # particle is present
-        if use_nbody_topology and len(initial_state) > 1:
+        if len(initial_state) > 1:
             mass_conservation_factor = None
 
         if reload_pdg or len(self.__particles) == 0:
