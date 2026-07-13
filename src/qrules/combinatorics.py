@@ -212,7 +212,7 @@ def create_initial_facts(
     :math:`J^{P(C)}` level (see `.strip_spin_projections`).
     """
     states = __create_states_with_spin_projections(
-        list(topology.incoming_edge_ids) + list(topology.outgoing_edge_ids),
+        sorted(topology.incoming_edge_ids) + sorted(topology.outgoing_edge_ids),
         list(map(as_state_definition, initial_state))
         + list(map(as_state_definition, final_state)),
         particle_db,
