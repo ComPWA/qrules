@@ -246,10 +246,6 @@ def _get_name_root(name: str) -> str:
     return re.sub(r"[\*\+\-~\d']", "", name_root)
 
 
-ParticleWithSpin = tuple[Particle, Fraction]
-"""A particle and its spin projection."""
-
-
 class ParticleCollection(abc.MutableSet):  # ruff: ignore[eq-without-hash]
     """Searchable collection of immutable `.Particle` instances."""
 

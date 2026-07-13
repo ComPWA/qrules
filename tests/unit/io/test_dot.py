@@ -34,19 +34,19 @@ def describe_asdot():
         node [shape=none, width=0]
         edge [arrowhead=none]
         bgcolor=none
-        0 [label="0: gamma[-1]"]
-        1 [label="1: pi0[0]"]
-        2 [label="2: pi0[0]"]
-        A [label="J/psi(1S)[-1]"]
+        0 [label="0: gamma"]
+        1 [label="1: pi0"]
+        2 [label="2: pi0"]
+        A [label="J/psi(1S)"]
         { rank=same; A }
         { rank=same; 0 1 2 }
         A -> N0
-        N0 -> N1 [label="f(0)(980)[0]"]
+        N0 -> N1 [label="f(0)(980)"]
         N0 -> 0
         N1 -> 1
         N1 -> 2
-        N0 [label="P=+1"]
-        N1 [label="P=+1"]
+        N0 [label=""]
+        N1 [label=""]
     }
             """.replace("\n    ", "\n")
         else:
@@ -56,19 +56,19 @@ def describe_asdot():
         node [shape=none, width=0]
         edge [arrowhead=none]
         bgcolor=none
-        0 [label="0: gamma[-1]"]
-        1 [label="1: pi0[0]"]
-        2 [label="2: pi0[0]"]
-        A [label="J/psi(1S)[-1]"]
+        0 [label="0: gamma"]
+        1 [label="1: pi0"]
+        2 [label="2: pi0"]
+        A [label="J/psi(1S)"]
         { rank=same; A }
         { rank=same; 0 1 2 }
         A -> N0
-        N0 -> N1 [label="f(0)(980)[0]"]
+        N0 -> N1 [label="f(0)(980)"]
         N0 -> 0
         N1 -> 1
         N1 -> 2
-        N0 [label="L=|0,0⟩\nS=|1,-1⟩\nP=+1"]
-        N1 [label="L=|0,0⟩\nS=|0,0⟩\nP=+1"]
+        N0 [label="L=0\nS=1"]
+        N1 [label="L=0\nS=0"]
     }
             """.replace("\n    ", "\n")
         assert src.strip() == expected_dot.strip()
@@ -97,8 +97,8 @@ def describe_asdot():
         assert is_valid_dot(src)
         with open(output_dir + f"styled_{reaction.formalism}.gv", "w") as stream:
             stream.write(src)
-        assert '0 [fontcolor="blue", label="0: gamma[-1]"]' in src
-        assert 'N0 -> N1 [fontcolor="blue", label="f(0)(980)[0]"]' in src
+        assert '0 [fontcolor="blue", label="0: gamma"]' in src
+        assert 'N0 -> N1 [fontcolor="blue", label="f(0)(980)"]' in src
         assert 'N0 [fontcolor="darkgreen", shape="ellipse", label=""]' in src
 
     def it_no_label_overwriting(reaction: ReactionInfo):
@@ -118,7 +118,7 @@ def describe_asdot():
     )
     def it_problemset(formalism: SpinFormalism):
         stm = StateTransitionManager(
-            initial_state=[("J/psi(1S)", [+1])],
+            initial_state=["J/psi(1S)"],
             final_state=["gamma", "pi0", "pi0"],
             formalism=formalism,
         )

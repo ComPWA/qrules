@@ -77,9 +77,9 @@ def asdot(
     Args:
         instance: the input `object` that is to be rendered as DOT (graphviz) language.
 
-        strip_spin: Normally, each `.MutableTransition` has a `.Particle` with a spin
-            projection on its edges. This option hides the projections, leaving only
-            `.Particle` names on edges.
+        strip_spin: Hide the interaction properties (such as :math:`LS`-couplings) of
+            the transitions and deduplicate them, leaving only unique graphs with
+            `.Particle` names on their edges.
 
         collapse_graphs: Group all transitions by equivalent kinematic topology
             and combine all allowed particles on each edge.
@@ -148,9 +148,9 @@ def asmermaid(
         instance: the input `object` that is to be rendered as Mermaid flowchart
             source.
 
-        strip_spin: Normally, each `.MutableTransition` has a `.Particle` with a spin
-            projection on its edges. This option hides the projections, leaving only
-            `.Particle` names on edges.
+        strip_spin: Hide the interaction properties (such as :math:`LS`-couplings) of
+            the transitions and deduplicate them, leaving only unique graphs with
+            `.Particle` names on their edges.
 
         collapse_graphs: Group all transitions by equivalent kinematic topology
             and combine all allowed particles on each edge. With LaTeX rendering,

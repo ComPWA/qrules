@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any, Protocol
 import attrs
 from attrs import frozen
 
-from qrules.particle import Particle, ParticleWithSpin, Spin, _render_fraction
+from qrules.particle import Particle, Spin, _render_fraction
 from qrules.quantum_numbers import EdgeQuantumNumbers, InteractionProperties
 from qrules.solving import (
     EdgeSettings,
@@ -26,7 +26,7 @@ from qrules.topology import (
     Topology,
     Transition,
 )
-from qrules.transition import ProblemSet, State
+from qrules.transition import ProblemSet
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Mapping
@@ -100,8 +100,8 @@ def select_transitions(
     """Reduce a collection of transitions to the graphs that are worth rendering.
 
     The ``collapse`` and ``strip_spin`` flags are the printer attributes
-    :code:`collapse_graphs` and :code:`strip_spin`. Spin projections can only be
-    stripped from the interaction nodes if those nodes are not rendered.
+    :code:`collapse_graphs` and :code:`strip_spin`. Projections can only be stripped
+    from the interaction nodes if those nodes are not rendered.
     """
     if collapse:
         return collapse_graphs(graphs)
@@ -128,9 +128,7 @@ def create_edge_label(
     if isinstance(graph, (ProblemSet, QNProblemSet)):
         edge_setting = graph.solving_settings.states.get(edge_id)
         initial_fact = graph.initial_facts.states.get(edge_id)
-        edge_property: EdgeSettings | GraphEdgePropertyMap | ParticleWithSpin | None = (
-            None
-        )
+        edge_property: EdgeSettings | GraphEdgePropertyMap | Particle | None = None
         if edge_setting:
             edge_property = edge_setting
         if initial_fact:
@@ -204,7 +202,6 @@ class _LabelFormatter(Protocol):
     def membership(self, key: str, domain: str) -> str: ...
     def particle(self, name: str, latex: str | None) -> str: ...
     def spin(self, magnitude: str, projection: str) -> str: ...
-    def state(self, particle: str, projection: str) -> str: ...
     def superscript(self, base: str, exponent: str) -> str: ...
 
 
@@ -246,10 +243,6 @@ class _PlainFormatter:
     @staticmethod
     def spin(magnitude: str, projection: str) -> str:
         return f"|{magnitude},{projection}⟩"
-
-    @staticmethod
-    def state(particle: str, projection: str) -> str:
-        return f"{particle}[{projection}]"
 
     @staticmethod
     def superscript(base: str, exponent: str) -> str:
@@ -295,10 +288,6 @@ class _LatexFormatter:
     @staticmethod
     def spin(magnitude: str, projection: str) -> str:
         return Rf"\left|{magnitude},{projection}\right\rangle"
-
-    @staticmethod
-    def state(particle: str, projection: str) -> str:
-        return Rf"{particle}\left[{projection}\right]"
 
     @staticmethod
     def superscript(base: str, exponent: str) -> str:
@@ -540,22 +529,6 @@ def __render_spin(spin: Spin, formatter: _LabelFormatter) -> str:
     return formatter.spin(spin_magnitude, spin_projection)
 
 
-@as_string.register(State)
-def _(state: State) -> str:
-    return __render_state(state, _PLAIN_FORMATTER)
-
-
-@as_latex.register(State)
-def _(state: State) -> str:
-    return __render_state(state, _LATEX_FORMATTER)
-
-
-def __render_state(state: State, formatter: _LabelFormatter) -> str:
-    particle = formatter.render(state.particle)
-    spin_projection = formatter.fraction(state.spin_projection, plusminus=True)
-    return formatter.state(particle, spin_projection)
-
-
 @frozen
 class QuantumNumberSignature:
     """PDG-style :math:`I^G(J^{PC})` summary of a quantum-number property map.
@@ -678,11 +651,8 @@ def _(obj: tuple) -> str:
 
 
 def __render_tuple(obj: tuple, formatter: _LabelFormatter) -> str:
-    if len(obj) == 2:
-        if isinstance(obj[0], Particle) and isinstance(obj[1], (Fraction, float, int)):
-            return __render_state(State(*obj), formatter)
-        if all(isinstance(o, (Fraction, float, int)) for o in obj):
-            return __render_spin(Spin(*obj), formatter)
+    if len(obj) == 2 and all(isinstance(o, (Fraction, float, int)) for o in obj):
+        return __render_spin(Spin(*obj), formatter)
     rendered_items = [formatter.render(item) for item in obj]
     if (
         formatter is _LATEX_FORMATTER
@@ -709,12 +679,12 @@ def _render_latex_columns(items: list[str]) -> str:
 
 
 def get_particle_graphs(
-    graphs: Iterable[Transition[ParticleWithSpin, InteractionProperties]],
+    graphs: Iterable[Transition[Particle, InteractionProperties]],
 ) -> list[FrozenTransition[Particle, None]]:
-    """Strip `list` of `.Transition` s of the spin projections.
+    """Strip `list` of `.Transition` s of their interaction properties.
 
-    Extract a `list` of `.Transition` instances with only `.Particle` instances on the
-    edges.
+    Extract a `list` of unique `.Transition` instances with only `.Particle` instances
+    on the edges and no interaction properties.
 
     .. seealso:: :doc:`/usage/visualize`
     """
@@ -747,10 +717,8 @@ def strip_projections(
 
 
 def __to_particle(state: Any) -> Particle:
-    if isinstance(state, State):
-        return state.particle
-    if isinstance(state, tuple) and len(state) == 2:
-        return state[0]
+    if isinstance(state, Particle):
+        return state
     msg = f"Cannot extract a particle from type {type(state).__name__}"
     raise NotImplementedError(msg)
 
@@ -789,8 +757,6 @@ def collapse_graphs(
 
 
 def _strip_properties(state: Any) -> Any:
-    if isinstance(state, State):
-        return state.particle
     if isinstance(state, abc.Mapping):
         return FrozenDict(state)
     return state
@@ -819,8 +785,6 @@ def _summarize_property_maps(states: Iterable[Any]) -> set[Any]:
 
 
 def _sorting_key(obj: Any) -> Any:
-    if isinstance(obj, State):
-        return obj.particle.name
     if isinstance(obj, QuantumNumberSignature):
         return as_string(obj)
     if isinstance(obj, str):

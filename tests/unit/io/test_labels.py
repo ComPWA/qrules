@@ -16,7 +16,7 @@ from qrules.io._labels import (
 from qrules.particle import Particle, ParticleCollection
 from qrules.quantum_numbers import InteractionProperties
 from qrules.solving import QNProblemSet, QNResult
-from qrules.transition import ProblemSet, ReactionInfo, State
+from qrules.transition import ProblemSet, ReactionInfo
 
 
 def describe_as_latex():
@@ -49,12 +49,9 @@ def describe_as_latex():
             "No LaTeX label renderer implemented type UnsupportedLabel" in caplog.text
         )
 
-    def it_particle_and_state(particle_database: ParticleCollection):
+    def it_particle(particle_database: ParticleCollection):
         particle = particle_database["J/psi(1S)"]
         assert as_latex(particle) == R"J/\psi(1S)"
-        expected_state = R"J/\psi(1S)\left[\text{-}\frac{1}{2}\right]"
-        assert as_latex(State(particle, Fraction(-1, 2))) == expected_state
-        assert as_latex((particle, Fraction(-1, 2))) == expected_state
 
         particle_with_custom_latex = attrs.evolve(
             particle,
@@ -164,9 +161,9 @@ def test_create_edge_label_accepts_renderer(reaction: ReactionInfo):
         render_label=as_latex,
     )
 
-    assert plain_label.startswith(state.particle.name)
-    assert state.particle.latex is not None
-    assert latex_label.startswith(state.particle.latex)
+    assert plain_label.startswith(state.name)
+    assert state.latex is not None
+    assert latex_label.startswith(state.latex)
 
     multiline_label = create_edge_label(
         transition,
@@ -196,7 +193,6 @@ def describe_as_string():
         print(src)
         expected_dot = dedent("""
             RULES
-            spin_validity - 62
             isospin_validity - 61
             g_parity_validity - 60
             gellmann_nishijima - 50
@@ -213,7 +209,6 @@ def describe_as_string():
             muon_lepton_number ∊ [0]
             parity ∊ [-1, +1]
             spin_magnitude ∊ [1/2]
-            spin_projection ∊ [-4, -7/2, -3, -5/2, -2, -3/2, -1, -1/2, 0, +1/2, +1, +3/2, +2, +5/2, +3, +7/2, +4]
             strangeness ∊ [-1, +1]
             tau_lepton_number ∊ [0]
             topness ∊ [0]
@@ -227,7 +222,6 @@ def describe_as_string():
             RULES
             ChargeConservation - 100
             BaryonNumberConservation - 90
-            ls_spin_validity - 89
             CharmConservation - 70
             StrangenessConservation - 69
             BottomnessConservation - 68
@@ -237,19 +231,12 @@ def describe_as_string():
             TauLNConservation - 43
             MassConservation - 10
             spin_magnitude_conservation - 8
-            helicity_conservation - 7
             parity_conservation - 6
             c_parity_conservation - 5
-            parity_conservation_helicity - 4
             g_parity_conservation - 3
-            identical_particle_symmetrization - 2
-            clebsch_gordan_helicity_to_canonical - 1
             DOMAINS
             l_magnitude ∊ [0, 1]
-            l_projection ∊ [0]
-            parity_prefactor ∊ [-1, +1]
             s_magnitude ∊ [0, 1/2, 1, 3/2, 2]
-            s_projection ∊ [-2, -3/2, -1, -1/2, 0, +1/2, +1, +3/2, +2]
         """).strip()
         assert src == expected_dot
 
@@ -259,9 +246,6 @@ def describe_as_string():
         expected_dot = dedent("""
             l_magnitude = 0
             s_magnitude = 1/2
-            l_projection = 0
-            s_projection = -1/2
-            parity_prefactor = +1
         """).strip()
         assert src == expected_dot
 
@@ -269,7 +253,6 @@ def describe_as_string():
         lines = set(src.splitlines())
         expected_lines = {
             "spin_magnitude = 1/2",
-            "spin_projection = +1/2",
             "parity = +1",
             "isospin_magnitude = 1",
             "isospin_projection = -1",
@@ -284,7 +267,7 @@ def describe_as_string():
 
         latex = as_latex(intermediate_setting)
         assert R"\text{RULES}" in latex
-        assert R"\text{spin\_validity - 62}" in latex
+        assert R"\text{isospin\_validity - 61}" in latex
         assert R"\text{DOMAINS}" in latex
         assert R"\text{spin\_magnitude} \in \left[\frac{1}{2}\right]" in latex
 
@@ -292,20 +275,15 @@ def describe_as_string():
         assert R"\text{ChargeConservation - 100}" in latex
         assert R"\text{l\_magnitude} \in \left[0, 1\right]" in latex
         assert (
-            R"\text{parity\_prefactor} \in \left[\text{-}1, \text{+}1\right]" in latex
+            R"\text{s\_magnitude} \in \left[0, \frac{1}{2}, 1, \frac{3}{2}, 2\right]"
+            in latex
         )
-        assert (
-            R"\text{s\_projection} \in \left[\text{-}2, "
-            R"\text{-}\frac{3}{2}, \text{-}1, \text{-}\frac{1}{2}, 0, "
-            R"\text{+}\frac{1}{2}, \text{+}1, \text{+}\frac{3}{2}, "
-            R"\text{+}2\right]"
-        ) in latex
 
         latex = as_latex(intermediate_state)
         assert R"\text{spin\_magnitude} = \frac{1}{2}" in latex
         assert R"\text{parity} = \text{+}1" in latex
 
-    def it_spin_tuple(particle_database: ParticleCollection):
+    def it_spin_tuple():
         # non-spin
         src = as_string(("a", "b", "c"))
         assert src == "a\nb\nc"
@@ -315,13 +293,8 @@ def describe_as_string():
         # spin
         src = as_string((2, 1))
         assert src == "|2,+1⟩"
-
-        # particle with spin projection
-        pion = particle_database["J/psi(1S)"]
-        src = as_string((pion, 1))
-        assert src == "J/psi(1S)[+1]"
-        src = as_string((pion, Fraction(-1)))
-        assert src == "J/psi(1S)[-1]"
+        src = as_string((Fraction(1, 2), Fraction(-1, 2)))
+        assert src == "|1/2,-1/2⟩"
 
 
 def test_collapse_graphs(
@@ -360,26 +333,25 @@ def test_strip_projections(skh_particle_version: str):
     assert skh_particle_version is not None  # skips test if particle version too low
     resonance = "Sigma(1670)~-"
     reaction = qrules.generate_transitions(
-        initial_state=[("J/psi(1S)", [+1])],
-        final_state=["K0", ("Sigma+", [+0.5]), ("p~", [+0.5])],
+        initial_state="J/psi(1S)",
+        final_state=["K0", "Sigma+", "p~"],
         allowed_intermediate_particles=[resonance],
         allowed_interaction_types="strong",
     )
-
-    assert len(reaction.transitions) == 5
     transition = reaction.transitions[0]
-
-    assert transition.intermediate_states[3].particle.name == resonance
-    assert transition.intermediate_states[3].spin_projection == -0.5
+    assert transition.intermediate_states[3].name == resonance
     assert len(transition.interactions) == 2
-    assert transition.interactions[0].s_projection == 1
-    assert transition.interactions[0].l_projection == 0
-    assert transition.interactions[1].s_projection == -0.5
-    assert transition.interactions[1].l_projection == 0
 
-    stripped_transition = strip_projections(transition)
+    # attach projections to the interactions, as a spin-projection extension would
+    transition_with_projections = transition.convert(
+        interaction_converter=lambda interaction: attrs.evolve(
+            interaction, l_projection=0, s_projection=interaction.s_magnitude
+        )
+    )
+    stripped_transition = strip_projections(transition_with_projections)
     assert stripped_transition.states[3].name == resonance
-    assert stripped_transition.interactions[0].s_projection is None
-    assert stripped_transition.interactions[0].l_projection is None
-    assert stripped_transition.interactions[1].s_projection is None
-    assert stripped_transition.interactions[1].l_projection is None
+    for interaction in stripped_transition.interactions.values():
+        assert interaction.l_projection is None
+        assert interaction.s_projection is None
+        assert interaction.l_magnitude is not None
+        assert interaction.s_magnitude is not None

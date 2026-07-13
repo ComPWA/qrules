@@ -18,7 +18,7 @@ from qrules.transition import SpinFormalism
 )
 def test_resonances(formalism: SpinFormalism, resonances, modified_pdg):
     reaction = qrules.generate_transitions(
-        initial_state=("psi(2S)", [+1, -1]),
+        initial_state="psi(2S)",
         final_state=["eta", "K-", "K*(892)+"],
         allowed_intermediate_particles=resonances,
         allowed_interaction_types=["em"],

@@ -161,12 +161,11 @@ def describe_asmermaid():
         )
         assert src.startswith("flowchart LR\n")
         assert not src.startswith("```mermaid")
-        assert R"J/\psi(1S)\left[" in src
-        assert R"f_{0}(980)\left[" in src
-        assert R"P = \text{+}1" in src
+        assert R"J/\psi(1S)$$" in src
+        assert R"f_{0}(980)$$" in src
         assert "<br/>" not in src
         if reaction.formalism == "canonical-helicity":
-            assert R"$$\begin{gathered} L =" in src
+            assert R"$$\begin{gathered} L = 0" in src
 
         labeled_lines = [
             line for line in src.splitlines() if '["' in line or '("' in line
@@ -206,7 +205,7 @@ def describe_asmermaid():
             initial_state_id = next(iter(transition.topology.incoming_edge_ids))
             initial_node_id = transition.topology.edges[initial_state_id].ending_node_id
             initial_state = transition.states[initial_state_id]
-            assert f'N{initial_node_id}["{initial_state.particle.name}' in src
+            assert f'N{initial_node_id}["{initial_state.name}' in src
             assert f"    A --- N{initial_node_id}" not in src
         src = io.asmermaid(reaction, latex=False)
         assert src.startswith("flowchart LR\n")
@@ -221,9 +220,10 @@ def describe_asmermaid():
     def it_reaction_with_node_labels(reaction: ReactionInfo):
         src = io.asmermaid(reaction.transitions[0], render_node=True, latex=False)
         assert src.startswith("flowchart LR\n")
-        assert "gamma[-1]" in src
-        assert "f(0)(980)[0]" in src
-        assert "P=+1" in src
+        assert "gamma" in src
+        assert "f(0)(980)" in src
+        if reaction.formalism == "canonical-helicity":
+            assert "L=0" in src
         assert "    A --- N0" in src
 
     def it_latex_can_be_disabled(reaction: ReactionInfo):
@@ -335,11 +335,11 @@ def describe_asmermaid():
         src = io.asmermaid(qn_result, render_node=True, latex=False)
         assert src.startswith("flowchart LR\n")
         assert " --- " in src
-        assert "parity_prefactor =" in src
+        assert "l_magnitude =" in src
 
         src = io.asmermaid(qn_result, render_node=True, latex=True)
         assert R"$$\begin{gathered}" in src
-        assert R"\text{parity\_prefactor} = \text{+}1" in src
+        assert R"\text{l\_magnitude} =" in src
 
     @pytest.mark.parametrize(
         "formalism",
@@ -347,7 +347,7 @@ def describe_asmermaid():
     )
     def it_problemset(formalism: SpinFormalism):
         stm = StateTransitionManager(
-            initial_state=[("J/psi(1S)", [+1])],
+            initial_state=["J/psi(1S)"],
             final_state=["gamma", "pi0", "pi0"],
             formalism=formalism,
         )
