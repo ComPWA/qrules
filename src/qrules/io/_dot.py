@@ -519,8 +519,8 @@ def _collapse_graphs(
             FrozenTransition(
                 topology,
                 states={
-                    i: tuple(sorted(particles, key=_sorting_key))
-                    for i, particles in group.states.items()
+                    i: tuple(sorted(_render_property_maps(states), key=_sorting_key))
+                    for i, states in group.states.items()
                 },
                 interactions=group.interactions,
             )
@@ -531,13 +531,37 @@ def _collapse_graphs(
 def _strip_properties(state: Any) -> Any:
     if isinstance(state, State):
         return state.particle
-    if isinstance(state, abc.Mapping):
-        return _render_quantum_number_signature(state)
     return state
+
+
+def _render_property_maps(states: Iterable[Any]) -> set[Any]:
+    """Render collapsed quantum-number property maps as unique signature strings.
+
+    Property maps in which some quantum numbers are merely unassigned (`None`) are
+    dropped when a more determined map with the same assigned values is present, so
+    that the collapsed edge label stays minimal.
+    """
+    property_maps = [state for state in states if isinstance(state, abc.Mapping)]
+    rendered: set[Any] = {
+        state for state in states if not isinstance(state, abc.Mapping)
+    }
+    assigned_values = [
+        {key: value for key, value in qn_map.items() if value is not None}
+        for qn_map in property_maps
+    ]
+    for qn_map, assigned in zip(property_maps, assigned_values, strict=True):
+        is_subsumed = any(assigned.items() < other.items() for other in assigned_values)
+        if not is_subsumed:
+            rendered.add(_render_quantum_number_signature(qn_map))
+    return rendered
 
 
 def _render_quantum_number_signature(qn_map: Mapping[Any, Any]) -> str:
     """Summarize a quantum-number property map in PDG-style ``I^G(J^{PC})`` notation.
+
+    The :math:`C` superscript is only rendered for self-conjugate states (zero charge,
+    baryon number, and strangeness) and the :math:`G` superscript only for nonstrange
+    non-baryonic states, since the quantum numbers are undefined otherwise.
 
     >>> from qrules.quantum_numbers import EdgeQuantumNumbers as EQN
     >>> _render_quantum_number_signature({
@@ -550,16 +574,30 @@ def _render_quantum_number_signature(qn_map: Mapping[Any, Any]) -> str:
     '1⁺(1⁻⁻)'
     >>> _render_quantum_number_signature({EQN.spin_magnitude: 0.5, EQN.parity: +1})
     '1/2⁺'
+    >>> _render_quantum_number_signature({  # baryon: no C or G parity
+    ...     EQN.spin_magnitude: 1.5,
+    ...     EQN.parity: +1,
+    ...     EQN.c_parity: -1,
+    ...     EQN.isospin_magnitude: 1.5,
+    ...     EQN.g_parity: +1,
+    ...     EQN.baryon_number: 1,
+    ... })
+    '3/2(3/2⁺)'
     """
+    baryon_number = qn_map.get(EdgeQuantumNumbers.baryon_number) or 0
+    charge = qn_map.get(EdgeQuantumNumbers.charge) or 0
+    strangeness = qn_map.get(EdgeQuantumNumbers.strangeness) or 0
     spin = qn_map.get(EdgeQuantumNumbers.spin_magnitude)
     jpc = "?" if spin is None else _render_fraction(Fraction(spin))
     jpc += _render_superscript_parity(qn_map.get(EdgeQuantumNumbers.parity))
-    jpc += _render_superscript_parity(qn_map.get(EdgeQuantumNumbers.c_parity))
+    if baryon_number == 0 and charge == 0 and strangeness == 0:
+        jpc += _render_superscript_parity(qn_map.get(EdgeQuantumNumbers.c_parity))
     isospin = qn_map.get(EdgeQuantumNumbers.isospin_magnitude)
     if isospin is None:
         return jpc
     ig = _render_fraction(Fraction(isospin))
-    ig += _render_superscript_parity(qn_map.get(EdgeQuantumNumbers.g_parity))
+    if baryon_number == 0 and strangeness == 0:
+        ig += _render_superscript_parity(qn_map.get(EdgeQuantumNumbers.g_parity))
     return f"{ig}({jpc})"
 
 
