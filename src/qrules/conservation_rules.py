@@ -193,10 +193,15 @@ def parity_conservation(
     outgoing_edge_qns: list[EdgeQN.parity],
     l_magnitude: NodeQN.l_magnitude,
 ) -> bool:
-    r"""Implement :math:`P_{in} = P_{out} \cdot (-1)^L`."""
+    r"""Implement :math:`P_{in} = P_{out} \cdot (-1)^L`.
+
+    The :math:`(-1)^L` factor originates from the two-body side of the interaction
+    node, so the same equation applies to both decay (:math:`1 \to 2\,3`) and
+    production (:math:`1\,2 \to 3`) nodes.
+    """
     if any(p is None for p in [*ingoing_edge_qns, *outgoing_edge_qns]):
         return False
-    if len(ingoing_edge_qns) == 1 and len(outgoing_edge_qns) == 2:
+    if (len(ingoing_edge_qns), len(outgoing_edge_qns)) in {(1, 2), (2, 1)}:
         parity_in = reduce(lambda x, y: x * y.value, ingoing_edge_qns, 1)
         parity_out = reduce(lambda x, y: x * y.value, outgoing_edge_qns, 1)
         return parity_in == (parity_out * (-1) ** l_magnitude)
@@ -226,24 +231,34 @@ def parity_conservation_helicity(
 
     .. note:: Only the special case :math:`\lambda_1=\lambda_2=0` may return `False`
         independent on the parity prefactor.
+
+    For a production node :math:`1\,2 \to 3`, the same check applies with the roles of
+    the single state and the two-body pair mirrored.
     """
-    if len(ingoing_edge_qns) == 1 and len(outgoing_edge_qns) == 2:
-        out_spins = [x.spin_magnitude for x in outgoing_edge_qns]
-        parity_product = reduce(
-            lambda x, y: x * y.parity.value if y.parity else x,
-            ingoing_edge_qns + outgoing_edge_qns,
-            1,
-        )
+    arity = (len(ingoing_edge_qns), len(outgoing_edge_qns))
+    if arity == (1, 2):
+        single_state = ingoing_edge_qns[0]
+        two_body_states = outgoing_edge_qns
+    elif arity == (2, 1):
+        single_state = outgoing_edge_qns[0]
+        two_body_states = ingoing_edge_qns
+    else:
+        return True
+    two_body_spins = [x.spin_magnitude for x in two_body_states]
+    parity_product = reduce(
+        lambda x, y: x * y.parity.value if y.parity else x,
+        ingoing_edge_qns + outgoing_edge_qns,
+        1,
+    )
 
-        prefactor = parity_product * (-1.0) ** (
-            sum(out_spins) - ingoing_edge_qns[0].spin_magnitude
-        )
+    prefactor = parity_product * (-1.0) ** (
+        sum(two_body_spins) - single_state.spin_magnitude
+    )
 
-        if all(x.spin_projection == 0.0 for x in outgoing_edge_qns) and prefactor == -1:  # noqa: RUF069
-            return False
+    if all(x.spin_projection == 0.0 for x in two_body_states) and prefactor == -1:  # noqa: RUF069
+        return False
 
-        return prefactor == parity_prefactor
-    return True
+    return prefactor == parity_prefactor
 
 
 @frozen
@@ -491,6 +506,7 @@ class SpinMagnitudeFacts(TypedDict):
 class HelicityFacts(TypedDict):
     """Facts required by `helicity_conservation`; a subset of `.EdgeFacts`."""
 
+    spin_magnitude: Fraction
     spin_projection: Fraction
 
 
@@ -751,7 +767,7 @@ def clebsch_gordan_helicity_to_canonical(
     outgoing_spins: list[SpinEdgeInput],
     interaction_qns: SpinNodeInput,
 ) -> bool:
-    """Implement Clebsch-Gordan checks.
+    r"""Implement Clebsch-Gordan checks.
 
     For :math:`S_1, S_2` to :math:`S` and the :math:`L,S` to :math:`J` coupling based on
     the conversion of helicity to canonical amplitude sums.
@@ -759,52 +775,72 @@ def clebsch_gordan_helicity_to_canonical(
     .. note:: This rule does not check that the spin magnitudes couple correctly to
         :math:`L` and :math:`S`, as this is already performed by
         `.spin_magnitude_conservation`.
+
+    For a production node :math:`1\,2 \to 3`, the same couplings are checked with the
+    roles of the single state and the two-body pair mirrored.
     """
     if len(ingoing_spins) == 1 and len(outgoing_spins) == 2:
-        out_spin1 = _Spin(
-            outgoing_spins[0].spin_magnitude,
-            outgoing_spins[0].spin_projection,
+        return __check_two_body_helicity_to_canonical_coupling(
+            ingoing_spins[0].spin_magnitude, outgoing_spins, interaction_qns
         )
-        out_spin2 = _Spin(
-            outgoing_spins[1].spin_magnitude,
-            -outgoing_spins[1].spin_projection,
+    if len(ingoing_spins) == 2 and len(outgoing_spins) == 1:
+        return __check_two_body_helicity_to_canonical_coupling(
+            outgoing_spins[0].spin_magnitude, ingoing_spins, interaction_qns
         )
-
-        helicity_diff = out_spin1.projection + out_spin2.projection
-        if helicity_diff != interaction_qns.s_projection:
-            return False
-
-        ang_mom = _Spin(interaction_qns.l_magnitude, interaction_qns.l_projection)
-        coupled_spin = _Spin(interaction_qns.s_magnitude, interaction_qns.s_projection)
-        parent_spin = ingoing_spins[0].spin_magnitude
-
-        coupled_spin = _Spin(coupled_spin.magnitude, helicity_diff)
-        if not _check_spin_valid(coupled_spin.magnitude, coupled_spin.projection):
-            return False
-        in_spin = _Spin(parent_spin, helicity_diff)
-        if not _check_spin_valid(in_spin.magnitude, in_spin.projection):
-            return False
-
-        if _is_clebsch_gordan_coefficient_zero(out_spin1, out_spin2, coupled_spin):
-            return False
-
-        return not _is_clebsch_gordan_coefficient_zero(ang_mom, coupled_spin, in_spin)
     return False
 
 
+def __check_two_body_helicity_to_canonical_coupling(
+    single_spin_magnitude: Fraction,
+    two_body_spins: list[SpinEdgeInput],
+    interaction_qns: SpinNodeInput,
+) -> bool:
+    spin1 = _Spin(
+        two_body_spins[0].spin_magnitude,
+        two_body_spins[0].spin_projection,
+    )
+    spin2 = _Spin(
+        two_body_spins[1].spin_magnitude,
+        -two_body_spins[1].spin_projection,
+    )
+
+    helicity_diff = spin1.projection + spin2.projection
+    if helicity_diff != interaction_qns.s_projection:
+        return False
+
+    ang_mom = _Spin(interaction_qns.l_magnitude, interaction_qns.l_projection)
+
+    coupled_spin = _Spin(interaction_qns.s_magnitude, helicity_diff)
+    if not _check_spin_valid(coupled_spin.magnitude, coupled_spin.projection):
+        return False
+    single_spin = _Spin(single_spin_magnitude, helicity_diff)
+    if not _check_spin_valid(single_spin.magnitude, single_spin.projection):
+        return False
+
+    if _is_clebsch_gordan_coefficient_zero(spin1, spin2, coupled_spin):
+        return False
+
+    return not _is_clebsch_gordan_coefficient_zero(ang_mom, coupled_spin, single_spin)
+
+
 def helicity_conservation(
-    ingoing_spin_mags: list[SpinMagnitudeFacts],
+    ingoing_helicities: list[HelicityFacts],
     outgoing_helicities: list[HelicityFacts],
 ) -> bool:
     r"""Implementation of helicity conservation.
 
-    Check for :math:`|\lambda_2-\lambda_3| \leq S_1`.
+    For a decay node :math:`1 \to 2\,3`, check :math:`|\lambda_2-\lambda_3| \leq S_1`.
+    For a production node :math:`1\,2 \to 3`, check the mirrored condition
+    :math:`|\lambda_1-\lambda_2| \leq S_3`.
     """
-    if len(ingoing_spin_mags) == 1 and len(outgoing_helicities) == 2:
-        mother_spin = ingoing_spin_mags[0]["spin_magnitude"]
+    if len(ingoing_helicities) == 1 and len(outgoing_helicities) == 2:
+        parent_spin = ingoing_helicities[0]["spin_magnitude"]
         helicities = [x["spin_projection"] for x in outgoing_helicities]
-        if mother_spin >= abs(helicities[0] - helicities[1]):
-            return True
+        return abs(helicities[0] - helicities[1]) <= parent_spin
+    if len(ingoing_helicities) == 2 and len(outgoing_helicities) == 1:
+        daughter_spin = outgoing_helicities[0]["spin_magnitude"]
+        helicities = [x["spin_projection"] for x in ingoing_helicities]
+        return abs(helicities[0] - helicities[1]) <= daughter_spin
     return False
 
 

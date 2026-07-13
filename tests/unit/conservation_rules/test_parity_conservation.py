@@ -37,6 +37,29 @@ def test_parity_conservation(in_parities, out_parities, l_magnitude, expected):
     [
         (
             [
+                Parity(parity_in1),
+                Parity(1),
+            ],
+            [
+                Parity(parity_out),
+            ],
+            NodeQuantumNumbers.l_magnitude(Fraction(l_magnitude)),
+            parity_in1 == parity_out * (-1) ** (l_magnitude),
+        )
+        for parity_in1, parity_out, l_magnitude in product([-1, 1], [-1, 1], range(5))
+    ],
+)
+def test_parity_conservation_production(
+    in_parities, out_parities, l_magnitude, expected
+):
+    assert parity_conservation(in_parities, out_parities, l_magnitude) is expected
+
+
+@pytest.mark.parametrize(
+    ("in_parities", "out_parities", "l_magnitude", "expected"),
+    [
+        (
+            [
                 HelicityParityEdgeInput(
                     parity=Parity(in_parity),
                     spin_magnitude=in_spin_mag,
