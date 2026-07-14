@@ -745,6 +745,7 @@ def create_qn_problem_sets(  # ruff: ignore[too-many-positional-arguments]
     mass_conservation_factor: float | None = 3.0,
     max_angular_momentum: int = 1,
     max_spin_magnitude: float = 2,
+    ls_couplings: bool = True,
     final_state_groupings: list[list[list[str]]] | None = None,
     allowed_channels: Iterable[str] | None = None,
 ) -> QNProblemSetCollection:
@@ -761,7 +762,8 @@ def create_qn_problem_sets(  # ruff: ignore[too-many-positional-arguments]
     :code:`interaction_config`. For reactions with more than one initial state,
     :code:`allowed_channels` (e.g. :code:`["s"]` or :code:`["t", "u"]`) restricts the
     problem sets to specific Mandelstam channels (see
-    `.determine_reaction_channel`).
+    `.determine_reaction_channel`). With :code:`ls_couplings=False`, the solver does
+    not enumerate :math:`LS`-combinations (see `.create_interaction_settings`).
     """
     _validate_formalism(formalism)
     if particle_db is None:
@@ -781,6 +783,7 @@ def create_qn_problem_sets(  # ruff: ignore[too-many-positional-arguments]
                 mass_conservation_factor=mass_conservation_factor,
                 max_angular_momentum=max_angular_momentum,
                 max_spin_magnitude=max_spin_magnitude,
+                ls_couplings=ls_couplings,
             )
         )
     if allowed_interaction_types is not None:
@@ -966,6 +969,7 @@ def generate_qn_transitions(  # ruff: ignore[too-many-positional-arguments]
     mass_conservation_factor: float | None = 3.0,
     max_angular_momentum: int = 1,
     max_spin_magnitude: float = 2,
+    ls_couplings: bool = True,
     final_state_groupings: list[list[list[str]]] | None = None,
     allowed_channels: Iterable[str] | None = None,
     topology_building: str = "isobar",
@@ -976,7 +980,8 @@ def generate_qn_transitions(  # ruff: ignore[too-many-positional-arguments]
     `create_qn_problem_sets` and `find_qn_transitions`, so that the intermediate
     states of the reaction are not matched against a particle database, but remain
     the quantum-number sets that were solved for. The arguments mirror those of
-    `.generate_transitions`.
+    `.generate_transitions`; :code:`ls_couplings=False` additionally switches off the
+    enumeration of :math:`LS`-combinations (see `.create_interaction_settings`).
     """
     if isinstance(initial_state, str):
         initial_state = [initial_state]
@@ -993,6 +998,7 @@ def generate_qn_transitions(  # ruff: ignore[too-many-positional-arguments]
         mass_conservation_factor=mass_conservation_factor,
         max_angular_momentum=max_angular_momentum,
         max_spin_magnitude=max_spin_magnitude,
+        ls_couplings=ls_couplings,
         final_state_groupings=final_state_groupings,
         allowed_channels=allowed_channels,
     )
@@ -1071,12 +1077,16 @@ def collect_qn_transitions(
                     for edge_id in external_edge_ids:
                         pid = states[edge_id][EdgeQuantumNumbers.pid]
                         states[edge_id] = particle_db.find(int(pid))
-                interactions = dict(solution.interactions)
-                for node_id, node_facts in facts.interactions.items():
-                    interactions[node_id] = {
-                        **node_facts,
-                        **interactions.get(node_id, {}),
+                # a node without facts and solved quantum numbers (e.g. with
+                # ls_couplings=False) gets an empty property map
+                solved_interactions = dict(solution.interactions)
+                interactions: dict[int, dict] = {
+                    node_id: {
+                        **facts.interactions.get(node_id, {}),
+                        **solved_interactions.get(node_id, {}),
                     }
+                    for node_id in topology.nodes
+                }
                 transition: QNTransition = FrozenTransition(
                     solution.topology,
                     states={
