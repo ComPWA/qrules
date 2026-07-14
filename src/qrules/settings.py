@@ -25,6 +25,8 @@ from qrules.conservation_rules import (
     ElectronLNConservation,
     MassConservation,
     MuonLNConservation,
+    SpinCoupling,
+    SpinParityCoupling,
     StrangenessConservation,
     TauLNConservation,
     c_parity_conservation,
@@ -70,6 +72,8 @@ CONSERVATION_LAW_PRIORITIES: dict[RuleKey, int] = {
     ChargeConservation: 100,
     spin_conservation: 8,
     spin_magnitude_conservation: 8,
+    SpinCoupling: 8,
+    SpinParityCoupling: 6,
     parity_conservation: 6,
     c_parity_conservation: 5,
     g_parity_conservation: 3,
@@ -136,14 +140,25 @@ DEFAULT_INTERACTION_TYPES = [
 ]
 
 
-def create_interaction_settings(
+def create_interaction_settings(  # ruff: ignore[too-many-positional-arguments]
     particle_db: ParticleCollection,
     nbody_topology: bool = False,
     mass_conservation_factor: float | None = 3.0,
     max_angular_momentum: int = 2,
     max_spin_magnitude: float = 2,
+    ls_couplings: bool = True,
 ) -> dict[InteractionType, tuple[EdgeSettings, NodeSettings]]:
-    """Create a container that holds the settings for `.InteractionType`."""
+    """Create a container that holds the settings for `.InteractionType`.
+
+    With :code:`ls_couplings=False`, the settings declare no
+    `~.NodeQuantumNumbers.l_magnitude` and `~.NodeQuantumNumbers.s_magnitude`
+    domains, so the solver does not enumerate :math:`LS`-combinations. The
+    corresponding constraints are imposed by `.SpinCoupling` and
+    `.SpinParityCoupling` instead, which only check whether *some*
+    :math:`(L, S)` combination up to :code:`max_angular_momentum` exists. The allowed
+    combinations can be reconstructed from the spins and parities of the solutions
+    afterwards.
+    """
     default_edge_settings = EdgeSettings(
         conservation_rules=_with_priorities(
             {
@@ -155,17 +170,24 @@ def create_interaction_settings(
         ),
         qn_domains=_create_domains(particle_db),
     )
-    default_node_settings = NodeSettings(
-        conservation_rules=_with_priorities({spin_magnitude_conservation}),
-        qn_domains={
-            NodeQN.l_magnitude: __get_ang_mom_magnitudes(
-                nbody_topology, max_angular_momentum
-            ),
-            NodeQN.s_magnitude: __get_spin_magnitudes(
-                nbody_topology, max_spin_magnitude
-            ),
-        },
-    )
+    if ls_couplings:
+        default_node_settings = NodeSettings(
+            conservation_rules=_with_priorities({spin_magnitude_conservation}),
+            qn_domains={
+                NodeQN.l_magnitude: __get_ang_mom_magnitudes(
+                    nbody_topology, max_angular_momentum
+                ),
+                NodeQN.s_magnitude: __get_spin_magnitudes(
+                    nbody_topology, max_spin_magnitude
+                ),
+            },
+        )
+        parity_rules: set = {parity_conservation}
+    else:
+        default_node_settings = NodeSettings(
+            conservation_rules=_with_priorities({SpinCoupling(max_angular_momentum)}),
+        )
+        parity_rules = {SpinParityCoupling(max_angular_momentum)}
     if mass_conservation_factor is not None:
         default_node_settings.conservation_rules.update(
             _with_priorities({MassConservation(mass_conservation_factor)})
@@ -196,7 +218,7 @@ def create_interaction_settings(
             CharmConservation(),
             StrangenessConservation(),
             BottomnessConservation(),
-            parity_conservation,
+            *parity_rules,
             c_parity_conservation,
         })
     )
