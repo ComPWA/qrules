@@ -49,7 +49,11 @@ from qrules.settings import (
     NumberOfThreads,
     create_interaction_settings,
 )
-from qrules.solving import CSPSolver, complete_intermediate_states
+from qrules.solving import (
+    CSPSolver,
+    complete_intermediate_states,
+    remove_dominated_qn_problem_sets,
+)
 from qrules.system_control import (
     GammaCheck,
     InteractionDeterminator,
@@ -937,11 +941,14 @@ def find_qn_transitions(
     transitions carry exactly the quantum numbers that the problem sets declare as
     domains, e.g. for a Dalitz-plot decomposition at the :math:`J^{P(C)}` level. A
     :code:`particle_db` is only used to resolve the initial and final states to
-    `.Particle` instances (see `collect_qn_transitions`). The problem sets are solved
-    over :code:`number_of_threads` processes (default: `.NumberOfThreads`).
+    `.Particle` instances (see `collect_qn_transitions`). Problem sets that cannot
+    contribute additional solutions are dropped
+    (`.remove_dominated_qn_problem_sets`) and the remaining ones are solved over
+    :code:`number_of_threads` processes (default: `.NumberOfThreads`).
     """
     if isinstance(qn_problem_sets, QNProblemSetCollection):
         qn_problem_sets = qn_problem_sets.problem_sets
+    qn_problem_sets = remove_dominated_qn_problem_sets(qn_problem_sets)
     if number_of_threads is None:
         number_of_threads = NumberOfThreads.get()
     qn_results: dict[float, list[tuple[QNProblemSet, QNResult]]] = defaultdict(list)
