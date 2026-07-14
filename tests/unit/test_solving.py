@@ -10,6 +10,7 @@ import qrules.particle
 import qrules.system_control
 from qrules.conservation_rules import (
     c_parity_conservation,
+    helicity_conservation,
     parity_conservation,
     spin_magnitude_conservation,
 )
@@ -20,6 +21,7 @@ from qrules.solving import (
     complete_intermediate_states,
     filter_quantum_number_problem_set,
     merge_qn_problem_sets,
+    remove_dominated_qn_problem_sets,
 )
 from qrules.topology import MutableTransition
 
@@ -96,6 +98,43 @@ def test_merge_qn_problem_sets(quantum_number_problem_set: QNProblemSet) -> None
     assert len(merged) == 1
     merged_facts = merged[0].initial_facts.states[-1]
     assert merged_facts[EdgeQuantumNumbers.spin_projection] == projections
+
+
+def test_remove_dominated_qn_problem_sets(
+    quantum_number_problem_set: QNProblemSet,
+) -> None:
+    def with_extra_node_rule(problem_set: QNProblemSet) -> QNProblemSet:
+        settings = problem_set.solving_settings
+        new_interactions = {
+            node_id: attrs.evolve(
+                node_settings,
+                conservation_rules={
+                    **node_settings.conservation_rules,
+                    helicity_conservation: 1,
+                },
+            )
+            for node_id, node_settings in settings.interactions.items()
+        }
+        new_settings = MutableTransition(
+            settings.topology,
+            dict(settings.states),  # type: ignore[arg-type]
+            new_interactions,  # type: ignore[arg-type]
+        )
+        return attrs.evolve(problem_set, solving_settings=new_settings)
+
+    stricter = with_extra_node_rule(quantum_number_problem_set)
+    deduped = remove_dominated_qn_problem_sets({
+        1.0: [quantum_number_problem_set],
+        60.0: [stricter],
+    })
+    assert deduped == {1.0: [quantum_number_problem_set]}
+
+    exact_duplicate = attrs.evolve(quantum_number_problem_set)
+    deduped = remove_dominated_qn_problem_sets({
+        1.0: [quantum_number_problem_set],
+        60.0: [exact_duplicate],
+    })
+    assert sum(len(group) for group in deduped.values()) == 1
 
 
 @pytest.fixture(scope="session")
