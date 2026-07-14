@@ -217,7 +217,9 @@ def _sequence_arg_builder(func: Callable) -> Callable[[Sequence], list[Any]]:
 
 def _build_all_arguments(checks: list[Callable]) -> Callable:
     def wrapper(*args: Any) -> list[Any]:
-        return [check(arg) for check, arg in zip(checks, args, strict=False) if arg]
+        # no filtering on falsy args: an empty property map (e.g. a node without LS
+        # couplings) must still be built into a rule argument
+        return [check(arg) for check, arg in zip(checks, args, strict=False)]
 
     return wrapper
 

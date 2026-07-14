@@ -349,6 +349,43 @@ def test_generate_qn_transitions_two_to_n():
     assert len(reaction.group_by_topology()) > 1
 
 
+def test_generate_qn_transitions_without_ls_couplings():
+    """LS-free solving must allow the same intermediate states (ComPWA/qrules#19)."""
+    particle_db = load_pdg()
+    reaction_kwargs: dict[str, Any] = dict(
+        initial_state=["gamma", "p"],
+        final_state=["p", "pi0"],
+        particle_db=particle_db,
+        allowed_intermediate_particles=[
+            "Delta(1232)",
+            "N(1440)",
+            "rho(770)",
+            "omega(782)",
+        ],
+        allowed_interaction_types=["strong", "em"],
+        max_angular_momentum=2,
+    )
+    signatures_by_mode = {}
+    n_transitions_by_mode = {}
+    for ls_couplings in (True, False):
+        reaction = generate_qn_transitions(ls_couplings=ls_couplings, **reaction_kwargs)
+        n_transitions_by_mode[ls_couplings] = len(reaction.transitions)
+        signatures_by_mode[ls_couplings] = {
+            (
+                state[EdgeQuantumNumbers.spin_magnitude],
+                state[EdgeQuantumNumbers.parity],
+            )
+            for transition in reaction.transitions
+            for state in transition.intermediate_states.values()
+        }
+        if not ls_couplings:
+            for transition in reaction.transitions:
+                for interactions in transition.interactions.values():
+                    assert not interactions
+    assert signatures_by_mode[False] == signatures_by_mode[True]
+    assert n_transitions_by_mode[False] < n_transitions_by_mode[True]
+
+
 def test_group_by_channel_and_channel_selection():
     """Mandelstam channel encoding for 2-to-n reactions (ComPWA/qrules#29)."""
     particle_db = load_pdg()

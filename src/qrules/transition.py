@@ -197,6 +197,7 @@ class StateTransitionManager:
         mass_conservation_factor: float | None = 3.0,
         max_angular_momentum: int = 1,
         max_spin_magnitude: float = 2,
+        ls_couplings: bool = True,
         number_of_threads: int | None = None,
     ) -> None:
         if number_of_threads is not None:
@@ -256,6 +257,7 @@ class StateTransitionManager:
                 mass_conservation_factor=mass_conservation_factor,
                 max_angular_momentum=max_angular_momentum,
                 max_spin_magnitude=max_spin_magnitude,
+                ls_couplings=ls_couplings,
             )
 
         if allowed_intermediate_particles is None:

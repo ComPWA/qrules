@@ -266,6 +266,7 @@ def generate_transitions(  # noqa: PLR0917
     mass_conservation_factor: float | None = 3.0,
     max_angular_momentum: int = 2,
     max_spin_magnitude: float = 2,
+    ls_couplings: bool = True,
     topology_building: str = "isobar",
     number_of_threads: int | None = None,
 ) -> ReactionInfo:
@@ -305,6 +306,11 @@ def generate_transitions(  # noqa: PLR0917
 
         max_spin_magnitude: Maximum spin magnitude over which to generate
             spins.
+
+        ls_couplings: If `False`, the solver does not enumerate
+            :math:`LS`-combinations; the couplings can be reconstructed from the spins
+            and parities of the solutions afterwards (see
+            `.create_interaction_settings`).
 
         topology_building (str): Technique with which to build the `.Topology`
             instances. Allowed values are:
@@ -346,6 +352,7 @@ def generate_transitions(  # noqa: PLR0917
         mass_conservation_factor=mass_conservation_factor,
         max_angular_momentum=max_angular_momentum,
         max_spin_magnitude=max_spin_magnitude,
+        ls_couplings=ls_couplings,
         topology_building=topology_building,
         number_of_threads=number_of_threads,
     )

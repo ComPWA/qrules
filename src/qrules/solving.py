@@ -1211,8 +1211,12 @@ class CSPSolver(Solver):
             MutableTransition[GraphEdgePropertyMap, GraphNodePropertyMap]
         ] = []
         for solution in solutions:
-            states: dict[int, GraphEdgePropertyMap] = defaultdict(dict)
-            interactions: dict[int, GraphNodePropertyMap] = defaultdict(dict)
+            # initialize all graph elements, so that nodes without solved quantum
+            # numbers (e.g. without LS couplings) still appear in the solution
+            states: dict[int, GraphEdgePropertyMap] = {i: {} for i in topology.edges}
+            interactions: dict[int, GraphNodePropertyMap] = {
+                i: {} for i in topology.nodes
+            }
             for var_string, value in solution.items():
                 ele_id, qn_type = self.__var_string_to_data[var_string]
 
