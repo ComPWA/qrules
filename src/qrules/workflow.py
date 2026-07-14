@@ -920,9 +920,15 @@ def generate_qn_transitions(  # noqa: PLR0917
     return QNReactionInfo(transitions)
 
 
+def _solve_qn_problem(qn_problem_set: QNProblemSet) -> tuple[QNProblemSet, QNResult]:
+    solver = CSPSolver()
+    return qn_problem_set, solver.find_solutions(qn_problem_set)
+
+
 def find_qn_transitions(
     qn_problem_sets: QNProblemSetCollection | dict[float, list[QNProblemSet]],
     particle_db: ParticleCollection | None = None,
+    number_of_threads: int | None = None,
 ) -> tuple[QNTransition, ...]:
     """Find allowed transitions purely at the quantum-number level.
 
@@ -931,17 +937,24 @@ def find_qn_transitions(
     transitions carry exactly the quantum numbers that the problem sets declare as
     domains, e.g. for a Dalitz-plot decomposition at the :math:`J^{P(C)}` level. A
     :code:`particle_db` is only used to resolve the initial and final states to
-    `.Particle` instances (see `collect_qn_transitions`).
+    `.Particle` instances (see `collect_qn_transitions`). The problem sets are solved
+    over :code:`number_of_threads` processes (default: `.NumberOfThreads`).
     """
     if isinstance(qn_problem_sets, QNProblemSetCollection):
         qn_problem_sets = qn_problem_sets.problem_sets
-    solver = CSPSolver()
+    if number_of_threads is None:
+        number_of_threads = NumberOfThreads.get()
     qn_results: dict[float, list[tuple[QNProblemSet, QNResult]]] = defaultdict(list)
-    for strength, qn_problems in sorted(qn_problem_sets.items(), reverse=True):
-        qn_results[strength].extend(
-            (qn_problem_set, solver.find_solutions(qn_problem_set))
-            for qn_problem_set in qn_problems
-        )
+    sorted_problem_sets = sorted(qn_problem_sets.items(), reverse=True)
+    if number_of_threads > 1:
+        with Pool(number_of_threads) as pool:
+            for strength, qn_problems in sorted_problem_sets:
+                qn_results[strength].extend(
+                    pool.map(_solve_qn_problem, qn_problems, chunksize=1)
+                )
+    else:
+        for strength, qn_problems in sorted_problem_sets:
+            qn_results[strength].extend(map(_solve_qn_problem, qn_problems))
     return collect_qn_transitions(qn_results, particle_db)
 
 
