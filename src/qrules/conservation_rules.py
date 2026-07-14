@@ -46,7 +46,7 @@ has been defined to provide type checks on `.parity_conservation_helicity`.
 """
 
 import operator
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from copy import deepcopy
 from fractions import Fraction
 from functools import reduce
@@ -577,6 +577,13 @@ class SpinMagnitudeNodeFacts(TypedDict):
     s_magnitude: Fraction
 
 
+class SpinParityFacts(TypedDict):
+    """Facts required by `SpinParityCoupling`; a subset of `.EdgeFacts`."""
+
+    spin_magnitude: Fraction
+    parity: int
+
+
 def ls_spin_validity(spin_input: SpinNodeInput) -> bool:
     r"""Check for valid isospin magnitude and projection."""
     return _check_spin_valid(
@@ -820,6 +827,134 @@ def spin_magnitude_conservation(
         sum(float(x) for x in in_magnitudes).is_integer()
         == sum(float(x) for x in out_magnitudes).is_integer()
     )
+
+
+def _couple_spins(j1: Fraction, j2: Fraction) -> list[Fraction]:
+    """List the magnitudes that two spins can couple to.
+
+    >>> _couple_spins(Fraction(1, 2), Fraction(1))
+    [Fraction(1, 2), Fraction(3, 2)]
+    """
+    return [
+        Fraction(x, 2) for x in range(int(2 * abs(j1 - j2)), int(2 * (j1 + j2)) + 1, 2)
+    ]
+
+
+def _split_isobar_node(
+    ingoing: list, outgoing: list
+) -> tuple[Any, list[Any]] | tuple[None, None]:
+    """Split node facts into the single-state side and the two-state side."""
+    if (len(ingoing), len(outgoing)) == (1, 2):
+        return ingoing[0], outgoing
+    if (len(ingoing), len(outgoing)) == (2, 1):
+        return outgoing[0], ingoing
+    return None, None
+
+
+def _iter_ls_couplings(
+    single_spin: Fraction,
+    pair_spins: list[Fraction],
+    max_angular_momentum: int,
+) -> Iterator[tuple[int, Fraction]]:
+    for coupled_spin in _couple_spins(*pair_spins):
+        for ang_mom in range(max_angular_momentum + 1):
+            if abs(ang_mom - coupled_spin) <= single_spin <= ang_mom + coupled_spin:
+                yield ang_mom, coupled_spin
+
+
+class SpinCoupling:
+    r"""Check that some :math:`(L, S)` combination couples the spin magnitudes.
+
+    The :math:`LS`-free counterpart of `spin_magnitude_conservation` for problem sets
+    without `~.NodeQuantumNumbers.l_magnitude` and `~.NodeQuantumNumbers.s_magnitude`
+    domains: instead of checking specific :math:`(L, S)` values, check whether *any*
+    combination with :math:`L \leq L_\mathrm{max}` satisfies
+    :math:`|S_1-S_2| \leq S \leq S_1+S_2` and :math:`|L-S| \leq J \leq L+S`.
+
+    >>> from fractions import Fraction
+    >>> rule = SpinCoupling(max_angular_momentum=0)
+    >>> vector = {"spin_magnitude": Fraction(1)}
+    >>> tensor = {"spin_magnitude": Fraction(2)}
+    >>> rule([vector], [vector, tensor])
+    True
+    >>> scalar = {"spin_magnitude": Fraction(0)}
+    >>> rule([scalar], [scalar, vector])
+    False
+    >>> SpinCoupling(max_angular_momentum=1)([scalar], [scalar, vector])
+    True
+    """
+
+    def __init__(self, max_angular_momentum: int) -> None:
+        self.__max_angular_momentum = max_angular_momentum
+
+    def __call__(
+        self,
+        ingoing_spin_magnitudes: list[SpinMagnitudeFacts],
+        outgoing_spin_magnitudes: list[SpinMagnitudeFacts],
+    ) -> bool:
+        single, pair = _split_isobar_node(
+            ingoing_spin_magnitudes, outgoing_spin_magnitudes
+        )
+        if single is None or pair is None:
+            return sum(
+                float(x["spin_magnitude"]) for x in ingoing_spin_magnitudes
+            ).is_integer() == sum(
+                float(x["spin_magnitude"]) for x in outgoing_spin_magnitudes
+            ).is_integer()
+        couplings = _iter_ls_couplings(
+            single["spin_magnitude"],
+            [x["spin_magnitude"] for x in pair],
+            self.__max_angular_momentum,
+        )
+        return any(couplings)
+
+
+class SpinParityCoupling:
+    r"""Check that some :math:`(L, S)` combination couples the spins and parities.
+
+    The :math:`LS`-free counterpart of `spin_magnitude_conservation` plus
+    `parity_conservation`: in addition to the couplings of `SpinCoupling`, the
+    angular momentum must satisfy :math:`P_{in} = P_{out} \cdot (-1)^L`.
+
+    >>> from fractions import Fraction
+    >>> rule = SpinParityCoupling(max_angular_momentum=2)
+    >>> jpsi = {"spin_magnitude": Fraction(1), "parity": -1}
+    >>> gamma = {"spin_magnitude": Fraction(1), "parity": -1}
+    >>> f2 = {"spin_magnitude": Fraction(2), "parity": +1}
+    >>> rule([jpsi], [gamma, f2])
+    True
+    >>> eta = {"spin_magnitude": Fraction(0), "parity": -1}
+    >>> pion = {"spin_magnitude": Fraction(0), "parity": -1}
+    >>> rule([eta], [pion, pion])
+    False
+    """
+
+    def __init__(self, max_angular_momentum: int) -> None:
+        self.__max_angular_momentum = max_angular_momentum
+
+    def __call__(
+        self,
+        ingoing_spin_parities: list[SpinParityFacts],
+        outgoing_spin_parities: list[SpinParityFacts],
+    ) -> bool:
+        single, pair = _split_isobar_node(
+            ingoing_spin_parities, outgoing_spin_parities
+        )
+        if single is None or pair is None:
+            return True
+        parities = [single["parity"], *(x["parity"] for x in pair)]
+        if any(parity is None for parity in parities):
+            return False
+        single_parity, *pair_parities = parities
+        pair_parity = pair_parities[0] * pair_parities[1]
+        return any(
+            single_parity == pair_parity * (-1) ** ang_mom
+            for ang_mom, _ in _iter_ls_couplings(
+                single["spin_magnitude"],
+                [x["spin_magnitude"] for x in pair],
+                self.__max_angular_momentum,
+            )
+        )
 
 
 def clebsch_gordan_helicity_to_canonical(

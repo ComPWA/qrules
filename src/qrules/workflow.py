@@ -685,6 +685,7 @@ def create_qn_problem_sets(  # noqa: PLR0917
     mass_conservation_factor: float | None = 3.0,
     max_angular_momentum: int = 1,
     max_spin_magnitude: float = 2,
+    ls_couplings: bool = True,
     final_state_groupings: list[list[list[str]]] | None = None,
     allowed_channels: Iterable[str] | None = None,
 ) -> QNProblemSetCollection:
@@ -701,7 +702,8 @@ def create_qn_problem_sets(  # noqa: PLR0917
     :code:`interaction_config`. For reactions with more than one initial state,
     :code:`allowed_channels` (e.g. :code:`["s"]` or :code:`["t", "u"]`) restricts the
     problem sets to specific Mandelstam channels (see
-    `.determine_reaction_channel`).
+    `.determine_reaction_channel`). With :code:`ls_couplings=False`, the solver does
+    not enumerate :math:`LS`-combinations (see `.create_interaction_settings`).
     """
     _validate_formalism(formalism)
     if particle_db is None:
@@ -721,6 +723,7 @@ def create_qn_problem_sets(  # noqa: PLR0917
                 mass_conservation_factor=mass_conservation_factor,
                 max_angular_momentum=max_angular_momentum,
                 max_spin_magnitude=max_spin_magnitude,
+                ls_couplings=ls_couplings,
             )
         )
     if allowed_interaction_types is not None:
@@ -887,6 +890,7 @@ def generate_qn_transitions(  # noqa: PLR0917
     mass_conservation_factor: float | None = 3.0,
     max_angular_momentum: int = 1,
     max_spin_magnitude: float = 2,
+    ls_couplings: bool = True,
     final_state_groupings: list[list[list[str]]] | None = None,
     allowed_channels: Iterable[str] | None = None,
     topology_building: str = "isobar",
@@ -897,7 +901,8 @@ def generate_qn_transitions(  # noqa: PLR0917
     `create_qn_problem_sets` and `find_qn_transitions`, so that the intermediate
     states of the reaction are not matched against a particle database, but remain
     the quantum-number sets that were solved for. The arguments mirror those of
-    `.generate_transitions`.
+    `.generate_transitions`; :code:`ls_couplings=False` additionally switches off the
+    enumeration of :math:`LS`-combinations (see `.create_interaction_settings`).
     """
     if isinstance(initial_state, str):
         initial_state = [initial_state]
