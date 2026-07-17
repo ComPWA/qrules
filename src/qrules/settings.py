@@ -49,6 +49,7 @@ from qrules.solving import EdgeSettings, NodeSettings
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
 
+    from qrules.argument_handling import RuleKey
     from qrules.particle import Particle, ParticleCollection
     from qrules.transition import SpinFormalism
 
@@ -57,7 +58,7 @@ ADDITIONAL_PARTICLES_DEFINITIONS_PATH: str = join(
     __QRULES_PATH, "additional_definitions.yml"
 )
 
-CONSERVATION_LAW_PRIORITIES: dict[Any, int] = {
+CONSERVATION_LAW_PRIORITIES: dict[RuleKey, int] = {
     MassConservation: 10,
     ElectronLNConservation: 45,
     MuonLNConservation: 44,
@@ -81,7 +82,7 @@ CONSERVATION_LAW_PRIORITIES: dict[Any, int] = {
 """Determines the order with which to verify conservation rules."""
 
 
-EDGE_RULE_PRIORITIES: dict[Any, int] = {
+EDGE_RULE_PRIORITIES: dict[RuleKey, int] = {
     gellmann_nishijima: 50,
     isospin_validity: 61,
     spin_validity: 62,

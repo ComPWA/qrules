@@ -27,6 +27,7 @@ from qrules.argument_handling import (
     GraphNodePropertyMap,
     Rule,
     RuleArgumentHandler,
+    RuleKey,
     Scalar,
     get_required_qns,
 )
@@ -36,6 +37,7 @@ from qrules.quantum_numbers import (
     EdgeQuantumNumberTypes,
     NodeQuantumNumber,
     NodeQuantumNumberTypes,
+    QuantumNumberType,
 )
 from qrules.topology import MutableTransition, Topology
 
@@ -51,7 +53,7 @@ class EdgeSettings:
     """Solver settings for a specific edge of a graph."""
 
     conservation_rules: set[GraphElementRule] = field(factory=set)
-    rule_priorities: dict[Any, int] = field(factory=dict)
+    rule_priorities: dict[RuleKey, int] = field(factory=dict)
     qn_domains: dict[EdgeQuantumNumberTypes, list] = field(factory=dict)
 
 
@@ -71,7 +73,7 @@ class NodeSettings:
     """
 
     conservation_rules: set[Rule] = field(factory=set)
-    rule_priorities: dict[Any, int] = field(factory=dict)
+    rule_priorities: dict[RuleKey, int] = field(factory=dict)
     qn_domains: dict[NodeQuantumNumberTypes, list] = field(factory=dict)
     interaction_strength: float = 1.0
 
@@ -882,8 +884,8 @@ class _GraphElementConstraint(Constraint, Generic[_QNType]):
     def __init__(
         self,
         rule: GraphElementRule,
-        variables: set[tuple[int, type[_QNType]]],
-        fixed_variables: dict[int, dict[type[_QNType], Scalar]],
+        variables: set[tuple[int, QuantumNumberType[_QNType]]],
+        fixed_variables: dict[int, dict[QuantumNumberType[_QNType], Scalar]],
         argument_handler: RuleArgumentHandler,
         scoresheet: Callable[[bool], None],
     ) -> None:
@@ -897,8 +899,8 @@ class _GraphElementConstraint(Constraint, Generic[_QNType]):
         ) = argument_handler.register_rule(rule)
         self.__score_callback = scoresheet
 
-        self.__var_string_to_data: dict[str, type[_QNType]] = {}
-        self.__qns: dict[type[_QNType], Scalar | None] = {}
+        self.__var_string_to_data: dict[str, QuantumNumberType[_QNType]] = {}
+        self.__qns: dict[QuantumNumberType[_QNType], Scalar | None] = {}
 
         self.__initialize_variable_containers(variables, fixed_variables)
 
@@ -908,8 +910,8 @@ class _GraphElementConstraint(Constraint, Generic[_QNType]):
 
     def __initialize_variable_containers(
         self,
-        variables: set[tuple[int, type[_QNType]]],
-        fixed_variables: dict[int, dict[type[_QNType], Scalar]],
+        variables: set[tuple[int, QuantumNumberType[_QNType]]],
+        fixed_variables: dict[int, dict[QuantumNumberType[_QNType], Scalar]],
     ) -> None:
         """Fill the name decoding map.
 

@@ -13,6 +13,7 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Generic,
+    Protocol,
     TypeVar,
     Union,
     cast,
@@ -27,7 +28,12 @@ from qrules.conservation_rules import (
     EdgeQNConservationRule,
     GraphElementRule,
 )
-from qrules.quantum_numbers import EdgeQuantumNumber, NodeQuantumNumber, Parity
+from qrules.quantum_numbers import (
+    EdgeQuantumNumber,
+    NodeQuantumNumber,
+    Parity,
+    QuantumNumberType,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
@@ -36,20 +42,27 @@ Scalar = int | float | Fraction | None
 Rule = GraphElementRule | EdgeQNConservationRule | ConservationRule
 """Any type of rule"""
 
-GraphElementPropertyMap = dict[Any, Scalar]
-GraphEdgePropertyMap = GraphElementPropertyMap
-"""Type alias for a graph edge property map."""
-GraphNodePropertyMap = GraphElementPropertyMap
-"""Type alias for a graph node property map."""
+
+class RuleKey(Protocol):
+    """A named function or class used as a rule-priority key."""
+
+    __name__: str
+
 
 _ElementType = TypeVar("_ElementType")
 
+GraphElementPropertyMap = dict[QuantumNumberType[_ElementType], Scalar]
+GraphEdgePropertyMap = GraphElementPropertyMap[EdgeQuantumNumber]
+"""Type alias for a graph edge property map."""
+GraphNodePropertyMap = GraphElementPropertyMap[NodeQuantumNumber]
+"""Type alias for a graph node property map."""
 
-def _is_optional(field_type: Any) -> bool:
+
+def _is_optional(field_type: object) -> bool:
     return get_origin(field_type) is Union and type(None) in get_args(field_type)
 
 
-def _is_sequence_type(input_type: Any) -> bool:
+def _is_sequence_type(input_type: object) -> bool:
     return get_origin(input_type) in {list, tuple}
 
 
@@ -105,33 +118,37 @@ def _check_all_arguments(checks: list[Callable]) -> Callable[..., bool]:
 
 
 class _ValueExtractor(Generic[_ElementType]):
-    def __init__(self, obj_type: Any) -> None:
-        self.__obj_type: Any = obj_type
+    def __init__(self, obj_type: object) -> None:
+        concrete_type = get_args(obj_type)[0] if _is_optional(obj_type) else obj_type
+        self.__obj_type = cast("QuantumNumberType[_ElementType]", concrete_type)
         self.__function = self.__extract
 
         if _is_optional(obj_type):
-            self.__obj_type = get_args(obj_type)[0]
             self.__function = self.__optional_extract
 
-    def __call__(self, props: GraphElementPropertyMap) -> _ElementType | None:
+    def __call__(
+        self, props: GraphElementPropertyMap[_ElementType]
+    ) -> _ElementType | None:
         return self.__function(props)
 
-    def __optional_extract(self, props: GraphElementPropertyMap) -> _ElementType | None:
+    def __optional_extract(
+        self, props: GraphElementPropertyMap[_ElementType]
+    ) -> _ElementType | None:
         if self.__obj_type in props:
             return self.__extract(props)
 
         return None
 
-    def __extract(self, props: GraphElementPropertyMap) -> _ElementType | None:
+    def __extract(
+        self, props: GraphElementPropertyMap[_ElementType]
+    ) -> _ElementType | None:
         value = props[self.__obj_type]
         if value is None:
             return None
-        if (
-            "__supertype__" in self.__obj_type.__dict__
-            and self.__obj_type.__supertype__ == Parity
-        ):
-            return cast("_ElementType", self.__obj_type.__supertype__(value))
-        return cast("_ElementType", self.__obj_type(value))
+        supertype = getattr(self.__obj_type, "__supertype__", None)
+        if supertype == Parity:
+            return cast("_ElementType", Parity(int(value)))
+        return self.__obj_type(value)
 
 
 class _CompositeArgumentCreator:

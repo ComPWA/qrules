@@ -12,7 +12,7 @@ from collections import abc
 from fractions import Fraction
 from functools import singledispatch
 from inspect import isfunction
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, Protocol, cast
 
 import attrs
 from attrs import Attribute, define, field
@@ -389,10 +389,14 @@ def __render_rule(rule: Rule) -> str:
     return __get_type(rule).__name__
 
 
-def __get_type(rule: Rule) -> Any:
+class _Named(Protocol):
+    __name__: str
+
+
+def __get_type(rule: Rule) -> _Named:
     if isfunction(rule):
-        return rule
-    return type(rule)
+        return cast("_Named", rule)
+    return cast("_Named", type(rule))
 
 
 def __extract_priority(description: str) -> str:

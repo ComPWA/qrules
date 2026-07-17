@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from fractions import Fraction
 from functools import total_ordering
-from typing import TYPE_CHECKING, Any, Literal, NewType
+from typing import TYPE_CHECKING, Any, Literal, NewType, Protocol, TypeVar
 
 from attrs import field, frozen
 
@@ -127,31 +127,19 @@ EdgeQuantumNumber = (
 )
 """Type hint for quantum numbers of edges"""
 
-if TYPE_CHECKING:
-    EdgeQuantumNumberTypes = Any
-else:
-    EdgeQuantumNumberTypes = (
-        type[EdgeQuantumNumbers.pid]
-        | type[EdgeQuantumNumbers.mass]
-        | type[EdgeQuantumNumbers.width]
-        | type[EdgeQuantumNumbers.spin_magnitude]
-        | type[EdgeQuantumNumbers.spin_projection]
-        | type[EdgeQuantumNumbers.charge]
-        | type[EdgeQuantumNumbers.isospin_magnitude]
-        | type[EdgeQuantumNumbers.isospin_projection]
-        | type[EdgeQuantumNumbers.strangeness]
-        | type[EdgeQuantumNumbers.charmness]
-        | type[EdgeQuantumNumbers.bottomness]
-        | type[EdgeQuantumNumbers.topness]
-        | type[EdgeQuantumNumbers.baryon_number]
-        | type[EdgeQuantumNumbers.electron_lepton_number]
-        | type[EdgeQuantumNumbers.muon_lepton_number]
-        | type[EdgeQuantumNumbers.tau_lepton_number]
-        | type[EdgeQuantumNumbers.parity]
-        | type[EdgeQuantumNumbers.c_parity]
-        | type[EdgeQuantumNumbers.g_parity]
-    )
-    """Type-Union for accessing the keys of the dicts in `.EdgeSettings`"""
+_QuantumNumber_co = TypeVar("_QuantumNumber_co", covariant=True)
+
+
+class QuantumNumberType(Protocol[_QuantumNumber_co]):
+    """Runtime factory object created by `typing.NewType`."""
+
+    __name__: str
+
+    def __call__(self, *args: Any, **kwargs: Any) -> _QuantumNumber_co: ...
+
+
+EdgeQuantumNumberTypes = QuantumNumberType[EdgeQuantumNumber]
+"""Type-Union for accessing the keys of the dicts in `.EdgeSettings`"""
 
 
 @frozen(init=False)
@@ -182,17 +170,8 @@ NodeQuantumNumber = (
 """Type hint for quantum numbers of interaction nodes."""
 
 # for accessing the keys of the dicts in NodeSettings
-if TYPE_CHECKING:
-    NodeQuantumNumberTypes = Any
-else:
-    NodeQuantumNumberTypes = (
-        type[NodeQuantumNumbers.l_magnitude]
-        | type[NodeQuantumNumbers.l_projection]
-        | type[NodeQuantumNumbers.s_magnitude]
-        | type[NodeQuantumNumbers.s_projection]
-        | type[NodeQuantumNumbers.parity_prefactor]
-    )
-    """Type-Union for accessing the keys of the dicts in `.NodeSettings`"""
+NodeQuantumNumberTypes = QuantumNumberType[NodeQuantumNumber]
+"""Type-Union for accessing the keys of the dicts in `.NodeSettings`"""
 
 
 def _to_optional_float(optional_float: float | None) -> float | None:

@@ -290,6 +290,7 @@ nitpick_ignore = [
 nitpick_ignore_regex = [
     (r"py:(class|obj)", "json.encoder.JSONEncoder"),
     (r"py:(class|obj)", r"frozendict(\.frozendict)?"),
+    (r"py:(class|obj)", r"qrules\.quantum_numbers\._QuantumNumber_co"),
     (r"py:(class|obj)", r"qrules\.topology\.EdgeType"),
     (r"py:(class|obj)", r"qrules\.topology\.KT"),
     (r"py:(class|obj)", r"qrules\.topology\.NewEdgeType"),
