@@ -18,7 +18,7 @@ class PrettyPrinter(Protocol):
     def group(
         self,
         indent: int = 0,
-        open: str = "",  # noqa: A002
+        open: str = "",  # ruff:ignore[builtin-argument-shadowing]
     ) -> AbstractContextManager: ...
 
     def pretty(self, obj: Any) -> None: ...
@@ -51,5 +51,5 @@ def implement_pretty_repr(
             p.breakable()
             p.text(")")
 
-    decorated_class._repr_pretty_ = repr_pretty
-    return decorated_class
+    decorated_class._repr_pretty_ = repr_pretty  # ty:ignore[unresolved-attribute]
+    return decorated_class  # ty:ignore[invalid-return-type]
