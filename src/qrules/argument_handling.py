@@ -38,6 +38,8 @@ from qrules.quantum_numbers import (
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
 
+    from typing_extensions import TypeForm
+
 Scalar = int | float | Fraction | None
 Rule = GraphElementRule | EdgeQNConservationRule | ConservationRule
 """Any type of rule"""
@@ -58,11 +60,11 @@ GraphNodePropertyMap = GraphElementPropertyMap[NodeQuantumNumber]
 """Type alias for a graph node property map."""
 
 
-def _is_optional(field_type: object) -> bool:
+def _is_optional(field_type: TypeForm[object]) -> bool:
     return get_origin(field_type) is Union and type(None) in get_args(field_type)
 
 
-def _is_sequence_type(input_type: object) -> bool:
+def _is_sequence_type(input_type: TypeForm[object]) -> bool:
     return get_origin(input_type) in {list, tuple}
 
 
@@ -118,7 +120,7 @@ def _check_all_arguments(checks: list[Callable]) -> Callable[..., bool]:
 
 
 class _ValueExtractor(Generic[_ElementType]):
-    def __init__(self, obj_type: object) -> None:
+    def __init__(self, obj_type: TypeForm[_ElementType | None]) -> None:
         concrete_type = get_args(obj_type)[0] if _is_optional(obj_type) else obj_type
         self.__obj_type = cast("QuantumNumberType[_ElementType]", concrete_type)
         self.__function = self.__extract
@@ -246,9 +248,11 @@ class RuleArgumentHandler:
                 arg_builder: Callable[..., Any] = _CompositeArgumentCreator(qn_type)
             else:
                 if _is_edge_quantum_number(qn_type):
-                    arg_builder = _ValueExtractor[EdgeQuantumNumber](qn_type)
+                    edge_qn_type = cast("TypeForm[EdgeQuantumNumber]", qn_type)
+                    arg_builder = _ValueExtractor[EdgeQuantumNumber](edge_qn_type)
                 elif _is_node_quantum_number(qn_type):
-                    arg_builder = _ValueExtractor[NodeQuantumNumber](qn_type)
+                    node_qn_type = cast("TypeForm[NodeQuantumNumber]", qn_type)
+                    arg_builder = _ValueExtractor[NodeQuantumNumber](node_qn_type)
                 else:
                     msg = (
                         f"Quantum number type {qn_type} is not supported. Has to be of"
