@@ -503,7 +503,9 @@ def load_pdg() -> ParticleCollection:
     PDG info is imported from the `scikit-hep/particle
     <https://github.com/scikit-hep/particle>`_ package.
     """
-    from particle import Particle as PdgDatabase
+    from particle import (  # ruff:ignore[import-outside-top-level]
+        Particle as PdgDatabase,
+    )
 
     all_pdg_particles = PdgDatabase.findall(
         lambda item: (
