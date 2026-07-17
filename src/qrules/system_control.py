@@ -85,7 +85,7 @@ def create_node_properties(interactions: InteractionProperties) -> GraphNodeProp
     return property_map
 
 
-def find_particle(  # noqa: D417
+def find_particle(  # ruff:ignore[undocumented-param]
     state: GraphEdgePropertyMap, particle_db: ParticleCollection
 ) -> ParticleWithSpin:
     """Create a Particle with spin projection from a qn dictionary.
@@ -104,7 +104,11 @@ def find_particle(  # noqa: D417
 
         ValueError: If the edge properties do not contain spin projection info.
     """
-    particle = particle_db.find(int(state[EdgeQuantumNumbers.pid]))
+    pid = state[EdgeQuantumNumbers.pid]
+    if pid is None:
+        msg = f"{GraphEdgePropertyMap.__name__} does not contain a PID"
+        raise ValueError(msg)
+    particle = particle_db.find(int(pid))
     spin_projection = state.get(EdgeQuantumNumbers.spin_projection)
     if spin_projection is None:
         msg = f"{GraphEdgePropertyMap.__name__} does not contain a spin projection"
@@ -118,11 +122,11 @@ def create_interaction_properties(
     converted_solution = {k.__name__: v for k, v in qn_solution.items()}
     kw_args = {
         x.name: converted_solution[x.name]
-        for x in attrs.fields(InteractionProperties)  # type: ignore[arg-type]
+        for x in attrs.fields(InteractionProperties)
         if x.name in converted_solution
     }
 
-    return attrs.evolve(InteractionProperties(), **kw_args)  # type: ignore[arg-type]
+    return attrs.evolve(InteractionProperties(), **kw_args)
 
 
 def filter_interaction_types(
@@ -160,11 +164,11 @@ class InteractionDeterminator(ABC):
 class GammaCheck(InteractionDeterminator):
     """Conservation check for photons."""
 
-    def check(  # noqa: PLR6301
+    def check(  # ruff:ignore[no-self-use]
         self,
         in_states: list[ParticleWithSpin],
         out_states: list[ParticleWithSpin],
-        interactions: InteractionProperties,  # noqa: ARG002
+        interactions: InteractionProperties,  # ruff:ignore[unused-method-argument]
     ) -> list[InteractionType]:
         int_types = list(InteractionType)
         for particle, _ in in_states + out_states:
@@ -177,11 +181,11 @@ class GammaCheck(InteractionDeterminator):
 class LeptonCheck(InteractionDeterminator):
     """Conservation check lepton numbers."""
 
-    def check(  # noqa: PLR6301
+    def check(  # ruff:ignore[no-self-use]
         self,
         in_states: list[ParticleWithSpin],
         out_states: list[ParticleWithSpin],
-        interactions: InteractionProperties,  # noqa: ARG002
+        interactions: InteractionProperties,  # ruff:ignore[unused-method-argument]
     ) -> list[InteractionType]:
         node_interaction_types = list(InteractionType)
         for particle, _ in in_states + out_states:
@@ -240,7 +244,7 @@ def _remove_qns_from_graph(
             interactions, **{x.__name__: None for x in qn_list}
         )
 
-    return attrs.evolve(graph, interactions=new_interactions)  # type: ignore[arg-type]
+    return attrs.evolve(graph, interactions=new_interactions)
 
 
 def _check_equal_ignoring_qns(

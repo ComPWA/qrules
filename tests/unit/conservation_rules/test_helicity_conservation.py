@@ -1,3 +1,4 @@
+from fractions import Fraction
 from itertools import product
 
 import pytest
@@ -11,11 +12,11 @@ from qrules.quantum_numbers import EdgeQuantumNumbers
     [
         (
             [
-                EdgeQuantumNumbers.spin_magnitude(s_magnitude),  # type:ignore[arg-type]
+                EdgeQuantumNumbers.spin_magnitude(Fraction(s_magnitude)),
             ],
             [
-                EdgeQuantumNumbers.spin_projection(lambda1),  # type:ignore[arg-type]
-                EdgeQuantumNumbers.spin_projection(lambda2),  # type:ignore[arg-type]
+                EdgeQuantumNumbers.spin_projection(Fraction(lambda1)),
+                EdgeQuantumNumbers.spin_projection(Fraction(lambda2)),
             ],
             abs(lambda1 - lambda2) <= s_magnitude,
         )

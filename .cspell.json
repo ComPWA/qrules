@@ -31,13 +31,11 @@
     ".pre-commit-config.yaml",
     ".prettierignore",
     ".readthedocs.yml",
-    ".taplo.toml",
     ".vscode/*",
     "CITATION.cff",
     "codecov.yml",
     "docs/conf.py",
-    "pyproject.toml",
-    "typings"
+    "pyproject.toml"
   ],
   "ignoreWords": [
     "adrs",
@@ -117,7 +115,6 @@
     "pylance",
     "pypi",
     "pyproject",
-    "pyright",
     "pytestconfig",
     "rightarrow",
     "risch",
@@ -186,7 +183,6 @@
     "lineshape",
     "lineshapes",
     "mathbb",
-    "mypy",
     "nishijima",
     "pydot",
     "PyPA",

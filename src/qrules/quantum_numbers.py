@@ -1,16 +1,16 @@
 """Definitions used internally for type hints and signatures.
 
-`qrules` is strictly typed (enforced through :doc:`mypy <mypy:index>`). This module
-bundles structures and definitions that don't serve as data containers but only as type
-hints. `.EdgeQuantumNumbers` and `.NodeQuantumNumbers` are the main structures and serve
-as a bridge between the :mod:`.particle` and the :mod:`.conservation_rules` module.
+`qrules` is strictly typed. This module bundles structures and definitions that don't
+serve as data containers but only as type hints. `.EdgeQuantumNumbers` and
+`.NodeQuantumNumbers` are the main structures and serve as a bridge between the
+:mod:`.particle` and the :mod:`.conservation_rules` module.
 """
 
 from __future__ import annotations
 
 from fractions import Fraction
 from functools import total_ordering
-from typing import TYPE_CHECKING, Any, Literal, NewType
+from typing import TYPE_CHECKING, Any, Literal, NewType, Protocol, TypeVar
 
 from attrs import field, frozen
 
@@ -36,7 +36,7 @@ def _to_parity_int(value: int | Parity) -> Literal[-1, 1]:
 
 @total_ordering
 @frozen(eq=False, hash=True, order=False, repr=False)
-class Parity:  # noqa: PLW1641
+class Parity:  # ruff:ignore[eq-without-hash]
     value: Literal[-1, 1] = field(converter=_to_parity_int)
 
     def __eq__(self, other: object) -> bool:
@@ -127,27 +127,18 @@ EdgeQuantumNumber = (
 )
 """Type hint for quantum numbers of edges"""
 
-EdgeQuantumNumberTypes = (
-    type[EdgeQuantumNumbers.pid]
-    | type[EdgeQuantumNumbers.mass]
-    | type[EdgeQuantumNumbers.width]
-    | type[EdgeQuantumNumbers.spin_magnitude]
-    | type[EdgeQuantumNumbers.spin_projection]
-    | type[EdgeQuantumNumbers.charge]
-    | type[EdgeQuantumNumbers.isospin_magnitude]
-    | type[EdgeQuantumNumbers.isospin_projection]
-    | type[EdgeQuantumNumbers.strangeness]
-    | type[EdgeQuantumNumbers.charmness]
-    | type[EdgeQuantumNumbers.bottomness]
-    | type[EdgeQuantumNumbers.topness]
-    | type[EdgeQuantumNumbers.baryon_number]
-    | type[EdgeQuantumNumbers.electron_lepton_number]
-    | type[EdgeQuantumNumbers.muon_lepton_number]
-    | type[EdgeQuantumNumbers.tau_lepton_number]
-    | type[EdgeQuantumNumbers.parity]
-    | type[EdgeQuantumNumbers.c_parity]
-    | type[EdgeQuantumNumbers.g_parity]
-)
+_QuantumNumber_co = TypeVar("_QuantumNumber_co", covariant=True)
+
+
+class QuantumNumberType(Protocol[_QuantumNumber_co]):
+    """Runtime factory object created by `typing.NewType`."""
+
+    __name__: str
+
+    def __call__(self, *args: Any, **kwargs: Any) -> _QuantumNumber_co: ...
+
+
+EdgeQuantumNumberTypes = QuantumNumberType[EdgeQuantumNumber]
 """Type-Union for accessing the keys of the dicts in `.EdgeSettings`"""
 
 
@@ -179,13 +170,7 @@ NodeQuantumNumber = (
 """Type hint for quantum numbers of interaction nodes."""
 
 # for accessing the keys of the dicts in NodeSettings
-NodeQuantumNumberTypes = (
-    type[NodeQuantumNumbers.l_magnitude]
-    | type[NodeQuantumNumbers.l_projection]
-    | type[NodeQuantumNumbers.s_magnitude]
-    | type[NodeQuantumNumbers.s_projection]
-    | type[NodeQuantumNumbers.parity_prefactor]
-)
+NodeQuantumNumberTypes = QuantumNumberType[NodeQuantumNumber]
 """Type-Union for accessing the keys of the dicts in `.NodeSettings`"""
 
 

@@ -14,11 +14,11 @@ import operator
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from copy import copy
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
 
 import attrs
 from attrs import define, field, frozen
-from constraint import BacktrackingSolver, Constraint, Problem, Unassigned, Variable
+from constraint import BacktrackingSolver, Constraint, Problem, Unassigned
 
 from qrules._implementers import implement_pretty_repr
 from qrules.argument_handling import (
@@ -27,6 +27,7 @@ from qrules.argument_handling import (
     GraphNodePropertyMap,
     Rule,
     RuleArgumentHandler,
+    RuleKey,
     Scalar,
     get_required_qns,
 )
@@ -36,11 +37,12 @@ from qrules.quantum_numbers import (
     EdgeQuantumNumberTypes,
     NodeQuantumNumber,
     NodeQuantumNumberTypes,
+    QuantumNumberType,
 )
 from qrules.topology import MutableTransition, Topology
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterable
+    from collections.abc import Callable, Iterable, Sequence
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -51,7 +53,7 @@ class EdgeSettings:
     """Solver settings for a specific edge of a graph."""
 
     conservation_rules: set[GraphElementRule] = field(factory=set)
-    rule_priorities: dict[GraphElementRule, int] = field(factory=dict)
+    rule_priorities: dict[RuleKey, int] = field(factory=dict)
     qn_domains: dict[EdgeQuantumNumberTypes, list] = field(factory=dict)
 
 
@@ -71,7 +73,7 @@ class NodeSettings:
     """
 
     conservation_rules: set[Rule] = field(factory=set)
-    rule_priorities: dict[Rule, int] = field(factory=dict)
+    rule_priorities: dict[RuleKey, int] = field(factory=dict)
     qn_domains: dict[NodeQuantumNumberTypes, list] = field(factory=dict)
     interaction_strength: float = 1.0
 
@@ -307,7 +309,7 @@ def _insert_allowed_states(
                     # need "shallow" copy of the nested dicts
                     new_states = {i: copy(s) for i, s in new_solution.states.items()}
                     new_states[edge_id].update(candidate)  # keep spin_projection
-                    graph = attrs.evolve(new_solution, states=new_states)  # type: ignore[arg-type]
+                    graph = attrs.evolve(new_solution, states=new_states)
                     graphs_with_candidates.append(graph)
             current_substituted_graphs = graphs_with_candidates
 
@@ -336,7 +338,7 @@ def __is_sub_mapping(
     return True
 
 
-def validate_full_solution(problem_set: QNProblemSet) -> QNResult:  # noqa: C901
+def validate_full_solution(problem_set: QNProblemSet) -> QNResult:  # ruff:ignore[complex-structure]
     _LOGGER.debug("validating graph...")
 
     rule_argument_handler = RuleArgumentHandler()
@@ -461,8 +463,8 @@ def validate_full_solution(problem_set: QNProblemSet) -> QNResult:  # noqa: C901
         [
             MutableTransition(
                 topology=problem_set.topology,
-                states=problem_set.initial_facts.states,  # type: ignore[arg-type]
-                interactions=problem_set.initial_facts.interactions,  # type: ignore[arg-type]
+                states=problem_set.initial_facts.states,
+                interactions=problem_set.initial_facts.interactions,
             )
         ],
     )
@@ -515,7 +517,7 @@ class CSPSolver(Solver):
         self.__allowed_intermediate_states = tuple(allowed_intermediate_states)
         self.__scoresheet = Scoresheet()
 
-    def find_solutions(self, problem_set: QNProblemSet) -> QNResult:  # noqa: C901
+    def find_solutions(self, problem_set: QNProblemSet) -> QNResult:  # ruff:ignore[complex-structure]
         self.__initialize_constraints(problem_set)
         solutions = self.__problem.getSolutions()
 
@@ -550,8 +552,8 @@ class CSPSolver(Solver):
             selected_solutions = [
                 QuantumNumberSolution(
                     topology=problem_set.topology,
-                    interactions=problem_set.initial_facts.interactions,  # type: ignore[arg-type]
-                    states=problem_set.initial_facts.states,  # type: ignore[arg-type]
+                    interactions=problem_set.initial_facts.interactions,
+                    states=problem_set.initial_facts.states,
                 )
             ]
 
@@ -573,11 +575,11 @@ class CSPSolver(Solver):
                             solving_settings=MutableTransition(
                                 topology,
                                 interactions={
-                                    i: NodeSettings(conservation_rules=rules)  # type: ignore[misc]
+                                    i: NodeSettings(conservation_rules=rules)
                                     for i, rules in node_not_executed_rules.items()
                                 },
                                 states={
-                                    i: EdgeSettings(conservation_rules=rules)  # type: ignore[misc]
+                                    i: EdgeSettings(conservation_rules=rules)
                                     for i, rules in edge_not_executed_rules.items()
                                 },
                             ),
@@ -602,7 +604,7 @@ class CSPSolver(Solver):
         self.__problem = Problem(BacktrackingSolver(True))
         self.__scoresheet = Scoresheet()
 
-    def __initialize_constraints(  # noqa: PLR0914
+    def __initialize_constraints(  # ruff:ignore[too-many-locals]
         self, problem_set: QNProblemSet
     ) -> None:
         """Initialize all of the constraints for this graph.
@@ -621,7 +623,7 @@ class CSPSolver(Solver):
             # first add priorities to the entries
             priority_list = [
                 (
-                    (x, graph_element_settings.rule_priorities[type(x)])  # type: ignore[index]
+                    (x, graph_element_settings.rule_priorities[type(x)])
                     if type(x) in graph_element_settings.rule_priorities
                     else (x, 1)
                 )
@@ -638,7 +640,9 @@ class CSPSolver(Solver):
 
         for edge_id in problem_set.topology.edges:
             edge_settings = problem_set.solving_settings.states[edge_id]
-            for rule in get_rules_by_priority(edge_settings):
+            for rule in cast(
+                "list[GraphElementRule]", get_rules_by_priority(edge_settings)
+            ):
                 variable_mapping = _VariableContainer()
                 # from cons law and graph determine needed var lists
                 edge_qns, node_qns = get_required_qns(rule)
@@ -651,7 +655,7 @@ class CSPSolver(Solver):
 
                 score_callback = self.__scoresheet.register_rule(edge_id, rule)
                 constraint = _GraphElementConstraint[EdgeQuantumNumber](
-                    rule,  # type: ignore[arg-type]
+                    rule,
                     edge_vars,
                     fixed_edge_vars,
                     arg_handler,
@@ -660,10 +664,10 @@ class CSPSolver(Solver):
 
                 if edge_vars:
                     var_strings = [_create_variable_string(*x) for x in edge_vars]
-                    self.__edge_rules[edge_id].add(rule)  # type: ignore[arg-type]
+                    self.__edge_rules[edge_id].add(rule)
                     self.__problem.addConstraint(constraint, var_strings)
                 else:
-                    self.__non_executable_edge_rules[edge_id].add(rule)  # type: ignore[arg-type]
+                    self.__non_executable_edge_rules[edge_id].add(rule)
 
         for node_id in problem_set.topology.nodes:
             for rule in get_rules_by_priority(
@@ -705,8 +709,9 @@ class CSPSolver(Solver):
 
                 score_callback = self.__scoresheet.register_rule(node_id, rule)
                 if len(inspect.signature(rule).parameters) == 1:
+                    graph_rule = cast("GraphElementRule", rule)
                     constraint = _GraphElementConstraint[NodeQuantumNumber](
-                        rule,  # type: ignore[arg-type]
+                        graph_rule,
                         int_node_vars[0],
                         {node_id: int_node_vars[1]},
                         arg_handler,
@@ -817,12 +822,12 @@ class CSPSolver(Solver):
             for var_string, value in solution.items():
                 ele_id, qn_type = self.__var_string_to_data[var_string]
 
-                if qn_type in getattr(EdgeQuantumNumber, "__args__"):  # noqa: B009
-                    states[ele_id].update({qn_type: value})  # type: ignore[dict-item]
+                if qn_type in getattr(EdgeQuantumNumber, "__args__"):  # ruff:ignore[get-attr-with-constant]
+                    states[ele_id].update({qn_type: value})
                 else:
-                    interactions[ele_id].update({qn_type: value})  # type: ignore[dict-item]
+                    interactions[ele_id].update({qn_type: value})
             converted_solutions.append(
-                MutableTransition(topology, states, interactions)  # type: ignore[arg-type]
+                MutableTransition(topology, states, interactions)
             )
         return converted_solutions
 
@@ -879,8 +884,8 @@ class _GraphElementConstraint(Constraint, Generic[_QNType]):
     def __init__(
         self,
         rule: GraphElementRule,
-        variables: set[tuple[int, type[_QNType]]],
-        fixed_variables: dict[int, dict[type[_QNType], Scalar]],
+        variables: set[tuple[int, QuantumNumberType[_QNType]]],
+        fixed_variables: dict[int, dict[QuantumNumberType[_QNType], Scalar]],
         argument_handler: RuleArgumentHandler,
         scoresheet: Callable[[bool], None],
     ) -> None:
@@ -894,8 +899,8 @@ class _GraphElementConstraint(Constraint, Generic[_QNType]):
         ) = argument_handler.register_rule(rule)
         self.__score_callback = scoresheet
 
-        self.__var_string_to_data: dict[str, type[_QNType]] = {}
-        self.__qns: dict[type[_QNType], Scalar | None] = {}
+        self.__var_string_to_data: dict[str, QuantumNumberType[_QNType]] = {}
+        self.__qns: dict[QuantumNumberType[_QNType], Scalar | None] = {}
 
         self.__initialize_variable_containers(variables, fixed_variables)
 
@@ -905,8 +910,8 @@ class _GraphElementConstraint(Constraint, Generic[_QNType]):
 
     def __initialize_variable_containers(
         self,
-        variables: set[tuple[int, type[_QNType]]],
-        fixed_variables: dict[int, dict[type[_QNType], Scalar]],
+        variables: set[tuple[int, QuantumNumberType[_QNType]]],
+        fixed_variables: dict[int, dict[QuantumNumberType[_QNType], Scalar]],
     ) -> None:
         """Fill the name decoding map.
 
@@ -923,11 +928,10 @@ class _GraphElementConstraint(Constraint, Generic[_QNType]):
 
     def __call__(
         self,
-        variables: set[str],
-        domains: dict,  # noqa: ARG002
+        variables: Sequence[str],
+        domains: dict,  # ruff:ignore[unused-method-argument]
         assignments: dict,
-        forwardcheck: bool = False,  # noqa: ARG002
-        _unassigned: Variable = Unassigned,
+        forwardcheck: bool = False,  # ruff:ignore[unused-method-argument]
     ) -> bool:
         """Perform the constraint checking.
 
@@ -954,8 +958,8 @@ class _GraphElementConstraint(Constraint, Generic[_QNType]):
             bool:
                 Boolean value stating if this constraint is currently broken or not.
         """
-        params = [(x, assignments.get(x, _unassigned)) for x in variables]
-        missing = [name for (name, val) in params if val is _unassigned]
+        params = [(x, assignments.get(x, Unassigned)) for x in variables]
+        missing = [name for (name, val) in params if val is Unassigned]
         if missing:
             return True
 
@@ -988,9 +992,7 @@ class _GraphElementConstraint(Constraint, Generic[_QNType]):
                 )
 
 
-class _ConservationRuleConstraintWrapper(
-    Constraint  # pyright: ignore[reportUntypedBaseClass]
-):
+class _ConservationRuleConstraintWrapper(Constraint):
     """Wrapper class of the `~constraints.Constraint` class.
 
     This allows a customized definition of conservation rules, and hence a cleaner user
@@ -1044,7 +1046,7 @@ class _ConservationRuleConstraintWrapper(
                 ] = (element_id, qn_type)
                 if element_id not in container:
                     container[element_id] = {}
-                container[element_id].update({qn_type: None})  # type: ignore[dict-item]
+                container[element_id].update({qn_type: None})
 
         _initialize_edge_container(
             variables.ingoing_edge_variables,
@@ -1058,17 +1060,16 @@ class _ConservationRuleConstraintWrapper(
         )
         # and now interaction node variables
         for var_info in variables.node_variables:
-            self.__node_qns[var_info[1]] = None  # type: ignore[assignment]
+            self.__node_qns[var_info[1]] = None
             self.__var_string_to_data[_create_variable_string(*var_info)] = var_info
         self.__node_qns.update(variables.fixed_node_variables)
 
     def __call__(
         self,
-        variables: set[str],
-        domains: dict,  # noqa: ARG002
+        variables: Sequence[str],
+        domains: dict,  # ruff:ignore[unused-method-argument]
         assignments: dict,
-        forwardcheck: bool = False,  # noqa: ARG002
-        _unassigned: Variable = Unassigned,
+        forwardcheck: bool = False,  # ruff:ignore[unused-method-argument]
     ) -> bool:
         """Perform the constraint checking.
 
@@ -1095,8 +1096,8 @@ class _ConservationRuleConstraintWrapper(
             bool:
                 Boolean value stating if this constraint is currently broken or not.
         """
-        params = [(x, assignments.get(x, _unassigned)) for x in variables]
-        missing = [name for (name, val) in params if val is _unassigned]
+        params = [(x, assignments.get(x, Unassigned)) for x in variables]
+        missing = [name for (name, val) in params if val is Unassigned]
         if missing:
             return True
 
@@ -1126,13 +1127,13 @@ class _ConservationRuleConstraintWrapper(
         for var_string, value in parameters:
             index, qn_type = self.__var_string_to_data[var_string]
             if index in self.__in_edges_qns and qn_type in self.__in_edges_qns[index]:
-                self.__in_edges_qns[index][qn_type] = value  # type: ignore[index]
+                self.__in_edges_qns[index][qn_type] = value
             elif (
                 index in self.__out_edges_qns and qn_type in self.__out_edges_qns[index]
             ):
-                self.__out_edges_qns[index][qn_type] = value  # type: ignore[index]
+                self.__out_edges_qns[index][qn_type] = value
             elif qn_type in self.__node_qns:
-                self.__node_qns[qn_type] = value  # type: ignore[index]
+                self.__node_qns[qn_type] = value
             else:
                 msg = (
                     f"The variable with name {qn_type.__name__} and a graph element"

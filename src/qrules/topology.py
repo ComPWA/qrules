@@ -22,29 +22,22 @@ import logging
 from abc import ABC, abstractmethod
 from collections import abc
 from functools import total_ordering
-from typing import TYPE_CHECKING, Any, Generic, Protocol, TypeVar, overload
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast, overload
 
 import attrs
 from attrs import define, field, frozen
 from attrs.validators import deep_iterable, deep_mapping, instance_of
 from frozendict import frozendict
 
-from qrules._implementers import implement_pretty_repr
+from qrules._implementers import PrettyPrinter, implement_pretty_repr
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Mapping, Sequence
 
-    from IPython.lib.pretty import PrettyPrinter
-
 _LOGGER = logging.getLogger(__name__)
 
 
-class _Comparable(Protocol):
-    @abstractmethod
-    def __lt__(self, other: Any) -> bool: ...
-
-
-KT = TypeVar("KT", bound=_Comparable)
+KT = TypeVar("KT")
 VT = TypeVar("VT")
 
 
@@ -61,7 +54,7 @@ class FrozenDict(frozendict, Generic[KT, VT]):
                 for key, value in self.items():
                     p.breakable()
                     p.text(f"{key}: ")
-                    p.pretty(value)  # type: ignore[attr-defined]
+                    p.pretty(value)
                     p.text(",")
             p.breakable()
             p.text("})")
@@ -110,9 +103,11 @@ class Edge:
 
     def get_connected_nodes(self) -> set[int]:
         """Get all node IDs to which the `Edge` is connected."""
-        connected_nodes = {self.ending_node_id, self.originating_node_id}
-        connected_nodes.discard(None)
-        return connected_nodes  # type: ignore[return-value]
+        return {
+            node_id
+            for node_id in {self.ending_node_id, self.originating_node_id}
+            if node_id is not None
+        }
 
 
 def _to_topology_nodes(inst: Iterable[int]) -> frozenset[int]:
@@ -327,7 +322,9 @@ class Topology:
         return self.relabel_edges({edge_id1: edge_id2, edge_id2: edge_id1})
 
 
-def get_originating_node_list(topology: Topology, edge_ids: Iterable[int]) -> list[int]:
+def get_originating_node_list(
+    topology: Topology | MutableTopology, edge_ids: Iterable[int]
+) -> list[int]:
     """Get list of node ids from which the supplied edges originate from.
 
     Args:
@@ -519,7 +516,7 @@ class SimpleStateTransitionTopologyBuilder:
         if not isinstance(interaction_node_set, list):
             msg = "interaction_node_set must be a list"
             raise TypeError(msg)
-        self.interaction_node_set: list[InteractionNode] = list(interaction_node_set)
+        self.interaction_node_set = cast("list[InteractionNode]", interaction_node_set)
 
     def build(
         self, number_of_initial_edges: int, number_of_final_edges: int
@@ -586,10 +583,10 @@ class SimpleStateTransitionTopologyBuilder:
                 # remove all combinations that originate from the same nodes
                 for comb1, comb2 in itertools.combinations(combis, 2):
                     if get_originating_node_list(
-                        topology,  # type: ignore[arg-type]
+                        topology,
                         comb1,
                     ) == get_originating_node_list(
-                        topology,  # type: ignore[arg-type]
+                        topology,
                         comb2,
                     ):
                         combis.remove(comb2)
@@ -817,7 +814,7 @@ class FrozenTransition(Transition, Generic[EdgeType, NodeType]):
         interaction_converter: Callable[[NodeType], NewNodeType],
     ) -> FrozenTransition[NewEdgeType, NewNodeType]: ...
 
-    def convert(self, state_converter=None, interaction_converter=None):  # type: ignore[no-untyped-def]
+    def convert(self, state_converter=None, interaction_converter=None):
         """Cast the edge and/or node properties to another type."""
         if state_converter is None:
             state_converter = _identity_function
@@ -908,7 +905,6 @@ def _assert_all_defined(items: Iterable, properties: Iterable) -> None:
         raise ValueError(msg)
 
 
-# pyright: reportUnusedFunction=false
 def _assert_not_overdefined(items: Iterable, properties: Iterable) -> None:
     existing = set(items)
     defined = set(properties)

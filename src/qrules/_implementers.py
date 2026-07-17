@@ -2,15 +2,28 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any, Protocol, TypeVar
 
 import attrs
 
 if TYPE_CHECKING:
-    from IPython.lib.pretty import PrettyPrinter
-
+    from contextlib import AbstractContextManager
 
 _DecoratedClass = TypeVar("_DecoratedClass")
+
+
+class PrettyPrinter(Protocol):
+    def breakable(self) -> None: ...
+
+    def group(
+        self,
+        indent: int = 0,
+        open: str = "",  # ruff:ignore[builtin-argument-shadowing]
+    ) -> AbstractContextManager: ...
+
+    def pretty(self, obj: Any) -> None: ...
+
+    def text(self, obj: str) -> None: ...
 
 
 def implement_pretty_repr(
@@ -33,10 +46,10 @@ def implement_pretty_repr(
                     value = getattr(self, field.name)
                     p.breakable()
                     p.text(f"{field.name}=")
-                    p.pretty(value)  # type: ignore[attr-defined]
+                    p.pretty(value)
                     p.text(",")
             p.breakable()
             p.text(")")
 
-    decorated_class._repr_pretty_ = repr_pretty  # type: ignore[attr-defined]
-    return decorated_class  # type: ignore[return-value]
+    decorated_class._repr_pretty_ = repr_pretty  # ty:ignore[unresolved-attribute]
+    return decorated_class  # ty:ignore[invalid-return-type]

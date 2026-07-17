@@ -8,7 +8,7 @@ from qrules.quantum_numbers import Parity
 
 def to_fraction(value: SupportsFloat) -> Fraction:
     float_value = float(value)
-    if float_value == -0.0:  # noqa: RUF069
+    if float_value == -0.0:  # ruff:ignore[float-equality-comparison]
         float_value = 0.0
     return Fraction(float_value)
 

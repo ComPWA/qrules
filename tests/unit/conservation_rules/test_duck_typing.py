@@ -101,7 +101,7 @@ def test_get_members():
 def __get_members(class_type: type) -> set[str]:
     use_attrs = class_type not in {EdgeQuantumNumbers, NodeQuantumNumbers}
     if use_attrs and attrs.has(class_type):
-        return {f.name for f in attrs.fields(class_type)}  # type: ignore[misc]
+        return {f.name for f in attrs.fields(class_type)}
     return {
         a.name
         for a in inspect.classify_class_attrs(class_type)

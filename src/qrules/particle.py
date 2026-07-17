@@ -19,7 +19,7 @@ from difflib import get_close_matches
 from fractions import Fraction
 from functools import total_ordering
 from math import copysign
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import attrs
 from attrs import field, frozen
@@ -38,17 +38,18 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Iterator
 
     from attrs import Attribute
-    from IPython.lib.pretty import PrettyPrinter
     from particle import Particle as PdgDatabase
     from particle.particle import enums
+
+    from qrules._implementers import PrettyPrinter
 
 _LOGGER = logging.getLogger(__name__)
 
 
 def _validate_fraction_for_spin(
     instance: Spin,
-    attribute: Attribute,  # noqa: ARG001
-    value: Fraction,  # noqa: ARG001
+    attribute: Attribute,  # ruff:ignore[unused-function-argument]
+    value: Fraction,  # ruff:ignore[unused-function-argument]
 ) -> Any:
     if instance.magnitude % Fraction(1, 2) != Fraction(0):
         msg = f"Spin magnitude {instance.magnitude} has to be a multitude of 0.5"
@@ -72,7 +73,7 @@ def _validate_fraction_for_spin(
 
 @total_ordering
 @frozen(eq=False, hash=True, order=False)
-class Spin:  # noqa: PLW1641
+class Spin:  # ruff:ignore[eq-without-hash]
     """Safe, immutable data container for spin **with projection**."""
 
     magnitude: Fraction = field(
@@ -121,7 +122,10 @@ def _render_fraction(fraction: Fraction, plusminus: bool = False) -> str:
 
 def _to_spin(value: Spin | tuple[Fraction, Fraction] | tuple[float, float]) -> Spin:
     if isinstance(value, tuple):
-        return Spin(*value)
+        magnitude, projection = cast(
+            "tuple[Fraction, Fraction] | tuple[float, float]", value
+        )
+        return Spin(magnitude, projection)
     return value
 
 
@@ -224,7 +228,7 @@ class Particle:
             p.text(f"{class_name}(...)")
         else:
             with p.group(indent=2, open=f"{class_name}("):
-                for attribute in attrs.fields(type(self)):  # type: ignore[misc]
+                for attribute in attrs.fields(type(self)):
                     value = getattr(self, attribute.name)
                     if value != attribute.default:
                         p.breakable()
@@ -232,7 +236,7 @@ class Particle:
                         if isinstance(value, Parity):
                             p.text(_float_as_signed_str(int(value), render_plus=True))
                         else:
-                            p.pretty(value)  # type: ignore[attr-defined]
+                            p.pretty(value)
                         p.text(",")
             p.breakable()
             p.text(")")
@@ -249,7 +253,7 @@ ParticleWithSpin = tuple[Particle, Fraction]
 """A particle and its spin projection."""
 
 
-class ParticleCollection(abc.MutableSet):  # noqa: PLW1641
+class ParticleCollection(abc.MutableSet):  # ruff:ignore[eq-without-hash]
     """Searchable collection of immutable `.Particle` instances."""
 
     def __init__(self, particles: Iterable[Particle] | None = None) -> None:
@@ -322,7 +326,7 @@ class ParticleCollection(abc.MutableSet):  # noqa: PLW1641
             with p.group(indent=2, open=f"{class_name}({{"):
                 for particle in self:
                     p.breakable()
-                    p.pretty(particle)  # type: ignore[attr-defined]
+                    p.pretty(particle)
                     p.text(",")
             p.breakable()
             p.text("})")
@@ -409,7 +413,7 @@ class ParticleCollection(abc.MutableSet):  # noqa: PLW1641
         return [p.name for p in sorted(self)]
 
 
-def create_particle(  # noqa: PLR0917
+def create_particle(  # ruff:ignore[too-many-positional-arguments]
     template_particle: Particle,
     name: str | None = None,
     latex: str | None = None,
@@ -499,7 +503,9 @@ def load_pdg() -> ParticleCollection:
     PDG info is imported from the `scikit-hep/particle
     <https://github.com/scikit-hep/particle>`_ package.
     """
-    from particle import Particle as PdgDatabase  # noqa: PLC0415
+    from particle import (  # ruff:ignore[import-outside-top-level]
+        Particle as PdgDatabase,
+    )
 
     all_pdg_particles = PdgDatabase.findall(
         lambda item: (
@@ -647,7 +653,10 @@ def __isospin_projection_from_pdg(pdg_particle: PdgDatabase) -> Fraction:
             projection += quark_content.count("u") + quark_content.count("D")
             projection -= quark_content.count("U") + quark_content.count("d")
             projection *= 0.5
-    if pdg_particle.I is not None and not (pdg_particle.I - projection).is_integer():
+    if (
+        pdg_particle.I is not None
+        and not float(pdg_particle.I - projection).is_integer()
+    ):
         msg = f"Cannot have isospin {pdg_particle.I, projection}"
         raise ValueError(msg)
     return Fraction(projection)
@@ -661,7 +670,7 @@ def __filter_quark_content(pdg_particle: PdgDatabase) -> str:
 
 
 def __create_parity(parity_enum: enums.Parity) -> Parity | None:
-    from particle.particle import enums  # noqa: PLC0415
+    from particle.particle import enums  # ruff:ignore[import-outside-top-level]
 
     if parity_enum is None or parity_enum == enums.Parity.u:
         return None

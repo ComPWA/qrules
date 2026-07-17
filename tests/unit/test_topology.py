@@ -1,5 +1,5 @@
 import hashlib
-import pickle  # noqa: S403
+import pickle  # ruff:ignore[suspicious-pickle-import]
 import sys
 import typing
 
@@ -9,7 +9,7 @@ from IPython.lib.pretty import pretty
 
 from qrules.topology import (
     Edge,
-    FrozenDict,  # pyright: ignore[reportUnusedImport]
+    FrozenDict,
     InteractionNode,
     MutableTopology,
     SimpleStateTransitionTopologyBuilder,
@@ -72,12 +72,12 @@ class TestInteractionNode:
     def test_constructor_exceptions(self):
         with pytest.raises(TypeError):
             assert InteractionNode(
-                number_of_ingoing_edges="has to be int",  # type: ignore[arg-type]
+                number_of_ingoing_edges="has to be int",  # ty:ignore[invalid-argument-type]
                 number_of_outgoing_edges=2,
             )
         with pytest.raises(TypeError):
             assert InteractionNode(
-                number_of_outgoing_edges="has to be int",  # type: ignore[arg-type]
+                number_of_outgoing_edges="has to be int",  # ty:ignore[invalid-argument-type]
                 number_of_ingoing_edges=2,
             )
         with pytest.raises(
@@ -338,7 +338,7 @@ def test_create_n_body_topology(n_initial: int, n_final: int, exception):
 
 def _compute_hash(obj) -> str:
     b = _to_bytes(obj)
-    h = hashlib.md5(b)  # noqa: S324
+    h = hashlib.md5(b)  # ruff:ignore[hashlib-insecure-hash-function]
     return h.hexdigest()
 
 

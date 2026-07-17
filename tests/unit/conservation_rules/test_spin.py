@@ -6,6 +6,7 @@ import pytest
 
 from qrules.conservation_rules import (
     SpinEdgeInput,
+    SpinMagnitudeNodeInput,
     SpinNodeInput,
     spin_conservation,
     spin_magnitude_conservation,
@@ -16,7 +17,7 @@ from qrules.quantum_numbers import EdgeQuantumNumbers
 _SpinMagnitudeRuleInputType = tuple[
     list[EdgeQuantumNumbers.spin_magnitude],
     list[EdgeQuantumNumbers.spin_magnitude],
-    SpinNodeInput,
+    SpinMagnitudeNodeInput,
 ]
 _SpinRuleInputType = tuple[
     list[SpinEdgeInput],
@@ -132,11 +133,9 @@ def test_spin_all_defined(rule_input: _SpinRuleInputType, expected: bool) -> Non
             (
                 [1],
                 [spin2_mag, 1],
-                SpinNodeInput(
+                SpinMagnitudeNodeInput(
                     Fraction(ang_mom_mag),
-                    Fraction(0),
                     Fraction(coupled_spin_mag),
-                    Fraction(-1),
                 ),
             ),
             True,
@@ -150,11 +149,9 @@ def test_spin_all_defined(rule_input: _SpinRuleInputType, expected: bool) -> Non
             (
                 [1],
                 [spin2_mag, 1],
-                SpinNodeInput(
+                SpinMagnitudeNodeInput(
                     Fraction(ang_mom_mag),
-                    Fraction(0),
                     Fraction(coupled_spin_mag),
-                    Fraction(0),
                 ),
             ),
             False,
@@ -167,4 +164,4 @@ def test_spin_all_defined(rule_input: _SpinRuleInputType, expected: bool) -> Non
 def test_spin_ignore_z_component(
     rule_input: _SpinMagnitudeRuleInputType, expected: bool
 ) -> None:
-    assert spin_magnitude_conservation(*rule_input) is expected  # type: ignore[arg-type]
+    assert spin_magnitude_conservation(*rule_input) is expected

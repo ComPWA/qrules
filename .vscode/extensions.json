@@ -1,5 +1,6 @@
 {
   "recommendations": [
+    "astral-sh.ty",
     "charliermarsh.ruff",
     "christian-kohler.path-intellisense",
     "eamodio.gitlens",
@@ -10,9 +11,7 @@
     "github.vscode-pull-request-github",
     "joaompinto.vscode-graphviz",
     "mhutchie.git-graph",
-    "ms-python.mypy-type-checker",
     "ms-python.python",
-    "ms-python.vscode-pylance",
     "ms-toolsai.jupyter",
     "ms-toolsai.vscode-jupyter-cell-tags",
     "ms-vscode.live-server",
@@ -21,20 +20,22 @@
     "soulcode.vscode-unwanted-extensions",
     "stkb.rewrap",
     "streetsidesoftware.code-spell-checker",
-    "tamasfe.even-better-toml",
+    "tombi-toml.tombi",
     "yzhang.markdown-all-in-one"
   ],
   "unwantedRecommendations": [
-    "astral-sh.ty",
     "bungcip.better-toml",
     "davidanson.vscode-markdownlint",
     "garaioag.garaio-vscode-unwanted-recommendations",
     "ms-python.black-formatter",
     "ms-python.flake8",
     "ms-python.isort",
+    "ms-python.mypy-type-checker",
     "ms-python.pylint",
+    "ms-python.vscode-pylance",
     "ms-toolsai.vscode-jupyter-slideshow",
     "ryanluker.vscode-coverage-gutters",
+    "tamasfe.even-better-toml",
     "travisillig.vscode-json-stable-stringify",
     "tyriar.sort-lines"
   ]

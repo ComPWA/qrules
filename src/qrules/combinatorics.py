@@ -12,7 +12,7 @@ from collections import OrderedDict
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from copy import deepcopy
 from fractions import Fraction
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from qrules.argument_handling import Scalar
 from qrules.particle import ParticleWithSpin
@@ -39,12 +39,12 @@ def as_state_definition(
         return definition
     if type(definition) is tuple:
         name, state = definition
-        return name, list(map(Fraction, state))  # type: ignore  # noqa: PGH003
+        return name, list(map(Fraction, state))  # type:ignore  # ruff:ignore[blanket-type-ignore]
     msg = f"value has to be of type {StateDefinitionInput}, got {type(definition)}"
     raise ValueError(msg)
 
 
-class _KinematicRepresentation:  # noqa: PLW1641
+class _KinematicRepresentation:  # ruff:ignore[eq-without-hash]
     def __init__(
         self,
         final_state: list[list[str]] | list[str] | None = None,
@@ -113,7 +113,7 @@ class _KinematicRepresentation:  # noqa: PLW1641
                 if not isinstance(item, list):
                     msg = "Comparison representation needs to be a list of lists"
                     raise TypeError(msg)
-            return is_sublist(other, self.final_state)
+            return is_sublist(cast("list[list[str]]", other), self.final_state)
         msg = f"Cannot compare {type(self).__name__} with {type(other).__name__}"
         raise ValueError(msg)
 
@@ -125,12 +125,16 @@ def _sort_nested(nested_list: list[list[str]]) -> list[list[str]]:
 def ensure_nested_list(
     nested_list: list[str] | list[list[str]],
 ) -> list[list[str]]:
-    if any(not isinstance(item, list) for item in nested_list):
-        nested_list = [nested_list]  # type: ignore[assignment]
-    if any(not isinstance(i, str) for lst in nested_list for i in lst):
+    if all(isinstance(item, str) for item in nested_list):
+        return [cast("list[str]", nested_list)]
+    if not all(isinstance(item, list) for item in nested_list):
+        msg = "Grouping items have to be either all strings or all lists of strings"
+        raise ValueError(msg)
+    nested = cast("list[list[str]]", nested_list)
+    if any(not isinstance(i, str) for lst in nested for i in lst):
         msg = "Not all grouping items are particle names"
         raise ValueError(msg)
-    return nested_list  # type: ignore[return-value]
+    return nested
 
 
 def _get_kinematic_representation(
@@ -209,7 +213,7 @@ def create_initial_facts(
         particle_db,
     )
     spin_states = __generate_spin_combinations(states, particle_db)
-    return [MutableTransition(topology, state) for state in spin_states]  # type: ignore[arg-type]
+    return [MutableTransition(topology, state) for state in spin_states]
 
 
 def __create_states_with_spin_projections(
@@ -233,7 +237,7 @@ def __safe_set_spin_projections(
             particle_name = state
             particle = particle_db[particle_name]
             spin_projections = set(arange(-particle.spin, particle.spin + 1))
-            if particle.mass == 0.0 and Fraction(0) in spin_projections:  # noqa: RUF069
+            if particle.mass == 0.0 and Fraction(0) in spin_projections:  # ruff:ignore[float-equality-comparison]
                 spin_projections.remove(Fraction(0))
             return particle_name, sorted(spin_projections)
         return state

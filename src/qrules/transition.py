@@ -224,7 +224,7 @@ class StateTransitionManager:
     .. seealso:: :doc:`/usage/reaction` and `.generate_transitions`
     """
 
-    def __init__(  # noqa: C901, PLR0912, PLR0917
+    def __init__(  # ruff:ignore[complex-structure, too-many-branches, too-many-positional-arguments]
         self,
         initial_state: Sequence[StateDefinitionInput],
         final_state: Sequence[StateDefinitionInput],
@@ -248,7 +248,7 @@ class StateTransitionManager:
         self.__number_of_threads = NumberOfThreads.get()
         if interaction_type_settings is None:
             interaction_type_settings = {}
-        spin_formalisms = SpinFormalism.__args__  # type: ignore[attr-defined]
+        spin_formalisms = SpinFormalism.__args__
         if formalism not in set(spin_formalisms):
             msg = (
                 f'Formalism "{formalism}" not implemented. Use one of'
@@ -368,7 +368,7 @@ class StateTransitionManager:
     @overload
     def get_allowed_interaction_types(self, node_id: int) -> list[InteractionType]: ...
 
-    def get_allowed_interaction_types(self, node_id=None):  # type: ignore[no-untyped-def]
+    def get_allowed_interaction_types(self, node_id=None):
         if node_id is None:
             return self.__allowed_interaction_types
         if isinstance(self.__allowed_interaction_types, list):
@@ -414,7 +414,7 @@ class StateTransitionManager:
         ]
         return _group_by_strength(problem_sets)
 
-    def __determine_graph_settings(  # noqa: C901, PLR0914
+    def __determine_graph_settings(  # ruff:ignore[complex-structure, too-many-locals]
         self, topology: Topology, initial_facts: InitialFacts
     ) -> list[GraphSettings]:
         weak_edge_settings, _ = self.interaction_type_settings[InteractionType.WEAK]
@@ -461,8 +461,7 @@ class StateTransitionManager:
             MutableTransition(
                 topology,
                 states={
-                    edge_id: create_edge_settings(edge_id)  # type: ignore[misc]
-                    for edge_id in topology.edges
+                    edge_id: create_edge_settings(edge_id) for edge_id in topology.edges
                 },
             )
         ]
@@ -514,7 +513,7 @@ class StateTransitionManager:
 
         return graph_settings
 
-    def find_solutions(  # noqa: C901
+    def find_solutions(  # ruff:ignore[complex-structure]
         self, problem_sets: dict[float, list[ProblemSet]]
     ) -> ReactionInfo:
         """Check for solutions for a specific set of interaction settings."""
@@ -656,14 +655,14 @@ class StateTransitionManager:
         """
         solutions = []
         for solution in qn_result.solutions:
-            graph = MutableTransition(  # type: ignore[var-annotated]
+            graph = MutableTransition(
                 topology=topology,
                 interactions={
-                    i: create_interaction_properties(x)  # type: ignore[misc]
+                    i: create_interaction_properties(x)
                     for i, x in solution.interactions.items()
                 },
                 states={
-                    i: find_particle(x, self.__particles)  # type: ignore[misc]
+                    i: find_particle(x, self.__particles)
                     for i, x in solution.states.items()
                 },
             )
@@ -707,11 +706,8 @@ def _match_final_state_ids(
     new_topology = graph.topology.relabel_edges(id_remapping)
     return MutableTransition(
         new_topology,
-        states={
-            i: graph.states[id_remapping.get(i, i)]  # type: ignore[misc]
-            for i in graph.topology.edges
-        },
-        interactions={i: graph.interactions[i] for i in graph.topology.nodes},  # type: ignore[misc]
+        states={i: graph.states[id_remapping.get(i, i)] for i in graph.topology.edges},
+        interactions={i: graph.interactions[i] for i in graph.topology.nodes},
     )
 
 
@@ -748,7 +744,7 @@ class ReactionInfo:
     """Ordered collection of `StateTransition` instances."""
 
     transitions: tuple[StateTransition, ...] = field(converter=_sort_tuple)
-    formalism: SpinFormalism = field(validator=in_(SpinFormalism.__args__))  # type: ignore[attr-defined]
+    formalism: SpinFormalism = field(validator=in_(SpinFormalism.__args__))
 
     initial_state: FrozenDict[int, Particle] = field(init=False, repr=False, eq=False)
     final_state: FrozenDict[int, Particle] = field(init=False, repr=False, eq=False)
