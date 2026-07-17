@@ -17,7 +17,7 @@ from sphinx_api_relink.helpers import (
 from qrules.quantum_numbers import EdgeQuantumNumbers, NodeQuantumNumbers
 
 sys.path.insert(0, os.path.abspath("."))
-from _extend_docstrings import extend_docstrings  # noqa: PLC2701
+from _extend_docstrings import extend_docstrings  # ruff:ignore[import-private-name]
 
 
 def __get_newtypes(some_type: type) -> list:

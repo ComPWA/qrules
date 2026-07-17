@@ -19,7 +19,7 @@ from qrules.particle import (
 )
 
 # For eval tests
-from qrules.quantum_numbers import Parity  # noqa: F401
+from qrules.quantum_numbers import Parity  # ruff:ignore[unused-import]
 
 
 def gen_namespace_with_fraction():
@@ -66,10 +66,10 @@ class TestParticle:
             test_state.charge = 1  # ty:ignore[invalid-assignment]
         with pytest.raises(
             ValueError,
-            match=r"Fails Gell-Mann–Nishijima",  # noqa: RUF001
+            match=r"Fails Gell-Mann–Nishijima",  # ruff:ignore[ambiguous-unicode-character-string]
         ):
             Particle(
-                name="Fails Gell-Mann–Nishijima formula",  # noqa: RUF001
+                name="Fails Gell-Mann–Nishijima formula",  # ruff:ignore[ambiguous-unicode-character-string]
                 pid=666,
                 mass=0.0,
                 spin=1,
@@ -386,7 +386,7 @@ class TestSpin:
         [(0.3, 0.3), (1.0, 0.5), (0.5, 0.0), (-0.5, 0.5)],
     )
     def test_exceptions(self, magnitude, projection):
-        regex_pattern = "|".join([  # noqa: FLY002
+        regex_pattern = "|".join([  # ruff:ignore[static-join-to-f-string]
             r"Spin magnitude \d+/\d+ has to be a multitude of \d\.[05]",
             r"\(projection - magnitude\) should be integer",
             r"Spin magnitude has to be positive",
@@ -440,7 +440,7 @@ def test_create_antiparticle_by_pid(
     n_particles_with_neg_pid = 0
     for particle in particle_database:
         anti_particles_by_pid = particle_database.filter(
-            lambda p: p.pid == -particle.pid  # noqa: B023
+            lambda p: p.pid == -particle.pid  # ruff:ignore[function-uses-loop-variable]
         )
         if len(anti_particles_by_pid) != 1:
             continue

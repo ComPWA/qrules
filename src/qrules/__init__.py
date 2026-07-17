@@ -72,7 +72,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
 
 
-def check_reaction_violations(  # noqa: C901, PLR0917
+def check_reaction_violations(  # ruff:ignore[complex-structure, too-many-positional-arguments]
     initial_state: StateDefinitionInput | Sequence[StateDefinitionInput],
     final_state: Sequence[StateDefinitionInput],
     mass_conservation_factor: float | None = 3.0,
@@ -272,7 +272,7 @@ def check_reaction_violations(  # noqa: C901, PLR0917
     return violations
 
 
-def generate_transitions(  # noqa: PLR0917
+def generate_transitions(  # ruff:ignore[too-many-positional-arguments]
     initial_state: StateDefinitionInput | Sequence[StateDefinitionInput],
     final_state: Sequence[StateDefinitionInput],
     allowed_intermediate_particles: list[str] | None = None,

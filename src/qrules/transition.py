@@ -224,7 +224,7 @@ class StateTransitionManager:
     .. seealso:: :doc:`/usage/reaction` and `.generate_transitions`
     """
 
-    def __init__(  # noqa: C901, PLR0912, PLR0917
+    def __init__(  # ruff:ignore[complex-structure, too-many-branches, too-many-positional-arguments]
         self,
         initial_state: Sequence[StateDefinitionInput],
         final_state: Sequence[StateDefinitionInput],
@@ -414,7 +414,7 @@ class StateTransitionManager:
         ]
         return _group_by_strength(problem_sets)
 
-    def __determine_graph_settings(  # noqa: C901, PLR0914
+    def __determine_graph_settings(  # ruff:ignore[complex-structure, too-many-locals]
         self, topology: Topology, initial_facts: InitialFacts
     ) -> list[GraphSettings]:
         weak_edge_settings, _ = self.interaction_type_settings[InteractionType.WEAK]
@@ -513,7 +513,7 @@ class StateTransitionManager:
 
         return graph_settings
 
-    def find_solutions(  # noqa: C901
+    def find_solutions(  # ruff:ignore[complex-structure]
         self, problem_sets: dict[float, list[ProblemSet]]
     ) -> ReactionInfo:
         """Check for solutions for a specific set of interaction settings."""

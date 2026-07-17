@@ -140,7 +140,7 @@ def additive_quantum_number_rule(
 
     def decorator(rule_class: _RuleClass) -> _RuleClass:
         def new_call(
-            self: Any,  # noqa: ARG001
+            self: Any,  # ruff:ignore[unused-function-argument]
             ingoing_edge_qns: list[Any],
             outgoing_edge_qns: list[Any],
         ) -> bool:
@@ -255,7 +255,7 @@ def parity_conservation_helicity(
             sum(out_spins) - ingoing_edge_qns[0].spin_magnitude
         )
 
-        if all(x.spin_projection == 0.0 for x in outgoing_edge_qns) and prefactor == -1:  # noqa: RUF069
+        if all(x.spin_projection == 0.0 for x in outgoing_edge_qns) and prefactor == -1:  # ruff:ignore[float-equality-comparison]
             return False
 
         return prefactor == parity_prefactor
@@ -295,7 +295,7 @@ def c_parity_conservation(
             return reduce(operator.mul, c_parities_part, 1)
 
         # two particle case
-        if len(part_qns) == 2:  # noqa: SIM102
+        if len(part_qns) == 2:  # ruff:ignore[collapsible-if]
             if _is_particle_antiparticle_pair(part_qns[0].pid, part_qns[1].pid):
                 ang_mom = interaction_qns.l_magnitude
                 # if boson
@@ -331,7 +331,7 @@ class GParityNodeInput:
     s_magnitude: NodeSMagnitude = field(converter=to_fraction)
 
 
-def g_parity_conservation(  # noqa: C901
+def g_parity_conservation(  # ruff:ignore[complex-structure]
     ingoing_edge_qns: list[GParityEdgeInput],
     outgoing_edge_qns: list[GParityEdgeInput],
     interaction_qns: GParityNodeInput,
@@ -477,7 +477,7 @@ def _is_clebsch_gordan_coefficient_zero(
     j_2 = spin2.magnitude
     proj = spin_coupled.projection
     mag = spin_coupled.magnitude
-    if ((j_1 == j_2 and m_1 == m_2) or (m_1 == 0.0 and m_2 == 0.0)) and abs(  # noqa: RUF069
+    if ((j_1 == j_2 and m_1 == m_2) or (m_1 == 0.0 and m_2 == 0.0)) and abs(  # ruff:ignore[float-equality-comparison]
         mag - j_1 - j_2
     ) % 2 == 1:
         return True
@@ -887,7 +887,7 @@ def gellmann_nishijima(edge_qns: GellMannNishijimaInput) -> bool:
     isospin_3 = Fraction(0)
     if edge_qns.isospin_projection:
         isospin_3 = edge_qns.isospin_projection
-    return float(edge_qns.charge) == isospin_3 + 0.5 * calculate_hypercharge(edge_qns)  # noqa: RUF069
+    return float(edge_qns.charge) == isospin_3 + 0.5 * calculate_hypercharge(edge_qns)  # ruff:ignore[float-equality-comparison]
 
 
 @frozen

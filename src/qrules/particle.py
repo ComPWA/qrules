@@ -48,8 +48,8 @@ _LOGGER = logging.getLogger(__name__)
 
 def _validate_fraction_for_spin(
     instance: Spin,
-    attribute: Attribute,  # noqa: ARG001
-    value: Fraction,  # noqa: ARG001
+    attribute: Attribute,  # ruff:ignore[unused-function-argument]
+    value: Fraction,  # ruff:ignore[unused-function-argument]
 ) -> Any:
     if instance.magnitude % Fraction(1, 2) != Fraction(0):
         msg = f"Spin magnitude {instance.magnitude} has to be a multitude of 0.5"
@@ -73,7 +73,7 @@ def _validate_fraction_for_spin(
 
 @total_ordering
 @frozen(eq=False, hash=True, order=False)
-class Spin:  # noqa: PLW1641
+class Spin:  # ruff:ignore[eq-without-hash]
     """Safe, immutable data container for spin **with projection**."""
 
     magnitude: Fraction = field(
@@ -253,7 +253,7 @@ ParticleWithSpin = tuple[Particle, Fraction]
 """A particle and its spin projection."""
 
 
-class ParticleCollection(abc.MutableSet):  # noqa: PLW1641
+class ParticleCollection(abc.MutableSet):  # ruff:ignore[eq-without-hash]
     """Searchable collection of immutable `.Particle` instances."""
 
     def __init__(self, particles: Iterable[Particle] | None = None) -> None:
@@ -413,7 +413,7 @@ class ParticleCollection(abc.MutableSet):  # noqa: PLW1641
         return [p.name for p in sorted(self)]
 
 
-def create_particle(  # noqa: PLR0917
+def create_particle(  # ruff:ignore[too-many-positional-arguments]
     template_particle: Particle,
     name: str | None = None,
     latex: str | None = None,
@@ -503,7 +503,7 @@ def load_pdg() -> ParticleCollection:
     PDG info is imported from the `scikit-hep/particle
     <https://github.com/scikit-hep/particle>`_ package.
     """
-    from particle import Particle as PdgDatabase  # noqa: PLC0415
+    from particle import Particle as PdgDatabase
 
     all_pdg_particles = PdgDatabase.findall(
         lambda item: (
@@ -668,7 +668,7 @@ def __filter_quark_content(pdg_particle: PdgDatabase) -> str:
 
 
 def __create_parity(parity_enum: enums.Parity) -> Parity | None:
-    from particle.particle import enums  # noqa: PLC0415
+    from particle.particle import enums  # ruff:ignore[import-outside-top-level]
 
     if parity_enum is None or parity_enum == enums.Parity.u:
         return None

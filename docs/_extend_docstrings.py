@@ -77,7 +77,7 @@ def extend_create_n_body_topology() -> None:
     )
 
 
-def extend_Topology() -> None:  # noqa: N802
+def extend_Topology() -> None:  # ruff:ignore[invalid-function-name]
     from qrules.topology import Topology, create_isobar_topologies
 
     topologies = create_isobar_topologies(number_of_final_states=3)
@@ -101,7 +101,7 @@ _GRAPHVIZ_COUNTER = 0
 _IMAGE_DIR = "_images"
 
 
-def _graphviz_to_image(  # noqa: PLR0917
+def _graphviz_to_image(  # ruff:ignore[too-many-positional-arguments]
     dot: str,
     options: dict[str, str] | None = None,
     format: str = "svg",
@@ -113,7 +113,7 @@ def _graphviz_to_image(  # noqa: PLR0917
 
     if options is None:
         options = {}
-    global _GRAPHVIZ_COUNTER  # noqa: PLW0603
+    global _GRAPHVIZ_COUNTER  # ruff:ignore[global-statement]
     output_file = f"graphviz_{_GRAPHVIZ_COUNTER}"
     _GRAPHVIZ_COUNTER += 1
     graphviz.Source(dot).render(f"{_IMAGE_DIR}/{output_file}", format=format)

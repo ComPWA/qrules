@@ -36,7 +36,7 @@ def _to_parity_int(value: int | Parity) -> Literal[-1, 1]:
 
 @total_ordering
 @frozen(eq=False, hash=True, order=False, repr=False)
-class Parity:  # noqa: PLW1641
+class Parity:  # ruff:ignore[eq-without-hash]
     value: Literal[-1, 1] = field(converter=_to_parity_int)
 
     def __eq__(self, other: object) -> bool:

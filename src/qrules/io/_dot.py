@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-def _check_booleans(instance: GraphPrinter, attribute: Attribute, value: bool) -> None:  # noqa: ARG001
+def _check_booleans(instance: GraphPrinter, attribute: Attribute, value: bool) -> None:  # ruff:ignore[unused-function-argument]
     if instance.strip_spin and instance.collapse_graphs:
         msg = "Cannot both strip spin and collapse graphs"
         raise ValueError(msg)
@@ -115,7 +115,7 @@ class GraphPrinter:
             lines += self._render_transition(graph, prefix=f"T{i}_")
         return lines
 
-    def _render_transition(  # noqa: C901, PLR0912, PLR0915
+    def _render_transition(  # ruff:ignore[complex-structure, too-many-branches, too-many-statements]
         self,
         obj: ProblemSet | QNProblemSet | Topology | Transition | tuple[Any, Any],
         prefix: str = "",
