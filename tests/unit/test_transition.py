@@ -1,6 +1,6 @@
 # pyright: reportUnusedImport=false
 import hashlib
-import pickle  # ruff: ignore[suspicious-pickle-import]
+import pickle  # noqa: S403
 import sys
 from copy import deepcopy
 from fractions import Fraction
@@ -8,15 +8,10 @@ from fractions import Fraction
 import pytest
 from IPython.lib.pretty import pretty
 
-from qrules.particle import (  # ruff: ignore[unused-import]
-    Parity,
-    Particle,
-    ParticleCollection,
-    Spin,
-)
-from qrules.quantum_numbers import InteractionProperties  # ruff: ignore[unused-import]
+from qrules.particle import Parity, Particle, ParticleCollection, Spin  # noqa: F401
+from qrules.quantum_numbers import InteractionProperties  # noqa: F401
 from qrules.settings import InteractionType
-from qrules.topology import (  # ruff: ignore[unused-import]
+from qrules.topology import (  # noqa: F401
     Edge,
     FrozenDict,
     FrozenTransition,
@@ -154,7 +149,7 @@ class TestStateTransitionManager:
 
 def _compute_hash(obj) -> str:
     b = _to_bytes(obj)
-    h = hashlib.md5(b)  # ruff: ignore[hashlib-insecure-hash-function]
+    h = hashlib.md5(b)  # noqa: S324
     return h.hexdigest()
 
 
