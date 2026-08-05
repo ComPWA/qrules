@@ -136,8 +136,8 @@ def load(filename: str | Path) -> object:
 
 
 class _IncreasedIndent(yaml.Dumper):
-    def increase_indent(self, flow: bool = False, indentless: bool = False) -> None:  # noqa: ARG002
-        return super().increase_indent(flow, False)
+    def increase_indent(self, flow: bool = False, indentless: bool = False) -> None:  # ruff: ignore[unused-method-argument]
+        return super().increase_indent(flow, indentless=False)
 
     def write_line_break(self, data: str | None = None) -> None:
         """See https://stackoverflow.com/a/44284819."""
