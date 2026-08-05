@@ -216,7 +216,7 @@ class InteractionConfig:
             self.allowed_types[node_id] = allowed_interaction_types
 
 
-def create_graph_settings(  # noqa: C901, PLR0914
+def create_graph_settings(  # ruff: ignore[complex-structure, too-many-locals]
     topology: Topology,
     initial_facts: InitialFacts,
     interaction_config: InteractionConfig,
@@ -319,7 +319,7 @@ def create_graph_settings(  # noqa: C901, PLR0914
     return graph_settings
 
 
-def create_problem_sets(  # noqa: PLR0917
+def create_problem_sets(  # ruff: ignore[too-many-positional-arguments]
     initial_state: Sequence[StateDefinitionInput],
     final_state: Sequence[StateDefinitionInput],
     particle_db: ParticleCollection,
@@ -486,7 +486,7 @@ def _convert_to_particle_definitions(
     )
 
 
-def collect_reaction_info(  # noqa: C901, PLR0912
+def collect_reaction_info(  # ruff: ignore[complex-structure, too-many-branches]
     results: dict[float, _SolutionContainer],
     final_state: Sequence[StateDefinitionInput] | None = None,
     formalism: SpinFormalism = "helicity",
@@ -591,7 +591,7 @@ class QNProblemSetCollection:
     """Spin formalism that determines the quantum-number filters."""
 
 
-def create_qn_problem_sets(  # noqa: PLR0917
+def create_qn_problem_sets(  # ruff: ignore[too-many-positional-arguments]
     initial_state: Sequence[StateDefinitionInput],
     final_state: Sequence[StateDefinitionInput],
     particle_db: ParticleCollection | None = None,
@@ -665,7 +665,7 @@ def _to_qn_problem_sets(
     }
 
 
-def find_solutions(  # noqa: PLR0917
+def find_solutions(  # ruff: ignore[too-many-positional-arguments]
     qn_problem_sets: QNProblemSetCollection | dict[float, list[QNProblemSet]],
     particle_db: ParticleCollection,
     final_state: Sequence[StateDefinitionInput] | None = None,
