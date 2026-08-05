@@ -228,17 +228,16 @@ class RuleArgumentHandler:
 
             if attrs.has(qn_type):
                 arg_builder: Callable[..., Any] = _CompositeArgumentCreator(qn_type)
+            elif _is_edge_quantum_number(qn_type):
+                arg_builder = _ValueExtractor[EdgeQuantumNumber](qn_type)
+            elif _is_node_quantum_number(qn_type):
+                arg_builder = _ValueExtractor[NodeQuantumNumber](qn_type)
             else:
-                if _is_edge_quantum_number(qn_type):
-                    arg_builder = _ValueExtractor[EdgeQuantumNumber](qn_type)
-                elif _is_node_quantum_number(qn_type):
-                    arg_builder = _ValueExtractor[NodeQuantumNumber](qn_type)
-                else:
-                    msg = (
-                        f"Quantum number type {qn_type} is not supported. Has to be of"
-                        " type Edge/NodeQuantumNumber."
-                    )
-                    raise TypeError(msg)
+                msg = (
+                    f"Quantum number type {qn_type} is not supported. Has to be of"
+                    " type Edge/NodeQuantumNumber."
+                )
+                raise TypeError(msg)
 
             if is_list:
                 arg_builder = _sequence_arg_builder(arg_builder)
@@ -328,10 +327,9 @@ def get_required_qns(
                     required_edge_qns.add(field_type)
                 else:
                     required_node_qns.add(field_type)
+        elif _is_edge_quantum_number(class_type):
+            required_edge_qns.add(class_type)
         else:
-            if _is_edge_quantum_number(class_type):
-                required_edge_qns.add(class_type)
-            else:
-                required_node_qns.add(class_type)
+            required_node_qns.add(class_type)
 
     return required_edge_qns, required_node_qns

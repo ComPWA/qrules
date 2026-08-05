@@ -50,11 +50,10 @@ def create_edge_properties(
             value = value.value
         if qn_name in edge_qn_mapping:
             property_map[edge_qn_mapping[qn_name]] = value
-        else:
-            if "isospin" in qn_name:
-                isospin = value
-            elif "spin" in qn_name:
-                property_map[EdgeQuantumNumbers.spin_magnitude] = value
+        elif "isospin" in qn_name:
+            isospin = value
+        elif "spin" in qn_name:
+            property_map[EdgeQuantumNumbers.spin_magnitude] = value
 
     if spin_projection is not None:
         property_map[EdgeQuantumNumbers.spin_projection] = spin_projection
@@ -85,7 +84,7 @@ def create_node_properties(interactions: InteractionProperties) -> GraphNodeProp
     return property_map
 
 
-def find_particle(  # noqa: D417
+def find_particle(  # ruff: ignore[undocumented-param]
     state: GraphEdgePropertyMap, particle_db: ParticleCollection
 ) -> ParticleWithSpin:
     """Create a Particle with spin projection from a qn dictionary.
@@ -160,11 +159,11 @@ class InteractionDeterminator(ABC):
 class GammaCheck(InteractionDeterminator):
     """Conservation check for photons."""
 
-    def check(  # noqa: PLR6301
+    def check(  # ruff: ignore[no-self-use]
         self,
         in_states: list[ParticleWithSpin],
         out_states: list[ParticleWithSpin],
-        interactions: InteractionProperties,  # noqa: ARG002
+        interactions: InteractionProperties,  # ruff: ignore[unused-method-argument]
     ) -> list[InteractionType]:
         int_types = list(InteractionType)
         for particle, _ in in_states + out_states:
@@ -177,11 +176,11 @@ class GammaCheck(InteractionDeterminator):
 class LeptonCheck(InteractionDeterminator):
     """Conservation check lepton numbers."""
 
-    def check(  # noqa: PLR6301
+    def check(  # ruff: ignore[no-self-use]
         self,
         in_states: list[ParticleWithSpin],
         out_states: list[ParticleWithSpin],
-        interactions: InteractionProperties,  # noqa: ARG002
+        interactions: InteractionProperties,  # ruff: ignore[unused-method-argument]
     ) -> list[InteractionType]:
         node_interaction_types = list(InteractionType)
         for particle, _ in in_states + out_states:
