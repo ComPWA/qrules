@@ -7,19 +7,25 @@ of the system.
 
 from __future__ import annotations
 
+import base64
+import io as stdlib_io
 import json
+import re
+import warnings
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import attrs
+import requests
 import yaml
 
-from qrules.io import _dict, _dot
+from qrules.io import _dict, _dot, _mermaid
 from qrules.particle import Particle, ParticleCollection
 from qrules.topology import Topology
 
 if TYPE_CHECKING:
     from _typeshed import StrPath
+    from PIL.Image import Image
 
 
 def asdict(instance: object) -> dict:
@@ -122,6 +128,181 @@ def asdot(
     return print_dot(instance)
 
 
+def asmermaid_source(
+    instance: object,
+    *,
+    render_node: bool | None = None,
+    render_final_state_id: bool = True,
+    render_resonance_id: bool = False,
+    render_initial_state_id: bool = False,
+    strip_spin: bool = False,
+    collapse_graphs: bool = False,
+    figure_style: dict[str, Any] | None = None,
+    edge_style: dict[str, Any] | None = None,
+    node_style: dict[str, Any] | None = None,
+) -> str:
+    """Convert a `object` to a Mermaid flowchart source `str`.
+
+    This mirrors the public interface of :func:`asdot` for the Mermaid renderer.
+    """
+    print_mermaid = _mermaid.MermaidPrinter(
+        render_node=render_node,
+        render_final_state_id=render_final_state_id,
+        render_resonance_id=render_resonance_id,
+        render_initial_state_id=render_initial_state_id,
+        strip_spin=strip_spin,
+        collapse_graphs=collapse_graphs,
+        figure_style=figure_style,
+        edge_style=edge_style,
+        node_style=node_style,
+    )
+    return print_mermaid(instance)
+
+
+def asmermaid(
+    instance: object,
+    *,
+    render_node: bool | None = None,
+    render_final_state_id: bool = True,
+    render_resonance_id: bool = False,
+    render_initial_state_id: bool = False,
+    strip_spin: bool = False,
+    collapse_graphs: bool = False,
+    figure_style: dict[str, Any] | None = None,
+    edge_style: dict[str, Any] | None = None,
+    node_style: dict[str, Any] | None = None,
+) -> str:
+    """Convert a `object` to a Mermaid Markdown `str`.
+
+    The returned string contains a fenced Mermaid block that can be rendered by
+    JupyterLab, Sphinx, or other Markdown consumers with Mermaid support.
+    """
+    source = asmermaid_source(
+        instance,
+        render_node=render_node,
+        render_final_state_id=render_final_state_id,
+        render_resonance_id=render_resonance_id,
+        render_initial_state_id=render_initial_state_id,
+        strip_spin=strip_spin,
+        collapse_graphs=collapse_graphs,
+        figure_style=figure_style,
+        edge_style=edge_style,
+        node_style=node_style,
+    )
+    return f"```mermaid\n{source}\n```"
+
+
+def show_mermaid_markdown(
+    instance: object,
+    *,
+    render_node: bool | None = None,
+    render_final_state_id: bool = True,
+    render_resonance_id: bool = False,
+    render_initial_state_id: bool = False,
+    strip_spin: bool = False,
+    collapse_graphs: bool = False,
+    figure_style: dict[str, Any] | None = None,
+    edge_style: dict[str, Any] | None = None,
+    node_style: dict[str, Any] | None = None,
+) -> Any:
+    """Display Mermaid Markdown in a notebook.
+
+    This is a small convenience wrapper around :func:`asmermaid` for IPython and
+    Jupyter notebooks.
+    """
+    from IPython.display import Markdown, display
+
+    markdown = Markdown(
+        asmermaid(
+            instance,
+            render_node=render_node,
+            render_final_state_id=render_final_state_id,
+            render_resonance_id=render_resonance_id,
+            render_initial_state_id=render_initial_state_id,
+            strip_spin=strip_spin,
+            collapse_graphs=collapse_graphs,
+            figure_style=figure_style,
+            edge_style=edge_style,
+            node_style=node_style,
+        )
+    )
+    display(markdown)
+    # return markdown
+
+
+def render_mermaid_image(source: str) -> Image:
+    """Render a Mermaid flowchart source to a PIL image.
+
+    The rendering is delegated to the public Mermaid Ink service. Use
+    :func:`show_mermaid_image` for a convenience display helper.
+    """
+    graph_bytes = source.encode("utf8")
+    base64_bytes = base64.urlsafe_b64encode(graph_bytes)
+    base64_string = base64_bytes.decode("ascii")
+    try:
+        response = requests.get(
+            f"https://mermaid.ink/img/{base64_string}",
+            timeout=20,
+            headers={"User-Agent": "qrules-mermaid-renderer/1.0"},
+        )
+        response.raise_for_status()
+    except requests.HTTPError as exc:
+        status_code = exc.response.status_code if exc.response is not None else "unknown"
+        if status_code == 400:
+            msg = (
+                "Mermaid image rendering failed with HTTP 400. "
+                "The source may be too large or contain unsupported syntax."
+            )
+            raise RuntimeError(msg) from exc
+        msg = f"Mermaid image rendering failed with HTTP {status_code}."
+        raise RuntimeError(msg) from exc
+    except requests.RequestException as exc:
+        msg = "Mermaid image rendering failed due to a network error."
+        raise RuntimeError(msg) from exc
+
+    image_bytes = response.content
+
+    from PIL import Image
+
+    return Image.open(stdlib_io.BytesIO(image_bytes))
+
+
+def show_mermaid_image(
+    source: str,
+    *,
+    figsize: tuple[float, float] = (8, 4),
+    fallback_to_source: bool = True,
+    max_source_chars: int = 4000,
+) -> bool:
+    """Render Mermaid source and display it with Matplotlib.
+
+    Returns:
+        `True` if the image could be rendered and shown, `False` if fallback output
+        was used.
+    """
+    import matplotlib.pyplot as plt
+
+    try:
+        image = render_mermaid_image(source)
+    except RuntimeError as exc:
+        if not fallback_to_source:
+            raise
+        print("Image rendering failed. Falling back to Mermaid source output.")
+        print(f"Reason: {exc}")
+        if len(source) <= max_source_chars:
+            print(source)
+        else:
+            print(source[:max_source_chars])
+            print("... source output truncated ...")
+        return False
+
+    plt.figure(figsize=figsize)
+    plt.imshow(image)
+    plt.axis("off")
+    plt.show()
+    return True
+
+
 def load(filename: str | Path) -> object:
     with open(filename) as stream:
         file_extension = _get_file_extension(filename)
@@ -169,8 +350,52 @@ def write(instance: object, filename: StrPath) -> None:
             with open(filename, "w") as stream:
                 stream.write(output_str)
             return
+        if file_extension == "mmd":
+            if isinstance(instance, str):  # direct output of asmermaid_source
+                output_str = instance
+            else:
+                output_str = asmermaid_source(instance)
+            output_str = _normalize_mermaid_file_content(output_str, file_extension)
+            stream.write(output_str)
+            return
+        if file_extension == "md":
+            if isinstance(instance, str):  # direct output of asmermaid
+                output_str = instance
+            else:
+                output_str = asmermaid(instance)
+            output_str = _normalize_mermaid_file_content(output_str, file_extension)
+            stream.write(output_str)
+            return
     msg = f'No writer defined for file type "{file_extension}"'
     raise NotImplementedError(msg)
+
+
+_MERMAID_FENCE_PATTERN = re.compile(
+    r"^\s*```mermaid[ \t]*\n(?P<source>.*?)\n```[ \t]*$",
+    re.IGNORECASE | re.DOTALL,
+)
+
+
+def _normalize_mermaid_file_content(content: str, file_extension: str) -> str:
+    match = _MERMAID_FENCE_PATTERN.match(content)
+    if file_extension == "mmd":
+        if match is not None:
+            warnings.warn(
+                "Markdown fence removed from .mmd Mermaid file content.",
+                UserWarning,
+                stacklevel=3,
+            )
+            return f"{match.group('source')}\n"
+        return content
+
+    if match is None:
+        warnings.warn(
+            "Markdown fence added to .md Mermaid file content.",
+            UserWarning,
+            stacklevel=3,
+        )
+        return f"```mermaid\n{content.rstrip()}\n```\n"
+    return content
 
 
 def _get_file_extension(filename: StrPath) -> str:
