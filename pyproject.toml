@@ -1,44 +1,12 @@
-[build-system]
-build-backend = "setuptools.build_meta"
-requires = [
-    "setuptools>=61.2",
-    "setuptools_scm",
-]
-
 [project]
-authors = [{name = "Common Partial Wave Analysis", email = "compwa-admin@ep1.rub.de"}]
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Developers",
-    "Intended Audience :: Education",
-    "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: Apache Software License",
-    "Natural Language :: English",
-    "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.14",
-    "Programming Language :: Python",
-    "Topic :: Scientific/Engineering :: Physics",
-    "Topic :: Scientific/Engineering",
-    "Typing :: Typed",
-]
-dependencies = [
-    "PyYAML",
-    "attrs >=20.1.0", # on_setattr and https://www.attrs.org/en/stable/api.html#next-gen
-    "frozendict",
-    "ipython>=8.39.0",
-    "jsonschema",
-    "matplotlib>=3.10.9",
-    "particle",
-    "pillow>=12.3.0",
-    "python-constraint",
-    "tqdm >=4.24.0", # autonotebook
-]
+name = "qrules"
 description = "Rule-based particle reaction problem solver on a quantum number level"
-dynamic = ["version"]
+requires-python = ">=3.10"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Common Partial Wave Analysis", email = "compwa-admin@ep1.rub.de" },
+]
+maintainers = [{ email = "compwa-admin@ep1.rub.de" }]
 keywords = [
     "HEP",
     "PWA",
@@ -48,17 +16,37 @@ keywords = [
     "particles",
     "physics",
 ]
-license = {file = "LICENSE"}
-maintainers = [{email = "compwa-admin@ep1.rub.de"}]
-name = "qrules"
-requires-python = ">=3.10"
-
-[project.optional-dependencies]
-viz = ["graphviz"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Typing :: Typed",
+]
+dependencies = [
+    "PyYAML",
+    "attrs >=20.1.0",  # on_setattr and https://www.attrs.org/en/stable/api.html#next-gen
+    "compwa-python-constraint",
+    "frozendict",
+    "jsonschema",
+    "particle",
+    "tqdm >=4.24.0",  # autonotebook
+]
+dynamic = ["version"]
 
 [project.readme]
-content-type = "text/markdown"
 file = "README.md"
+content-type = "text/markdown"
 
 [project.urls]
 Changelog = "https://github.com/ComPWA/qrules/releases"
@@ -66,18 +54,20 @@ Documentation = "https://qrules.rtfd.io"
 Issues = "https://github.com/ComPWA/qrules/issues"
 Source = "https://github.com/ComPWA/qrules"
 
+[project.optional-dependencies]
+viz = ["graphviz"]
+
 [dependency-groups]
 dev = [
     "ruff",
-    {include-group = "doc"},
-    {include-group = "jupyter"},
-    {include-group = "style"},
-    {include-group = "test"},
+    { include-group = "doc" },
+    { include-group = "jupyter" },
+    { include-group = "style" },
+    { include-group = "test" },
 ]
 doc = [
     "myst-nb",
     "sphinx",
-    "sphinxcontrib-mermaid",
     "sphinx-api-relink",
     "sphinx-book-theme",
     "sphinx-codeautolink[ipython]",
@@ -89,7 +79,8 @@ doc = [
     "sphinx-thebe",
     "sphinx-togglebutton",
     "sphinxcontrib-bibtex >=2",
-    {include-group = "notebooks"},
+    "sphinxcontrib-mermaid",
+    { include-group = "notebooks" },
 ]
 jupyter = [
     "ipywidgets",
@@ -101,12 +92,17 @@ jupyter = [
     "jupyterlab-quickopen",
     "python-lsp-ruff",
     "python-lsp-server",
-    {include-group = "notebooks"},
+    { include-group = "notebooks" },
 ]
-notebooks = ["qrules[viz]"]
+notebooks = [
+    "ipython",
+    "matplotlib",
+    "pillow",
+    "qrules[viz]",
+]
 style = [
     "mypy",
-    {include-group = "types"},
+    { include-group = "types" },
 ]
 test = [
     "ipython",
@@ -123,28 +119,23 @@ types = [
     "types-PyYAML",
 ]
 
-[tool.setuptools]
-include-package-data = false
-package-dir = {"" = "src"}
-
-[tool.setuptools.package-data]
-qrules = [
-    "additional_definitions.yml",
-    "particle-validation.json",
-    "py.typed",
+[build-system]
+requires = [
+    "setuptools>=61.2",
+    "setuptools_scm",
 ]
+build-backend = "setuptools.build_meta"
 
-[tool.setuptools.packages.find]
-namespaces = false
-where = ["src"]
+[tool.compwa.policy]
+doc-apt-packages = "graphviz"
+repo-name = "qrules"
+repo-title = "QRules"
 
-[tool.setuptools_scm]
-write_to = "src/qrules/version.py"
+[tool.compwa.policy.python]
+type-checker = ["mypy", "pyright"]
 
 [tool.coverage.report]
-exclude_also = [
-    "if TYPE_CHECKING:",
-]
+exclude_also = ["if TYPE_CHECKING:"]
 
 [tool.coverage.run]
 branch = true
@@ -161,7 +152,7 @@ source = ["src"]
 disallow_incomplete_defs = true
 disallow_untyped_defs = true
 exclude = "_build"
-show_error_codes = true
+show_error_code_links = true
 warn_unused_configs = true
 
 [[tool.mypy.overrides]]
@@ -224,8 +215,8 @@ sphinx-build \
     docs/ \
     docs/_build/html/
 """
-env = {PYTHONWARNINGS = ""}
-executor = {group = "doc"}
+env = { PYTHONWARNINGS = "" }
+executor = { group = "doc" }
 help = "Build documentation and API"
 
 [tool.poe.groups.doc.tasks.doclive]
@@ -261,21 +252,21 @@ sphinx-autobuild \
     docs/ \
     docs/_build/html/
 """
-executor = {group = "doc", with = "sphinx-autobuild"}
+executor = { group = "doc", with = "sphinx-autobuild" }
 help = "Set up a server to directly preview changes to the HTML pages"
 
 [tool.poe.groups.doc.tasks.docnb]
-env = {EXECUTE_NB = "yes"}
+env = { EXECUTE_NB = "yes" }
 help = "Build documentation and API with cached notebook execution"
 sequence = ["doc"]
 
 [tool.poe.groups.doc.tasks.docnb-force]
-env = {FORCE_EXECUTE_NB = "yes"}
+env = { FORCE_EXECUTE_NB = "yes" }
 help = "Build documentation and API with notebook execution (no cache)"
 sequence = ["doc"]
 
 [tool.poe.groups.doc.tasks.docnblive]
-env = {EXECUTE_NB = "yes"}
+env = { EXECUTE_NB = "yes" }
 help = "Set up a server to directly preview changes to the HTML pages with cached notebook execution"
 sequence = ["doclive"]
 
@@ -288,23 +279,25 @@ sphinx-build \
     docs/ \
     docs/_build/linkcheck/
 """
-env = {PYTHONWARNINGS = ""}
-executor = {group = "doc"}
+env = { PYTHONWARNINGS = "" }
+executor = { group = "doc" }
 help = "Check external links in the documentation (requires internet connection)"
 
 [tool.poe.groups.notebook]
 heading = "Notebooks"
 
 [tool.poe.groups.notebook.tasks.lab]
-args = [{name = "paths", default = "", positional = true}]
+args = [{ name = "paths", default = "", positional = true }]
 cmd = "jupyter lab ${paths}"
-executor = {group = "jupyter"}
+executor = { group = "jupyter" }
 help = "Launch Jupyter Lab"
 
 [tool.poe.groups.notebook.tasks.nb]
-args = [{name = "paths", default = "docs", multiple = true, positional = true}]
+args = [
+    { name = "paths", default = "docs", multiple = true, positional = true },
+]
 cmd = "pytest --nbmake --nbmake-timeout=0 ${paths}"
-executor = {group = "notebooks", with = "nbmake"}
+executor = { group = "notebooks", with = "nbmake" }
 help = "Run all notebooks"
 
 [tool.poe.groups.test]
@@ -321,7 +314,7 @@ pytest \
     -m 'slow or not slow' \
     ${paths}
 """
-executor = {group = "test"}
+executor = { group = "test" }
 help = "Compute how much of the source code is covered by tests"
 
 [[tool.poe.groups.test.tasks.cov.args]]
@@ -332,7 +325,7 @@ positional = true
 
 [tool.poe.groups.test.tasks.test]
 cmd = "pytest --numprocesses=auto -m 'slow or not slow' ${paths}"
-executor = {group = "test"}
+executor = { group = "test" }
 help = "Run all unit tests"
 
 [[tool.poe.groups.test.tasks.test.args]]
@@ -344,11 +337,11 @@ positional = true
 [tool.poe.groups.test.tasks.test-all]
 help = "Run all tests on each supported Python version"
 sequence = [
-    {ref = "test-py310 ${paths}"},
-    {ref = "test-py311 ${paths}"},
-    {ref = "test-py312 ${paths}"},
-    {ref = "test-py313 ${paths}"},
-    {ref = "test-py314 ${paths}"},
+    "test-py310 ${paths}",
+    "test-py311 ${paths}",
+    "test-py312 ${paths}",
+    "test-py313 ${paths}",
+    "test-py314 ${paths}",
 ]
 
 [[tool.poe.groups.test.tasks.test-all.args]]
@@ -358,23 +351,23 @@ name = "paths"
 positional = true
 
 [tool.poe.groups.test.tasks.test-py310]
-env = {UV_PYTHON = "3.10"}
+env = { UV_PYTHON = "3.10" }
 ref = "test"
 
 [tool.poe.groups.test.tasks.test-py311]
-env = {UV_PYTHON = "3.11"}
+env = { UV_PYTHON = "3.11" }
 ref = "test"
 
 [tool.poe.groups.test.tasks.test-py312]
-env = {UV_PYTHON = "3.12"}
+env = { UV_PYTHON = "3.12" }
 ref = "test"
 
 [tool.poe.groups.test.tasks.test-py313]
-env = {UV_PYTHON = "3.13"}
+env = { UV_PYTHON = "3.13" }
 ref = "test"
 
 [tool.poe.groups.test.tasks.test-py314]
-env = {UV_PYTHON = "3.14"}
+env = { UV_PYTHON = "3.14" }
 ref = "test"
 
 [tool.poe.tasks.all]
@@ -390,16 +383,21 @@ sequence = [
 
 [tool.poe.tasks.style]
 cmd = "pre-commit run --all-files"
-executor = {group = "style"}
+executor = { group = "style" }
 help = "Perform all linting, formatting, and spelling checks"
 
 [tool.poe.tasks.upgrade]
-executor = {type = "simple"}
+executor = { type = "simple" }
 help = "Upgrade lock files"
-parallel = [
-    {cmd = "pre-commit autoupdate -j8"},
-    {cmd = "uv lock --upgrade"},
-]
+parallel = ["_upgrade-precommit", "_upgrade-uv"]
+
+[tool.poe.tasks._upgrade-precommit]
+cmd = "pre-commit autoupdate -j8"
+executor = { type = "simple" }
+
+[tool.poe.tasks._upgrade-uv]
+executor = { type = "simple" }
+cmd = "uv lock --upgrade"
 
 [tool.pyright]
 reportArgumentType = false
@@ -484,41 +482,41 @@ line-ending = "lf"
 
 [tool.ruff.lint]
 ignore = [
-    "ANN401",
-    "COM812",
-    "CPY001",
-    "D101",
-    "D102",
-    "D103",
-    "D105",
-    "D107",
-    "D203",
-    "D213",
-    "D407",
-    "D416",
     "DOC",
-    "E501",
-    "FBT00",
-    "FURB101",
-    "FURB103",
-    "FURB140",
-    "G004",
-    "ISC001",
-    "PLR0913",
-    "PLR2004",
-    "PLR5501",
-    "PLW1514",
-    "PLW2901",
-    "PT001",
     "PTH",
-    "RUF067",
-    "SIM108",
+    "any-type",
+    "boolean-default-value-positional-argument",
+    "boolean-type-hint-positional-argument",
+    "if-else-block-instead-of-if-exp",
+    "incorrect-blank-line-before-class",
+    "line-too-long",
+    "logging-f-string",
+    "magic-value-comparison",
+    "missing-copyright-notice",
+    "missing-dashed-underline-after-section",
+    "missing-section-name-colon",
+    "missing-trailing-comma",
+    "multi-line-summary-second-line",
+    "non-empty-init-module",
+    "pytest-fixture-incorrect-parentheses-style",
+    "read-whole-file",
+    "redefined-loop-name",
+    "reimplemented-starmap",
+    "single-line-implicit-string-concatenation",
+    "too-many-arguments",
+    "undocumented-magic-method",
+    "undocumented-public-class",
+    "undocumented-public-function",
+    "undocumented-public-init",
+    "undocumented-public-method",
+    "unspecified-encoding",
+    "write-whole-file",
 ]
 select = ["ALL"]
 task-tags = ["cspell"]
 
 [tool.ruff.lint.flake8-builtins]
-builtins-ignorelist = ["display"]
+ignorelist = ["display"]
 
 [tool.ruff.lint.flake8-comprehensions]
 allow-dict-calls-with-keyword-arguments = true
@@ -547,6 +545,14 @@ split-on-trailing-comma = false
     "S101",
     "T20",
     "TC00",
+    "assert",
+    "global-statement",
+    "global-variable-not-assigned",
+    "mixed-case-variable-in-global-scope",
+    "non-lowercase-variable-in-function",
+    "too-many-blank-lines",
+    "useless-expression",
+    "useless-semicolon",
 ]
 "docs/*" = [
     "E402",
@@ -554,15 +560,17 @@ split-on-trailing-comma = false
     "S101",
     "S113",
     "T201",
+    "assert",
+    "implicit-namespace-package",
+    "request-without-timeout",
 ]
-"docs/_extend_docstrings.py" = [
-    "A002",
-    "PLC0415",
-]
+"docs/_extend_docstrings.py" = ["A002", "PLC0415"]
 "docs/conf.py" = [
     "A001",
     "D100",
     "FLY002",
+    "builtin-variable-shadowing",
+    "undocumented-public-module",
 ]
 "setup.py" = ["D100"]
 "src/qrules/conservation_rules.py" = ["FA100"]
@@ -577,6 +585,12 @@ split-on-trailing-comma = false
     "S307",
     "SLF001",
     "T20",
+    "assert",
+    "float-equality-comparison",
+    "implicit-namespace-package",
+    "import-private-name",
+    "no-self-use",
+    "private-member-access",
 ]
 
 [tool.ruff.lint.pydocstyle]
@@ -585,15 +599,31 @@ convention = "google"
 [tool.ruff.lint.pylint]
 allow-dunder-method-names = ["_repr_pretty_"]
 
-[tool.tomlsort]
-all = false
-ignore_case = true
-in_place = true
-sort_first = [
-    "build-system",
-    "project",
-    "tool.setuptools",
-    "tool.setuptools_scm",
-]
-spaces_indent_inline_array = 4
-trailing_comma_inline_array = true
+[tool.setuptools]
+include-package-data = false
+package-dir = { "" = "src" }
+
+[tool.setuptools.package-data]
+qrules = ["additional_definitions.yml", "particle-validation.json", "py.typed"]
+
+[tool.setuptools.packages.find]
+namespaces = false
+where = ["src"]
+
+[tool.setuptools_scm]
+version_file = "src/qrules/version.py"
+
+[tool.tombi.files]
+exclude = ["**/uv.lock"]
+
+[tool.tombi.format.rules]
+indent-width = 4
+line-width = 88
+
+[tool.tombi.lint.rules]
+key-empty = "off"
+
+[[tool.tombi.schemas]]
+root = "tool.compwa.policy"
+path = "https://raw.githubusercontent.com/ComPWA/policy/0.9.3/compwa-policy.schema.json"
+include = ["pyproject.toml"]
