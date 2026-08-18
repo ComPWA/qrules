@@ -5,7 +5,12 @@ from qrules.io._mermaid import MermaidPrinter
 from qrules.settings import InteractionType
 from qrules.solving import QNProblemSet, QNResult
 from qrules.topology import create_isobar_topologies, create_n_body_topology
-from qrules.transition import ProblemSet, ReactionInfo, SpinFormalism, StateTransitionManager
+from qrules.transition import (
+    ProblemSet,
+    ReactionInfo,
+    SpinFormalism,
+    StateTransitionManager,
+)
 
 
 def test_mermaid_topology():

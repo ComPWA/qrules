@@ -15,6 +15,7 @@ from inspect import isfunction
 from typing import TYPE_CHECKING, Any, cast
 
 import attrs
+
 from qrules.particle import Particle, ParticleWithSpin, Spin, _render_fraction
 from qrules.quantum_numbers import InteractionProperties
 from qrules.solving import EdgeSettings, NodeSettings, QNProblemSet, QNResult
@@ -412,7 +413,9 @@ class MermaidPrinter:
             add_node(prefix + _get_mermaid_node(edge_id), label)
 
         if self.render_node is None:
-            render_node = isinstance(rendered_graph, Topology) and len(topology.nodes) > 1
+            render_node = (
+                isinstance(rendered_graph, Topology) and len(topology.nodes) > 1
+            )
         else:
             render_node = self.render_node
 
@@ -423,7 +426,10 @@ class MermaidPrinter:
             add_node(f"{prefix}N{node_id}", label)
 
         if isinstance(rendered_graph, (ProblemSet, QNProblemSet)) and render_node:
-            for node_id, settings in rendered_graph.solving_settings.interactions.items():
+            for (
+                node_id,
+                settings,
+            ) in rendered_graph.solving_settings.interactions.items():
                 add_node(f"{prefix}N{node_id}", as_string(settings))
 
         if isinstance(rendered_graph, Transition) and render_node:
@@ -438,7 +444,9 @@ class MermaidPrinter:
             if j is None or k is None:
                 edge_lines.append(self._create_mermaid_edge(from_node, to_node))
             else:
-                label = _create_edge_label(rendered_graph, edge_id, self.render_resonance_id)
+                label = _create_edge_label(
+                    rendered_graph, edge_id, self.render_resonance_id
+                )
                 edge_lines.append(self._create_mermaid_edge(from_node, to_node, label))
             if self.edge_style:
                 edge_style_lines.append(
@@ -446,7 +454,8 @@ class MermaidPrinter:
                 )
 
         node_lines.extend(
-            self._create_mermaid_node(node_id, node_labels[node_id]) for node_id in node_order
+            self._create_mermaid_node(node_id, node_labels[node_id])
+            for node_id in node_order
         )
         style_lines = []
         if self.node_style:
@@ -544,7 +553,7 @@ class MermaidPrinter:
     def _create_mermaid_node(self, node_id: str, label: str = "") -> str:
         if label:
             escaped_label = self._escape_label(label)
-            return f"    {node_id}[\"{escaped_label}\"]"
+            return f'    {node_id}["{escaped_label}"]'
         return f"    {node_id}"
 
     def _create_mermaid_edge(

@@ -247,7 +247,9 @@ def render_mermaid_image(source: str) -> Image:
         )
         response.raise_for_status()
     except requests.HTTPError as exc:
-        status_code = exc.response.status_code if exc.response is not None else "unknown"
+        status_code = (
+            exc.response.status_code if exc.response is not None else "unknown"
+        )
         if status_code == 400:
             msg = (
                 "Mermaid image rendering failed with HTTP 400. "
