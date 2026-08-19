@@ -177,7 +177,7 @@ def __render_domain(domain: list[Any], key: str) -> str:
 def __escape_mermaid_node_text(text: str) -> str:
     # Mermaid can misinterpret ASCII square brackets inside rich node/edge labels.
     # Use visually equivalent Unicode brackets to keep labels readable and parse-safe.
-    return text.replace("[", "［").replace("]", "］")
+    return text.replace("[", " [").replace("]", " ]")
 
 
 @as_string.register(Particle)
@@ -356,6 +356,7 @@ class MermaidPrinter:
         raise NotImplementedError(msg)
 
     def _render_multiple_transitions(self, obj: Iterable) -> list[str]:
+        transitions: Iterable[Transition[Any, Any]]
         if self.collapse_graphs:
             transitions = _collapse_graphs(obj)
         elif self.strip_spin:
@@ -371,7 +372,7 @@ class MermaidPrinter:
             lines.extend(self._render_transition(graph, prefix=f"T{i}_"))
         return lines
 
-    def _render_transition(
+    def _render_transition(  # ruff: ignore[complex-structure, too-many-branches, too-many-locals, too-many-statements]
         self,
         obj: ProblemSet | QNProblemSet | Topology | Transition,
         prefix: str = "",
@@ -457,7 +458,7 @@ class MermaidPrinter:
             self._create_mermaid_node(node_id, node_labels[node_id])
             for node_id in node_order
         )
-        style_lines = []
+        style_lines: list[str] = []
         if self.node_style:
             style_lines.extend(
                 self._create_mermaid_node_style(node_id, self.node_style)
@@ -504,7 +505,8 @@ class MermaidPrinter:
             parts.append(f"{style_key}:{value}")
         return ",".join(parts)
 
-    def _normalize_style_key(self, key: str, target: str) -> str | None:
+    @staticmethod
+    def _normalize_style_key(key: str, target: str) -> str | None:
         normalized = str(key).strip().lower().replace("_", "")
         if target == "node":
             mapping = {
@@ -569,7 +571,8 @@ class MermaidPrinter:
             return f"    {from_node} -->|{escaped_label}| {to_node}"
         return f"    {from_node} --> {to_node}"
 
-    def _normalize_node_id(self, node_id: str) -> str:
+    @staticmethod
+    def _normalize_node_id(node_id: str) -> str:
         normalized = re.sub(r"[^A-Za-z0-9_]", "_", node_id)
         if not normalized:
             normalized = "node"
@@ -577,7 +580,8 @@ class MermaidPrinter:
             normalized = f"n_{normalized}"
         return normalized
 
-    def _escape_label(self, label: str, *, for_edge: bool = False) -> str:
+    @staticmethod
+    def _escape_label(label: str, *, for_edge: bool = False) -> str:
         text = str(label).strip()
         if not text:
             return ""

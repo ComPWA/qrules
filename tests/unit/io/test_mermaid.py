@@ -35,7 +35,7 @@ def test_mermaid_generated_topology():
 
 def test_asmermaid_api():
     topology = create_n_body_topology(3, 4)
-    src = io.asmermaid_source(topology)
+    src = io.asmermaid(topology)
 
     assert src.startswith("flowchart LR\n")
     assert "    n_0" in src
@@ -44,7 +44,7 @@ def test_asmermaid_api():
 
 def test_asmermaid_accepts_style_parameters():
     topology = create_n_body_topology(3, 4)
-    src = io.asmermaid_source(
+    src = io.asmermaid(
         topology,
         figure_style={"bgcolor": "white"},
         edge_style={"color": "blue"},
@@ -56,88 +56,35 @@ def test_asmermaid_accepts_style_parameters():
     assert "linkStyle 0 stroke:blue" in src
 
 
-def test_asmermaid_markdown_api():
-    topology = create_n_body_topology(3, 4)
-    src = io.asmermaid(topology)
-
-    assert src.startswith("```mermaid\nflowchart LR\n")
-    assert src.rstrip().endswith("```")
-
-
-def test_show_mermaid_markdown(monkeypatch):
-    import IPython.display as ipdisplay
-
-    displayed = []
-
-    def fake_markdown(source):
-        return {"markdown": source}
-
-    def fake_display(obj):
-        displayed.append(obj)
-
-    monkeypatch.setattr(ipdisplay, "Markdown", fake_markdown)
-    monkeypatch.setattr(ipdisplay, "display", fake_display)
-
-    topology = create_n_body_topology(3, 4)
-    markdown = io.show_mermaid_markdown(topology)
-
-    assert markdown == displayed[0]
-    assert markdown["markdown"].startswith("```mermaid\nflowchart LR\n")
-    assert markdown["markdown"].rstrip().endswith("```")
-
-
-def test_write_mermaid_files(tmp_path):
+def test_write_mermaid_file(tmp_path):
     topology = create_n_body_topology(3, 4)
     source_file = tmp_path / "topology.mmd"
-    markdown_file = tmp_path / "topology.md"
 
     io.write(topology, source_file)
-    io.write(topology, markdown_file)
 
     source = source_file.read_text()
-    markdown = markdown_file.read_text()
     assert source.startswith("flowchart LR\n")
     assert not source.startswith("```mermaid")
-    assert markdown.startswith("```mermaid\nflowchart LR\n")
-    assert markdown.rstrip().endswith("```")
-
-
-def test_write_mmd_removes_markdown_fence(tmp_path):
-    output_file = tmp_path / "topology.mmd"
-
-    with pytest.warns(UserWarning, match="fence removed"):
-        io.write("```mermaid\nflowchart LR\nA --> B\n```", output_file)
-
-    assert output_file.read_text() == "flowchart LR\nA --> B\n"
-
-
-def test_write_md_adds_missing_markdown_fence(tmp_path):
-    output_file = tmp_path / "topology.md"
-
-    with pytest.warns(UserWarning, match="fence added"):
-        io.write("flowchart LR\nA --> B\n", output_file)
-
-    assert output_file.read_text() == "```mermaid\nflowchart LR\nA --> B\n```\n"
 
 
 def test_asmermaid_reaction(reaction: ReactionInfo):
     for transition in reaction.transitions:
-        src = io.asmermaid_source(transition)
+        src = io.asmermaid(transition)
         assert src.startswith("flowchart LR\n")
         assert " --> " in src
-    src = io.asmermaid_source(reaction)
+    src = io.asmermaid(reaction)
     assert src.startswith("flowchart LR\n")
     assert " --> " in src
-    src = io.asmermaid_source(reaction, strip_spin=True)
+    src = io.asmermaid(reaction, strip_spin=True)
     assert src.startswith("flowchart LR\n")
     assert " --> " in src
-    src = io.asmermaid_source(reaction, collapse_graphs=True)
+    src = io.asmermaid(reaction, collapse_graphs=True)
     assert src.startswith("flowchart LR\n")
     assert " --> " in src
 
 
 def test_asmermaid_reaction_with_node_labels(reaction: ReactionInfo):
-    src = io.asmermaid_source(reaction.transitions[0], render_node=True)
+    src = io.asmermaid(reaction.transitions[0], render_node=True)
 
     assert src.startswith("flowchart LR\n")
     assert "gamma[-1]" in src
@@ -147,7 +94,7 @@ def test_asmermaid_reaction_with_node_labels(reaction: ReactionInfo):
 
 def test_asmermaid_edge_id_options():
     topology = create_isobar_topologies(5)[0]
-    src = io.asmermaid_source(
+    src = io.asmermaid(
         topology,
         render_final_state_id=False,
         render_resonance_id=True,
@@ -163,7 +110,7 @@ def test_asmermaid_edge_id_options():
 
 def test_asmermaid_qn_problem_set(qn_problem_and_result: tuple[QNProblemSet, QNResult]):
     qn_problem_set, _ = qn_problem_and_result
-    src = io.asmermaid_source(qn_problem_set, render_node=True)
+    src = io.asmermaid(qn_problem_set, render_node=True)
 
     assert src.startswith("flowchart LR\n")
     assert "RULES" in src
@@ -172,7 +119,7 @@ def test_asmermaid_qn_problem_set(qn_problem_and_result: tuple[QNProblemSet, QNR
 
 def test_asmermaid_qn_result(qn_problem_and_result: tuple[QNProblemSet, QNResult]):
     _, qn_result = qn_problem_and_result
-    src = io.asmermaid_source(qn_result, render_node=True)
+    src = io.asmermaid(qn_result, render_node=True)
 
     assert src.startswith("flowchart LR\n")
     assert " --> " in src
@@ -192,7 +139,7 @@ def test_asmermaid_problemset(formalism: SpinFormalism):
     problem_sets = stm.create_problem_sets()
     for problem_set_list in problem_sets.values():
         for problem_set in problem_set_list:
-            src = io.asmermaid_source(problem_set)
+            src = io.asmermaid(problem_set)
             assert src.startswith("flowchart LR\n")
             assert " --> " in src
 
@@ -200,14 +147,14 @@ def test_asmermaid_problemset(formalism: SpinFormalism):
             initial_facts = problem_set.initial_facts
             settings = problem_set.solving_settings
 
-            src = io.asmermaid_source([(topology, initial_facts)])
+            src = io.asmermaid([(topology, initial_facts)])
             assert src.startswith("flowchart LR\n")
             assert " --> " in src
 
-            src = io.asmermaid_source([(topology, settings)])
+            src = io.asmermaid([(topology, settings)])
             assert src.startswith("flowchart LR\n")
             assert " --> " in src
-        src = io.asmermaid_source(problem_set_list)
+        src = io.asmermaid(problem_set_list)
         assert src.startswith("flowchart LR\n")
         assert " --> " in src
 
@@ -263,20 +210,3 @@ def qn_problem_and_result(
         if pair[1].solutions:
             return pair
     return strong_qn_solutions[0]
-
-
-# if __name__ == "__main__":
-#     topology_src = MermaidPrinter()(create_n_body_topology(2, 4))
-#     generated_topology_src = MermaidPrinter()(create_isobar_topologies(3))
-#     printer = MermaidPrinter()
-#     node_line = printer._create_mermaid_node("A", 'value with "quotes" and\nline break')
-#     edge_line = printer._create_mermaid_edge(
-#         "A", "B", 'value with "quotes" and\nline break'
-#     )
-
-#     print(topology_src)
-#     print("\n---\n")
-#     print(generated_topology_src)
-#     print("\n---\n")
-#     print(node_line)
-#     print(edge_line)
