@@ -286,6 +286,7 @@ nb_execution_mode = get_execution_mode()
 nb_execution_show_tb = True
 nb_execution_timeout = -1
 nb_output_stderr = "remove"
+nb_render_markdown_format = "myst"
 nitpick_ignore = [
     ("py:class", "StrPath"),
 ]
