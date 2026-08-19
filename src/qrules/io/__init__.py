@@ -106,7 +106,7 @@ def asdot(
         See `Graphviz attributes <https://graphviz.org/doc/info/attrs.html>`_ for the
         available styling arguments.
 
-    .. seealso:: :doc:`/usage/visualize_dot`
+    .. seealso:: :doc:`/usage/visualize`
     """
     print_dot = _dot.GraphPrinter(
         render_node=render_node,
@@ -174,7 +174,7 @@ def asmermaid(
         `Mermaid flowchart syntax <https://mermaid.ai/open-source/syntax/flowchart.html>`_
         for available diagram constructs and style directives.
 
-    .. seealso:: :doc:`/usage/visualize_mermaid`
+    .. seealso:: :doc:`/usage/visualize`
     """
     print_mermaid = _mermaid.MermaidPrinter(
         render_node=render_node,

@@ -29,7 +29,7 @@ This installs the [latest release](https://github.com/ComPWA/qrules/releases) th
 can find on the [`stable`](https://github.com/ComPWA/qrules/tree/stable) branch.
 
 Optionally, you can install the dependencies required for
-{doc}`visualizing topologies </usage/visualize_dot>` with the following
+{doc}`visualizing topologies </usage/visualize>` with the following
 {ref}`optional dependency syntax <compwa:develop:Optional dependencies>`:
 
 ```shell
