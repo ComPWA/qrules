@@ -50,7 +50,7 @@ repos:
             metadata.vscode
 
   - repo: https://github.com/ComPWA/nbhooks
-    rev: 0.0.1
+    rev: 68b087e
     hooks:
       - id: colab-toc-visible
       - id: fix-nbformat-version
