@@ -369,7 +369,7 @@ class MermaidPrinter:
 
         lines: list[str] = []
         for i, graph in enumerate(reversed(list(transitions))):
-            lines.extend(self._render_transition(graph, prefix=f"T{i}_"))
+            lines.extend(self._render_transition(graph, prefix=f"T{i}_"))  # type:ignore[arg-type]
         return lines
 
     def _render_transition(  # ruff: ignore[complex-structure, too-many-branches, too-many-locals, too-many-statements]
