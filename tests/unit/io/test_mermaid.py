@@ -20,14 +20,14 @@ def test_mermaid_topology():
     assert "    n_0" in src
     assert "    n_1" in src
     assert "    n_2" in src
-    assert " --> " in src
+    assert " --- " in src
 
 
 def test_mermaid_generated_topology():
     topologies = create_isobar_topologies(3)
     src = MermaidPrinter()(topologies)
     assert src.startswith("flowchart LR\n")
-    assert " --> " in src
+    assert " --- " in src
     assert "T0_" in src
 
 
@@ -36,7 +36,7 @@ def test_asmermaid_api():
     src = io.asmermaid(topology)
     assert src.startswith("flowchart LR\n")
     assert "    n_0" in src
-    assert " --> " in src
+    assert " --- " in src
 
 
 def test_asmermaid_accepts_style_parameters():
@@ -65,16 +65,16 @@ def test_asmermaid_reaction(reaction: ReactionInfo):
     for transition in reaction.transitions:
         src = io.asmermaid(transition)
         assert src.startswith("flowchart LR\n")
-        assert " --> " in src
+        assert " --- " in src
     src = io.asmermaid(reaction)
     assert src.startswith("flowchart LR\n")
-    assert " --> " in src
+    assert " --- " in src
     src = io.asmermaid(reaction, strip_spin=True)
     assert src.startswith("flowchart LR\n")
-    assert " --> " in src
+    assert " --- " in src
     src = io.asmermaid(reaction, collapse_graphs=True)
     assert src.startswith("flowchart LR\n")
-    assert " --> " in src
+    assert " --- " in src
 
 
 def test_asmermaid_reaction_with_node_labels(reaction: ReactionInfo):
@@ -94,10 +94,24 @@ def test_asmermaid_edge_id_options():
         render_node=False,
     )
     assert src.startswith("flowchart LR\n")
-    assert any(label in src for label in (" -->|5| ", " -->|6| ", " -->|7| "))
-    assert " -->|0| " not in src
-    assert " -->|1| " not in src
-    assert " -->|2| " not in src
+    assert any(label in src for label in (" ---|5| ", " ---|6| ", " ---|7| "))
+    assert " ---|0| " not in src
+    assert " ---|1| " not in src
+    assert " ---|2| " not in src
+
+
+def test_asmermaid_renders_unlabeled_nodes_without_boxes():
+    topology = create_isobar_topologies(5)[0]
+    src = io.asmermaid(
+        topology,
+        render_final_state_id=False,
+        render_node=False,
+    )
+    node_declarations = set(src.splitlines())
+    assert '    n_0@{ shape: text, label: " " }' in node_declarations
+    assert '    N0@{ shape: text, label: " " }' in node_declarations
+    assert "    n_0" not in node_declarations
+    assert "    N0" not in node_declarations
 
 
 def test_asmermaid_qn_problem_set(qn_problem_and_result: tuple[QNProblemSet, QNResult]):
@@ -112,7 +126,7 @@ def test_asmermaid_qn_result(qn_problem_and_result: tuple[QNProblemSet, QNResult
     _, qn_result = qn_problem_and_result
     src = io.asmermaid(qn_result, render_node=True)
     assert src.startswith("flowchart LR\n")
-    assert " --> " in src
+    assert " --- " in src
     assert "parity_prefactor =" in src
 
 
@@ -131,7 +145,7 @@ def test_asmermaid_problemset(formalism: SpinFormalism):
         for problem_set in problem_set_list:
             src = io.asmermaid(problem_set)
             assert src.startswith("flowchart LR\n")
-            assert " --> " in src
+            assert " --- " in src
 
             topology = problem_set.topology
             initial_facts = problem_set.initial_facts
@@ -139,14 +153,14 @@ def test_asmermaid_problemset(formalism: SpinFormalism):
 
             src = io.asmermaid([(topology, initial_facts)])
             assert src.startswith("flowchart LR\n")
-            assert " --> " in src
+            assert " --- " in src
 
             src = io.asmermaid([(topology, settings)])
             assert src.startswith("flowchart LR\n")
-            assert " --> " in src
+            assert " --- " in src
         src = io.asmermaid(problem_set_list)
         assert src.startswith("flowchart LR\n")
-        assert " --> " in src
+        assert " --- " in src
 
 
 def test_mermaid_labels_are_escaped():
@@ -161,12 +175,12 @@ def test_mermaid_labels_are_escaped():
 
 def test_mermaid_edge_labels_with_state_brackets_are_quoted():
     edge_line = MermaidPrinter()._create_mermaid_edge("A", "B", "f(2)(2340)[-2]")
-    assert edge_line == '    A -->|"f(2)(2340)[-2]"| B'
+    assert edge_line == '    A ---|"f(2)(2340)[-2]"| B'
 
 
 def test_mermaid_edge_labels_with_ket_vectors_are_quoted():
     edge_line = MermaidPrinter()._create_mermaid_edge("A", "B", "|1,-1⟩")
-    assert edge_line == '    A --"|1,-1⟩"--> B'
+    assert edge_line == '    A --"|1,-1⟩"--- B'
 
 
 @pytest.fixture

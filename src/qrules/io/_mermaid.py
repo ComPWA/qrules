@@ -556,7 +556,7 @@ class MermaidPrinter:
         if label:
             escaped_label = self._escape_label(label)
             return f'    {node_id}["{escaped_label}"]'
-        return f"    {node_id}"
+        return f'    {node_id}@{{ shape: text, label: " " }}'
 
     def _create_mermaid_edge(
         self, from_node: str, to_node: str, label: str = ""
@@ -564,12 +564,12 @@ class MermaidPrinter:
         if label:
             if "|" in label:
                 escaped_label = self._escape_label(label)
-                return f'    {from_node} --"{escaped_label}"--> {to_node}'
+                return f'    {from_node} --"{escaped_label}"--- {to_node}'
             escaped_label = self._escape_label(label, for_edge=True)
             if any(char in escaped_label for char in "[]()"):
                 escaped_label = f'"{escaped_label}"'
-            return f"    {from_node} -->|{escaped_label}| {to_node}"
-        return f"    {from_node} --> {to_node}"
+            return f"    {from_node} ---|{escaped_label}| {to_node}"
+        return f"    {from_node} --- {to_node}"
 
     @staticmethod
     def _normalize_node_id(node_id: str) -> str:
