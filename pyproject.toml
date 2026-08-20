@@ -95,9 +95,6 @@ jupyter = [
     { include-group = "notebooks" },
 ]
 notebooks = [
-    "ipython",
-    "matplotlib",
-    "pillow",
     "qrules[viz]",
 ]
 style = [
