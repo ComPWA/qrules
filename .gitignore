@@ -1,7 +1,7 @@
 # Output files
 *.gv
-*.mmd
 *.json
+*.mmd
 *.npy
 *.pdf
 *.pickle
