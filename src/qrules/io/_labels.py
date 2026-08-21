@@ -166,6 +166,14 @@ def __get_type(rule: Rule) -> type[Rule]:
 
 
 def __extract_priority(description: str) -> int | float:
+    """Get the priority from a rule description, as rendered by `.as_string`.
+
+    Rules without a priority (``"NA"``) rank below any numeric priority.
+
+    >>> descriptions = ["a - 9", "b - 10", "c - NA", "d - -1"]
+    >>> sorted(descriptions, key=__extract_priority, reverse=True)
+    ['b - 10', 'a - 9', 'd - -1', 'c - NA']
+    """
     matches = re.match(r".* - (-?[0-9]+|NA)$", description)
     if matches is None:
         msg = f"{description} does not contain a priority number"
