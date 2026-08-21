@@ -33,6 +33,32 @@ _LABEL_ESCAPES: dict[str, str] = {
 _NODE_LABEL_TABLE = str.maketrans(_LABEL_ESCAPES)
 _EDGE_LABEL_TABLE = str.maketrans({**_LABEL_ESCAPES, "|": r"\|"})
 
+_STYLE_KEYS = {
+    "bgcolor": "fill",
+    "backgroundcolor": "fill",
+    "fill": "fill",
+    "fillcolor": "fill",
+    "color": "color",
+    "fontcolor": "color",
+    "font": "font-family",
+    "fontfamily": "font-family",
+    "fontsize": "font-size",
+}
+_NODE_STYLE_KEYS = {
+    **_STYLE_KEYS,
+    "stroke": "stroke",
+    "strokecolor": "stroke",
+    "fontweight": "font-weight",
+}
+_EDGE_STYLE_KEYS = {
+    **_NODE_STYLE_KEYS,
+    "bgcolor": "stroke",
+    "backgroundcolor": "stroke",
+    "fill": "stroke",
+    "fillcolor": "stroke",
+    "color": "stroke",
+}
+
 
 def _get_mermaid_node(edge_id: int, node_id: int | None = None) -> str:
     if node_id is None:
@@ -232,47 +258,11 @@ class MermaidPrinter:
     def _normalize_style_key(key: str, target: str) -> str | None:
         normalized = str(key).strip().lower().replace("_", "")
         if target == "node":
-            mapping = {
-                "bgcolor": "fill",
-                "backgroundcolor": "fill",
-                "fill": "fill",
-                "fillcolor": "fill",
-                "color": "color",
-                "fontcolor": "color",
-                "font": "font-family",
-                "fontfamily": "font-family",
-                "fontsize": "font-size",
-                "stroke": "stroke",
-                "strokecolor": "stroke",
-                "fontweight": "font-weight",
-            }
+            mapping = _NODE_STYLE_KEYS
         elif target == "edge":
-            mapping = {
-                "bgcolor": "stroke",
-                "backgroundcolor": "stroke",
-                "fill": "stroke",
-                "fillcolor": "stroke",
-                "color": "stroke",
-                "fontcolor": "color",
-                "font": "font-family",
-                "fontfamily": "font-family",
-                "fontsize": "font-size",
-                "stroke": "stroke",
-                "strokecolor": "stroke",
-                "fontweight": "font-weight",
-            }
+            mapping = _EDGE_STYLE_KEYS
         else:
-            mapping = {
-                "bgcolor": "fill",
-                "backgroundcolor": "fill",
-                "fill": "fill",
-                "fillcolor": "fill",
-                "color": "color",
-                "fontcolor": "color",
-                "font": "font-family",
-                "fontfamily": "font-family",
-                "fontsize": "font-size",
-            }
+            mapping = _STYLE_KEYS
         return mapping.get(normalized)
 
     def _create_mermaid_node(self, node_id: str, label: str = "") -> str:
