@@ -6,6 +6,7 @@ import pytest
 
 import qrules
 from qrules import io
+from qrules.io import _labels
 from qrules.io._labels import (
     as_string,
     collapse_graphs,
@@ -214,25 +215,25 @@ def test_as_string_dict(
     print(src)
     expected_dot = dedent("""
         RULES
-        clebsch_gordan_helicity_to_canonical - NA
+        ChargeConservation - 100
         BaryonNumberConservation - 90
         ls_spin_validity - 89
-        spin_magnitude_conservation - 8
         CharmConservation - 70
-        helicity_conservation - 7
         StrangenessConservation - 69
         BottomnessConservation - 68
         isospin_conservation - 60
-        parity_conservation - 6
-        c_parity_conservation - 5
         ElectronLNConservation - 45
         MuonLNConservation - 44
         TauLNConservation - 43
+        MassConservation - 10
+        spin_magnitude_conservation - 8
+        helicity_conservation - 7
+        parity_conservation - 6
+        c_parity_conservation - 5
         parity_conservation_helicity - 4
         g_parity_conservation - 3
         identical_particle_symmetrization - 2
-        ChargeConservation - 100
-        MassConservation - 10
+        clebsch_gordan_helicity_to_canonical - NA
         DOMAINS
         l_magnitude ∊ [0, 1]
         l_projection ∊ [0]
@@ -270,6 +271,19 @@ def test_as_string_dict(
         "width = 0.15",
     }
     assert lines == expected_lines
+
+
+@pytest.mark.parametrize(
+    ("description", "expected_priority"),
+    [
+        ("rule - 10", 10),
+        ("rule - -2", -2),
+        ("rule - NA", float("-inf")),
+    ],
+)
+def test_extract_priority(description: str, expected_priority: float):
+    priority = _labels.__extract_priority(description)
+    assert priority == expected_priority
 
 
 def test_as_string_spin_tuple(particle_database: ParticleCollection):

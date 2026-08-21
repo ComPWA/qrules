@@ -165,12 +165,15 @@ def __get_type(rule: Rule) -> type[Rule]:
     return type(rule)
 
 
-def __extract_priority(description: str) -> str:
-    matches = re.match(r".* \- ([0-9]+|NA)$", description)
+def __extract_priority(description: str) -> int | float:
+    matches = re.match(r".* - (-?[0-9]+|NA)$", description)
     if matches is None:
         msg = f"{description} does not contain a priority number"
         raise ValueError(msg)
-    return matches[1]
+    priority = matches[1]
+    if priority == "NA":
+        return float("-inf")
+    return int(priority)
 
 
 def __render_domain(domain: list[Any], key: str) -> str:
