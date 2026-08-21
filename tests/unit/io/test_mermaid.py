@@ -2,7 +2,6 @@ import pytest
 
 from qrules import io
 from qrules.io._mermaid import MermaidPrinter
-from qrules.settings import InteractionType
 from qrules.solving import QNProblemSet, QNResult
 from qrules.topology import create_isobar_topologies, create_n_body_topology
 from qrules.transition import (
@@ -194,23 +193,6 @@ def test_mermaid_edge_labels_with_state_brackets_are_quoted():
 def test_mermaid_edge_labels_with_ket_vectors_are_quoted():
     edge_line = MermaidPrinter()._create_mermaid_edge("A", "B", "|1,-1⟩")
     assert edge_line == '    A --"|1,-1⟩"--- B'
-
-
-@pytest.fixture
-def stm() -> StateTransitionManager:
-    stm = StateTransitionManager(
-        initial_state=[("J/psi(1S)", [+1])],
-        final_state=["K0", ("Sigma+", [+0.5]), ("p~", [+0.5])],
-        allowed_intermediate_particles=["Sigma(1750)"],
-        formalism="canonical-helicity",
-    )
-    stm.set_allowed_interaction_types([InteractionType.STRONG, InteractionType.EM])
-    return stm
-
-
-@pytest.fixture
-def problem_sets(stm: StateTransitionManager) -> dict[float, list[ProblemSet]]:
-    return stm.create_problem_sets()
 
 
 @pytest.fixture
