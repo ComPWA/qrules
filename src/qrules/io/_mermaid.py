@@ -11,6 +11,8 @@ import string
 from collections import abc
 from typing import TYPE_CHECKING, Any
 
+import attrs
+
 from qrules.io import _labels
 from qrules.solving import QNProblemSet, QNResult
 from qrules.topology import Topology, Transition
@@ -40,31 +42,23 @@ def _get_mermaid_node(edge_id: int, node_id: int | None = None) -> str:
     return f"N{node_id}"
 
 
+def _to_style_dict(style: dict[str, Any] | None) -> dict[str, Any]:
+    return dict(style) if style else {}
+
+
+@attrs.define(kw_only=True)
 class MermaidPrinter:
     """Render qrules graph objects as Mermaid flowcharts."""
 
-    def __init__(
-        self,
-        *,
-        render_node: bool | None = None,
-        render_final_state_id: bool = True,
-        render_resonance_id: bool = False,
-        render_initial_state_id: bool = False,
-        strip_spin: bool = False,
-        collapse_graphs: bool = False,
-        figure_style: dict[str, Any] | None = None,
-        edge_style: dict[str, Any] | None = None,
-        node_style: dict[str, Any] | None = None,
-    ) -> None:
-        self.render_node = render_node
-        self.render_final_state_id = render_final_state_id
-        self.render_resonance_id = render_resonance_id
-        self.render_initial_state_id = render_initial_state_id
-        self.strip_spin = strip_spin
-        self.collapse_graphs = collapse_graphs
-        self.figure_style = dict(figure_style) if figure_style else {}
-        self.edge_style = dict(edge_style) if edge_style else {}
-        self.node_style = dict(node_style) if node_style else {}
+    render_node: bool | None = None
+    render_final_state_id: bool = True
+    render_resonance_id: bool = False
+    render_initial_state_id: bool = False
+    strip_spin: bool = False
+    collapse_graphs: bool = False
+    figure_style: dict[str, Any] = attrs.field(converter=_to_style_dict, default=None)
+    edge_style: dict[str, Any] = attrs.field(converter=_to_style_dict, default=None)
+    node_style: dict[str, Any] = attrs.field(converter=_to_style_dict, default=None)
 
     def __call__(self, obj: Any) -> str:
         lines = ["flowchart LR"]
