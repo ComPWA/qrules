@@ -251,8 +251,6 @@ def get_particle_graphs(
 def strip_projections(
     graph: Transition[Any, InteractionProperties],
 ) -> FrozenTransition[Particle, InteractionProperties]:
-    if isinstance(graph, MutableTransition):
-        transition = graph.freeze()
     transition = cast("FrozenTransition[Any, InteractionProperties]", graph)
     return transition.convert(
         state_converter=__to_particle,
