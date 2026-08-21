@@ -275,6 +275,7 @@ def __to_particle(state: Any) -> Particle:
 def collapse_graphs(
     graphs: Iterable[Transition[Any, Any]],
 ) -> list[FrozenTransition[tuple, None]]:
+    graphs = list(graphs)
     transition_groups: dict[Topology, MutableTransition[set[Particle], None]] = {
         g.topology: MutableTransition(
             g.topology,
