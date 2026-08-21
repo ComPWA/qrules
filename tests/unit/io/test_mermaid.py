@@ -66,6 +66,11 @@ def test_asmermaid_reaction(reaction: ReactionInfo):
         src = io.asmermaid(transition)
         assert src.startswith("flowchart LR\n")
         assert " --- " in src
+        initial_state_id = next(iter(transition.topology.incoming_edge_ids))
+        initial_node_id = transition.topology.edges[initial_state_id].ending_node_id
+        initial_state = transition.states[initial_state_id]
+        assert f'N{initial_node_id}["{initial_state.particle.name}' in src
+        assert f"    A --- N{initial_node_id}" not in src
     src = io.asmermaid(reaction)
     assert src.startswith("flowchart LR\n")
     assert " --- " in src
@@ -83,6 +88,14 @@ def test_asmermaid_reaction_with_node_labels(reaction: ReactionInfo):
     assert "gamma[-1]" in src
     assert "f(0)(980)[0]" in src
     assert "P=+1" in src
+    assert "    A --- N0" in src
+
+
+def test_asmermaid_keeps_multiple_initial_states_separate():
+    topology = create_n_body_topology(2, 2)
+    src = io.asmermaid(topology, render_node=False)
+    assert "    A --- N0" in src
+    assert "    B --- N0" in src
 
 
 def test_asmermaid_edge_id_options():

@@ -154,20 +154,31 @@ class MermaidPrinter:
                 node_labels[node_id] = label
             return node_id
 
-        for edge_id in topology.incoming_edge_ids | topology.outgoing_edge_ids:
-            if edge_id in topology.incoming_edge_ids:
-                render = self.render_initial_state_id
-            else:
-                render = self.render_final_state_id
-            label = _labels.create_edge_label(rendered_graph, edge_id, render)
-            add_node(prefix + _get_mermaid_node(edge_id), label)
-
         if self.render_node is None:
             render_node = (
                 isinstance(rendered_graph, Topology) and len(topology.nodes) > 1
             )
         else:
             render_node = self.render_node
+
+        folded_initial_edge_id: int | None = None
+        if len(topology.incoming_edge_ids) == 1 and not render_node:
+            initial_edge_id = next(iter(topology.incoming_edge_ids))
+            initial_edge = topology.edges[initial_edge_id]
+            if initial_edge.ending_node_id is not None:
+                folded_initial_edge_id = initial_edge_id
+
+        for edge_id in topology.incoming_edge_ids | topology.outgoing_edge_ids:
+            if edge_id in topology.incoming_edge_ids:
+                render = self.render_initial_state_id
+            else:
+                render = self.render_final_state_id
+            label = _labels.create_edge_label(rendered_graph, edge_id, render)
+            if edge_id == folded_initial_edge_id:
+                node_id = topology.edges[edge_id].ending_node_id
+                add_node(f"{prefix}N{node_id}", label)
+            else:
+                add_node(prefix + _get_mermaid_node(edge_id), label)
 
         for node_id in topology.nodes:
             label = ""
@@ -187,7 +198,10 @@ class MermaidPrinter:
                 add_node(f"{prefix}N{node_id}", _labels.as_string(node_prop))
 
         edge_style_lines: list[str] = []
-        for edge_index, (edge_id, edge) in enumerate(topology.edges.items()):
+        edge_index = 0
+        for edge_id, edge in topology.edges.items():
+            if edge_id == folded_initial_edge_id:
+                continue
             j, k = edge.ending_node_id, edge.originating_node_id
             from_node = add_node(prefix + _get_mermaid_node(edge_id, k))
             to_node = add_node(prefix + _get_mermaid_node(edge_id, j))
@@ -202,6 +216,7 @@ class MermaidPrinter:
                 edge_style_lines.append(
                     self._create_mermaid_link_style(edge_index, self.edge_style)
                 )
+            edge_index += 1
 
         node_lines.extend(
             self._create_mermaid_node(node_id, node_labels[node_id])
