@@ -22,6 +22,16 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
+_LABEL_ESCAPES: dict[str, str] = {
+    "\\": r"\\",
+    '"': r"\"",
+    "\n": "<br/>",
+}
+
+_NODE_LABEL_TABLE = str.maketrans(_LABEL_ESCAPES)
+_EDGE_LABEL_TABLE = str.maketrans({**_LABEL_ESCAPES, "|": r"\|"})
+
+
 def _get_mermaid_node(edge_id: int, node_id: int | None = None) -> str:
     if node_id is None:
         if edge_id < 0:
@@ -301,12 +311,5 @@ class MermaidPrinter:
 
     @staticmethod
     def _escape_label(label: str, *, for_edge: bool = False) -> str:
-        text = str(label).strip()
-        if not text:
-            return ""
-        escaped = text.replace("\\", "\\\\")
-        escaped = escaped.replace('"', '\\"')
-        escaped = escaped.replace("\n", "<br/>")
-        if for_edge:
-            escaped = escaped.replace("|", "\\|")
-        return escaped
+        table = _EDGE_LABEL_TABLE if for_edge else _NODE_LABEL_TABLE
+        return str(label).strip().translate(table)
