@@ -6,11 +6,11 @@ import pytest
 
 import qrules
 from qrules import io
-from qrules.io._dot import (
-    _collapse_graphs,
-    _get_particle_graphs,
-    _strip_projections,
+from qrules.io._labels import (
     as_string,
+    collapse_graphs,
+    get_particle_graphs,
+    strip_projections,
 )
 from qrules.particle import Particle, ParticleCollection
 from qrules.settings import InteractionType
@@ -345,10 +345,10 @@ def test_collapse_graphs(
     particle_database: ParticleCollection,
 ):
     pdg = particle_database
-    particle_graphs = _get_particle_graphs(reaction.transitions)  # type: ignore[arg-type]
+    particle_graphs = get_particle_graphs(reaction.transitions)  # type: ignore[arg-type]
     assert len(particle_graphs) == 2
 
-    collapsed_graphs = _collapse_graphs(reaction.transitions)  # type: ignore[arg-type]
+    collapsed_graphs = collapse_graphs(reaction.transitions)  # type: ignore[arg-type]
     assert len(collapsed_graphs) == 1
     graph = next(iter(collapsed_graphs))
     edge_id = next(iter(graph.topology.intermediate_edge_ids))
@@ -363,7 +363,7 @@ def test_get_particle_graphs(
     reaction: ReactionInfo, particle_database: ParticleCollection
 ):
     pdg = particle_database
-    graphs = _get_particle_graphs(reaction.transitions)  # type: ignore[arg-type]
+    graphs = get_particle_graphs(reaction.transitions)  # type: ignore[arg-type]
     assert len(graphs) == 2
     assert graphs[0].states[3] == pdg["f(0)(980)"]
     assert graphs[1].states[3] == pdg["f(0)(1500)"]
@@ -393,7 +393,7 @@ def test_strip_projections(skh_particle_version: str):
     assert transition.interactions[1].s_projection == -0.5
     assert transition.interactions[1].l_projection == 0
 
-    stripped_transition = _strip_projections(transition)  # type: ignore[arg-type]
+    stripped_transition = strip_projections(transition)  # type: ignore[arg-type]
     assert stripped_transition.states[3].name == resonance
     assert stripped_transition.interactions[0].s_projection is None
     assert stripped_transition.interactions[0].l_projection is None
