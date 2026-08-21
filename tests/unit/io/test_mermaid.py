@@ -220,7 +220,7 @@ def qn_problem_and_result(
 ) -> tuple[QNProblemSet, QNResult]:
     qn_solutions = stm.find_quantum_number_transitions(problem_sets)
     strong_qn_solutions = qn_solutions[3600.0]
-    for pair in strong_qn_solutions:
-        if pair[1].solutions:
-            return pair
+    for qn_problem, qn_result in strong_qn_solutions:
+        if qn_result.solutions:
+            return qn_problem, qn_result
     return strong_qn_solutions[0]
