@@ -13,7 +13,13 @@ from typing import TYPE_CHECKING, Any
 from attrs import Attribute, define, field
 from attrs.converters import default_if_none
 
-from qrules.io import _labels
+from qrules.io._labels import (
+    as_string,
+    collapse_graphs,
+    create_edge_label,
+    get_particle_graphs,
+    strip_projections,
+)
 from qrules.solving import QNProblemSet, QNResult
 from qrules.topology import Topology, Transition
 from qrules.transition import ProblemSet, ReactionInfo
@@ -94,12 +100,12 @@ class GraphPrinter:
 
     def _render_multiple_transitions(self, obj: Iterable) -> list[str]:
         if self.collapse_graphs:
-            transitions: list = _labels.collapse_graphs(obj)
+            transitions: list = collapse_graphs(obj)
         elif self.strip_spin:
             if self.render_node:
-                transitions = sorted({_labels.strip_projections(t) for t in obj})
+                transitions = sorted({strip_projections(t) for t in obj})
             else:
-                transitions = _labels.get_particle_graphs(obj)
+                transitions = get_particle_graphs(obj)
         else:
             transitions = list(obj)
         lines = []
@@ -130,7 +136,7 @@ class GraphPrinter:
                 render = self.render_initial_state_id
             else:
                 render = self.render_final_state_id
-            label = _labels.create_edge_label(rendered_graph, edge_id, render)
+            label = create_edge_label(rendered_graph, edge_id, render)
             graphviz_node = prefix + _get_graphviz_node(edge_id)
             lines += [self._create_graphviz_node(graphviz_node, label, self.edge_style)]
         lines += [_create_same_rank_line(topology.incoming_edge_ids, prefix)]
@@ -142,23 +148,21 @@ class GraphPrinter:
             if j is None or k is None:
                 lines += [self._create_graphviz_edge(from_node, to_node)]
             else:
-                label = _labels.create_edge_label(
-                    rendered_graph, i, self.render_resonance_id
-                )
+                label = create_edge_label(rendered_graph, i, self.render_resonance_id)
                 lines += [self._create_graphviz_edge(from_node, to_node, label)]
         if isinstance(obj, (ProblemSet, QNProblemSet)):
             node_settings = obj.solving_settings.interactions
             for node_id, settings in node_settings.items():
                 label = ""
                 if self.render_node:
-                    label = _labels.as_string(settings)
+                    label = as_string(settings)
                 node = f"{prefix}N{node_id}"
                 lines += [self._create_graphviz_node(node, label, self.node_style)]
         if isinstance(obj, Transition):
             for node_id, node_prop in obj.interactions.items():
                 label = ""
                 if self.render_node:
-                    label = _labels.as_string(node_prop)
+                    label = as_string(node_prop)
                 node = f"{prefix}N{node_id}"
                 lines += [self._create_graphviz_node(node, label, self.node_style)]
         if isinstance(obj, Topology):
