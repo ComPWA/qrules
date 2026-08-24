@@ -108,7 +108,7 @@ def asdot(
 
     .. seealso:: :doc:`/usage/visualize`
     """
-    print_dot = _dot.GraphPrinter(
+    print_dot = _dot.GraphvizPrinter(
         render_node=render_node,
         render_final_state_id=render_final_state_id,
         render_resonance_id=render_resonance_id,

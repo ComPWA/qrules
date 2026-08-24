@@ -30,7 +30,11 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-def _check_booleans(instance: GraphPrinter, attribute: Attribute, value: bool) -> None:  # ruff: ignore[unused-function-argument]
+def _check_booleans(
+    instance: GraphvizPrinter,
+    _attribute: Attribute,
+    _value: bool,
+) -> None:
     if instance.strip_spin and instance.collapse_graphs:
         msg = "Cannot both strip spin and collapse graphs"
         raise ValueError(msg)
@@ -48,7 +52,7 @@ def _create_default_figure_style(style: dict[str, Any] | None) -> dict[str, Any]
 
 
 @define(on_setattr=_check_booleans)
-class GraphPrinter:
+class GraphvizPrinter:
     render_node: bool | None = None
     render_final_state_id: bool = True
     render_resonance_id: bool = False
