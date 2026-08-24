@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any
 import attrs
 import yaml
 
-from qrules.io import _dict, _dot
+from qrules.io import _dict, _dot, _mermaid
 from qrules.particle import Particle, ParticleCollection
 from qrules.topology import Topology
 
@@ -108,7 +108,7 @@ def asdot(
 
     .. seealso:: :doc:`/usage/visualize`
     """
-    print_dot = _dot.GraphPrinter(
+    print_dot = _dot.GraphvizPrinter(
         render_node=render_node,
         render_final_state_id=render_final_state_id,
         render_resonance_id=render_resonance_id,
@@ -120,6 +120,74 @@ def asdot(
         node_style=node_style,
     )
     return print_dot(instance)
+
+
+def asmermaid(
+    instance: object,
+    *,
+    render_node: bool | None = None,
+    render_final_state_id: bool = True,
+    render_resonance_id: bool = False,
+    render_initial_state_id: bool = False,
+    strip_spin: bool = False,
+    collapse_graphs: bool = False,
+    figure_style: dict[str, Any] | None = None,
+    edge_style: dict[str, Any] | None = None,
+    node_style: dict[str, Any] | None = None,
+) -> str:
+    """Convert a `object` to a Mermaid flowchart source `str`.
+
+    Only works for objects that can be represented as a graph, particularly a
+    `.MutableTransition` or a `list` of `.MutableTransition` instances.
+
+    Args:
+        instance: the input `object` that is to be rendered as Mermaid flowchart
+            source.
+
+        strip_spin: Normally, each `.MutableTransition` has a `.Particle` with a spin
+            projection on its edges. This option hides the projections, leaving only
+            `.Particle` names on edges.
+
+        collapse_graphs: Group all transitions by equivalent kinematic topology
+            and combine all allowed particles on each edge.
+
+        render_node: Whether or not to render node ID (in the case of a `.Topology`)
+            and/or node properties (in the case of a `.MutableTransition`). Meaning of
+            the labels:
+
+            - :math:`P`: parity prefactor
+            - :math:`S`: coupled spin magnitude and projection
+            - :math:`L`: angular momentum and projection
+
+            See `.InteractionProperties` for more info.
+
+        render_final_state_id: Add edge IDs for the final state edges.
+        render_resonance_id: Add edge IDs for the intermediate state edges.
+        render_initial_state_id: Add edge IDs for the initial state edges.
+        edge_style: Styling of Mermaid edges.
+        node_style: Styling of Mermaid nodes.
+        figure_style: Styling of the whole Mermaid diagram.
+
+    .. seealso::
+
+        See the
+        `Mermaid flowchart syntax <https://mermaid.ai/open-source/syntax/flowchart.html>`_
+        for available diagram constructs and style directives.
+
+    .. seealso:: :doc:`/usage/visualize`
+    """
+    print_mermaid = _mermaid.MermaidPrinter(
+        render_node=render_node,
+        render_final_state_id=render_final_state_id,
+        render_resonance_id=render_resonance_id,
+        render_initial_state_id=render_initial_state_id,
+        strip_spin=strip_spin,
+        collapse_graphs=collapse_graphs,
+        figure_style=figure_style,
+        edge_style=edge_style,
+        node_style=node_style,
+    )
+    return print_mermaid(instance)
 
 
 def load(filename: str | Path) -> object:
@@ -166,6 +234,14 @@ def write(instance: object, filename: StrPath) -> None:
                 output_str = instance
             else:
                 output_str = asdot(instance)
+            with open(filename, "w") as stream:
+                stream.write(output_str)
+            return
+        if file_extension == "mmd":
+            if isinstance(instance, str):  # direct output of asmermaid
+                output_str = instance
+            else:
+                output_str = asmermaid(instance)
             with open(filename, "w") as stream:
                 stream.write(output_str)
             return

@@ -4,7 +4,7 @@ from fractions import Fraction
 
 import pytest
 
-from qrules.io._dot import _render_fraction
+from qrules.io._labels import _render_fraction
 from qrules.quantum_numbers import Parity
 
 
