@@ -22,7 +22,7 @@ import logging
 from abc import ABC, abstractmethod
 from collections import abc
 from functools import total_ordering
-from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast, overload
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, overload
 
 import attrs
 from attrs import define, field, frozen
@@ -516,7 +516,7 @@ class SimpleStateTransitionTopologyBuilder:
         if not isinstance(interaction_node_set, list):
             msg = "interaction_node_set must be a list"
             raise TypeError(msg)
-        self.interaction_node_set = cast("list[InteractionNode]", interaction_node_set)
+        self.interaction_node_set = interaction_node_set
 
     def build(
         self, number_of_initial_edges: int, number_of_final_edges: int
@@ -777,14 +777,18 @@ class Transition(ABC, Generic[EdgeType, NodeType]):
         return {i: self.states[i] for i in edge_ids if i in self.states}
 
 
+def _to_frozen_dict(inst: Mapping[KT, VT]) -> FrozenDict[KT, VT]:
+    return FrozenDict(inst)
+
+
 @implement_pretty_repr
 @frozen(order=True)
 class FrozenTransition(Transition, Generic[EdgeType, NodeType]):
     """Defines a frozen mapping of edge and node properties on a `Topology`."""
 
     topology: Topology = field(validator=instance_of(Topology))
-    states: FrozenDict[int, EdgeType] = field(converter=FrozenDict)
-    interactions: FrozenDict[int, NodeType] = field(converter=FrozenDict)
+    states: FrozenDict[int, EdgeType] = field(converter=_to_frozen_dict)
+    interactions: FrozenDict[int, NodeType] = field(converter=_to_frozen_dict)
 
     def __attrs_post_init__(self) -> None:
         _assert_all_defined(self.topology.nodes, self.interactions)
