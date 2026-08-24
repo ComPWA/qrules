@@ -173,9 +173,9 @@ def asmermaid(
 
     .. seealso::
 
-        See the
-        `Mermaid flowchart syntax <https://mermaid.ai/open-source/syntax/flowchart.html>`_
-        for available diagram constructs and style directives.
+        See the `Mermaid flowchart syntax
+        <https://mermaid.ai/open-source/syntax/flowchart.html>`_ for available diagram
+        constructs and style directives.
 
     .. seealso:: :doc:`/usage/visualize`
     """
