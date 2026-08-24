@@ -36,6 +36,7 @@ def test_asmermaid_api():
     assert src.startswith("flowchart LR\n")
     assert "    n_0" in src
     assert " --- " in src
+    assert "$$" not in src
 
 
 def test_asmermaid_markdown_fence():
@@ -43,6 +44,52 @@ def test_asmermaid_markdown_fence():
     src = io.asmermaid(topology, markdown=True)
     assert src.startswith("```mermaid\nflowchart LR\n")
     assert src.endswith("\n```\n")
+
+
+def test_asmermaid_latex_markdown(reaction: ReactionInfo):
+    src = io.asmermaid(reaction.transitions[0], latex=True, markdown=True)
+    assert src.startswith("```mermaid\nflowchart LR\n")
+    assert R"$$J/\psi(1S)" in src
+    assert R"J/\\psi(1S)" not in src
+    assert src.endswith("\n```\n")
+
+
+def test_asmermaid_latex_reaction(reaction: ReactionInfo):
+    src = io.asmermaid(
+        reaction.transitions[0],
+        render_node=True,
+        render_resonance_id=True,
+        latex=True,
+    )
+    assert src.startswith("flowchart LR\n")
+    assert not src.startswith("```mermaid")
+    assert R"J/\psi(1S)\left[" in src
+    assert R"f_{0}(980)\left[" in src
+    assert "P = +1" in src
+    assert "<br/>" not in src
+    if reaction.formalism == "canonical-helicity":
+        assert R"$$\begin{gathered} L =" in src
+
+    labeled_lines = [
+        line
+        for line in src.splitlines()
+        if '["' in line or '---|"' in line or '--"' in line
+    ]
+    assert labeled_lines
+    assert all(line.count("$$") == 2 for line in labeled_lines)
+
+
+def test_asmermaid_latex_collapsed_graph(reaction: ReactionInfo):
+    src = io.asmermaid(reaction, collapse_graphs=True, latex=True)
+    assert R"$$\begin{gathered} f_{0}(980)" in src
+    assert R"\\\ f_{0}(1500) \end{gathered}$$" in src
+
+
+def test_asmermaid_latex_strip_spin(reaction: ReactionInfo):
+    src = io.asmermaid(reaction, strip_spin=True, latex=True)
+    assert R"J/\psi(1S)$$" in src
+    assert R"\gamma$$" in src
+    assert R"\left[" not in src
 
 
 def test_asmermaid_accepts_style_parameters():
@@ -141,12 +188,27 @@ def test_asmermaid_qn_problem_set(qn_problem_and_result: tuple[QNProblemSet, QNR
     assert "DOMAINS" in src
 
 
+def test_asmermaid_latex_qn_problem_set(
+    qn_problem_and_result: tuple[QNProblemSet, QNResult],
+):
+    qn_problem_set, _ = qn_problem_and_result
+    src = io.asmermaid(qn_problem_set, render_node=True, latex=True)
+    assert R"$$\begin{gathered} \text{RULES}" in src
+    assert R"\text{DOMAINS}" in src
+    assert R"\text{spin\_magnitude} \in" in src
+    assert "<br/>" not in src
+
+
 def test_asmermaid_qn_result(qn_problem_and_result: tuple[QNProblemSet, QNResult]):
     _, qn_result = qn_problem_and_result
     src = io.asmermaid(qn_result, render_node=True)
     assert src.startswith("flowchart LR\n")
     assert " --- " in src
     assert "parity_prefactor =" in src
+
+    src = io.asmermaid(qn_result, render_node=True, latex=True)
+    assert R"$$\begin{gathered}" in src
+    assert R"\text{parity\_prefactor} = +1" in src
 
 
 @pytest.mark.parametrize(
@@ -190,6 +252,27 @@ def test_mermaid_labels_are_escaped():
     )
     assert 'value with \\"quotes\\" and<br/>line break' in node_line
     assert 'value with \\"quotes\\" and<br/>line break' in edge_line
+
+
+def test_mermaid_latex_labels_are_wrapped_and_escaped():
+    printer = MermaidPrinter(latex=True)
+    node_line = printer._create_mermaid_node("A", '\\alpha + "quoted"\n+ \\beta')
+    edge_line = printer._create_mermaid_edge("A", "B", R"\gamma")
+    ket_edge_line = printer._create_mermaid_edge(
+        "A", "B", R"\left|\frac{1}{2},+\frac{1}{2}\right\rangle"
+    )
+    multiline_node_line = printer._create_mermaid_node(
+        "A", R"\begin{gathered} L = 0 \\ S = 1 \end{gathered}"
+    )
+
+    assert node_line == R'    A["$$\alpha + \"quoted\" + \beta$$"]'
+    assert edge_line == R'    A ---|"$$\gamma$$"| B'
+    assert ket_edge_line == (
+        R'    A --"$$\left|\frac{1}{2},+\frac{1}{2}\right\rangle$$"--- B'
+    )
+    assert multiline_node_line == (
+        R'    A["$$\begin{gathered} L = 0 \\\ S = 1 \end{gathered}$$"]'
+    )
 
 
 def test_mermaid_edge_labels_with_state_brackets_are_quoted():
