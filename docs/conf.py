@@ -17,7 +17,7 @@ from sphinx_api_relink.helpers import (
 from qrules.quantum_numbers import EdgeQuantumNumbers, NodeQuantumNumbers
 
 sys.path.insert(0, os.path.abspath("."))
-from _extend_docstrings import extend_docstrings  # ruff:ignore[import-private-name]
+from _extend_docstrings import extend_docstrings  # ruff: ignore[import-private-name]
 
 
 def __get_newtypes(some_type: type) -> list:
@@ -168,6 +168,7 @@ extensions = [
     "sphinx_pybtex_etal_style",
     "sphinx_thebe",
     "sphinx_togglebutton",
+    "sphinxcontrib.mermaid",
     "sphinxcontrib.bibtex",
 ]
 generate_apidoc_package_path = f"../src/{PACKAGE}"
@@ -251,6 +252,7 @@ intersphinx_mapping = {
     "graphviz": ("https://graphviz.readthedocs.io/en/stable", None),
     "IPython": (f"https://ipython.readthedocs.io/en/{pin('IPython')}", None),
     "jsonschema": ("https://python-jsonschema.readthedocs.io/en/stable", None),
+    "mypy": ("https://mypy.readthedocs.io/en/stable", None),
     "python": ("https://docs.python.org/3", None),
 }
 linkcheck_anchors = False
@@ -267,6 +269,7 @@ myst_enable_extensions = [
     "smartquotes",
     "substitution",
 ]
+myst_fence_as_directive = ["mermaid"]
 myst_heading_anchors = 2
 myst_substitutions = {
     "branch": BRANCH,
@@ -283,13 +286,14 @@ nb_execution_mode = get_execution_mode()
 nb_execution_show_tb = True
 nb_execution_timeout = -1
 nb_output_stderr = "remove"
+nb_render_markdown_format = "myst"
 nitpick_ignore = [
-    ("py:class", "qrules.conservation_rules._RuleClass"),
     ("py:class", "StrPath"),
 ]
 nitpick_ignore_regex = [
     (r"py:(class|obj)", "json.encoder.JSONEncoder"),
     (r"py:(class|obj)", r"frozendict(\.frozendict)?"),
+    (r"py:(class|obj)", r"qrules\.conservation_rules\._RuleClass"),
     (r"py:(class|obj)", r"qrules\.quantum_numbers\._QuantumNumber_co"),
     (r"py:(class|obj)", r"qrules\.topology\.EdgeType"),
     (r"py:(class|obj)", r"qrules\.topology\.KT"),

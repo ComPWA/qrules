@@ -4,7 +4,9 @@ description = "Rule-based particle reaction problem solver on a quantum number l
 requires-python = ">=3.10"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
-authors = [{ name = "Common Partial Wave Analysis", email = "compwa-admin@ep1.rub.de" }]
+authors = [
+    { name = "Common Partial Wave Analysis", email = "compwa-admin@ep1.rub.de" },
+]
 maintainers = [{ email = "compwa-admin@ep1.rub.de" }]
 keywords = [
     "HEP",
@@ -35,10 +37,10 @@ classifiers = [
 dependencies = [
     "PyYAML",
     "attrs >=20.1.0",  # on_setattr and https://www.attrs.org/en/stable/api.html#next-gen
+    "compwa-python-constraint",
     "frozendict",
     "jsonschema",
     "particle",
-    "python-constraint",
     "tqdm >=4.24.0",  # autonotebook
 ]
 dynamic = ["version"]
@@ -78,6 +80,7 @@ doc = [
     "sphinx-thebe",
     "sphinx-togglebutton",
     "sphinxcontrib-bibtex >=2",
+    "sphinxcontrib-mermaid",
     { include-group = "notebooks" },
 ]
 jupyter = [
@@ -238,7 +241,9 @@ executor = { group = "jupyter" }
 help = "Launch Jupyter Lab"
 
 [tool.poe.groups.notebook.tasks.nb]
-args = [{ name = "paths", default = "docs", multiple = true, positional = true }]
+args = [
+    { name = "paths", default = "docs", multiple = true, positional = true },
+]
 cmd = "pytest --nbmake --nbmake-timeout=0 ${paths}"
 executor = { group = "notebooks", with = "nbmake" }
 help = "Run all notebooks"
@@ -378,7 +383,10 @@ testpaths = [
 extend-include = ["*.ipynb"]
 preview = true
 show-fixes = true
-src = ["src", "tests"]
+src = [
+    "src",
+    "tests",
+]
 
 [tool.ruff.format]
 docstring-code-format = true
@@ -386,35 +394,35 @@ line-ending = "lf"
 
 [tool.ruff.lint]
 ignore = [
-    "ANN401",
-    "COM812",
-    "CPY001",
-    "D101",
-    "D102",
-    "D103",
-    "D105",
-    "D107",
-    "D203",
-    "D213",
-    "D407",
-    "D416",
     "DOC",
-    "E501",
     "FBT00",
-    "FURB101",
-    "FURB103",
-    "FURB140",
-    "G004",
-    "ISC001",
-    "PLR0913",
-    "PLR2004",
-    "PLR5501",
-    "PLW1514",
-    "PLW2901",
-    "PT001",
     "PTH",
-    "RUF067",
-    "SIM108",
+    "any-type",
+    "collapsible-else-if",
+    "if-else-block-instead-of-if-exp",
+    "incorrect-blank-line-before-class",
+    "line-too-long",
+    "logging-f-string",
+    "magic-value-comparison",
+    "missing-copyright-notice",
+    "missing-dashed-underline-after-section",
+    "missing-section-name-colon",
+    "missing-trailing-comma",
+    "multi-line-summary-second-line",
+    "non-empty-init-module",
+    "pytest-fixture-incorrect-parentheses-style",
+    "read-whole-file",
+    "redefined-loop-name",
+    "reimplemented-starmap",
+    "single-line-implicit-string-concatenation",
+    "too-many-arguments",
+    "undocumented-magic-method",
+    "undocumented-public-class",
+    "undocumented-public-function",
+    "undocumented-public-init",
+    "undocumented-public-method",
+    "unspecified-encoding",
+    "write-whole-file",
 ]
 select = ["ALL"]
 task-tags = ["cspell"]
@@ -435,50 +443,51 @@ split-on-trailing-comma = false
 [tool.ruff.lint.per-file-ignores]
 "*.ipynb" = [
     "ANN",
-    "B018",
     "C90",
     "D",
-    "E303",
-    "E402",
-    "E703",
-    "N806",
-    "N816",
     "PLR09",
-    "PLW0602",
-    "PLW0603",
-    "S101",
     "T20",
     "TC00",
+    "assert",
+    "global-statement",
+    "global-variable-not-assigned",
+    "mixed-case-variable-in-global-scope",
+    "module-import-not-at-top-of-file",
+    "non-lowercase-variable-in-function",
+    "too-many-blank-lines",
+    "useless-expression",
+    "useless-semicolon",
 ]
 "docs/*" = [
-    "E402",
-    "INP001",
-    "S101",
-    "S113",
-    "T201",
+    "assert",
+    "implicit-namespace-package",
+    "module-import-not-at-top-of-file",
+    "print",
+    "request-without-timeout",
 ]
 "docs/_extend_docstrings.py" = [
-    "A002",
-    "PLC0415",
+    "builtin-argument-shadowing",
+    "import-outside-top-level"
 ]
 "docs/conf.py" = [
-    "A001",
-    "D100",
-    "FLY002",
+    "builtin-variable-shadowing",
+    "static-join-to-f-string",
+    "undocumented-public-module",
 ]
-"setup.py" = ["D100"]
-"src/qrules/conservation_rules.py" = ["FA100"]
+"setup.py" = ["undocumented-public-module"]
+"src/qrules/conservation_rules.py" = ["future-rewritable-type-annotation"]
 "tests/*" = [
     "ANN",
     "D",
-    "INP001",
-    "PLC2701",
-    "PLR6301",
-    "RUF069",
-    "S101",
-    "S307",
-    "SLF001",
     "T20",
+    "assert",
+    "boolean-type-hint-positional-argument",
+    "float-equality-comparison",
+    "implicit-namespace-package",
+    "import-private-name",
+    "no-self-use",
+    "private-member-access",
+    "suspicious-eval-usage",
 ]
 
 [tool.ruff.lint.pydocstyle]
@@ -513,7 +522,7 @@ key-empty = "off"
 
 [[tool.tombi.schemas]]
 root = "tool.compwa.policy"
-path = "https://raw.githubusercontent.com/ComPWA/policy/0.9.1/compwa-policy.schema.json"
+path = "https://raw.githubusercontent.com/ComPWA/policy/0.9.3/compwa-policy.schema.json"
 include = ["pyproject.toml"]
 
 [tool.ty.rules]

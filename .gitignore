@@ -1,6 +1,7 @@
 # Output files
 *.gv
 *.json
+*.mmd
 *.npy
 *.pdf
 *.pickle
@@ -41,10 +42,12 @@ TAGS
 pyvenv*/
 
 # Settings
+.agents/
 .claude/
+AGENTS.md
+CLAUDE.md
 .idea/
 **.code-workspace
-CLAUDE.md
 
 # Exceptions
 !.cspell.json
@@ -55,3 +58,4 @@ CLAUDE.md
 !.vscode/*.json
 !.zenodo.json
 !codecov.yml
+.pr_body.md
