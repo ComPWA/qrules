@@ -134,6 +134,7 @@ def asmermaid(
     figure_style: dict[str, Any] | None = None,
     edge_style: dict[str, Any] | None = None,
     node_style: dict[str, Any] | None = None,
+    markdown: bool = False,
 ) -> str:
     """Convert a `object` to a Mermaid flowchart source `str`.
 
@@ -168,6 +169,8 @@ def asmermaid(
         node_style: Styling of Mermaid nodes.
         figure_style: Styling of the whole Mermaid diagram.
 
+        markdown: Wrap the Mermaid source in a Markdown code fence.
+
     .. seealso::
 
         See the
@@ -187,7 +190,10 @@ def asmermaid(
         edge_style=edge_style,
         node_style=node_style,
     )
-    return print_mermaid(instance)
+    source = print_mermaid(instance)
+    if markdown:
+        return f"```mermaid\n{source}```\n"
+    return source
 
 
 def load(filename: str | Path) -> object:

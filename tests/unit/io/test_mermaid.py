@@ -38,6 +38,13 @@ def test_asmermaid_api():
     assert " --- " in src
 
 
+def test_asmermaid_markdown_fence():
+    topology = create_n_body_topology(3, 4)
+    src = io.asmermaid(topology, markdown=True)
+    assert src.startswith("```mermaid\nflowchart LR\n")
+    assert src.endswith("\n```\n")
+
+
 def test_asmermaid_accepts_style_parameters():
     topology = create_n_body_topology(3, 4)
     src = io.asmermaid(
