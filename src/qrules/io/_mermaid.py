@@ -277,6 +277,8 @@ class MermaidPrinter:
             style_key = self._normalize_style_key(key, target)
             if style_key is None:
                 continue
+            if style_key == "font-size" and isinstance(value, (int, float)):
+                value = f"{value}px"
             parts.append(f"{style_key}:{value}")
         return ",".join(parts)
 
@@ -293,6 +295,9 @@ class MermaidPrinter:
 
     def _create_mermaid_node(self, node_id: str, label: str = "") -> str:
         if label:
+            if self.latex:
+                style = {**self.figure_style, **self.node_style}
+                label = self._apply_latex_color(label, style, target="node")
             escaped_label = self._escape_label(label)
             return f'    {node_id}["{escaped_label}"]'
         return f'    {node_id}@{{ shape: text, label: " " }}'
@@ -301,6 +306,8 @@ class MermaidPrinter:
         self, from_node: str, to_node: str, label: str = ""
     ) -> str:
         if label:
+            if self.latex:
+                label = self._apply_latex_color(label, self.edge_style, target="edge")
             if "|" in label:
                 escaped_label = self._escape_label(label)
                 return f'    {from_node} --"{escaped_label}"--- {to_node}'
@@ -320,6 +327,23 @@ class MermaidPrinter:
         if normalized[0].isdigit():
             normalized = f"n_{normalized}"
         return normalized
+
+    @classmethod
+    def _apply_latex_color(
+        cls, label: str, style: dict[str, Any], *, target: str
+    ) -> str:
+        color = next(
+            (
+                value
+                for key, value in reversed(style.items())
+                if value is not None
+                and cls._normalize_style_key(key, target) == "color"
+            ),
+            None,
+        )
+        if color is None:
+            return label
+        return Rf"\textcolor{{{color}}}{{{label}}}"
 
     def _escape_label(self, label: str, *, for_edge: bool = False) -> str:
         if self.latex:

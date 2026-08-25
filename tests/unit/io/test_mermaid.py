@@ -276,6 +276,19 @@ def test_mermaid_latex_labels_are_wrapped_and_escaped():
     )
 
 
+def test_mermaid_latex_label_colors_are_applied():
+    printer = MermaidPrinter(
+        latex=True,
+        edge_style={"color": "red", "fontcolor": "blue"},
+        node_style={"fontcolor": "gray"},
+    )
+    node_line = printer._create_mermaid_node("A", R"\alpha")
+    edge_line = printer._create_mermaid_edge("A", "B", R"\gamma")
+
+    assert node_line == R'    A["$$\textcolor{gray}{\alpha}$$"]'
+    assert edge_line == R'    A ---|"$$\textcolor{blue}{\gamma}$$"| B'
+
+
 def test_mermaid_edge_labels_with_state_brackets_are_quoted():
     edge_line = MermaidPrinter(latex=False)._create_mermaid_edge(
         "A", "B", "f(2)(2340)[-2]"
