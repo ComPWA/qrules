@@ -36,7 +36,7 @@ def test_asmermaid_api():
     assert src.startswith("flowchart LR\n")
     assert "    n_0" in src
     assert " --- " in src
-    assert "$$" not in src
+    assert "$$" in src
 
 
 def test_asmermaid_markdown_fence():
@@ -97,12 +97,12 @@ def test_asmermaid_accepts_style_parameters():
     src = io.asmermaid(
         topology,
         figure_style={"bgcolor": "white"},
-        edge_style={"color": "blue"},
+        edge_style={"color": "blue", "fontsize": 25},
         node_style={"fill": "green"},
     )
     assert src.startswith("flowchart LR\n")
     assert "style n_0 fill:green" in src
-    assert "linkStyle 0 stroke:blue" in src
+    assert "linkStyle 0 stroke:blue,font-size:25px" in src
 
 
 def test_write_mermaid_file(tmp_path):
@@ -116,7 +116,7 @@ def test_write_mermaid_file(tmp_path):
 
 def test_asmermaid_reaction(reaction: ReactionInfo):
     for transition in reaction.transitions:
-        src = io.asmermaid(transition)
+        src = io.asmermaid(transition, latex=False)
         assert src.startswith("flowchart LR\n")
         assert " --- " in src
         initial_state_id = next(iter(transition.topology.incoming_edge_ids))
@@ -124,19 +124,19 @@ def test_asmermaid_reaction(reaction: ReactionInfo):
         initial_state = transition.states[initial_state_id]
         assert f'N{initial_node_id}["{initial_state.particle.name}' in src
         assert f"    A --- N{initial_node_id}" not in src
-    src = io.asmermaid(reaction)
+    src = io.asmermaid(reaction, latex=False)
     assert src.startswith("flowchart LR\n")
     assert " --- " in src
-    src = io.asmermaid(reaction, strip_spin=True)
+    src = io.asmermaid(reaction, strip_spin=True, latex=False)
     assert src.startswith("flowchart LR\n")
     assert " --- " in src
-    src = io.asmermaid(reaction, collapse_graphs=True)
+    src = io.asmermaid(reaction, collapse_graphs=True, latex=False)
     assert src.startswith("flowchart LR\n")
     assert " --- " in src
 
 
 def test_asmermaid_reaction_with_node_labels(reaction: ReactionInfo):
-    src = io.asmermaid(reaction.transitions[0], render_node=True)
+    src = io.asmermaid(reaction.transitions[0], render_node=True, latex=False)
     assert src.startswith("flowchart LR\n")
     assert "gamma[-1]" in src
     assert "f(0)(980)[0]" in src
@@ -158,6 +158,7 @@ def test_asmermaid_edge_id_options():
         render_final_state_id=False,
         render_resonance_id=True,
         render_node=False,
+        latex=False,
     )
     assert src.startswith("flowchart LR\n")
     assert any(label in src for label in (" ---|5| ", " ---|6| ", " ---|7| "))
@@ -201,7 +202,7 @@ def test_asmermaid_latex_qn_problem_set(
 
 def test_asmermaid_qn_result(qn_problem_and_result: tuple[QNProblemSet, QNResult]):
     _, qn_result = qn_problem_and_result
-    src = io.asmermaid(qn_result, render_node=True)
+    src = io.asmermaid(qn_result, render_node=True, latex=False)
     assert src.startswith("flowchart LR\n")
     assert " --- " in src
     assert "parity_prefactor =" in src
@@ -245,7 +246,7 @@ def test_asmermaid_problemset(formalism: SpinFormalism):
 
 
 def test_mermaid_labels_are_escaped():
-    printer = MermaidPrinter()
+    printer = MermaidPrinter(latex=False)
     node_line = printer._create_mermaid_node("A", 'value with "quotes" and\nline break')
     edge_line = printer._create_mermaid_edge(
         "A", "B", 'value with "quotes" and\nline break'
@@ -276,12 +277,14 @@ def test_mermaid_latex_labels_are_wrapped_and_escaped():
 
 
 def test_mermaid_edge_labels_with_state_brackets_are_quoted():
-    edge_line = MermaidPrinter()._create_mermaid_edge("A", "B", "f(2)(2340)[-2]")
+    edge_line = MermaidPrinter(latex=False)._create_mermaid_edge(
+        "A", "B", "f(2)(2340)[-2]"
+    )
     assert edge_line == '    A ---|"f(2)(2340)[-2]"| B'
 
 
 def test_mermaid_edge_labels_with_ket_vectors_are_quoted():
-    edge_line = MermaidPrinter()._create_mermaid_edge("A", "B", "|1,-1⟩")
+    edge_line = MermaidPrinter(latex=False)._create_mermaid_edge("A", "B", "|1,-1⟩")
     assert edge_line == '    A --"|1,-1⟩"--- B'
 
 
