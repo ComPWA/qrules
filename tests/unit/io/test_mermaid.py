@@ -39,6 +39,11 @@ def test_asmermaid_api():
     assert "$$" in src
 
 
+def test_mermaid_latex_default_matches_public_api():
+    topology = create_n_body_topology(3, 4)
+    assert MermaidPrinter()(topology) == io.asmermaid(topology)
+
+
 def test_asmermaid_markdown_fence():
     topology = create_n_body_topology(3, 4)
     src = io.asmermaid(topology, markdown=True)
@@ -142,6 +147,14 @@ def test_asmermaid_reaction_with_node_labels(reaction: ReactionInfo):
     assert "f(0)(980)[0]" in src
     assert "P=+1" in src
     assert "    A --- N0" in src
+
+
+def test_asmermaid_latex_can_be_disabled(reaction: ReactionInfo):
+    src = io.asmermaid(reaction.transitions[0], render_node=True, latex=False)
+    assert "$$" not in src
+    assert R"\text" not in src
+    assert R"\frac" not in src
+    assert R"\left" not in src
 
 
 def test_asmermaid_keeps_multiple_initial_states_separate():
@@ -276,9 +289,25 @@ def test_mermaid_latex_labels_are_wrapped_and_escaped():
     )
 
 
+@pytest.mark.parametrize(
+    ("label", "expected"),
+    [
+        (R"\alpha", R"$$\alpha$$"),
+        (R"L = 0 \\ S = 1", R"$$L = 0 \\\ S = 1$$"),
+        ('value with "quotes"', R"$$value with \"quotes\"$$"),
+        ("first\nsecond", "$$first second$$"),
+        (R"\$100", R"$$\$100$$"),
+        (R"\{x\}", R"$$\{x\}$$"),
+    ],
+)
+def test_mermaid_latex_label_transport(label: str, expected: str):
+    assert MermaidPrinter(latex=True)._escape_label(label) == expected
+
+
 def test_mermaid_latex_label_colors_are_applied():
     printer = MermaidPrinter(
         latex=True,
+        figure_style={"fontcolor": "black"},
         edge_style={"color": "red", "fontcolor": "blue"},
         node_style={"fontcolor": "gray"},
     )
@@ -287,6 +316,28 @@ def test_mermaid_latex_label_colors_are_applied():
 
     assert node_line == R'    A["$$\textcolor{gray}{\alpha}$$"]'
     assert edge_line == R'    A ---|"$$\textcolor{blue}{\gamma}$$"| B'
+
+
+@pytest.mark.parametrize("color", ["red", "gray", "#123456"])
+def test_mermaid_latex_supported_label_colors(color: str):
+    printer = MermaidPrinter(latex=True, node_style={"fontcolor": color})
+    assert printer._create_mermaid_node("A", R"\alpha") == (
+        Rf'    A["$$\textcolor{{{color}}}{{\alpha}}$$"]'
+    )
+
+
+@pytest.mark.parametrize(
+    ("font_size", "expected"),
+    [
+        (25, "font-size:25px"),
+        (12.5, "font-size:12.5px"),
+        ("12pt", "font-size:12pt"),
+        (None, ""),
+    ],
+)
+def test_mermaid_font_size_formatting(font_size: object, expected: str):
+    printer = MermaidPrinter()
+    assert printer._format_style_dict({"fontsize": font_size}) == expected
 
 
 def test_mermaid_edge_labels_with_state_brackets_are_quoted():

@@ -27,6 +27,18 @@ def test_as_latex_is_extensible():
     assert as_latex(CustomLabel()) == R"\alpha"
 
 
+def test_label_renderer_dispatch_is_independent():
+    class CustomLabel:
+        pass
+
+    as_string.register(CustomLabel, lambda _: "plain")
+    as_latex.register(CustomLabel, lambda _: R"\mathrm{latex}")
+
+    label = CustomLabel()
+    assert as_string(label) == "plain"
+    assert as_latex(label) == R"\mathrm{latex}"
+
+
 def test_as_latex_fallback(caplog):
     class UnsupportedLabel:
         def __str__(self) -> str:
@@ -43,6 +55,13 @@ def test_as_latex_particle_and_state(particle_database: ParticleCollection):
     expected_state = R"J/\psi(1S)\left[-\frac{1}{2}\right]"
     assert as_latex(State(particle, Fraction(-1, 2))) == expected_state
     assert as_latex((particle, Fraction(-1, 2))) == expected_state
+
+    particle_with_custom_latex = attrs.evolve(
+        particle,
+        name="this_name_is_not_rendered",
+        latex=R"\mathrm{x}_{100\%}",
+    )
+    assert as_latex(particle_with_custom_latex) == R"\mathrm{x}_{100\%}"
 
     particle_without_latex = attrs.evolve(particle, name="custom_name", latex=None)
     assert as_latex(particle_without_latex) == R"\text{custom\_name}"
