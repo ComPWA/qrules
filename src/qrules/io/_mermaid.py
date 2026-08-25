@@ -89,7 +89,7 @@ class MermaidPrinter:
     figure_style: dict[str, Any] = attrs.field(converter=_to_style_dict, default=None)
     edge_style: dict[str, Any] = attrs.field(converter=_to_style_dict, default=None)
     node_style: dict[str, Any] = attrs.field(converter=_to_style_dict, default=None)
-    latex: bool = False
+    latex: bool = True
 
     def __call__(self, obj: Any) -> str:
         lines = ["flowchart LR"]

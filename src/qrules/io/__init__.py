@@ -134,7 +134,7 @@ def asmermaid(
     figure_style: dict[str, Any] | None = None,
     edge_style: dict[str, Any] | None = None,
     node_style: dict[str, Any] | None = None,
-    latex: bool = False,
+    latex: bool = True,
     markdown: bool = False,
 ) -> str:
     """Convert a `object` to a Mermaid flowchart source `str`.
