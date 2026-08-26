@@ -114,11 +114,13 @@ class Edge:
         }
 
 
-def _to_topology_nodes(inst: Iterable[int]) -> frozenset[int]:
+def _to_topology_nodes(inst: Iterable[int], /) -> frozenset[int]:
     return frozenset(inst)
 
 
-def _to_topology_edges(inst: Mapping[int, Edge]) -> FrozenDict[int, Edge]:
+def _to_topology_edges(
+    inst: Mapping[int, Edge] | Iterable[tuple[int, Edge]], /
+) -> FrozenDict[int, Edge]:
     return FrozenDict(inst)
 
 
