@@ -147,6 +147,8 @@ exclude_patterns = [
     "**.ipynb_checkpoints",
     "**.virtual_documents",
     "*build",
+    "AGENTS.md",
+    "CLAUDE.md",
     "adr/template.md",
     "tests",
 ]
