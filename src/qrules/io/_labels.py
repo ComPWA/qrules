@@ -38,8 +38,10 @@ R"""Characters that are special within the argument of a LaTeX ``\text``.
 
 Names that `qrules` does not control, such as particle names without a ``latex`` field
 or quantum number keys, run through this table before ``._LatexFormatter.text``
-interpolates them. All ten replacements render under KaTeX as well, which is what
-``._mermaid`` passes the result to.
+interpolates them. The replacements are the `standard LaTeX escapes
+<https://latexref.xyz/Printing-special-characters.html>`_, which are `all supported by
+KaTeX <https://katex.org/docs/support_table>`_ as well, the renderer that ``._mermaid``
+hands the result to.
 """
 
 
