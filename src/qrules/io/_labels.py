@@ -115,12 +115,6 @@ def as_latex(obj: Any) -> str:
     labels independently of the plain-text labels produced by `.as_string`. If no
     specialized implementation exists, the object is converted to a `str` and a warning
     is emitted.
-
-    Args:
-        obj: Edge or node property to render.
-
-    Returns:
-        LaTeX source representing the supplied property.
     """
     if obj is not None:
         _LOGGER.warning(
