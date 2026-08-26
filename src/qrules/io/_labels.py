@@ -5,7 +5,7 @@ import re
 from fractions import Fraction
 from functools import singledispatch
 from inspect import isfunction
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, Protocol, cast
 
 import attrs
 
@@ -16,18 +16,44 @@ from qrules.topology import FrozenTransition, MutableTransition, Topology, Trans
 from qrules.transition import ProblemSet, State
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Callable, Iterable
 
     from qrules.argument_handling import Rule
 
 _LOGGER = logging.getLogger(__name__)
+
+_TEXT_TO_LATEX_ESCAPES = str.maketrans({
+    "\\": R"\textbackslash{}",
+    "{": R"\{",
+    "}": R"\}",
+    "$": R"\$",
+    "&": R"\&",
+    "#": R"\#",
+    "_": R"\_",
+    "%": R"\%",
+    "~": R"\textasciitilde{}",
+    "^": R"\textasciicircum{}",
+})
+R"""Characters that are special within the argument of a LaTeX ``\text``.
+
+Names that `qrules` does not control, such as particle names without a ``latex`` field
+or quantum number keys, run through this table before ``._LatexFormatter.text``
+interpolates them. The replacements are the `standard LaTeX escapes
+<https://latexref.xyz/Printing-special-characters.html>`_, which are `all supported by
+KaTeX <https://katex.org/docs/support_table>`_ as well, the renderer that ``._mermaid``
+hands the result to.
+"""
 
 
 def create_edge_label(
     graph: ProblemSet | QNProblemSet | Topology | Transition,
     edge_id: int,
     render_edge_id: bool,
+    *,
+    render_label: Callable[[Any], str] | None = None,
 ) -> str:
+    if render_label is None:
+        render_label = as_string
     if isinstance(graph, Topology):
         if render_edge_id:
             return str(edge_id)
@@ -40,15 +66,22 @@ def create_edge_label(
             edge_property = edge_setting
         if initial_fact:
             edge_property = initial_fact
-        return __render_edge_with_id(edge_id, edge_property, render_edge_id)
+        return __render_edge_with_id(
+            edge_id, edge_property, render_edge_id, render_label
+        )
     edge_prop = graph.states.get(edge_id)
-    return __render_edge_with_id(edge_id, edge_prop, render_edge_id)
+    return __render_edge_with_id(edge_id, edge_prop, render_edge_id, render_label)
 
 
-def __render_edge_with_id(edge_id: int, edge_prop: Any, render_edge_id: bool) -> str:
+def __render_edge_with_id(
+    edge_id: int,
+    edge_prop: Any,
+    render_edge_id: bool,
+    render_label: Callable[[Any], str],
+) -> str:
     if edge_prop is None or not edge_prop:
         return str(edge_id)
-    edge_label = as_string(edge_prop)
+    edge_label = render_label(edge_prop)
     if not render_edge_id:
         return edge_label
     if "\n" in edge_label:
@@ -75,6 +108,141 @@ def as_string(obj: Any) -> str:
     return str(obj)
 
 
+@singledispatch
+def as_latex(obj: Any) -> str:
+    """Render an edge or node property as LaTeX source.
+
+    Implementations can be registered for specific types through
+    :func:`functools.singledispatch`. This allows graph renderers to request LaTeX
+    labels independently of the plain-text labels produced by `.as_string`. If no
+    specialized implementation exists, the object is converted to a `str` and a warning
+    is emitted.
+    """
+    if obj is not None:
+        _LOGGER.warning(
+            f"No LaTeX label renderer implemented type {type(obj).__name__}"
+        )
+    return str(obj)
+
+
+class _LabelFormatter(Protocol):
+    def render(self, obj: Any) -> str: ...
+
+    def text(self, value: str) -> str: ...
+
+    def fraction(self, value: Fraction, *, plusminus: bool = False) -> str: ...
+
+    def lines(self, values: list[str]) -> str: ...
+
+    def domain(self, values: list[str]) -> str: ...
+
+    def assignment(self, key: str, value: str, *, compact: bool = False) -> str: ...
+
+    def membership(self, key: str, domain: str) -> str: ...
+
+    def particle(self, name: str, latex: str | None) -> str: ...
+
+    def spin(self, magnitude: str, projection: str) -> str: ...
+
+    def state(self, particle: str, projection: str) -> str: ...
+
+
+class _PlainFormatter:
+    @staticmethod
+    def render(obj: Any) -> str:
+        return as_string(obj)
+
+    @staticmethod
+    def text(value: str) -> str:
+        return str(value)
+
+    @staticmethod
+    def fraction(value: Fraction, *, plusminus: bool = False) -> str:
+        return _render_fraction(value, plusminus=plusminus)
+
+    @staticmethod
+    def lines(values: list[str]) -> str:
+        return "\n".join(values)
+
+    @staticmethod
+    def domain(values: list[str]) -> str:
+        return f"[{', '.join(values)}]"
+
+    @staticmethod
+    def assignment(key: str, value: str, *, compact: bool = False) -> str:
+        separator = "=" if compact else " = "
+        return f"{key}{separator}{value}"
+
+    @staticmethod
+    def membership(key: str, domain: str) -> str:
+        return f"{key} ∊ {domain}"
+
+    @staticmethod
+    def particle(name: str, latex: str | None) -> str:
+        del latex
+        return name
+
+    @staticmethod
+    def spin(magnitude: str, projection: str) -> str:
+        return f"|{magnitude},{projection}⟩"
+
+    @staticmethod
+    def state(particle: str, projection: str) -> str:
+        return f"{particle}[{projection}]"
+
+
+class _LatexFormatter:
+    @staticmethod
+    def render(obj: Any) -> str:
+        return as_latex(obj)
+
+    @staticmethod
+    def text(value: str) -> str:
+        return Rf"\text{{{_escape_text_for_latex(value)}}}"
+
+    @staticmethod
+    def fraction(value: Fraction, *, plusminus: bool = False) -> str:
+        return _render_latex_fraction(value, plusminus=plusminus)
+
+    @staticmethod
+    def lines(values: list[str]) -> str:
+        return _render_latex_lines(values)
+
+    @staticmethod
+    def domain(values: list[str]) -> str:
+        return R"\left[" + ", ".join(values) + R"\right]"
+
+    @staticmethod
+    def assignment(key: str, value: str, *, compact: bool = False) -> str:
+        del compact
+        return f"{key} = {value}"
+
+    @staticmethod
+    def membership(key: str, domain: str) -> str:
+        return Rf"{key} \in {domain}"
+
+    @staticmethod
+    def particle(name: str, latex: str | None) -> str:
+        if latex:
+            return latex
+        return _LatexFormatter.text(name)
+
+    @staticmethod
+    def spin(magnitude: str, projection: str) -> str:
+        return Rf"\left|{magnitude},{projection}\right\rangle"
+
+    @staticmethod
+    def state(particle: str, projection: str) -> str:
+        return Rf"{particle}\left[{projection}\right]"
+
+
+_PLAIN_FORMATTER = _PlainFormatter()
+_LATEX_FORMATTER = _LatexFormatter()
+
+
+@as_latex.register(int)
+@as_latex.register(float)
+@as_latex.register(str)
 @as_string.register(int)
 @as_string.register(float)
 @as_string.register(str)
@@ -82,72 +250,142 @@ def _(obj: Any) -> str:
     return str(obj)
 
 
+@as_latex.register(Fraction)
+def _(value: Fraction) -> str:
+    return _render_latex_fraction(value)
+
+
+@as_latex.register(type(None))
+def _(_: None) -> str:
+    return R"\mathrm{None}"
+
+
 @as_string.register(dict)
 def _(obj: dict) -> str:
-    lines = []
+    return __render_mapping(obj, _PLAIN_FORMATTER)
+
+
+@as_latex.register(dict)
+def _(obj: dict) -> str:
+    return __render_mapping(obj, _LATEX_FORMATTER)
+
+
+def __render_mapping(obj: dict, formatter: _LabelFormatter) -> str:
+    lines: list[str] = []
     for key, value in obj.items():
         if isinstance(key, type) or callable(key):
             key_repr = key.__name__
         else:
-            key_repr = key
+            key_repr = str(key)
         if not value and not key_repr.endswith(("magnitude", "projection")):
             continue
-        value_repr = __render_key_and_value(key_repr, value)
-        lines.append(f"{key_repr} = {value_repr}")
-    return "\n".join(lines)
+        value_repr = __render_key_and_value(key_repr, value, formatter)
+        lines.append(formatter.assignment(formatter.text(key_repr), value_repr))
+    return formatter.lines(lines)
 
 
-def __render_key_and_value(key: str, value: Any) -> str:
+def __render_key_and_value(
+    key: str,
+    value: Any,
+    formatter: _LabelFormatter = _PLAIN_FORMATTER,
+) -> str:
     if isinstance(value, (Fraction, int)):
         fraction = Fraction(value)
         no_pm = key.endswith("magnitude") or key == "pid"
-        return _render_fraction(fraction, plusminus=not no_pm)
-    return as_string(value)
+        return formatter.fraction(fraction, plusminus=not no_pm)
+    return formatter.render(value)
+
+
+def _render_latex_fraction(value: Fraction, *, plusminus: bool = False) -> str:
+    sign = ""
+    if value < 0:
+        sign = "-"
+        value = abs(value)
+    elif plusminus and value > 0:
+        sign = "+"
+    if value.denominator == 1:
+        return f"{sign}{value.numerator}"
+    return Rf"{sign}\frac{{{value.numerator}}}{{{value.denominator}}}"
+
+
+def _escape_text_for_latex(text: str) -> str:
+    return str(text).translate(_TEXT_TO_LATEX_ESCAPES)
+
+
+def _render_latex_lines(lines: list[str]) -> str:
+    if not lines:
+        return ""
+    if len(lines) == 1:
+        return lines[0]
+    content = R" \\ ".join(lines)
+    return Rf"\begin{{gathered}} {content} \end{{gathered}}"
 
 
 @as_string.register(InteractionProperties)
 def _(obj: InteractionProperties) -> str:
-    lines = []
+    return __render_interaction(obj, _PLAIN_FORMATTER)
+
+
+@as_latex.register(InteractionProperties)
+def _(obj: InteractionProperties) -> str:
+    return __render_interaction(obj, _LATEX_FORMATTER)
+
+
+def __render_interaction(obj: InteractionProperties, formatter: _LabelFormatter) -> str:
+    lines: list[str] = []
     if obj.l_magnitude is not None:
         if obj.l_projection is None:
-            l_label = _render_fraction(Fraction(obj.l_magnitude))
+            l_label = formatter.fraction(Fraction(obj.l_magnitude))
         else:
-            l_label = _spin_to_str(Spin(obj.l_magnitude, obj.l_projection))
-        lines.append(f"L={l_label}")
+            l_label = formatter.render(Spin(obj.l_magnitude, obj.l_projection))
+        lines.append(formatter.assignment("L", l_label, compact=True))
     if obj.s_magnitude is not None:
         if obj.s_projection is None:
-            s_label = _render_fraction(Fraction(obj.s_magnitude))
+            s_label = formatter.fraction(Fraction(obj.s_magnitude))
         else:
-            s_label = _spin_to_str(Spin(obj.s_magnitude, obj.s_projection))
-        lines.append(f"S={s_label}")
+            s_label = formatter.render(Spin(obj.s_magnitude, obj.s_projection))
+        lines.append(formatter.assignment("S", s_label, compact=True))
     if obj.parity_prefactor is not None:
-        label = _render_fraction(Fraction(obj.parity_prefactor), plusminus=True)
-        lines.append(f"P={label}")
-    return "\n".join(lines)
+        label = formatter.fraction(Fraction(obj.parity_prefactor), plusminus=True)
+        lines.append(formatter.assignment("P", label, compact=True))
+    return formatter.lines(lines)
 
 
 @as_string.register(EdgeSettings)
 @as_string.register(NodeSettings)
 def _(settings: EdgeSettings | NodeSettings) -> str:
-    output = ""
+    return __render_settings(settings, _PLAIN_FORMATTER)
+
+
+@as_latex.register(EdgeSettings)
+@as_latex.register(NodeSettings)
+def _(settings: EdgeSettings | NodeSettings) -> str:
+    return __render_settings(settings, _LATEX_FORMATTER)
+
+
+def __render_settings(
+    settings: EdgeSettings | NodeSettings, formatter: _LabelFormatter
+) -> str:
+    lines: list[str] = []
     if settings.rule_priorities:
-        output += "RULES\n"
+        lines.append(formatter.text("RULES"))
         rule_descriptions = (
             f"{__render_rule(rule)} - {__get_priority(rule, settings.rule_priorities)}"
             for rule in settings.conservation_rules
         )
         sorted_names = sorted(rule_descriptions, key=__extract_priority, reverse=True)
-        output += "\n".join(sorted_names)
+        lines.extend(formatter.text(name) for name in sorted_names)
     if settings.qn_domains:
-        if output:
-            output += "\n"
+        lines.append(formatter.text("DOMAINS"))
         domains = sorted(
-            f"{qn.__name__} ∊ {__render_domain(domain, key=qn.__name__)}"
+            formatter.membership(
+                formatter.text(qn.__name__),
+                __render_domain(domain, key=qn.__name__, formatter=formatter),
+            )
             for qn, domain in settings.qn_domains.items()
         )
-        output += "DOMAINS\n"
-        output += "\n".join(domains)
-    return output
+        lines.extend(domains)
+    return formatter.lines(lines)
 
 
 def __get_priority(rule: Any, rule_priorities: dict[Any, int]) -> int | str:
@@ -184,7 +422,11 @@ def __extract_priority(description: str) -> int | float:
     return int(priority)
 
 
-def __render_domain(domain: list[Any], key: str) -> str:
+def __render_domain(
+    domain: list[Any],
+    key: str,
+    formatter: _LabelFormatter = _PLAIN_FORMATTER,
+) -> str:
     """Render a domain as a `str`.
 
     >>> half = Fraction(0.5)
@@ -196,39 +438,73 @@ def __render_domain(domain: list[Any], key: str) -> str:
     '[-1, +1, None]'
     """
     domain = sorted(domain, key=lambda x: +9999 if x is None else x)
-    domain_str = [__render_key_and_value(key, x) for x in domain]
-    return "[" + ", ".join(domain_str) + "]"
+    domain_str = [__render_key_and_value(key, x, formatter) for x in domain]
+    return formatter.domain(domain_str)
 
 
 @as_string.register(Particle)
 def _(particle: Particle) -> str:
-    return particle.name
+    return __render_particle(particle, _PLAIN_FORMATTER)
+
+
+@as_latex.register(Particle)
+def _(particle: Particle) -> str:
+    return __render_particle(particle, _LATEX_FORMATTER)
+
+
+def __render_particle(particle: Particle, formatter: _LabelFormatter) -> str:
+    return formatter.particle(particle.name, particle.latex)
 
 
 @as_string.register(Spin)
-def _spin_to_str(spin: Spin) -> str:
-    spin_magnitude = _render_fraction(spin.magnitude)
-    spin_projection = _render_fraction(spin.projection, plusminus=True)
-    return f"|{spin_magnitude},{spin_projection}⟩"
+def _(spin: Spin) -> str:
+    return __render_spin(spin, _PLAIN_FORMATTER)
+
+
+@as_latex.register(Spin)
+def _(spin: Spin) -> str:
+    return __render_spin(spin, _LATEX_FORMATTER)
+
+
+def __render_spin(spin: Spin, formatter: _LabelFormatter) -> str:
+    spin_magnitude = formatter.fraction(spin.magnitude)
+    spin_projection = formatter.fraction(spin.projection, plusminus=True)
+    return formatter.spin(spin_magnitude, spin_projection)
 
 
 @as_string.register(State)
-def _state_to_str(state: State) -> str:
-    particle = state.particle.name
-    spin_projection = _render_fraction(state.spin_projection, plusminus=True)
-    return f"{particle}[{spin_projection}]"
+def _(state: State) -> str:
+    return __render_state(state, _PLAIN_FORMATTER)
+
+
+@as_latex.register(State)
+def _(state: State) -> str:
+    return __render_state(state, _LATEX_FORMATTER)
+
+
+def __render_state(state: State, formatter: _LabelFormatter) -> str:
+    particle = formatter.render(state.particle)
+    spin_projection = formatter.fraction(state.spin_projection, plusminus=True)
+    return formatter.state(particle, spin_projection)
 
 
 @as_string.register(tuple)
 def _(obj: tuple) -> str:
+    return __render_tuple(obj, _PLAIN_FORMATTER)
+
+
+@as_latex.register(tuple)
+def _(obj: tuple) -> str:
+    return __render_tuple(obj, _LATEX_FORMATTER)
+
+
+def __render_tuple(obj: tuple, formatter: _LabelFormatter) -> str:
     if len(obj) == 2:
         if isinstance(obj[0], Particle) and isinstance(obj[1], (Fraction, float, int)):
-            state = State(*obj)
-            return _state_to_str(state)
+            return __render_state(State(*obj), formatter)
         if all(isinstance(o, (Fraction, float, int)) for o in obj):
-            spin = Spin(*obj)
-            return _spin_to_str(spin)
-    return "\n".join(map(as_string, obj))
+            return __render_spin(Spin(*obj), formatter)
+    return formatter.lines([formatter.render(item) for item in obj])
 
 
 def get_particle_graphs(

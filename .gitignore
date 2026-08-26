@@ -44,10 +44,11 @@ pyvenv*/
 # Settings
 .agents/
 .claude/
+.idea/
+.pr_body.md
+**.code-workspace
 AGENTS.md
 CLAUDE.md
-.idea/
-**.code-workspace
 
 # Exceptions
 !.cspell.json
@@ -58,4 +59,3 @@ CLAUDE.md
 !.vscode/*.json
 !.zenodo.json
 !codecov.yml
-.pr_body.md
