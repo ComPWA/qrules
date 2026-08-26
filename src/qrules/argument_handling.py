@@ -13,7 +13,6 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Generic,
-    Protocol,
     TypeVar,
     Union,
     cast,
@@ -44,11 +43,13 @@ Scalar = int | float | Fraction | None
 Rule = GraphElementRule | EdgeQNConservationRule | ConservationRule
 """Any type of rule"""
 
-
-class RuleKey(Protocol):
-    """A named function or class used as a rule-priority key."""
-
-    __name__: str
+RuleKey = (
+    Rule
+    | type[GraphElementRule]
+    | type[EdgeQNConservationRule]
+    | type[ConservationRule]
+)
+"""A rule callable or rule class used as a priority key."""
 
 
 _ElementType = TypeVar("_ElementType")

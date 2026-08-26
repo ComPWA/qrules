@@ -896,7 +896,7 @@ class MassEdgeInput:
     width: EdgeQN.width | None = field(converter=EdgeQN.width, default=None)
 
 
-class MassConservation:
+class MassConservation(EdgeQNConservationRule):
     """Mass conservation rule."""
 
     def __init__(self, width_factor: float) -> None:
