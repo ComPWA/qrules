@@ -38,7 +38,7 @@ from qrules.quantum_numbers import (
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
 
-    from typing_extensions import TypeForm
+    from typing_extensions import TypeForm, TypeIs
 
 Scalar = int | float | Fraction | None
 Rule = GraphElementRule | EdgeQNConservationRule | ConservationRule
@@ -68,11 +68,15 @@ def _is_sequence_type(input_type: TypeForm[object]) -> bool:
     return get_origin(input_type) in {list, tuple}
 
 
-def _is_edge_quantum_number(qn_type: Any) -> bool:
+def _is_edge_quantum_number(
+    qn_type: object,
+) -> TypeIs[TypeForm[EdgeQuantumNumber]]:
     return qn_type in EdgeQuantumNumber.__args__
 
 
-def _is_node_quantum_number(qn_type: Any) -> bool:
+def _is_node_quantum_number(
+    qn_type: object,
+) -> TypeIs[TypeForm[NodeQuantumNumber]]:
     return qn_type in NodeQuantumNumber.__args__
 
 
@@ -248,11 +252,9 @@ class RuleArgumentHandler:
                 arg_builder: Callable[..., Any] = _CompositeArgumentCreator(qn_type)
             else:
                 if _is_edge_quantum_number(qn_type):
-                    edge_qn_type = cast("TypeForm[EdgeQuantumNumber]", qn_type)
-                    arg_builder = _ValueExtractor[EdgeQuantumNumber](edge_qn_type)
+                    arg_builder = _ValueExtractor[EdgeQuantumNumber](qn_type)
                 elif _is_node_quantum_number(qn_type):
-                    node_qn_type = cast("TypeForm[NodeQuantumNumber]", qn_type)
-                    arg_builder = _ValueExtractor[NodeQuantumNumber](node_qn_type)
+                    arg_builder = _ValueExtractor[NodeQuantumNumber](qn_type)
                 else:
                     msg = (
                         f"Quantum number type {qn_type} is not supported. Has to be of"

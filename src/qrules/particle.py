@@ -19,7 +19,7 @@ from difflib import get_close_matches
 from fractions import Fraction
 from functools import total_ordering
 from math import copysign
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
 import attrs
 from attrs import field, frozen
@@ -122,9 +122,7 @@ def _render_fraction(fraction: Fraction, plusminus: bool = False) -> str:
 
 def _to_spin(value: Spin | tuple[Fraction, Fraction] | tuple[float, float]) -> Spin:
     if isinstance(value, tuple):
-        magnitude, projection = cast(
-            "tuple[Fraction, Fraction] | tuple[float, float]", value
-        )
+        magnitude, projection = value
         return Spin(magnitude, projection)
     return value
 

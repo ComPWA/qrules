@@ -18,7 +18,7 @@ framework.
 from __future__ import annotations
 
 from itertools import product
-from typing import TYPE_CHECKING, TypeGuard, cast
+from typing import TYPE_CHECKING
 
 import attrs
 
@@ -71,6 +71,8 @@ from qrules.transition import (
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
 
+    from typing_extensions import TypeIs
+
 
 def check_reaction_violations(  # ruff:ignore[complex-structure, too-many-positional-arguments]
     initial_state: StateDefinitionInput | Sequence[StateDefinitionInput],
@@ -120,9 +122,7 @@ def check_reaction_violations(  # ruff:ignore[complex-structure, too-many-positi
     if _is_state_definition_input(initial_state):
         initial_state_definitions = [initial_state]
     else:
-        initial_state_definitions = list(
-            cast("Sequence[StateDefinitionInput]", initial_state)
-        )
+        initial_state_definitions = list(initial_state)
 
     if particle_db is None:
         particle_db = load_pdg()
@@ -358,9 +358,7 @@ def generate_transitions(  # ruff:ignore[too-many-positional-arguments]
     if _is_state_definition_input(initial_state):
         initial_state_definitions = [initial_state]
     else:
-        initial_state_definitions = list(
-            cast("Sequence[StateDefinitionInput]", initial_state)
-        )
+        initial_state_definitions = list(initial_state)
     stm = StateTransitionManager(
         initial_state=initial_state_definitions,
         final_state=final_state,
@@ -386,7 +384,7 @@ def generate_transitions(  # ruff:ignore[too-many-positional-arguments]
     return stm.find_solutions(problem_sets)
 
 
-def _is_state_definition_input(value: object) -> TypeGuard[StateDefinitionInput]:
+def _is_state_definition_input(value: object) -> TypeIs[StateDefinitionInput]:
     return isinstance(value, str) or (
         isinstance(value, tuple) and len(value) == 2 and isinstance(value[0], str)
     )

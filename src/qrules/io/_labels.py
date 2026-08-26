@@ -5,7 +5,7 @@ import re
 from fractions import Fraction
 from functools import singledispatch
 from inspect import isfunction
-from typing import TYPE_CHECKING, Any, Protocol, cast
+from typing import TYPE_CHECKING, Any, Protocol
 
 import attrs
 
@@ -519,10 +519,7 @@ def get_particle_graphs(
     """
     inventory = set()
     for transition in graphs:
-        if isinstance(transition, FrozenTransition):
-            transition = transition.convert(__to_particle_with_spin)
-        typed_transition = cast("Transition[Any, InteractionProperties]", transition)
-        stripped_transition = strip_projections(typed_transition)
+        stripped_transition = strip_projections(transition)
         topology = stripped_transition.topology
         particle_transition: FrozenTransition[Particle, None] = FrozenTransition(
             stripped_transition.topology,
@@ -536,14 +533,10 @@ def get_particle_graphs(
     )
 
 
-def __to_particle_with_spin(state: Any) -> ParticleWithSpin:
-    return state.particle, state.spin_projection
-
-
 def strip_projections(
     graph: Transition[Any, InteractionProperties],
 ) -> FrozenTransition[Particle, InteractionProperties]:
-    transition = cast("FrozenTransition[Any, InteractionProperties]", graph)
+    transition = FrozenTransition(graph.topology, graph.states, graph.interactions)
     return transition.convert(
         state_converter=__to_particle,
         interaction_converter=lambda i: attrs.evolve(

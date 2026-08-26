@@ -14,7 +14,7 @@ import operator
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from copy import copy
-from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, overload
 
 import attrs
 from attrs import define, field, frozen
@@ -43,6 +43,8 @@ from qrules.topology import MutableTransition, Topology
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Sequence
+
+    from typing_extensions import TypeIs
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -481,6 +483,31 @@ def _create_variable_string(
     return str(element_id) + "-" + qn_type.__name__
 
 
+def _is_graph_element_rule(rule: Rule) -> TypeIs[GraphElementRule]:
+    return len(inspect.signature(rule).parameters) == 1
+
+
+@overload
+def _get_rules_by_priority(
+    graph_element_settings: EdgeSettings,
+) -> list[GraphElementRule]: ...
+@overload
+def _get_rules_by_priority(graph_element_settings: NodeSettings) -> list[Rule]: ...
+def _get_rules_by_priority(
+    graph_element_settings: NodeSettings | EdgeSettings,
+) -> list[GraphElementRule] | list[Rule]:
+    priority_list = [
+        (
+            (rule, graph_element_settings.rule_priorities[type(rule)])
+            if type(rule) in graph_element_settings.rule_priorities
+            else (rule, 1)
+        )
+        for rule in graph_element_settings.conservation_rules
+    ]
+    sorted_list = sorted(priority_list, key=operator.itemgetter(1), reverse=True)
+    return [rule for rule, _ in sorted_list]
+
+
 @define
 class _VariableContainer:
     ingoing_edge_variables: set[_EdgeVariableInfo] = field(factory=set)
@@ -617,32 +644,11 @@ class CSPSolver(Solver):
         """
         self.__clear()
 
-        def get_rules_by_priority(
-            graph_element_settings: NodeSettings | EdgeSettings,
-        ) -> list[Rule]:
-            # first add priorities to the entries
-            priority_list = [
-                (
-                    (x, graph_element_settings.rule_priorities[type(x)])
-                    if type(x) in graph_element_settings.rule_priorities
-                    else (x, 1)
-                )
-                for x in graph_element_settings.conservation_rules
-            ]
-            # then sort according to priority
-            sorted_list = sorted(
-                priority_list, key=operator.itemgetter(1), reverse=True
-            )
-            # and strip away the priorities again
-            return [x[0] for x in sorted_list]
-
         arg_handler = RuleArgumentHandler()
 
         for edge_id in problem_set.topology.edges:
             edge_settings = problem_set.solving_settings.states[edge_id]
-            for rule in cast(
-                "list[GraphElementRule]", get_rules_by_priority(edge_settings)
-            ):
+            for rule in _get_rules_by_priority(edge_settings):
                 variable_mapping = _VariableContainer()
                 # from cons law and graph determine needed var lists
                 edge_qns, node_qns = get_required_qns(rule)
@@ -670,7 +676,7 @@ class CSPSolver(Solver):
                     self.__non_executable_edge_rules[edge_id].add(rule)
 
         for node_id in problem_set.topology.nodes:
-            for rule in get_rules_by_priority(
+            for rule in _get_rules_by_priority(
                 problem_set.solving_settings.interactions[node_id]
             ):
                 variable_mapping = _VariableContainer()
@@ -708,10 +714,9 @@ class CSPSolver(Solver):
                 var_list.extend(list(variable_mapping.node_variables))
 
                 score_callback = self.__scoresheet.register_rule(node_id, rule)
-                if len(inspect.signature(rule).parameters) == 1:
-                    graph_rule = cast("GraphElementRule", rule)
+                if _is_graph_element_rule(rule):
                     constraint = _GraphElementConstraint[NodeQuantumNumber](
-                        graph_rule,
+                        rule,
                         int_node_vars[0],
                         {node_id: int_node_vars[1]},
                         arg_handler,

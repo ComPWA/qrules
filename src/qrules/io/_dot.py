@@ -8,7 +8,7 @@ from __future__ import annotations
 import logging
 import string
 from collections import abc
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
 from attrs import Attribute, define, field
 from attrs.converters import default_if_none
@@ -28,6 +28,9 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
 
 _LOGGER = logging.getLogger(__name__)
+
+_RenderedGraph = ProblemSet | QNProblemSet | Topology | Transition
+_RenderInput = _RenderedGraph | tuple[Topology, _RenderedGraph]
 
 
 def _check_booleans(
@@ -119,15 +122,12 @@ class GraphvizPrinter:
 
     def _render_transition(  # ruff: ignore[complex-structure, too-many-branches, too-many-statements]
         self,
-        obj: ProblemSet | QNProblemSet | Topology | Transition | tuple[Any, Any],
+        obj: _RenderInput,
         prefix: str = "",
     ) -> list[str]:
         lines: list[str] = []
-        if isinstance(obj, tuple) and len(obj) == 2:
-            topology = cast("Topology", obj[0])
-            rendered_graph = cast(
-                "ProblemSet | QNProblemSet | Topology | Transition", obj[1]
-            )
+        if isinstance(obj, tuple):
+            topology, rendered_graph = obj
         elif isinstance(obj, (ProblemSet, QNProblemSet, Transition)):
             rendered_graph = obj
             topology = obj.topology

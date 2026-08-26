@@ -12,7 +12,7 @@ from collections import OrderedDict
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from copy import deepcopy
 from fractions import Fraction
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
 from qrules.argument_handling import Scalar
 from qrules.particle import ParticleWithSpin
@@ -20,6 +20,8 @@ from qrules.quantum_numbers import InteractionProperties, arange
 from qrules.topology import MutableTransition, Topology, get_originating_node_list
 
 if TYPE_CHECKING:
+    from typing_extensions import TypeIs
+
     from qrules.particle import ParticleCollection
 
 
@@ -108,12 +110,11 @@ class _KinematicRepresentation:  # ruff:ignore[eq-without-hash]
             return is_sublist(other.initial_state, self.initial_state) and is_sublist(
                 other.final_state, self.final_state
             )
+        if _is_nested_string_list(other):
+            return is_sublist(other, self.final_state)
         if isinstance(other, list):
-            for item in other:
-                if not isinstance(item, list):
-                    msg = "Comparison representation needs to be a list of lists"
-                    raise TypeError(msg)
-            return is_sublist(cast("list[list[str]]", other), self.final_state)
+            msg = "Comparison representation needs to be a list of lists"
+            raise TypeError(msg)
         msg = f"Cannot compare {type(self).__name__} with {type(other).__name__}"
         raise ValueError(msg)
 
@@ -125,16 +126,20 @@ def _sort_nested(nested_list: list[list[str]]) -> list[list[str]]:
 def ensure_nested_list(
     nested_list: list[str] | list[list[str]],
 ) -> list[list[str]]:
-    if all(isinstance(item, str) for item in nested_list):
-        return [cast("list[str]", nested_list)]
-    if not all(isinstance(item, list) for item in nested_list):
+    if _is_string_list(nested_list):
+        return [nested_list]
+    if not _is_nested_string_list(nested_list):
         msg = "Grouping items have to be either all strings or all lists of strings"
         raise ValueError(msg)
-    nested = cast("list[list[str]]", nested_list)
-    if any(not isinstance(i, str) for lst in nested for i in lst):
-        msg = "Not all grouping items are particle names"
-        raise ValueError(msg)
-    return nested
+    return nested_list
+
+
+def _is_string_list(value: object) -> TypeIs[list[str]]:
+    return isinstance(value, list) and all(isinstance(item, str) for item in value)
+
+
+def _is_nested_string_list(value: object) -> TypeIs[list[list[str]]]:
+    return isinstance(value, list) and all(_is_string_list(item) for item in value)
 
 
 def _get_kinematic_representation(
