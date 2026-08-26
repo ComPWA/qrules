@@ -50,6 +50,7 @@ from copy import deepcopy
 from fractions import Fraction
 from functools import reduce
 from textwrap import dedent
+from types import GenericAlias
 from typing import TYPE_CHECKING, Any, Protocol, TypeVar
 
 from attrs import define, field, frozen
@@ -58,9 +59,9 @@ from attrs.converters import optional
 from qrules._attrs import to_fraction, to_parity
 from qrules.quantum_numbers import EdgeQuantumNumbers as EdgeQN
 from qrules.quantum_numbers import NodeQuantumNumbers as NodeQN
-from qrules.quantum_numbers import Parity, arange
+from qrules.quantum_numbers import Parity, QuantumNumberType, arange
 
-_RuleClass = TypeVar("_RuleClass", bound=type[Any])
+_RuleClass = TypeVar("_RuleClass", bound=type[object])
 
 if TYPE_CHECKING:
     EdgeParity = Parity
@@ -124,7 +125,7 @@ class ConservationRule(Protocol):
 # __call__ method in a concrete version of the generic are still containing the
 # TypeVar types. See https://github.com/python/typing/issues/762
 def additive_quantum_number_rule(
-    quantum_number: Any,
+    quantum_number: QuantumNumberType[int],
 ) -> Callable[[_RuleClass], _RuleClass]:
     r"""Class decorator for creating an additive conservation rule.
 
@@ -140,18 +141,20 @@ def additive_quantum_number_rule(
 
     def decorator(rule_class: _RuleClass) -> _RuleClass:
         def new_call(
-            self: Any,  # ruff: ignore[unused-function-argument]
-            ingoing_edge_qns: list[Any],
-            outgoing_edge_qns: list[Any],
+            self: object,  # ruff: ignore[unused-function-argument]
+            ingoing_edge_qns: list[int],
+            outgoing_edge_qns: list[int],
         ) -> bool:
             return sum(ingoing_edge_qns) == sum(outgoing_edge_qns)
 
+        # GenericAlias(list, x) is the runtime equivalent of list[x], which cannot
+        # be written here, because quantum_number is a value, not a type
         new_call.__annotations__ = {
-            "ingoing_edge_qns": list[quantum_number],
-            "outgoing_edge_qns": list[quantum_number],
+            "ingoing_edge_qns": GenericAlias(list, quantum_number),
+            "outgoing_edge_qns": GenericAlias(list, quantum_number),
             "return": bool,
         }
-        rule_class.__call__ = new_call
+        rule_class.__call__ = new_call  # ty:ignore[invalid-assignment]
         rule_class.__doc__ = dedent(
             f"""
             Decorated via `{additive_quantum_number_rule.__name__}`.

@@ -11,14 +11,19 @@ import attrs
 
 from qrules.particle import Particle, ParticleWithSpin, Spin, _render_fraction
 from qrules.quantum_numbers import InteractionProperties
-from qrules.solving import EdgeSettings, NodeSettings, QNProblemSet
+from qrules.solving import (
+    EdgeSettings,
+    GraphEdgePropertyMap,
+    NodeSettings,
+    QNProblemSet,
+)
 from qrules.topology import FrozenTransition, MutableTransition, Topology, Transition
 from qrules.transition import ProblemSet, State
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
 
-    from qrules.argument_handling import Rule
+    from qrules.argument_handling import Rule, RuleKey
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -61,7 +66,9 @@ def create_edge_label(
     if isinstance(graph, (ProblemSet, QNProblemSet)):
         edge_setting = graph.solving_settings.states.get(edge_id)
         initial_fact = graph.initial_facts.states.get(edge_id)
-        edge_property: Any = None
+        edge_property: EdgeSettings | GraphEdgePropertyMap | ParticleWithSpin | None = (
+            None
+        )
         if edge_setting:
             edge_property = edge_setting
         if initial_fact:
@@ -388,7 +395,7 @@ def __render_settings(
     return formatter.lines(lines)
 
 
-def __get_priority(rule: Any, rule_priorities: dict[Any, int]) -> int | str:
+def __get_priority(rule: Rule, rule_priorities: dict[RuleKey, int]) -> int | str:
     rule_type = __get_type(rule)
     return rule_priorities.get(rule_type, "NA")
 
@@ -397,9 +404,9 @@ def __render_rule(rule: Rule) -> str:
     return __get_type(rule).__name__
 
 
-def __get_type(rule: Rule) -> Any:
+def __get_type(rule: Rule) -> type[Rule]:
     if isfunction(rule):
-        return rule
+        return rule  # ty: ignore[invalid-return-type]
     return type(rule)
 
 

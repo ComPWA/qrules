@@ -135,7 +135,7 @@ class QuantumNumberType(Protocol[_QuantumNumber_co]):
 
     __name__: str
 
-    def __call__(self, *args: Any, **kwargs: Any) -> _QuantumNumber_co: ...
+    def __call__(self, value: Any, /) -> _QuantumNumber_co: ...
 
 
 EdgeQuantumNumberTypes = QuantumNumberType[EdgeQuantumNumber]
