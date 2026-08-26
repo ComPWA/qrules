@@ -37,13 +37,17 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-KT = TypeVar("KT")
+KT = TypeVar("KT", bound=abc.Hashable)
 VT = TypeVar("VT")
 
 
 @total_ordering
 class FrozenDict(frozendict, Generic[KT, VT]):
-    """A sortable version of :code:`frozendict`."""
+    """A sortable version of :code:`frozendict`.
+
+    Keys must be mutually orderable when comparing instances. Values associated with
+    equal keys must also be mutually orderable.
+    """
 
     def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
         class_name = type(self).__name__
