@@ -106,8 +106,8 @@ def as_latex(obj: Any) -> str:
     Implementations can be registered for specific types through
     :func:`functools.singledispatch`. This allows graph renderers to request LaTeX
     labels independently of the plain-text labels produced by `.as_string`. If no
-    specialized implementation exists, the object is converted to a `str` and a
-    warning is emitted.
+    specialized implementation exists, the object is converted to a `str` and a warning
+    is emitted.
 
     Args:
         obj: Edge or node property to render.
