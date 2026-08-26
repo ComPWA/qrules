@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 
-_LATEX_TEXT_ESCAPES = str.maketrans({
+_TEXT_TO_LATEX_ESCAPES = str.maketrans({
     "\\": R"\textbackslash{}",
     "{": R"\{",
     "}": R"\}",
@@ -34,6 +34,13 @@ _LATEX_TEXT_ESCAPES = str.maketrans({
     "~": R"\textasciitilde{}",
     "^": R"\textasciicircum{}",
 })
+R"""Characters that are special within the argument of a LaTeX ``\text``.
+
+Names that `qrules` does not control, such as particle names without a ``latex`` field
+or quantum number keys, run through this table before ``._LatexFormatter.text``
+interpolates them. All ten replacements render under KaTeX as well, which is what
+``._mermaid`` passes the result to.
+"""
 
 
 def create_edge_label(
@@ -195,7 +202,7 @@ class _LatexFormatter:
 
     @staticmethod
     def text(value: str) -> str:
-        return Rf"\text{{{_escape_latex_text(value)}}}"
+        return Rf"\text{{{_escape_text_for_latex(value)}}}"
 
     @staticmethod
     def fraction(value: Fraction, *, plusminus: bool = False) -> str:
@@ -305,8 +312,8 @@ def _render_latex_fraction(value: Fraction, *, plusminus: bool = False) -> str:
     return Rf"{sign}\frac{{{value.numerator}}}{{{value.denominator}}}"
 
 
-def _escape_latex_text(text: str) -> str:
-    return str(text).translate(_LATEX_TEXT_ESCAPES)
+def _escape_text_for_latex(text: str) -> str:
+    return str(text).translate(_TEXT_TO_LATEX_ESCAPES)
 
 
 def _render_latex_lines(lines: list[str]) -> str:

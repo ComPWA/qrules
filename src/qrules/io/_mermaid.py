@@ -342,13 +342,13 @@ class MermaidPrinter:
 
     def _escape_label(self, label: str, *, for_edge: bool = False) -> str:
         if self.latex:
-            escaped_label = _escape_latex_label(label)
+            escaped_label = _escape_latex_for_mermaid(label)
             return f"$${escaped_label}$$"
         table = _EDGE_LABEL_TABLE if for_edge else _NODE_LABEL_TABLE
         return str(label).strip().translate(table)
 
 
-def _escape_latex_label(label: str) -> str:
+def _escape_latex_for_mermaid(label: str) -> str:
     R"""Escape a KaTeX label so that it survives Mermaid's string lexer.
 
     Within a quoted label, Mermaid reads ``\\`` and ``\"`` as escape sequences and
@@ -358,9 +358,9 @@ def _escape_latex_label(label: str) -> str:
     exactly that: the KaTeX row separator ``\\`` arrives as two backslashes, and an
     accent such as ``\"`` arrives with its quote intact.
 
-    >>> print(_escape_latex_label(R"L = 0 \\ S = 1"))
+    >>> print(_escape_latex_for_mermaid(R"L = 0 \\ S = 1"))
     L = 0 \\\ S = 1
-    >>> print(_escape_latex_label(R"\"o"))
+    >>> print(_escape_latex_for_mermaid(R"\"o"))
     \\\"o
     """
     escaped_label = str(label).strip().replace("\n", " ").replace('"', R"\"")
