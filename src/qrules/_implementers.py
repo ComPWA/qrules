@@ -18,7 +18,7 @@ class PrettyPrinter(Protocol):
     def group(
         self,
         indent: int = 0,
-        open: str = "",  # ruff:ignore[builtin-argument-shadowing]
+        open: str = "",  # ruff: ignore[builtin-argument-shadowing]
     ) -> AbstractContextManager: ...
 
     def pretty(self, obj: Any) -> None: ...

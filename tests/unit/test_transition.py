@@ -1,5 +1,5 @@
 import hashlib
-import pickle  # ruff:ignore[suspicious-pickle-import]
+import pickle  # ruff: ignore[suspicious-pickle-import]
 import sys
 from copy import deepcopy
 from fractions import Fraction
@@ -7,15 +7,15 @@ from fractions import Fraction
 import pytest
 from IPython.lib.pretty import pretty
 
-from qrules.particle import (  # ruff:ignore[unused-import]
+from qrules.particle import (  # ruff: ignore[unused-import]
     Parity,
     Particle,
     ParticleCollection,
     Spin,
 )
-from qrules.quantum_numbers import InteractionProperties  # ruff:ignore[unused-import]
+from qrules.quantum_numbers import InteractionProperties  # ruff: ignore[unused-import]
 from qrules.settings import InteractionType
-from qrules.topology import (  # ruff:ignore[unused-import]
+from qrules.topology import (  # ruff: ignore[unused-import]
     Edge,
     FrozenDict,
     FrozenTransition,
@@ -153,7 +153,7 @@ class TestStateTransitionManager:
 
 def _compute_hash(obj) -> str:
     b = _to_bytes(obj)
-    h = hashlib.md5(b)  # ruff:ignore[hashlib-insecure-hash-function]
+    h = hashlib.md5(b)  # ruff: ignore[hashlib-insecure-hash-function]
     return h.hexdigest()
 
 

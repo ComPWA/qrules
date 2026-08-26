@@ -117,7 +117,7 @@ DEFAULT_INTERACTION_TYPES = [
 ]
 
 
-def create_interaction_settings(  # ruff:ignore[too-many-positional-arguments]
+def create_interaction_settings(  # ruff: ignore[too-many-positional-arguments]
     formalism: SpinFormalism,
     particle_db: ParticleCollection,
     nbody_topology: bool = False,

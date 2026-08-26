@@ -41,12 +41,12 @@ def as_state_definition(
         return definition
     if type(definition) is tuple:
         name, state = definition
-        return name, list(map(Fraction, state))  # type:ignore  # ruff:ignore[blanket-type-ignore]
+        return name, list(map(Fraction, state))  # type:ignore  # ruff: ignore[blanket-type-ignore]
     msg = f"value has to be of type {StateDefinitionInput}, got {type(definition)}"
     raise ValueError(msg)
 
 
-class _KinematicRepresentation:  # ruff:ignore[eq-without-hash]
+class _KinematicRepresentation:  # ruff: ignore[eq-without-hash]
     def __init__(
         self,
         final_state: list[list[str]] | list[str] | None = None,
@@ -242,7 +242,7 @@ def __safe_set_spin_projections(
             particle_name = state
             particle = particle_db[particle_name]
             spin_projections = set(arange(-particle.spin, particle.spin + 1))
-            if particle.mass == 0.0 and Fraction(0) in spin_projections:  # ruff:ignore[float-equality-comparison]
+            if particle.mass == 0.0 and Fraction(0) in spin_projections:  # ruff: ignore[float-equality-comparison]
                 spin_projections.remove(Fraction(0))
             return particle_name, sorted(spin_projections)
         return state

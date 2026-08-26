@@ -1,5 +1,5 @@
 import hashlib
-import pickle  # ruff:ignore[suspicious-pickle-import]
+import pickle  # ruff: ignore[suspicious-pickle-import]
 import sys
 import typing
 
@@ -338,7 +338,7 @@ def test_create_n_body_topology(n_initial: int, n_final: int, exception):
 
 def _compute_hash(obj) -> str:
     b = _to_bytes(obj)
-    h = hashlib.md5(b)  # ruff:ignore[hashlib-insecure-hash-function]
+    h = hashlib.md5(b)  # ruff: ignore[hashlib-insecure-hash-function]
     return h.hexdigest()
 
 

@@ -340,7 +340,7 @@ def __is_sub_mapping(
     return True
 
 
-def validate_full_solution(problem_set: QNProblemSet) -> QNResult:  # ruff:ignore[complex-structure]
+def validate_full_solution(problem_set: QNProblemSet) -> QNResult:  # ruff: ignore[complex-structure]
     _LOGGER.debug("validating graph...")
 
     rule_argument_handler = RuleArgumentHandler()
@@ -544,7 +544,7 @@ class CSPSolver(Solver):
         self.__allowed_intermediate_states = tuple(allowed_intermediate_states)
         self.__scoresheet = Scoresheet()
 
-    def find_solutions(self, problem_set: QNProblemSet) -> QNResult:  # ruff:ignore[complex-structure]
+    def find_solutions(self, problem_set: QNProblemSet) -> QNResult:  # ruff: ignore[complex-structure]
         self.__initialize_constraints(problem_set)
         solutions = self.__problem.getSolutions()
 
@@ -631,7 +631,7 @@ class CSPSolver(Solver):
         self.__problem = Problem(BacktrackingSolver(True))
         self.__scoresheet = Scoresheet()
 
-    def __initialize_constraints(  # ruff:ignore[too-many-locals]
+    def __initialize_constraints(  # ruff: ignore[too-many-locals]
         self, problem_set: QNProblemSet
     ) -> None:
         """Initialize all of the constraints for this graph.
@@ -827,7 +827,7 @@ class CSPSolver(Solver):
             for var_string, value in solution.items():
                 ele_id, qn_type = self.__var_string_to_data[var_string]
 
-                if qn_type in getattr(EdgeQuantumNumber, "__args__"):  # ruff:ignore[get-attr-with-constant]
+                if qn_type in getattr(EdgeQuantumNumber, "__args__"):  # ruff: ignore[get-attr-with-constant]
                     states[ele_id].update({qn_type: value})
                 else:
                     interactions[ele_id].update({qn_type: value})
@@ -934,9 +934,9 @@ class _GraphElementConstraint(Constraint, Generic[_QNType]):
     def __call__(
         self,
         variables: Sequence[str],
-        domains: dict,  # ruff:ignore[unused-method-argument]
+        domains: dict,  # ruff: ignore[unused-method-argument]
         assignments: dict,
-        forwardcheck: bool = False,  # ruff:ignore[unused-method-argument]
+        forwardcheck: bool = False,  # ruff: ignore[unused-method-argument]
     ) -> bool:
         """Perform the constraint checking.
 
@@ -1072,9 +1072,9 @@ class _ConservationRuleConstraintWrapper(Constraint):
     def __call__(
         self,
         variables: Sequence[str],
-        domains: dict,  # ruff:ignore[unused-method-argument]
+        domains: dict,  # ruff: ignore[unused-method-argument]
         assignments: dict,
-        forwardcheck: bool = False,  # ruff:ignore[unused-method-argument]
+        forwardcheck: bool = False,  # ruff: ignore[unused-method-argument]
     ) -> bool:
         """Perform the constraint checking.
 

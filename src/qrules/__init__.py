@@ -75,7 +75,7 @@ if TYPE_CHECKING:
     from typing_extensions import TypeIs
 
 
-def check_reaction_violations(  # ruff:ignore[complex-structure, too-many-positional-arguments]
+def check_reaction_violations(  # ruff: ignore[complex-structure, too-many-positional-arguments]
     initial_state: StateDefinitionInput | Sequence[StateDefinitionInput],
     final_state: Sequence[StateDefinitionInput],
     mass_conservation_factor: float | None = 3.0,
@@ -273,7 +273,7 @@ def check_reaction_violations(  # ruff:ignore[complex-structure, too-many-positi
     return violations
 
 
-def generate_transitions(  # ruff:ignore[too-many-positional-arguments]
+def generate_transitions(  # ruff: ignore[too-many-positional-arguments]
     initial_state: StateDefinitionInput | Sequence[StateDefinitionInput],
     final_state: Sequence[StateDefinitionInput],
     allowed_intermediate_particles: list[str] | None = None,
