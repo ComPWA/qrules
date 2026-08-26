@@ -29,7 +29,6 @@ _LABEL_ESCAPES: dict[str, str] = {
     '"': r"\"",
     "\n": "<br/>",
 }
-
 _NODE_LABEL_TABLE = str.maketrans(_LABEL_ESCAPES)
 _EDGE_LABEL_TABLE = str.maketrans({**_LABEL_ESCAPES, "|": r"\|"})
 
@@ -85,6 +84,7 @@ class MermaidPrinter:
     figure_style: dict[str, Any] = attrs.field(converter=_to_style_dict, default=None)
     edge_style: dict[str, Any] = attrs.field(converter=_to_style_dict, default=None)
     node_style: dict[str, Any] = attrs.field(converter=_to_style_dict, default=None)
+    latex: bool = True
 
     def __call__(self, obj: Any) -> str:
         lines = ["flowchart LR"]
@@ -160,6 +160,7 @@ class MermaidPrinter:
             )
         else:
             render_node = self.render_node
+        render_label = _labels.as_latex if self.latex else _labels.as_string
 
         folded_initial_edge_id: int | None = None
         if len(topology.incoming_edge_ids) == 1 and not render_node:
@@ -173,7 +174,9 @@ class MermaidPrinter:
                 render = self.render_initial_state_id
             else:
                 render = self.render_final_state_id
-            label = _labels.create_edge_label(rendered_graph, edge_id, render)
+            label = _labels.create_edge_label(
+                rendered_graph, edge_id, render, render_label=render_label
+            )
             if edge_id == folded_initial_edge_id:
                 node_id = topology.edges[edge_id].ending_node_id
                 add_node(f"{prefix}N{node_id}", label)
@@ -191,11 +194,11 @@ class MermaidPrinter:
                 node_id,
                 settings,
             ) in rendered_graph.solving_settings.interactions.items():
-                add_node(f"{prefix}N{node_id}", _labels.as_string(settings))
+                add_node(f"{prefix}N{node_id}", render_label(settings))
 
         if isinstance(rendered_graph, Transition) and render_node:
             for node_id, node_prop in rendered_graph.interactions.items():
-                add_node(f"{prefix}N{node_id}", _labels.as_string(node_prop))
+                add_node(f"{prefix}N{node_id}", render_label(node_prop))
 
         edge_style_lines: list[str] = []
         edge_index = 0
@@ -209,7 +212,10 @@ class MermaidPrinter:
                 edge_lines.append(self._create_mermaid_edge(from_node, to_node))
             else:
                 label = _labels.create_edge_label(
-                    rendered_graph, edge_id, self.render_resonance_id
+                    rendered_graph,
+                    edge_id,
+                    self.render_resonance_id,
+                    render_label=render_label,
                 )
                 edge_lines.append(self._create_mermaid_edge(from_node, to_node, label))
             if self.edge_style:
@@ -266,6 +272,8 @@ class MermaidPrinter:
             style_key = self._normalize_style_key(key, target)
             if style_key is None:
                 continue
+            if style_key == "font-size" and isinstance(value, (int, float)):
+                value = f"{value}px"
             parts.append(f"{style_key}:{value}")
         return ",".join(parts)
 
@@ -282,6 +290,9 @@ class MermaidPrinter:
 
     def _create_mermaid_node(self, node_id: str, label: str = "") -> str:
         if label:
+            if self.latex:
+                style = {**self.figure_style, **self.node_style}
+                label = self._apply_latex_color(label, style, target="node")
             escaped_label = self._escape_label(label)
             return f'    {node_id}["{escaped_label}"]'
         return f'    {node_id}@{{ shape: text, label: " " }}'
@@ -290,10 +301,14 @@ class MermaidPrinter:
         self, from_node: str, to_node: str, label: str = ""
     ) -> str:
         if label:
+            if self.latex:
+                label = self._apply_latex_color(label, self.edge_style, target="edge")
             if "|" in label:
                 escaped_label = self._escape_label(label)
                 return f'    {from_node} --"{escaped_label}"--- {to_node}'
             escaped_label = self._escape_label(label, for_edge=True)
+            if self.latex:
+                return f'    {from_node} ---|"{escaped_label}"| {to_node}'
             if any(char in escaped_label for char in "[]()"):
                 escaped_label = f'"{escaped_label}"'
             return f"    {from_node} ---|{escaped_label}| {to_node}"
@@ -308,7 +323,45 @@ class MermaidPrinter:
             normalized = f"n_{normalized}"
         return normalized
 
-    @staticmethod
-    def _escape_label(label: str, *, for_edge: bool = False) -> str:
+    @classmethod
+    def _apply_latex_color(
+        cls, label: str, style: dict[str, Any], *, target: str
+    ) -> str:
+        color = next(
+            (
+                value
+                for key, value in reversed(style.items())
+                if value is not None
+                and cls._normalize_style_key(key, target) == "color"
+            ),
+            None,
+        )
+        if color is None:
+            return label
+        return Rf"\textcolor{{{color}}}{{{label}}}"
+
+    def _escape_label(self, label: str, *, for_edge: bool = False) -> str:
+        if self.latex:
+            escaped_label = _escape_latex_for_mermaid(label)
+            return f"$${escaped_label}$$"
         table = _EDGE_LABEL_TABLE if for_edge else _NODE_LABEL_TABLE
         return str(label).strip().translate(table)
+
+
+def _escape_latex_for_mermaid(label: str) -> str:
+    R"""Escape a KaTeX label so that it survives Mermaid's string lexer.
+
+    Within a quoted label, Mermaid reads ``\\`` and ``\"`` as escape sequences and
+    passes any other backslash sequence through untouched. A backslash therefore has to
+    be doubled only where it precedes another backslash or a quote. Escaping the quotes
+    first and rewriting each remaining ``\\`` pair with three backslashes produces
+    exactly that: the KaTeX row separator ``\\`` arrives as two backslashes, and an
+    accent such as ``\"`` arrives with its quote intact.
+
+    >>> print(_escape_latex_for_mermaid(R"L = 0 \\ S = 1"))
+    L = 0 \\\ S = 1
+    >>> print(_escape_latex_for_mermaid(R"\"o"))
+    \\\"o
+    """
+    escaped_label = str(label).strip().replace("\n", " ").replace('"', R"\"")
+    return escaped_label.replace(2 * "\\", 3 * "\\")

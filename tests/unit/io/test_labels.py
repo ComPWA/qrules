@@ -1,16 +1,154 @@
+import logging
 from fractions import Fraction
 from textwrap import dedent
 
+import attrs
+
 import qrules
 from qrules.io._labels import (
+    as_latex,
     as_string,
     collapse_graphs,
+    create_edge_label,
     get_particle_graphs,
     strip_projections,
 )
 from qrules.particle import Particle, ParticleCollection
+from qrules.quantum_numbers import InteractionProperties
 from qrules.solving import QNProblemSet, QNResult
-from qrules.transition import ProblemSet, ReactionInfo
+from qrules.transition import ProblemSet, ReactionInfo, State
+
+
+def test_as_latex_is_extensible():
+    class CustomLabel:
+        pass
+
+    as_latex.register(CustomLabel, lambda _: R"\alpha")
+    assert as_latex(CustomLabel()) == R"\alpha"
+
+
+def test_label_renderer_dispatch_is_independent():
+    class CustomLabel:
+        pass
+
+    as_string.register(CustomLabel, lambda _: "plain")
+    as_latex.register(CustomLabel, lambda _: R"\mathrm{latex}")
+
+    label = CustomLabel()
+    assert as_string(label) == "plain"
+    assert as_latex(label) == R"\mathrm{latex}"
+
+
+def test_as_latex_fallback(caplog):
+    class UnsupportedLabel:
+        def __str__(self) -> str:
+            return "unsupported"
+
+    with caplog.at_level(logging.WARNING):
+        assert as_latex(UnsupportedLabel()) == "unsupported"
+    assert "No LaTeX label renderer implemented type UnsupportedLabel" in caplog.text
+
+
+def test_as_latex_particle_and_state(particle_database: ParticleCollection):
+    particle = particle_database["J/psi(1S)"]
+    assert as_latex(particle) == R"J/\psi(1S)"
+    expected_state = R"J/\psi(1S)\left[-\frac{1}{2}\right]"
+    assert as_latex(State(particle, Fraction(-1, 2))) == expected_state
+    assert as_latex((particle, Fraction(-1, 2))) == expected_state
+
+    particle_with_custom_latex = attrs.evolve(
+        particle,
+        name="this_name_is_not_rendered",
+        latex=R"\mathrm{x}_{100\%}",
+    )
+    assert as_latex(particle_with_custom_latex) == R"\mathrm{x}_{100\%}"
+
+    particle_without_latex = attrs.evolve(particle, name="custom_name", latex=None)
+    assert as_latex(particle_without_latex) == R"\text{custom\_name}"
+
+    special_name = R"\{}$&#_%~^"
+    particle_without_latex = attrs.evolve(particle, name=special_name, latex=None)
+    assert as_latex(particle_without_latex) == (
+        R"\text{\textbackslash{}\{\}\$\&\#\_\%"
+        R"\textasciitilde{}\textasciicircum{}}"
+    )
+
+
+def test_as_latex_spin_and_interaction():
+    assert as_latex((Fraction(1, 2), Fraction(1, 2))) == (
+        R"\left|\frac{1}{2},+\frac{1}{2}\right\rangle"
+    )
+    interaction = InteractionProperties(
+        l_magnitude=1,
+        l_projection=0,
+        s_magnitude=Fraction(1, 2),
+        parity_prefactor=1,
+    )
+    src = as_latex(interaction)
+    assert src.startswith(R"\begin{gathered}")
+    assert R"L = \left|1,0\right\rangle" in src
+    assert R"S = \frac{1}{2}" in src
+    assert "P = +1" in src
+
+    assert not as_latex(InteractionProperties())
+    assert as_latex(InteractionProperties(l_magnitude=1)) == "L = 1"
+    assert (
+        as_latex(
+            InteractionProperties(
+                s_magnitude=Fraction(1, 2), s_projection=Fraction(-1, 2)
+            )
+        )
+        == R"S = \left|\frac{1}{2},-\frac{1}{2}\right\rangle"
+    )
+
+
+def test_as_latex_dict_and_basic_values():
+    assert as_latex(1) == "1"
+    assert as_latex(1.5) == "1.5"
+    assert as_latex(R"\alpha") == R"\alpha"
+    src = as_latex({"spin_magnitude": Fraction(1, 2), "parity": 1})
+    assert R"\text{spin\_magnitude} = \frac{1}{2}" in src
+    assert R"\text{parity} = +1" in src
+    assert as_latex(Fraction(-1, 2)) == R"-\frac{1}{2}"
+    assert as_latex(None) == R"\mathrm{None}"
+    assert not as_latex({})
+    assert as_latex({"pid": 1}) == R"\text{pid} = 1"
+
+
+def test_as_latex_collapsed_particle_tuple(particle_database: ParticleCollection):
+    particles = (
+        particle_database["f(0)(980)"],
+        particle_database["f(0)(1500)"],
+    )
+    assert as_latex(particles) == (
+        R"\begin{gathered} f_{0}(980) \\ f_{0}(1500) \end{gathered}"
+    )
+
+
+def test_create_edge_label_accepts_renderer(reaction: ReactionInfo):
+    transition = reaction.transitions[0]
+    edge_id = next(iter(transition.topology.incoming_edge_ids))
+    state = transition.states[edge_id]
+
+    plain_label = create_edge_label(transition, edge_id, render_edge_id=False)
+    latex_label = create_edge_label(
+        transition,
+        edge_id,
+        render_edge_id=False,
+        render_label=as_latex,
+    )
+
+    assert plain_label.startswith(state.particle.name)
+    assert state.particle.latex is not None
+    assert latex_label.startswith(state.particle.latex)
+
+    multiline_label = create_edge_label(
+        transition,
+        edge_id,
+        render_edge_id=True,
+        render_label=lambda _: "first\nsecond",
+    )
+    assert multiline_label == f"{edge_id}:\nfirst\nsecond"
 
 
 def test_as_string_dict(
@@ -113,6 +251,20 @@ def test_as_string_dict(
         "width = 0.15",
     }
     assert lines == expected_lines
+
+    latex = as_latex(intermediate_setting)
+    assert R"\text{RULES}" in latex
+    assert R"\text{spin\_validity - 62}" in latex
+    assert R"\text{DOMAINS}" in latex
+    assert R"\text{spin\_magnitude} \in \left[\frac{1}{2}\right]" in latex
+
+    latex = as_latex(node_setting)
+    assert R"\text{ChargeConservation - 100}" in latex
+    assert R"\text{l\_magnitude} \in \left[0, 1\right]" in latex
+
+    latex = as_latex(intermediate_state)
+    assert R"\text{spin\_magnitude} = \frac{1}{2}" in latex
+    assert R"\text{parity} = +1" in latex
 
 
 def test_as_string_spin_tuple(particle_database: ParticleCollection):
