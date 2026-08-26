@@ -298,6 +298,7 @@ def test_mermaid_latex_labels_are_wrapped_and_escaped():
         ("first\nsecond", "$$first second$$"),
         (R"\$100", R"$$\$100$$"),
         (R"\{x\}", R"$$\{x\}$$"),
+        (R"\"o", R"$$\\\"o$$"),
     ],
 )
 def test_mermaid_latex_label_transport(label: str, expected: str):

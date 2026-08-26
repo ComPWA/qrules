@@ -29,11 +29,6 @@ _LABEL_ESCAPES: dict[str, str] = {
     '"': r"\"",
     "\n": "<br/>",
 }
-_LATEX_LABEL_TABLE = str.maketrans({
-    '"': r"\"",
-    "\n": " ",
-})
-
 _NODE_LABEL_TABLE = str.maketrans(_LABEL_ESCAPES)
 _EDGE_LABEL_TABLE = str.maketrans({**_LABEL_ESCAPES, "|": r"\|"})
 
@@ -347,8 +342,26 @@ class MermaidPrinter:
 
     def _escape_label(self, label: str, *, for_edge: bool = False) -> str:
         if self.latex:
-            escaped_label = str(label).strip().translate(_LATEX_LABEL_TABLE)
-            escaped_label = escaped_label.replace(2 * "\\", 3 * "\\")
+            escaped_label = _escape_latex_label(label)
             return f"$${escaped_label}$$"
         table = _EDGE_LABEL_TABLE if for_edge else _NODE_LABEL_TABLE
         return str(label).strip().translate(table)
+
+
+def _escape_latex_label(label: str) -> str:
+    R"""Escape a KaTeX label so that it survives Mermaid's string lexer.
+
+    Within a quoted label, Mermaid reads ``\\`` and ``\"`` as escape sequences and
+    passes any other backslash sequence through untouched. A backslash therefore has to
+    be doubled only where it precedes another backslash or a quote. Escaping the quotes
+    first and rewriting each remaining ``\\`` pair with three backslashes produces
+    exactly that: the KaTeX row separator ``\\`` arrives as two backslashes, and an
+    accent such as ``\"`` arrives with its quote intact.
+
+    >>> print(_escape_latex_label(R"L = 0 \\ S = 1"))
+    L = 0 \\\ S = 1
+    >>> print(_escape_latex_label(R"\"o"))
+    \\\"o
+    """
+    escaped_label = str(label).strip().replace("\n", " ").replace('"', R"\"")
+    return escaped_label.replace(2 * "\\", 3 * "\\")
