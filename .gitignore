@@ -43,9 +43,12 @@ TAGS
 pyvenv*/
 
 # Settings
+.agents/
 .claude/
 .idea/
+.pr_body.md
 **.code-workspace
+AGENTS.md
 CLAUDE.md
 
 # Exceptions
