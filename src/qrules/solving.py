@@ -483,7 +483,7 @@ def _create_variable_string(
     return str(element_id) + "-" + qn_type.__name__
 
 
-def _is_graph_element_rule(rule: Rule) -> TypeIs[GraphElementRule]:
+def _is_graph_element_rule(rule: Rule, /) -> TypeIs[GraphElementRule]:
     return len(inspect.signature(rule).parameters) == 1
 
 

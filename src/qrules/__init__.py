@@ -385,7 +385,7 @@ def generate_transitions(  # ruff:ignore[too-many-positional-arguments]
     return stm.find_solutions(problem_sets)
 
 
-def _is_state_definition_input(value: object) -> TypeIs[StateDefinitionInput]:
+def _is_state_definition_input(value: object, /) -> TypeIs[StateDefinitionInput]:
     return isinstance(value, str) or (
         isinstance(value, tuple) and len(value) == 2 and isinstance(value[0], str)
     )

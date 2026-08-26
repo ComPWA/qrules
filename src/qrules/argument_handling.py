@@ -61,22 +61,24 @@ GraphNodePropertyMap = GraphElementPropertyMap[NodeQuantumNumber]
 """Type alias for a graph node property map."""
 
 
-def _is_optional(field_type: TypeForm[object]) -> bool:
+def _is_optional(field_type: TypeForm[object], /) -> bool:
     return get_origin(field_type) is Union and type(None) in get_args(field_type)
 
 
-def _is_sequence_type(input_type: TypeForm[object]) -> bool:
+def _is_sequence_type(input_type: TypeForm[object], /) -> bool:
     return get_origin(input_type) in {list, tuple}
 
 
 def _is_edge_quantum_number(
     qn_type: object,
+    /,
 ) -> TypeIs[TypeForm[EdgeQuantumNumber]]:
     return qn_type in EdgeQuantumNumber.__args__
 
 
 def _is_node_quantum_number(
     qn_type: object,
+    /,
 ) -> TypeIs[TypeForm[NodeQuantumNumber]]:
     return qn_type in NodeQuantumNumber.__args__
 

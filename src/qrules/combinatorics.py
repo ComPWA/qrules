@@ -134,11 +134,11 @@ def ensure_nested_list(
     return nested_list
 
 
-def _is_string_list(value: object) -> TypeIs[list[str]]:
+def _is_string_list(value: object, /) -> TypeIs[list[str]]:
     return isinstance(value, list) and all(isinstance(item, str) for item in value)
 
 
-def _is_nested_string_list(value: object) -> TypeIs[list[list[str]]]:
+def _is_nested_string_list(value: object, /) -> TypeIs[list[list[str]]]:
     return isinstance(value, list) and all(_is_string_list(item) for item in value)
 
 
