@@ -23,6 +23,7 @@ from typing import TYPE_CHECKING
 import attrs
 
 from qrules import io
+from qrules import system_control as system_control
 from qrules.combinatorics import (
     InitialFacts,
     StateDefinitionInput,
