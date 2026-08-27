@@ -58,11 +58,11 @@ class GraphvizPrinter:
         converter=_create_default_figure_style, default=None
     )
     edge_style: dict[str, Any] = field(
-        converter=default_if_none(factory=dict),  # type: ignore[misc]
+        converter=default_if_none(factory=dict),
         default=None,
     )
     node_style: dict[str, Any] = field(
-        converter=default_if_none(factory=dict),  # type: ignore[misc]
+        converter=default_if_none(factory=dict),
         default=None,
     )
     indent: int = 4
