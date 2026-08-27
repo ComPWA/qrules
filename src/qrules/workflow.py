@@ -425,7 +425,9 @@ def solve(
                 qn_solution = solve_single(problem)
                 qn_results[strength].append(qn_solution)
                 progress_bar.update()
-        if qn_results[strength] and solving_mode == SolvingMode.FAST:
+        if solving_mode == SolvingMode.FAST and any(
+            qn_result.solutions for _, qn_result in qn_results[strength]
+        ):
             break
     progress_bar.close()
     return qn_results
