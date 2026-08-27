@@ -98,3 +98,8 @@ def test_pipeline_reproduces_state_transition_manager(reaction: ReactionInfo):
     )
     workflow_reaction = find_solutions(qn_problem_sets, particle_db)
     assert workflow_reaction == reaction
+
+
+def test_find_solutions_requires_formalism(particle_database: ParticleCollection):
+    with pytest.raises(ValueError, match="Cannot infer the spin formalism"):
+        find_solutions(qn_problem_sets={}, particle_db=particle_database)
