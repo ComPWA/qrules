@@ -236,7 +236,7 @@ class StateTransitionManager:
         | None = None,
         formalism: SpinFormalism = "helicity",
         topology_building: str = "isobar",
-        solving_mode: SolvingMode = SolvingMode.FAST,
+        solving_mode: SolvingMode = SolvingMode.FULL,
         reload_pdg: bool = False,
         mass_conservation_factor: float | None = 3.0,
         max_angular_momentum: int = 1,
@@ -259,7 +259,8 @@ class StateTransitionManager:
         self.__particles = ParticleCollection()
         if particle_db is not None:
             self.__particles = particle_db
-        self.reaction_mode = str(solving_mode)
+        self.solving_mode = solving_mode
+        """Whether to search for all solutions or stop at the strongest interaction."""
         self.initial_state = list(map(as_state_definition, initial_state))
         self.final_state = list(map(as_state_definition, final_state))
         self.interaction_type_settings = interaction_type_settings
@@ -467,7 +468,7 @@ class StateTransitionManager:
         for node_id in topology.nodes:
             interaction_types: list[InteractionType] = []
             out_edge_ids = topology.get_edge_ids_outgoing_from_node(node_id)
-            in_edge_ids = topology.get_edge_ids_outgoing_from_node(node_id)
+            in_edge_ids = topology.get_edge_ids_ingoing_to_node(node_id)
             in_states = [
                 initial_facts.states[edge_id]
                 for edge_id in [x for x in in_edge_ids if x in initial_state_edges]
@@ -633,7 +634,9 @@ class StateTransitionManager:
                     qn_solution = self._solve(problem)
                     qn_results[strength].append(qn_solution)
                     progress_bar.update()
-            if qn_results[strength] and self.reaction_mode == SolvingMode.FAST:
+            if self.solving_mode == SolvingMode.FAST and any(
+                qn_result.solutions for _, qn_result in qn_results[strength]
+            ):
                 break
         progress_bar.close()
         return qn_results
