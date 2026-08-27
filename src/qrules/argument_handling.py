@@ -150,7 +150,7 @@ class _ValueExtractor(Generic[_ElementType]):
             return None
         supertype = getattr(self.__obj_type, "__supertype__", None)
         if supertype == Parity:
-            return cast("_ElementType", Parity(int(value)))
+            return Parity(int(value))  # ty: ignore[invalid-return-type]
         return self.__obj_type(value)
 
 
