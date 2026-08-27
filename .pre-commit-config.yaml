@@ -89,6 +89,7 @@ repos:
       - id: name-tests-test
         name: Tests should start with test_
         args: ["--django"]
+        exclude: (^|/)helpers\.py$
       - id: trailing-whitespace
 
   - repo: https://github.com/tombi-toml/tombi-pre-commit
