@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING, Any, Generic, TypeVar, overload
 
 import attrs
 from attrs import define, field, frozen
-from constraint import BacktrackingSolver, Constraint, Problem, Unassigned
+from constraint import BacktrackingSolver, Constraint, Problem, Unassigned, Variable
 
 from qrules._implementers import implement_pretty_repr
 from qrules.argument_handling import (
@@ -937,6 +937,7 @@ class _GraphElementConstraint(Constraint, Generic[_QNType]):
         domains: dict,  # ruff: ignore[unused-method-argument]
         assignments: dict,
         forwardcheck: bool = False,  # ruff: ignore[unused-method-argument]
+        _unassigned: Variable = Unassigned,
     ) -> bool:
         """Perform the constraint checking.
 
@@ -963,8 +964,8 @@ class _GraphElementConstraint(Constraint, Generic[_QNType]):
             bool:
                 Boolean value stating if this constraint is currently broken or not.
         """
-        params = [(x, assignments.get(x, Unassigned)) for x in variables]
-        missing = [name for (name, val) in params if val is Unassigned]
+        params = [(x, assignments.get(x, _unassigned)) for x in variables]
+        missing = [name for (name, val) in params if val is _unassigned]
         if missing:
             return True
 
@@ -1075,6 +1076,7 @@ class _ConservationRuleConstraintWrapper(Constraint):
         domains: dict,  # ruff: ignore[unused-method-argument]
         assignments: dict,
         forwardcheck: bool = False,  # ruff: ignore[unused-method-argument]
+        _unassigned: Variable = Unassigned,
     ) -> bool:
         """Perform the constraint checking.
 
@@ -1101,8 +1103,8 @@ class _ConservationRuleConstraintWrapper(Constraint):
             bool:
                 Boolean value stating if this constraint is currently broken or not.
         """
-        params = [(x, assignments.get(x, Unassigned)) for x in variables]
-        missing = [name for (name, val) in params if val is Unassigned]
+        params = [(x, assignments.get(x, _unassigned)) for x in variables]
+        missing = [name for (name, val) in params if val is _unassigned]
         if missing:
             return True
 
