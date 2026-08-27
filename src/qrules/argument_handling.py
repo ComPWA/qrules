@@ -69,17 +69,11 @@ def _is_sequence_type(input_type: TypeForm[object], /) -> bool:
     return get_origin(input_type) in {list, tuple}
 
 
-def _is_edge_quantum_number(
-    qn_type: object,
-    /,
-) -> TypeIs[TypeForm[EdgeQuantumNumber]]:
+def _is_edge_quantum_number(qn_type: object, /) -> TypeIs[TypeForm[EdgeQuantumNumber]]:
     return qn_type in EdgeQuantumNumber.__args__
 
 
-def _is_node_quantum_number(
-    qn_type: object,
-    /,
-) -> TypeIs[TypeForm[NodeQuantumNumber]]:
+def _is_node_quantum_number(qn_type: object, /) -> TypeIs[TypeForm[NodeQuantumNumber]]:
     return qn_type in NodeQuantumNumber.__args__
 
 
