@@ -29,10 +29,12 @@ from attrs import define, field, frozen
 from attrs.validators import deep_iterable, deep_mapping, instance_of
 from frozendict import frozendict
 
-from qrules._implementers import PrettyPrinter, implement_pretty_repr
+from qrules._implementers import implement_pretty_repr
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Mapping, Sequence
+
+    from IPython.lib.pretty import RepresentationPrinter
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -49,7 +51,7 @@ class FrozenDict(frozendict, Generic[KT, VT]):
     equal keys must also be mutually orderable.
     """
 
-    def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
+    def _repr_pretty_(self, p: RepresentationPrinter, cycle: bool) -> None:
         class_name = type(self).__name__
         if cycle:
             p.text(f"{class_name}(...)")

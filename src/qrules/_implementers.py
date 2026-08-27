@@ -2,28 +2,14 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol, TypeVar
+from typing import TYPE_CHECKING, TypeVar
 
 import attrs
 
 if TYPE_CHECKING:
-    from contextlib import AbstractContextManager
+    from IPython.lib.pretty import RepresentationPrinter
 
 _DecoratedClass = TypeVar("_DecoratedClass")
-
-
-class PrettyPrinter(Protocol):
-    def breakable(self) -> None: ...
-
-    def group(
-        self,
-        indent: int = 0,
-        open: str = "",  # ruff: ignore[builtin-argument-shadowing]
-    ) -> AbstractContextManager: ...
-
-    def pretty(self, obj: object) -> None: ...
-
-    def text(self, obj: str) -> None: ...
 
 
 def implement_pretty_repr(
@@ -34,7 +20,9 @@ def implement_pretty_repr(
         msg = "Can only implement a pretty repr for a class created with attrs"
         raise TypeError(msg)
 
-    def repr_pretty(self: _DecoratedClass, p: PrettyPrinter, cycle: bool) -> None:
+    def repr_pretty(
+        self: _DecoratedClass, p: RepresentationPrinter, cycle: bool
+    ) -> None:
         class_name = type(self).__name__
         if cycle:
             p.text(f"{class_name}(...)")

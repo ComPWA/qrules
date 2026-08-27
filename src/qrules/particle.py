@@ -38,10 +38,9 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Iterator
 
     from attrs import Attribute
+    from IPython.lib.pretty import RepresentationPrinter
     from particle import Particle as PdgDatabase
     from particle.particle import enums
-
-    from qrules._implementers import PrettyPrinter
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -107,7 +106,7 @@ class Spin:  # ruff: ignore[eq-without-hash]
     def __repr__(self) -> str:
         return f"{type(self).__name__}{(self.magnitude, self.projection)}"
 
-    def _repr_pretty_(self, p: PrettyPrinter, _: bool) -> None:
+    def _repr_pretty_(self, p: RepresentationPrinter, _: bool) -> None:
         class_name = type(self).__name__
         magnitude = _render_fraction(self.magnitude)
         projection = _render_fraction(self.projection, plusminus=True)
@@ -220,7 +219,7 @@ class Particle:
             or self.tau_lepton_number != 0
         )
 
-    def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
+    def _repr_pretty_(self, p: RepresentationPrinter, cycle: bool) -> None:
         class_name = type(self).__name__
         if cycle:
             p.text(f"{class_name}(...)")
@@ -316,7 +315,7 @@ class ParticleCollection(abc.MutableSet):  # ruff: ignore[eq-without-hash]
         output += "})"
         return output
 
-    def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
+    def _repr_pretty_(self, p: RepresentationPrinter, cycle: bool) -> None:
         class_name = type(self).__name__
         if cycle:
             p.text(f"{class_name}(...)")
