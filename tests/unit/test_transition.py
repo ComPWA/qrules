@@ -1,4 +1,3 @@
-# pyright: reportUnusedImport=false
 import hashlib
 import pickle  # ruff: ignore[suspicious-pickle-import]
 import sys

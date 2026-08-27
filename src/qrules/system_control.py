@@ -50,10 +50,11 @@ def create_edge_properties(
             value = value.value
         if qn_name in edge_qn_mapping:
             property_map[edge_qn_mapping[qn_name]] = value
-        elif "isospin" in qn_name:
-            isospin = value
-        elif "spin" in qn_name:
-            property_map[EdgeQuantumNumbers.spin_magnitude] = value
+        else:
+            if "isospin" in qn_name:
+                isospin = value
+            elif "spin" in qn_name:
+                property_map[EdgeQuantumNumbers.spin_magnitude] = value
 
     if spin_projection is not None:
         property_map[EdgeQuantumNumbers.spin_projection] = spin_projection
@@ -103,7 +104,11 @@ def find_particle(  # ruff: ignore[undocumented-param]
 
         ValueError: If the edge properties do not contain spin projection info.
     """
-    particle = particle_db.find(int(state[EdgeQuantumNumbers.pid]))
+    pid = state[EdgeQuantumNumbers.pid]
+    if pid is None:
+        msg = f"{GraphEdgePropertyMap.__name__} does not contain a PID"
+        raise ValueError(msg)
+    particle = particle_db.find(int(pid))
     spin_projection = state.get(EdgeQuantumNumbers.spin_projection)
     if spin_projection is None:
         msg = f"{GraphEdgePropertyMap.__name__} does not contain a spin projection"
@@ -117,11 +122,11 @@ def create_interaction_properties(
     converted_solution = {k.__name__: v for k, v in qn_solution.items()}
     kw_args = {
         x.name: converted_solution[x.name]
-        for x in attrs.fields(InteractionProperties)  # type: ignore[arg-type]
+        for x in attrs.fields(InteractionProperties)
         if x.name in converted_solution
     }
 
-    return attrs.evolve(InteractionProperties(), **kw_args)  # type: ignore[arg-type]
+    return attrs.evolve(InteractionProperties(), **kw_args)
 
 
 def filter_interaction_types(
@@ -239,7 +244,7 @@ def _remove_qns_from_graph(
             interactions, **{x.__name__: None for x in qn_list}
         )
 
-    return attrs.evolve(graph, interactions=new_interactions)  # type: ignore[arg-type]
+    return attrs.evolve(graph, interactions=new_interactions)
 
 
 def _check_equal_ignoring_qns(

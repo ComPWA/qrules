@@ -9,7 +9,16 @@ from __future__ import annotations
 
 import inspect
 from fractions import Fraction
-from typing import TYPE_CHECKING, Any, Generic, TypeVar, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Generic,
+    TypeVar,
+    Union,
+    cast,
+    get_args,
+    get_origin,
+)
 
 import attrs
 
@@ -18,42 +27,54 @@ from qrules.conservation_rules import (
     EdgeQNConservationRule,
     GraphElementRule,
 )
-from qrules.quantum_numbers import EdgeQuantumNumber, NodeQuantumNumber, Parity
+from qrules.quantum_numbers import (
+    EdgeQuantumNumber,
+    NodeQuantumNumber,
+    Parity,
+    QuantumNumberType,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
+
+    from typing_extensions import TypeForm, TypeIs
 
 Scalar = int | float | Fraction
 Rule = GraphElementRule | EdgeQNConservationRule | ConservationRule
 """Any type of rule"""
 
+RuleKey = (
+    Rule
+    | type[GraphElementRule]
+    | type[EdgeQNConservationRule]
+    | type[ConservationRule]
+)
+"""A rule callable or rule class used as a priority key."""
+
+
 _ElementType = TypeVar("_ElementType")
 
-GraphElementPropertyMap = dict[type[_ElementType], Scalar]
+GraphElementPropertyMap = dict[QuantumNumberType[_ElementType], Scalar | None]
 GraphEdgePropertyMap = GraphElementPropertyMap[EdgeQuantumNumber]
 """Type alias for a graph edge property map."""
 GraphNodePropertyMap = GraphElementPropertyMap[NodeQuantumNumber]
 """Type alias for a graph node property map."""
 
 
-def _is_optional(field_type: type | None) -> bool:
-    return (
-        getattr(field_type, "__origin__", None) is Union
-        and type(None) in field_type.__args__  # type: ignore[union-attr]
-    )
+def _is_optional(field_type: TypeForm[object], /) -> bool:
+    return get_origin(field_type) is Union and type(None) in get_args(field_type)
 
 
-def _is_sequence_type(input_type: type) -> bool:
-    origin = getattr(input_type, "__origin__", None)
-    return origin in {list, tuple}
+def _is_sequence_type(input_type: TypeForm[object], /) -> bool:
+    return get_origin(input_type) in {list, tuple}
 
 
-def _is_edge_quantum_number(qn_type: Any) -> bool:
-    return qn_type in EdgeQuantumNumber.__args__  # type: ignore[attr-defined]
+def _is_edge_quantum_number(qn_type: object, /) -> TypeIs[TypeForm[EdgeQuantumNumber]]:
+    return qn_type in EdgeQuantumNumber.__args__
 
 
-def _is_node_quantum_number(qn_type: Any) -> bool:
-    return qn_type in NodeQuantumNumber.__args__  # type: ignore[attr-defined]
+def _is_node_quantum_number(qn_type: object, /) -> TypeIs[TypeForm[NodeQuantumNumber]]:
+    return qn_type in NodeQuantumNumber.__args__
 
 
 class _CompositeArgumentCheck:
@@ -100,13 +121,13 @@ def _check_all_arguments(checks: list[Callable]) -> Callable[..., bool]:
 
 
 class _ValueExtractor(Generic[_ElementType]):
-    def __init__(self, obj_type: type[_ElementType] | None) -> None:
-        self.__obj_type: type[_ElementType] = obj_type  # type: ignore[assignment]
+    def __init__(self, obj_type: TypeForm[_ElementType | None]) -> None:
+        concrete_type = get_args(obj_type)[0] if _is_optional(obj_type) else obj_type
+        self.__obj_type = cast("QuantumNumberType[_ElementType]", concrete_type)
         self.__function = self.__extract
 
         if _is_optional(obj_type):
-            self.__obj_type = obj_type.__args__[0]  # type: ignore[union-attr]
-            self.__function = self.__optional_extract  # type: ignore[assignment]
+            self.__function = self.__optional_extract
 
     def __call__(
         self, props: GraphElementPropertyMap[_ElementType]
@@ -127,12 +148,10 @@ class _ValueExtractor(Generic[_ElementType]):
         value = props[self.__obj_type]
         if value is None:
             return None
-        if (
-            "__supertype__" in self.__obj_type.__dict__
-            and self.__obj_type.__supertype__ == Parity  # type: ignore[attr-defined]
-        ):
-            return self.__obj_type.__supertype__(value)  # type: ignore[attr-defined]
-        return self.__obj_type(value)  # type: ignore[call-arg]
+        supertype = getattr(self.__obj_type, "__supertype__", None)
+        if supertype == Parity:
+            return Parity(int(value))  # ty: ignore[invalid-return-type]
+        return self.__obj_type(value)
 
 
 class _CompositeArgumentCreator:
@@ -144,7 +163,7 @@ class _CompositeArgumentCreator:
                 if _is_edge_quantum_number(class_field.type)
                 else _ValueExtractor[NodeQuantumNumber](class_field.type)
             )
-            for class_field in attrs.fields(class_type)  # type: ignore[misc]
+            for class_field in attrs.fields(class_type)
         }
 
     def __call__(
@@ -152,7 +171,7 @@ class _CompositeArgumentCreator:
         props: GraphElementPropertyMap,
     ) -> Any:
         return self.__class_type(**{
-            arg_name: extractor(props)  # type: ignore[operator]
+            arg_name: extractor(props)
             for arg_name, extractor in self.__extractors.items()
         })
 
@@ -184,25 +203,23 @@ class RuleArgumentHandler:
         pass
 
     @staticmethod
-    def __create_requirements_check(
-        argument_types: list[type],
-    ) -> Callable:
+    def __create_requirements_check(argument_types: list[type], /) -> Callable:
         individual_argument_checkers = []
         for input_type in argument_types:
             is_list = False
             qn_type = input_type
             if _is_sequence_type(input_type):
-                qn_type = input_type.__args__[0]  # type: ignore[attr-defined]
+                qn_type = get_args(input_type)[0]
                 is_list = True
 
             if attrs.has(qn_type):
                 class_field_types = [
                     class_field.type
-                    for class_field in attrs.fields(qn_type)  # type: ignore[misc]
+                    for class_field in attrs.fields(qn_type)
                     if not _is_optional(class_field.type)
                 ]
                 qn_check_function: Callable[..., bool] = _CompositeArgumentCheck(
-                    class_field_types  # type: ignore[arg-type]
+                    class_field_types
                 )
             else:
                 qn_check_function = _direct_qn_check(qn_type)
@@ -215,29 +232,28 @@ class RuleArgumentHandler:
         return _check_all_arguments(individual_argument_checkers)
 
     @staticmethod
-    def __create_argument_builder(
-        argument_types: list[type],
-    ) -> Callable:
+    def __create_argument_builder(argument_types: list[type], /) -> Callable:
         individual_argument_builders = []
         for input_type in argument_types:
             is_list = False
             qn_type = input_type
             if _is_sequence_type(input_type):
-                qn_type = input_type.__args__[0]  # type: ignore[attr-defined]
+                qn_type = get_args(input_type)[0]
                 is_list = True
 
             if attrs.has(qn_type):
                 arg_builder: Callable[..., Any] = _CompositeArgumentCreator(qn_type)
-            elif _is_edge_quantum_number(qn_type):
-                arg_builder = _ValueExtractor[EdgeQuantumNumber](qn_type)
-            elif _is_node_quantum_number(qn_type):
-                arg_builder = _ValueExtractor[NodeQuantumNumber](qn_type)
             else:
-                msg = (
-                    f"Quantum number type {qn_type} is not supported. Has to be of"
-                    " type Edge/NodeQuantumNumber."
-                )
-                raise TypeError(msg)
+                if _is_edge_quantum_number(qn_type):
+                    arg_builder = _ValueExtractor[EdgeQuantumNumber](qn_type)
+                elif _is_node_quantum_number(qn_type):
+                    arg_builder = _ValueExtractor[NodeQuantumNumber](qn_type)
+                else:
+                    msg = (
+                        f"Quantum number type {qn_type} is not supported. Has to be of"
+                        " type Edge/NodeQuantumNumber."
+                    )
+                    raise TypeError(msg)
 
             if is_list:
                 arg_builder = _sequence_arg_builder(arg_builder)
@@ -314,12 +330,12 @@ def get_required_qns(
     for input_type in rule_annotations:
         class_type = input_type
         if _is_sequence_type(input_type):
-            class_type = input_type.__args__[0]
+            class_type = get_args(input_type)[0]
 
         if attrs.has(class_type):
-            for class_field in attrs.fields(class_type):  # type: ignore[misc]
+            for class_field in attrs.fields(class_type):
                 field_type = (
-                    class_field.type.__args__[0]  # type: ignore[union-attr]
+                    get_args(class_field.type)[0]
                     if _is_optional(class_field.type)
                     else class_field.type
                 )
@@ -327,9 +343,10 @@ def get_required_qns(
                     required_edge_qns.add(field_type)
                 else:
                     required_node_qns.add(field_type)
-        elif _is_edge_quantum_number(class_type):
-            required_edge_qns.add(class_type)
         else:
-            required_node_qns.add(class_type)
+            if _is_edge_quantum_number(class_type):
+                required_edge_qns.add(class_type)
+            else:
+                required_node_qns.add(class_type)
 
     return required_edge_qns, required_node_qns

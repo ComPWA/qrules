@@ -63,7 +63,7 @@ class TestInteractionConfig:
 
     def test_non_interaction_type_raises(self, config: InteractionConfig):
         with pytest.raises(TypeError, match="must be of type"):
-            config.set_allowed_interaction_types(["strong"])  # type: ignore[list-item]
+            config.set_allowed_interaction_types(["strong"])  # ty: ignore[invalid-argument-type]
 
     def test_unknown_interaction_type_raises(self):
         config = InteractionConfig(type_settings={})
