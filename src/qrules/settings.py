@@ -12,18 +12,16 @@ from __future__ import annotations
 import multiprocessing
 from copy import deepcopy
 from enum import Enum, auto
+from fractions import Fraction
 from os.path import dirname, join, realpath
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 
 from qrules.conservation_rules import (
     BaryonNumberConservation,
     BottomnessConservation,
     ChargeConservation,
     CharmConservation,
-    ConservationRule,
-    EdgeQNConservationRule,
     ElectronLNConservation,
-    GraphElementRule,
     MassConservation,
     MuonLNConservation,
     StrangenessConservation,
@@ -49,8 +47,9 @@ from qrules.quantum_numbers import arange
 from qrules.solving import EdgeSettings, NodeSettings
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Callable, Iterable
 
+    from qrules.argument_handling import RuleKey
     from qrules.particle import Particle, ParticleCollection
     from qrules.transition import SpinFormalism
 
@@ -59,18 +58,16 @@ ADDITIONAL_PARTICLES_DEFINITIONS_PATH: str = join(
     __QRULES_PATH, "additional_definitions.yml"
 )
 
-CONSERVATION_LAW_PRIORITIES: dict[
-    GraphElementRule | EdgeQNConservationRule | ConservationRule, int
-] = {
-    MassConservation: 10,  # type: ignore[dict-item]
-    ElectronLNConservation: 45,  # type: ignore[dict-item]
-    MuonLNConservation: 44,  # type: ignore[dict-item]
-    TauLNConservation: 43,  # type: ignore[dict-item]
-    BaryonNumberConservation: 90,  # type: ignore[dict-item]
-    StrangenessConservation: 69,  # type: ignore[dict-item]
-    CharmConservation: 70,  # type: ignore[dict-item]
-    BottomnessConservation: 68,  # type: ignore[dict-item]
-    ChargeConservation: 100,  # type: ignore[dict-item]
+CONSERVATION_LAW_PRIORITIES: dict[RuleKey, int] = {
+    MassConservation: 10,
+    ElectronLNConservation: 45,
+    MuonLNConservation: 44,
+    TauLNConservation: 43,
+    BaryonNumberConservation: 90,
+    StrangenessConservation: 69,
+    CharmConservation: 70,
+    BottomnessConservation: 68,
+    ChargeConservation: 100,
     spin_conservation: 8,
     spin_magnitude_conservation: 8,
     parity_conservation: 6,
@@ -85,7 +82,7 @@ CONSERVATION_LAW_PRIORITIES: dict[
 """Determines the order with which to verify conservation rules."""
 
 
-EDGE_RULE_PRIORITIES: dict[GraphElementRule, int] = {
+EDGE_RULE_PRIORITIES: dict[RuleKey, int] = {
     gellmann_nishijima: 50,
     isospin_validity: 61,
     spin_validity: 62,
@@ -120,13 +117,13 @@ DEFAULT_INTERACTION_TYPES = [
 ]
 
 
-def create_interaction_settings(  # noqa: PLR0917
+def create_interaction_settings(  # ruff: ignore[too-many-positional-arguments]
     formalism: SpinFormalism,
     particle_db: ParticleCollection,
     nbody_topology: bool = False,
     mass_conservation_factor: float | None = 3.0,
     max_angular_momentum: int = 2,
-    max_spin_magnitude: float = 2.0,
+    max_spin_magnitude: float = 2,
 ) -> dict[InteractionType, tuple[EdgeSettings, NodeSettings]]:
     """Create a container that holds the settings for `.InteractionType`."""
     formalism_edge_settings = EdgeSettings(
@@ -183,11 +180,11 @@ def create_interaction_settings(  # noqa: PLR0917
     interaction_type_settings = {}
     weak_node_settings = deepcopy(formalism_node_settings)
     weak_node_settings.conservation_rules.update([
-        ChargeConservation(),  # type: ignore[abstract]
-        ElectronLNConservation(),  # type: ignore[abstract]
-        MuonLNConservation(),  # type: ignore[abstract]
-        TauLNConservation(),  # type: ignore[abstract]
-        BaryonNumberConservation(),  # type: ignore[abstract]
+        ChargeConservation(),
+        ElectronLNConservation(),
+        MuonLNConservation(),
+        TauLNConservation(),
+        BaryonNumberConservation(),
         identical_particle_symmetrization,
     ])
     weak_node_settings.interaction_strength = 10 ** (-4)
@@ -200,9 +197,9 @@ def create_interaction_settings(  # noqa: PLR0917
 
     em_node_settings = deepcopy(weak_node_settings)
     em_node_settings.conservation_rules.update({
-        CharmConservation(),  # type: ignore[abstract]
-        StrangenessConservation(),  # type: ignore[abstract]
-        BottomnessConservation(),  # type: ignore[abstract]
+        CharmConservation(),
+        StrangenessConservation(),
+        BottomnessConservation(),
         parity_conservation,
         c_parity_conservation,
     })
@@ -233,15 +230,15 @@ def create_interaction_settings(  # noqa: PLR0917
     return interaction_type_settings
 
 
-def __get_ang_mom_magnitudes(is_nbody: bool, max_angular_momentum: int) -> list[float]:
+def __get_ang_mom_magnitudes(is_nbody: bool, max_angular_momentum: int) -> list[int]:
     if is_nbody:
         return [0]
-    return _int_domain(0, max_angular_momentum)  # type: ignore[return-value]
+    return _int_domain(0, max_angular_momentum)
 
 
-def __get_spin_magnitudes(is_nbody: bool, max_spin_magnitude: float) -> list[float]:
+def __get_spin_magnitudes(is_nbody: bool, max_spin_magnitude: float) -> list[Fraction]:
     if is_nbody:
-        return [0]
+        return [Fraction(0)]
     return _halves_domain(0, max_spin_magnitude)
 
 
@@ -301,7 +298,7 @@ class NumberOfThreads:
 
 def __positive_halves_domain(
     particle_db: ParticleCollection, attr_getter: Callable[[Particle], Any]
-) -> list[float]:
+) -> list[Fraction]:
     values = set(map(attr_getter, particle_db))
     return _halves_domain(0, max(values))
 
@@ -313,16 +310,16 @@ def __positive_int_domain(
     return _int_domain(0, max(values))
 
 
-def _halves_domain(start: float, stop: float) -> list[float]:
-    if start % 0.5 != 0.0:
+def _halves_domain(start: float, stop: float) -> list[Fraction]:
+    start_frac = Fraction(start)
+    stop_frac = Fraction(stop)
+    if start_frac.denominator not in {1, 2}:
         msg = f"Start value {start} needs to be multiple of 0.5"
         raise ValueError(msg)
-    if stop % 0.5 != 0.0:
+    if stop_frac.denominator not in {1, 2}:
         msg = f"Stop value {stop} needs to be multiple of 0.5"
         raise ValueError(msg)
-    return [
-        int(v) if v.is_integer() else v for v in arange(start, stop + 0.25, delta=0.5)
-    ]
+    return list(arange(start_frac, stop_frac + Fraction(1, 4), delta=Fraction(1, 2)))
 
 
 def _int_domain(start: int, stop: int) -> list[int]:
@@ -330,6 +327,6 @@ def _int_domain(start: int, stop: int) -> list[int]:
 
 
 def __extend_negative(
-    magnitudes: Iterable[int | float],
-) -> list[int | float]:
+    magnitudes: Iterable[int | Fraction],
+) -> list[int | Fraction]:
     return sorted(list(magnitudes) + [-x for x in magnitudes if x > 0])

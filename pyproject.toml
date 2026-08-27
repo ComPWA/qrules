@@ -1,39 +1,13 @@
-[build-system]
-build-backend = "setuptools.build_meta"
-requires = [
-    "setuptools>=61.2",
-    "setuptools_scm",
-]
-
 [project]
-authors = [{name = "Common Partial Wave Analysis", email = "compwa-admin@ep1.rub.de"}]
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Developers",
-    "Intended Audience :: Education",
-    "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: Apache Software License",
-    "Natural Language :: English",
-    "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python",
-    "Topic :: Scientific/Engineering :: Physics",
-    "Topic :: Scientific/Engineering",
-    "Typing :: Typed",
-]
-dependencies = [
-    "PyYAML",
-    "attrs >=20.1.0", # on_setattr and https://www.attrs.org/en/stable/api.html#next-gen
-    "jsonschema",
-    "particle",
-    "python-constraint",
-    "tqdm >=4.24.0", # autonotebook
-]
+name = "qrules"
 description = "Rule-based particle reaction problem solver on a quantum number level"
-dynamic = ["version"]
+requires-python = ">=3.10"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Common Partial Wave Analysis", email = "compwa-admin@ep1.rub.de" },
+]
+maintainers = [{ email = "compwa-admin@ep1.rub.de" }]
 keywords = [
     "HEP",
     "PWA",
@@ -43,32 +17,54 @@ keywords = [
     "particles",
     "physics",
 ]
-license = {file = "LICENSE"}
-maintainers = [{email = "compwa-admin@ep1.rub.de"}]
-name = "qrules"
-requires-python = ">=3.9"
-
-[project.optional-dependencies]
-viz = ["graphviz"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Typing :: Typed",
+]
+dependencies = [
+    "PyYAML",
+    "attrs >=20.1.0",  # on_setattr and https://www.attrs.org/en/stable/api.html#next-gen
+    "compwa-python-constraint",
+    "frozendict",
+    "jsonschema",
+    "particle",
+    "tqdm >=4.24.0",  # autonotebook
+]
+dynamic = ["version"]
 
 [project.readme]
-content-type = "text/markdown"
 file = "README.md"
+content-type = "text/markdown"
 
 [project.urls]
 Changelog = "https://github.com/ComPWA/qrules/releases"
 Documentation = "https://qrules.rtfd.io"
+Issues = "https://github.com/ComPWA/qrules/issues"
 Source = "https://github.com/ComPWA/qrules"
-Tracker = "https://github.com/ComPWA/qrules/issues"
+
+[project.optional-dependencies]
+viz = ["graphviz"]
 
 [dependency-groups]
 dev = [
     "ruff",
-    "sphinx-autobuild",
-    {include-group = "doc"},
-    {include-group = "jupyter"},
-    {include-group = "style"},
-    {include-group = "test"},
+    { include-group = "doc" },
+    { include-group = "jupyter" },
+    { include-group = "style" },
+    { include-group = "test" },
 ]
 doc = [
     "myst-nb",
@@ -84,161 +80,274 @@ doc = [
     "sphinx-thebe",
     "sphinx-togglebutton",
     "sphinxcontrib-bibtex >=2",
-    {include-group = "notebooks"},
+    "sphinxcontrib-mermaid",
+    { include-group = "notebooks" },
 ]
 jupyter = [
     "ipywidgets",
+    "jupyter-ruff",
     "jupyterlab",
-    "jupyterlab-code-formatter",
     "jupyterlab-git",
     "jupyterlab-lsp",
     "jupyterlab-myst",
+    "jupyterlab-quickopen",
     "python-lsp-ruff",
-    "python-lsp-server[rope]",
-    {include-group = "notebooks"},
+    "python-lsp-server",
+    { include-group = "notebooks" },
 ]
 notebooks = ["qrules[viz]"]
 style = [
-    "mypy",
-    {include-group = "types"},
+    "ty",
+    { include-group = "types" },
 ]
 test = [
     "ipython",
-    "nbmake",
-    "pydot <2",
+    "pydot",
     "pytest",
     "pytest-cov",
-    "pytest-profiling",
     "pytest-xdist",
 ]
 types = [
+    "graphviz",
     "ipython",
-    "pydot <2",
+    "pydot",
     "pytest",
     "sphinx-api-relink",
     "types-PyYAML",
-    "types-setuptools",
 ]
 
-[tool.setuptools]
-include-package-data = false
-package-dir = {"" = "src"}
-
-[tool.setuptools.package-data]
-qrules = [
-    "additional_definitions.yml",
-    "particle-validation.json",
-    "py.typed",
+[build-system]
+requires = [
+    "setuptools>=61.2",
+    "setuptools_scm",
 ]
+build-backend = "setuptools.build_meta"
 
-[tool.setuptools.packages.find]
-namespaces = false
-where = ["src"]
+[tool.compwa.policy]
+doc-apt-packages = "graphviz"
+repo-name = "qrules"
+repo-title = "QRules"
 
-[tool.setuptools_scm]
-local_scheme = "no-local-version"
-version_scheme = "only-version"
-write_to = "src/qrules/version.py"
+[tool.compwa.policy.python]
+type-checker = ["ty"]
+
+[tool.coverage.report]
+exclude_also = ["if TYPE_CHECKING:"]
 
 [tool.coverage.run]
 branch = true
+omit = [
+    "benchmarks/**/*.py",
+    "docs/**/*.ipynb",
+    "docs/**/*.py",
+    "examples/**/*.py",
+    "tests/**/*.py",
+]
 source = ["src"]
 
-[tool.mypy]
-disallow_incomplete_defs = true
-disallow_untyped_defs = true
-exclude = "_build"
-show_error_codes = true
-warn_unused_configs = true
+[tool.poe.executor]
+isolated = true
+no-group = "dev"
+type = "uv"
 
-[[tool.mypy.overrides]]
-check_untyped_defs = true
-disallow_incomplete_defs = false
-disallow_untyped_defs = false
-module = ["tests.*"]
+[tool.poe.groups.doc]
+heading = "Documentation"
 
-[[tool.mypy.overrides]]
-ignore_errors = true
-module = ["typings.*"]
+[tool.poe.groups.doc.tasks.doc]
+cmd = """
+sphinx-build \
+    --builder=html \
+    --fail-on-warning \
+    --keep-going \
+    --show-traceback \
+    docs/ \
+    docs/_build/html/
+"""
+env = { PYTHONWARNINGS = "" }
+executor = { group = "doc" }
+help = "Build documentation and API"
 
-[[tool.mypy.overrides]]
-ignore_missing_imports = true
-module = ["IPython.*"]
+[tool.poe.groups.doc.tasks.doclive]
+cmd = """
+sphinx-autobuild \
+    --builder=html \
+    --open-browser \
+    --port=0 \
+    --re-ignore=/__pycache__(/.*)?$ \
+    --re-ignore=/_build(/.*)?$ \
+    --re-ignore=/_images(/.*)?$ \
+    --re-ignore=/\\.cache(/.*)?$ \
+    --re-ignore=/\\.egg-info(/.*)?$ \
+    --re-ignore=/\\.ipynb_checkpoints(/.*)?$ \
+    --re-ignore=/\\.virtual_documents(/.*)?$ \
+    --re-ignore=/api(/.*)?$ \
+    --re-ignore=/docs$ \
+    --re-ignore=/version\\.py$ \
+    --re-ignore=\\.egg-info(/.*)?$ \
+    --re-ignore=\\.gif$ \
+    --re-ignore=\\.gitignore$ \
+    --re-ignore=\\.gv$ \
+    --re-ignore=\\.inv$ \
+    --re-ignore=\\.json$ \
+    --re-ignore=\\.pickle$ \
+    --re-ignore=\\.pkl$ \
+    --re-ignore=\\.png$ \
+    --re-ignore=\\.root$ \
+    --re-ignore=\\.svg$ \
+    --re-ignore=\\.tmp$ \
+    --re-ignore=\\.ya?ml$ \
+    --watch=src \
+    docs/ \
+    docs/_build/html/
+"""
+executor = { group = "doc", with = "sphinx-autobuild" }
+help = "Set up a server to directly preview changes to the HTML pages"
 
-[[tool.mypy.overrides]]
-ignore_missing_imports = true
-module = ["constraint.*"]
+[tool.poe.groups.doc.tasks.docnb]
+env = { EXECUTE_NB = "yes" }
+help = "Build documentation and API with cached notebook execution"
+sequence = ["doc"]
 
-[[tool.mypy.overrides]]
-ignore_missing_imports = true
-module = ["jsonschema.*"]
+[tool.poe.groups.doc.tasks.docnb-force]
+env = { FORCE_EXECUTE_NB = "yes" }
+help = "Build documentation and API with notebook execution (no cache)"
+sequence = ["doc"]
 
-[[tool.mypy.overrides]]
-ignore_missing_imports = true
-module = ["particle.*"]
+[tool.poe.groups.doc.tasks.docnblive]
+env = { EXECUTE_NB = "yes" }
+help = "Set up a server to directly preview changes to the HTML pages with cached notebook execution"
+sequence = ["doclive"]
 
-[[tool.mypy.overrides]]
-ignore_missing_imports = true
-module = ["pybtex.*"]
+[tool.poe.groups.doc.tasks.linkcheck]
+cmd = """
+sphinx-build \
+    --builder=linkcheck \
+    --fail-on-warning \
+    --show-traceback \
+    docs/ \
+    docs/_build/linkcheck/
+"""
+env = { PYTHONWARNINGS = "" }
+executor = { group = "doc" }
+help = "Check external links in the documentation (requires internet connection)"
 
-[[tool.mypy.overrides]]
-ignore_missing_imports = true
-module = ["pydot.*"]
+[tool.poe.groups.notebook]
+heading = "Notebooks"
 
-[[tool.mypy.overrides]]
-ignore_missing_imports = true
-module = ["sphinx.*"]
+[tool.poe.groups.notebook.tasks.lab]
+args = [{ name = "paths", default = "", positional = true }]
+cmd = "jupyter lab ${paths}"
+executor = { group = "jupyter" }
+help = "Launch Jupyter Lab"
 
-[[tool.mypy.overrides]]
-ignore_missing_imports = true
-module = ["tqdm.*"]
-
-[tool.pyright]
-exclude = [
-    "**/.git",
-    "**/.ipynb_checkpoints",
-    "**/.mypy_cache",
-    "**/.pytest_cache",
-    "**/.tox",
-    "**/.venv/",
-    "**/__pycache__",
-    "**/_build",
+[tool.poe.groups.notebook.tasks.nb]
+args = [
+    { name = "paths", default = "docs", multiple = true, positional = true },
 ]
-reportArgumentType = false
-reportAssignmentType = false
-reportAttributeAccessIssue = false
-reportCallIssue = false
-reportGeneralTypeIssues = false
-reportIncompatibleMethodOverride = false
-reportIndexIssue = false
-reportInvalidTypeArguments = false
-reportMissingParameterType = false
-reportMissingTypeArgument = false
-reportMissingTypeStubs = false
-reportOperatorIssue = false
-reportOverlappingOverload = false
-reportPrivateImportUsage = false
-reportPrivateUsage = false
-reportReturnType = false
-reportUnboundVariable = false
-reportUnknownArgumentType = false
-reportUnknownLambdaType = false
-reportUnknownMemberType = false
-reportUnknownParameterType = false
-reportUnknownVariableType = false
-reportUnnecessaryComparison = false
-reportUnnecessaryContains = false
-reportUnnecessaryIsInstance = false
-reportUntypedFunctionDecorator = false
-reportUnusedClass = true
-reportUnusedFunction = true
-reportUnusedImport = true
-reportUnusedVariable = true
-typeCheckingMode = "strict"
-venv = ".venv"
-venvPath = "."
+cmd = "pytest --nbmake --nbmake-timeout=0 ${paths}"
+executor = { group = "notebooks", with = "nbmake" }
+help = "Run all notebooks"
 
-[tool.pytest.ini_options]
+[tool.poe.groups.test]
+heading = "Testing"
+
+[tool.poe.groups.test.tasks.cov]
+cmd = """
+pytest \
+    --cov=qrules \
+    --cov-fail-under=85 \
+    --cov-report=html \
+    --cov-report=xml \
+    --numprocesses=auto \
+    -m 'slow or not slow' \
+    ${paths}
+"""
+executor = { group = "test" }
+help = "Compute how much of the source code is covered by tests"
+
+[[tool.poe.groups.test.tasks.cov.args]]
+default = "src tests/unit"
+multiple = true
+name = "paths"
+positional = true
+
+[tool.poe.groups.test.tasks.test]
+cmd = "pytest --numprocesses=auto -m 'slow or not slow' ${paths}"
+executor = { group = "test" }
+help = "Run all unit tests"
+
+[[tool.poe.groups.test.tasks.test.args]]
+default = "src tests"
+multiple = true
+name = "paths"
+positional = true
+
+[tool.poe.groups.test.tasks.test-all]
+help = "Run all tests on each supported Python version"
+sequence = [
+    "test-py310 ${paths}",
+    "test-py311 ${paths}",
+    "test-py312 ${paths}",
+    "test-py313 ${paths}",
+    "test-py314 ${paths}",
+]
+
+[[tool.poe.groups.test.tasks.test-all.args]]
+default = ""
+multiple = true
+name = "paths"
+positional = true
+
+[tool.poe.groups.test.tasks.test-py310]
+env = { UV_PYTHON = "3.10" }
+ref = "test"
+
+[tool.poe.groups.test.tasks.test-py311]
+env = { UV_PYTHON = "3.11" }
+ref = "test"
+
+[tool.poe.groups.test.tasks.test-py312]
+env = { UV_PYTHON = "3.12" }
+ref = "test"
+
+[tool.poe.groups.test.tasks.test-py313]
+env = { UV_PYTHON = "3.13" }
+ref = "test"
+
+[tool.poe.groups.test.tasks.test-py314]
+env = { UV_PYTHON = "3.14" }
+ref = "test"
+
+[tool.poe.tasks.all]
+help = "Run all continuous integration (CI) tasks locally"
+ignore_fail = "return_non_zero"
+sequence = [
+    "style",
+    "linkcheck",
+    "docnb-force",
+    "cov",
+    "test-all",
+]
+
+[tool.poe.tasks.style]
+cmd = "pre-commit run --all-files"
+executor = { group = "style" }
+help = "Perform all linting, formatting, and spelling checks"
+
+[tool.poe.tasks.upgrade]
+executor = { type = "simple" }
+help = "Upgrade lock files"
+parallel = ["_upgrade-precommit", "_upgrade-uv"]
+
+[tool.poe.tasks._upgrade-precommit]
+cmd = "pre-commit autoupdate -j8"
+executor = { type = "simple" }
+
+[tool.poe.tasks._upgrade-uv]
+executor = { type = "simple" }
+cmd = "uv lock --upgrade"
+
+[tool.pytest]
 addopts = [
     "--color=yes",
     "--doctest-continue-on-failure",
@@ -246,9 +355,11 @@ addopts = [
     "--durations=3",
     "--ignore=docs/abbreviate_signature.py",
     "--ignore=docs/conf.py",
+    "--import-mode=importlib",
 ]
 filterwarnings = [
     "error",
+    "ignore: '[A-Za-z]+' .*deprecated.* use '[a-z_]+':DeprecationWarning",
     "ignore: The `hash` argument is deprecated in favor of `unsafe_hash` and will be removed in or after August 2025.:DeprecationWarning",
     "ignore:'importlib.abc.Traversable' is deprecated and slated for removal in Python 3.14:DeprecationWarning",
     "ignore:Passing a schema to Validator.iter_errors is deprecated.*:DeprecationWarning",
@@ -256,6 +367,7 @@ filterwarnings = [
     "ignore:unclosed .*:ResourceWarning",
 ]
 markers = ["slow: marks tests as slow (deselect with '-m \"not slow\"')"]
+minversion = "9.0"
 norecursedirs = [
     ".ipynb_checkpoints",
     ".virtual_documents",
@@ -268,7 +380,6 @@ testpaths = [
 ]
 
 [tool.ruff]
-extend-exclude = ["typings"]
 extend-include = ["*.ipynb"]
 preview = true
 show-fixes = true
@@ -283,40 +394,41 @@ line-ending = "lf"
 
 [tool.ruff.lint]
 ignore = [
-    "ANN401",
-    "COM812",
-    "CPY001",
-    "D101",
-    "D102",
-    "D103",
-    "D105",
-    "D107",
-    "D203",
-    "D213",
-    "D407",
-    "D416",
     "DOC",
-    "E501",
     "FBT00",
-    "FURB101",
-    "FURB103",
-    "FURB140",
-    "G004",
-    "ISC001",
-    "PLR0913",
-    "PLR2004",
-    "PLR5501",
-    "PLW1514",
-    "PLW2901",
-    "PT001",
     "PTH",
-    "SIM108",
+    "any-type",
+    "collapsible-else-if",
+    "if-else-block-instead-of-if-exp",
+    "incorrect-blank-line-before-class",
+    "line-too-long",
+    "logging-f-string",
+    "magic-value-comparison",
+    "missing-copyright-notice",
+    "missing-dashed-underline-after-section",
+    "missing-section-name-colon",
+    "missing-trailing-comma",
+    "multi-line-summary-second-line",
+    "non-empty-init-module",
+    "pytest-fixture-incorrect-parentheses-style",
+    "read-whole-file",
+    "redefined-loop-name",
+    "reimplemented-starmap",
+    "single-line-implicit-string-concatenation",
+    "too-many-arguments",
+    "undocumented-magic-method",
+    "undocumented-public-class",
+    "undocumented-public-function",
+    "undocumented-public-init",
+    "undocumented-public-method",
+    "unspecified-encoding",
+    "write-whole-file",
 ]
 select = ["ALL"]
 task-tags = ["cspell"]
 
 [tool.ruff.lint.flake8-builtins]
-builtins-ignorelist = ["display"]
+ignorelist = ["display"]
 
 [tool.ruff.lint.flake8-comprehensions]
 allow-dict-calls-with-keyword-arguments = true
@@ -325,55 +437,58 @@ allow-dict-calls-with-keyword-arguments = true
 ban-relative-imports = "all"
 
 [tool.ruff.lint.isort]
+known-first-party = ["qrules"]
+known-local-folder = ["tests"]
 split-on-trailing-comma = false
 
 [tool.ruff.lint.per-file-ignores]
 "*.ipynb" = [
     "ANN",
-    "B018",
     "C90",
     "D",
-    "E303",
-    "E402",
-    "E703",
-    "N806",
-    "N816",
     "PLR09",
-    "PLW0602",
-    "PLW0603",
-    "S101",
     "T20",
-    "TCH00",
+    "TC00",
+    "assert",
+    "global-statement",
+    "global-variable-not-assigned",
+    "mixed-case-variable-in-global-scope",
+    "module-import-not-at-top-of-file",
+    "non-lowercase-variable-in-function",
+    "too-many-blank-lines",
+    "useless-expression",
+    "useless-semicolon",
 ]
 "docs/*" = [
-    "E402",
-    "INP001",
-    "S101",
-    "S113",
-    "T201",
+    "assert",
+    "implicit-namespace-package",
+    "module-import-not-at-top-of-file",
+    "print",
+    "request-without-timeout",
 ]
 "docs/_extend_docstrings.py" = [
-    "A002",
-    "PLC0415",
+    "builtin-argument-shadowing",
+    "import-outside-top-level"
 ]
 "docs/conf.py" = [
-    "A001",
-    "D100",
-    "FLY002",
+    "builtin-variable-shadowing",
+    "static-join-to-f-string",
+    "undocumented-public-module",
 ]
-"setup.py" = ["D100"]
-"src/qrules/conservation_rules.py" = ["FA100"]
+"setup.py" = ["undocumented-public-module"]
+"src/qrules/conservation_rules.py" = ["future-rewritable-type-annotation"]
 "tests/*" = [
     "ANN",
     "D",
-    "INP001",
-    "PGH001",
-    "PLC2701",
-    "PLR6301",
-    "S101",
-    "S307",
-    "SLF001",
     "T20",
+    "assert",
+    "boolean-type-hint-positional-argument",
+    "float-equality-comparison",
+    "implicit-namespace-package",
+    "import-private-name",
+    "no-self-use",
+    "private-member-access",
+    "suspicious-eval-usage",
 ]
 
 [tool.ruff.lint.pydocstyle]
@@ -382,145 +497,39 @@ convention = "google"
 [tool.ruff.lint.pylint]
 allow-dunder-method-names = ["_repr_pretty_"]
 
-[tool.tomlsort]
-all = false
-ignore_case = true
-in_place = true
-sort_first = [
-    "build-system",
-    "project",
-    "tool.setuptools",
-    "tool.setuptools_scm",
-]
-spaces_indent_inline_array = 4
-trailing_comma_inline_array = true
+[tool.setuptools]
+include-package-data = false
+package-dir = { "" = "src" }
 
-[tool.tox]
-legacy_tox_ini = """
-[tox]
-envlist =
-    docnb-force,
-    linkcheck,
-    sty,
-    test,
-skip_install = True
-skip_missing_interpreters = True
-skipsdist = True
+[tool.setuptools.package-data]
+qrules = ["additional_definitions.yml", "particle-validation.json", "py.typed"]
 
-[testenv]
-allowlist_externals =
-    pytest
-commands =
-    pytest {posargs:src tests/unit}
-description = Run all fast unit tests and doctests
-passenv = *
+[tool.setuptools.packages.find]
+namespaces = false
+where = ["src"]
 
-[testenv:cov]
-allowlist_externals =
-    pytest
-commands =
-    pytest {posargs:src tests/unit} \
-        --cov-fail-under=85 \
-        --cov-report=html \
-        --cov-report=xml \
-        --cov=qrules
-description = Compute the test coverage of all unit tests
+[tool.setuptools_scm]
+version_file = "src/qrules/version.py"
 
-[testenv:doc]
-allowlist_externals =
-    sphinx-build
-commands =
-    sphinx-build \
-        --builder=html \
-        --fail-on-warning \
-        --keep-going \
-        --show-traceback \
-        docs/ docs/_build/html
-description = Build documentation and API through Sphinx
-setenv =
-    PYTHONWARNINGS =
+[tool.tombi.files]
+exclude = ["**/uv.lock"]
 
-[testenv:doclive]
-allowlist_externals =
-    sphinx-autobuild
-commands =
-    sphinx-autobuild \
-        --builder=html \
-        --ignore=docs/_build/ \
-        --ignore=docs/_images/ \
-        --ignore=docs/_static/logo.* \
-        --ignore=docs/api/ \
-        --open-browser \
-        --port=0 \
-        --re-ignore='.*/__pycache__/.*' \
-        --re-ignore='.*/.ipynb_checkpoints/.*' \
-        --re-ignore='.*/.virtual_documents/.*' \
-        --re-ignore='.*\\.csv' \
-        --re-ignore='.*\\.gv' \
-        --re-ignore='.*\\.inv' \
-        --re-ignore='.*\\.json' \
-        --re-ignore='.*\\.pickle' \
-        --re-ignore='.*\\.tmp' \
-        --re-ignore='.*\\.ya?ml' \
-        --watch=docs \
-        --watch=src \
-        docs/ docs/_build/html
-description = Set up a server to directly preview changes to the HTML pages
+[tool.tombi.format.rules]
+indent-width = 4
+line-width = 88
 
-[testenv:docnb]
-base = doc
-setenv =
-    EXECUTE_NB = yes
+[tool.tombi.lint.rules]
+key-empty = "off"
 
-[testenv:docnblive]
-base = doclive
-setenv =
-    EXECUTE_NB = yes
+[[tool.tombi.schemas]]
+root = "tool.compwa.policy"
+path = "https://raw.githubusercontent.com/ComPWA/policy/0.9.3/compwa-policy.schema.json"
+include = ["pyproject.toml"]
 
-[testenv:docnb-force]
-base = doc
-description = Execute Jupyter notebooks without cache and build documentation with Sphinx
-setenv =
-    FORCE_EXECUTE_NB = yes
+[tool.ty.rules]
+division-by-zero = "warn"
+possibly-missing-import = "warn"
+possibly-unresolved-reference = "warn"
 
-[testenv:linkcheck]
-allowlist_externals =
-    sphinx-build
-base = doc
-commands =
-    sphinx-build \
-        --builder=linkcheck \
-        --show-traceback \
-        docs/ docs/_build/linkcheck
-description = Check external links in the documentation (requires internet connection)
-
-[testenv:nb]
-allowlist_externals =
-    pytest
-commands =
-    pytest --nbmake {posargs:docs}
-description = Run all notebooks with pytest
-
-[testenv:sty]
-allowlist_externals =
-    pre-commit
-commands =
-    pre-commit run --all-files {posargs}
-description = Perform all linting, formatting, and spelling checks
-
-[testenv:test]
-allowlist_externals =
-    pytest
-commands =
-    pytest {posargs} \
-        --cov-fail-under=85 \
-        --cov-report=html \
-        --cov-report=xml \
-        --cov=qrules
-description = Run ALL tests, including the slow channel tests, and compute coverage
-"""
-
-[tool.uv]
-constraint-dependencies = [
-    "pytest-profiling!=1.8.0",
-]
+[tool.ty.terminal]
+error-on-warning = true

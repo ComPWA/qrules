@@ -3,7 +3,9 @@ from __future__ import annotations
 import os
 import sys
 import typing
+import warnings
 
+from sphinx.deprecation import RemovedInSphinx10Warning
 from sphinx_api_relink.helpers import (
     get_branch_name,
     get_execution_mode,
@@ -15,10 +17,10 @@ from sphinx_api_relink.helpers import (
 from qrules.quantum_numbers import EdgeQuantumNumbers, NodeQuantumNumbers
 
 sys.path.insert(0, os.path.abspath("."))
-from _extend_docstrings import extend_docstrings  # noqa: PLC2701
+from _extend_docstrings import extend_docstrings  # ruff: ignore[import-private-name]
 
 
-def pick_newtype_attrs(some_type: type) -> list:
+def __get_newtypes(some_type: type) -> list:
     return [
         attr
         for attr in dir(some_type)
@@ -33,6 +35,7 @@ set_intersphinx_version_remapping({
         "8.12.3": "8.12.1",
     },
 })
+warnings.filterwarnings("ignore", category=RemovedInSphinx10Warning)
 
 BRANCH = get_branch_name()
 ORGANIZATION = "ComPWA"
@@ -49,6 +52,7 @@ api_github_repo = f"{ORGANIZATION}/{REPO_NAME}"
 api_target_substitutions: dict[str, str | tuple[str, str]] = {
     "EdgeQuantumNumberTypes": ("obj", "qrules.quantum_numbers.EdgeQuantumNumberTypes"),
     "EdgeType": "typing.TypeVar",
+    "Fraction": ("obj", "fractions.Fraction"),
     "GraphEdgePropertyMap": ("obj", "qrules.argument_handling.GraphEdgePropertyMap"),
     "GraphElementProperties": ("obj", "qrules.solving.GraphElementProperties"),
     "GraphNodePropertyMap": ("obj", "qrules.argument_handling.GraphNodePropertyMap"),
@@ -66,7 +70,9 @@ api_target_substitutions: dict[str, str | tuple[str, str]] = {
     "Rule": ("obj", "qrules.argument_handling.Rule"),
     "SpinFormalism": ("obj", "qrules.transition.SpinFormalism"),
     "StateDefinition": ("obj", "qrules.combinatorics.StateDefinition"),
+    "StateDefinitionInput": ("obj", "qrules.combinatorics.StateDefinitionInput"),
     "StateTransition": ("obj", "qrules.transition.StateTransition"),
+    "TypeAliasForwardRef": ("obj", "typing.TypeAlias"),
     "typing.Literal[-1, 1]": "typing.Literal",
 }
 api_target_types: dict[str, str | tuple[str, str]] = {
@@ -123,6 +129,7 @@ autodoc_type_aliases = {
 autodoc_typehints_format = "short"
 autosectionlabel_prefix_document = True
 bibtex_bibfiles = ["bibliography.bib"]
+bibtex_use_mathjax = True
 codeautolink_concat_default = True
 comments_config = {
     "hypothesis": True,
@@ -138,7 +145,10 @@ copyright = f"2020, {ORGANIZATION}"
 default_role = "py:obj"
 exclude_patterns = [
     "**.ipynb_checkpoints",
+    "**.virtual_documents",
     "*build",
+    "AGENTS.md",
+    "CLAUDE.md",
     "adr/template.md",
     "tests",
 ]
@@ -160,6 +170,7 @@ extensions = [
     "sphinx_pybtex_etal_style",
     "sphinx_thebe",
     "sphinx_togglebutton",
+    "sphinxcontrib.mermaid",
     "sphinxcontrib.bibtex",
 ]
 generate_apidoc_package_path = f"../src/{PACKAGE}"
@@ -230,6 +241,7 @@ html_theme_options = {
     "show_toc_level": 2,
     "use_download_button": False,
     "use_edit_page_button": True,
+    "use_fullscreen_button": False,
     "use_issues_button": True,
     "use_repository_button": True,
     "use_source_button": True,
@@ -243,13 +255,12 @@ intersphinx_mapping = {
     "graphviz": ("https://graphviz.readthedocs.io/en/stable", None),
     "IPython": (f"https://ipython.readthedocs.io/en/{pin('IPython')}", None),
     "jsonschema": ("https://python-jsonschema.readthedocs.io/en/stable", None),
-    "mypy": ("https://mypy.readthedocs.io/en/stable", None),
-    "pwa": ("https://pwa.readthedocs.io", None),
     "python": ("https://docs.python.org/3", None),
 }
 linkcheck_anchors = False
 linkcheck_ignore = [
     "https://doi.org/10.1002/andp.19955070504",  # 403 for onlinelibrary.wiley.com
+    "https://doi.org/10.1103/PhysRevD.86.010001",
 ]
 project = REPO_TITLE
 modindex_common_prefix = [f"{PACKAGE}."]
@@ -260,6 +271,7 @@ myst_enable_extensions = [
     "smartquotes",
     "substitution",
 ]
+myst_fence_as_directive = ["mermaid"]
 myst_heading_anchors = 2
 myst_substitutions = {
     "branch": BRANCH,
@@ -276,25 +288,26 @@ nb_execution_mode = get_execution_mode()
 nb_execution_show_tb = True
 nb_execution_timeout = -1
 nb_output_stderr = "remove"
-
-
-nitpick_temp_names = [
-    *pick_newtype_attrs(EdgeQuantumNumbers),
-    *pick_newtype_attrs(NodeQuantumNumbers),
-]
-nitpick_temp_patterns = [
-    (r"py:(class|obj)", r"qrules\.quantum_numbers\." + name)
-    for name in nitpick_temp_names
+nb_render_markdown_format = "myst"
+nitpick_ignore = [
+    ("py:class", "StrPath"),
 ]
 nitpick_ignore_regex = [
     (r"py:(class|obj)", "json.encoder.JSONEncoder"),
+    (r"py:(class|obj)", r"(qrules\.topology\.)?KT"),
+    (r"py:(class|obj)", r"(qrules\.topology\.)?VT"),
+    (r"py:(class|obj)", r"frozendict(\.frozendict)?"),
+    (r"py:(class|obj)", r"qrules\.conservation_rules\._RuleClass"),
+    (r"py:(class|obj)", r"qrules\.quantum_numbers\._QuantumNumber_co"),
     (r"py:(class|obj)", r"qrules\.topology\.EdgeType"),
-    (r"py:(class|obj)", r"qrules\.topology\.KT"),
     (r"py:(class|obj)", r"qrules\.topology\.NewEdgeType"),
     (r"py:(class|obj)", r"qrules\.topology\.NewNodeType"),
     (r"py:(class|obj)", r"qrules\.topology\.NodeType"),
-    (r"py:(class|obj)", r"qrules\.topology\.VT"),
-    *nitpick_temp_patterns,
+    *[
+        (r"py:(class|obj)", r"qrules\.quantum_numbers\." + name)
+        for name in __get_newtypes(EdgeQuantumNumbers)
+        + __get_newtypes(NodeQuantumNumbers)
+    ],
 ]
 nitpicky = True
 primary_domain = "py"
@@ -302,6 +315,7 @@ project = "QRules"
 pygments_style = "sphinx"
 release = get_package_version(PACKAGE)
 suppress_warnings = [
+    "myst.directive_unknown",
     "myst.domains",
     # skipping unknown output mime type: application/json
     # https://github.com/ComPWA/qrules/runs/8132605149?check_suite_focus=true#step:5:92

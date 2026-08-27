@@ -1,9 +1,10 @@
-import typing
 from copy import deepcopy
+from fractions import Fraction
 
 import pytest
 
-from qrules.quantum_numbers import Parity, _to_fraction
+from qrules.io._labels import _render_fraction
+from qrules.quantum_numbers import Parity
 
 
 class TestParity:
@@ -13,7 +14,6 @@ class TestParity:
         assert int(parity) == +1
         assert parity > None
 
-    @typing.no_type_check  # https://github.com/python/mypy/issues/4610
     def test_comparison(self):
         neg = Parity(-1)
         pos = Parity(+1)
@@ -45,7 +45,7 @@ class TestParity:
 
     def test_exceptions(self):
         with pytest.raises(TypeError):
-            Parity(1.2)  # type: ignore[arg-type]
+            Parity(1.2)  # ty: ignore[invalid-argument-type]
         with pytest.raises(ValueError, match=r"Parity can only be \+1 or -1, not 0"):
             Parity(0)
 
@@ -68,4 +68,4 @@ class TestParity:
     ],
 )
 def test_to_fraction(value, render_plus: bool, expected: str):
-    assert _to_fraction(value, render_plus) == expected
+    assert _render_fraction(Fraction(value), render_plus) == expected

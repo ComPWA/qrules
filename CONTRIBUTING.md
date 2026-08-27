@@ -12,7 +12,7 @@ git clone https://github.com/ComPWA/qrules
 cd qrules
 ```
 
-Now it's simply a matter of creating and activating the [virtual environment](https://docs.astral.sh/uv/pip/environments) with [`uv sync`](https://docs.astral.sh/uv/reference/cli/#uv-sync). The dependencies for the project are 'pinned' in each commit through the [`uv.lock` file](https://docs.astral.sh/uv/concepts/projects/#project-lockfile).
+Now it's simply a matter of creating and activating the [virtual environment](https://docs.astral.sh/uv/pip/environments) with [`uv sync`](https://docs.astral.sh/uv/reference/cli/#uv-sync). The dependencies for the project are 'pinned' in each commit through the [`uv.lock` file](https://docs.astral.sh/uv/concepts/projects/layout/#the-lockfile).
 
 ```shell
 uv sync --all-extras
@@ -22,7 +22,7 @@ source .venv/bin/activate
 Formatting and linting checks are automatically performed when committing changes. This is done with [pre-commit](https://pre-commit.com). To install the hooks in your local repository, run install `pre-commit` with `uv`:
 
 ```shell
-uv tool install pre-commit --with pre-commit-uv --force-reinstall
+uv tool install pre-commit --with pre-commit-uv --force-reinstall --python=3.13
 ```
 
 and [`pre-commit install`](https://pre-commit.com/#3-install-the-git-hook-scripts) **once**:
@@ -31,14 +31,20 @@ and [`pre-commit install`](https://pre-commit.com/#3-install-the-git-hook-script
 pre-commit install --install-hooks
 ```
 
-In addition, it may be handy to install `tox`:
+[Poe the Poet](https://poethepoet.natn.io) is used as a task runner. Install it globally (within your home folder) with `uv`:
 
 ```shell
-uv tool install tox --with tox-uv
+uv tool install poethepoet --force-reinstall --python=3.13
 ```
 
-If the repository provides a Tox configuration under [`pyproject.toml`](./pyproject.toml), you can see which jobs it defines with:
+You can see which local CI checks it defines by running
 
 ```shell
-tox list
+poe
+```
+
+For instance, all style checks can be run with
+
+```shell
+poe style
 ```

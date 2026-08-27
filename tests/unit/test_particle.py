@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from copy import deepcopy
+from fractions import Fraction
 from importlib.metadata import version
 
 import pytest
@@ -18,16 +19,22 @@ from qrules.particle import (
 )
 
 # For eval tests
-from qrules.quantum_numbers import (
-    Parity,  # noqa: F401 # pyright: ignore[reportUnusedImport]
-)
+from qrules.quantum_numbers import Parity  # ruff: ignore[unused-import]
+
+
+def gen_namespace_with_fraction():
+    namespace = globals()
+    namespace["Fraction"] = Fraction
+    return namespace
 
 
 class TestParticle:
     @pytest.mark.parametrize("repr_method", [repr, pretty])
     def test_repr(self, particle_database: ParticleCollection, repr_method):
+        local_namespace = locals()
+        local_namespace["Fraction"] = Fraction
         for instance in particle_database:
-            from_repr = eval(repr_method(instance))
+            from_repr = eval(repr_method(instance), None, gen_namespace_with_fraction())
             assert from_repr == instance
 
     @pytest.mark.parametrize(
@@ -53,16 +60,16 @@ class TestParticle:
             width=0.1,
             spin=1,
             charge=0,
-            isospin=(1, 0),
+            isospin=(Fraction(1), Fraction(0)),
         )
         with pytest.raises(FrozenInstanceError):
-            test_state.charge = 1  # type: ignore[misc]
+            test_state.charge = 1  # ty: ignore[invalid-assignment]
         with pytest.raises(
             ValueError,
-            match=r"Fails Gell-Mann–Nishijima",  # noqa: RUF001
+            match=r"Fails Gell-Mann–Nishijima",  # ruff: ignore[ambiguous-unicode-character-string]
         ):
             Particle(
-                name="Fails Gell-Mann–Nishijima formula",  # noqa: RUF001
+                name="Fails Gell-Mann–Nishijima formula",  # ruff: ignore[ambiguous-unicode-character-string]
                 pid=666,
                 mass=0.0,
                 spin=1,
@@ -81,7 +88,7 @@ class TestParticle:
             mass=1.2,
             spin=1,
             charge=0,
-            isospin=(1, 0),
+            isospin=(Fraction(1), Fraction(0)),
         )
         assert particle != Particle(
             name="MyParticle", pid=123, mass=1.5, width=0.2, spin=1
@@ -96,7 +103,7 @@ class TestParticle:
             mass=1.2,
             spin=1,
             charge=0,
-            isospin=(1, 0),
+            isospin=(Fraction(1), Fraction(0)),
         )
         assert particle == different_labels
         assert hash(particle) == hash(different_labels)
@@ -161,7 +168,7 @@ class TestParticleCollection:
         assert new_pdg is not particle_database
         assert new_pdg == particle_database
         with pytest.raises(TypeError):
-            ParticleCollection(1)  # type: ignore[arg-type]
+            ParticleCollection(1)  # ty: ignore[invalid-argument-type]
 
     def test_equality(self, particle_database: ParticleCollection):
         assert list(particle_database) == particle_database
@@ -171,7 +178,9 @@ class TestParticleCollection:
     @pytest.mark.parametrize("repr_method", [repr, pretty])
     def test_repr(self, particle_database: ParticleCollection, repr_method):
         instance = particle_database
-        from_repr = eval(repr_method(instance))
+        local_namespace = locals()
+        local_namespace["Fraction"] = Fraction
+        from_repr = eval(repr_method(instance), None, gen_namespace_with_fraction())
         assert from_repr == instance
 
     def test_add(self, particle_database: ParticleCollection):
@@ -226,7 +235,7 @@ class TestParticleCollection:
         assert pim.name == "pi-"  # still exists
 
         with pytest.raises(NotImplementedError):
-            pions.discard(111)  # type: ignore[arg-type]
+            pions.discard(111)  # ty: ignore[invalid-argument-type]
 
     def test_filter(
         self, particle_database: ParticleCollection, skh_particle_version: str
@@ -250,10 +259,9 @@ class TestParticleCollection:
         assert gamma_from_subset.pid == 22
         assert gamma_from_subset is particle_database["gamma"]
         filtered_result = particle_database.filter(
-            lambda p: p.mass > 1.8
-            and p.mass < 2.0
-            and p.spin == 2
-            and p.strangeness == 1
+            lambda p: (
+                p.mass > 1.8 and p.mass < 2.0 and p.spin == 2 and p.strangeness == 1
+            )
         )
         sorted_result = sorted(filtered_result.names)
         expected = {
@@ -305,7 +313,7 @@ class TestParticleCollection:
             list_str = message.strip("?")
             *_, list_str = list_str.split("Did you mean ")
             *_, list_str = list_str.split("one of these? ")
-            found_particles = eval(list_str)
+            found_particles = eval(list_str, None, gen_namespace_with_fraction())
             assert found_particles == expected
 
     def test_exceptions(self, particle_database: ParticleCollection):
@@ -318,9 +326,9 @@ class TestParticleCollection:
         ):
             particle_database += create_particle(gamma, name="gamma_new")
         with pytest.raises(NotImplementedError):
-            particle_database.find(3.12)  # type: ignore[arg-type]
+            particle_database.find(3.12)  # ty: ignore[invalid-argument-type]
         with pytest.raises(NotImplementedError):
-            particle_database += 3.12  # type: ignore[arg-type]
+            particle_database += 3.12  # ty: ignore[unsupported-operator]
         with pytest.raises(NotImplementedError):
             assert 3.12 in particle_database
         with pytest.raises(AssertionError):
@@ -335,8 +343,8 @@ class TestSpin:
         assert isospin.magnitude == 1.5
         assert isospin.projection == -0.5
         isospin = Spin(1, -0.0)
-        assert isinstance(isospin.magnitude, float)
-        assert isinstance(isospin.projection, float)
+        assert isinstance(isospin.magnitude, Fraction)
+        assert isinstance(isospin.projection, Fraction)
         assert isospin.magnitude == 1.0
         assert isospin.projection == 0.0
 
@@ -370,7 +378,7 @@ class TestSpin:
         "instance", [Spin(2.5, -0.5), Spin(1, 0), Spin(3, -1), Spin(0, 0)]
     )
     def test_repr(self, instance: Spin, repr_method):
-        from_repr = eval(repr_method(instance))
+        from_repr = eval(repr_method(instance), None, gen_namespace_with_fraction())
         assert from_repr == instance
 
     @pytest.mark.parametrize(
@@ -378,12 +386,12 @@ class TestSpin:
         [(0.3, 0.3), (1.0, 0.5), (0.5, 0.0), (-0.5, 0.5)],
     )
     def test_exceptions(self, magnitude, projection):
-        regex_pattern = "|".join([  # noqa: FLY002
-            r"Spin magnitude \d\.\d has to be a multitude of \d\.[05]",
+        regex_pattern = "|".join([  # ruff: ignore[static-join-to-f-string]
+            r"Spin magnitude \d+/\d+ has to be a multitude of \d\.[05]",
             r"\(projection - magnitude\) should be integer",
             r"Spin magnitude has to be positive",
+            r"Absolute value of spin projection cannot be larger than the magnitude",
         ])
-        regex_pattern = f"({regex_pattern})"
         with pytest.raises(ValueError, match=regex_pattern):
             print(Spin(magnitude, projection))
 
@@ -432,7 +440,7 @@ def test_create_antiparticle_by_pid(
     n_particles_with_neg_pid = 0
     for particle in particle_database:
         anti_particles_by_pid = particle_database.filter(
-            lambda p: p.pid == -particle.pid  # noqa: B023
+            lambda p: p.pid == -particle.pid  # ruff: ignore[function-uses-loop-variable]
         )
         if len(anti_particles_by_pid) != 1:
             continue
@@ -498,6 +506,7 @@ def test_get_name_root(particle_database: ParticleCollection):
         "chi",
         "D",
         "Delta",
+        "H",
         "e",
         "eta",
         "f",

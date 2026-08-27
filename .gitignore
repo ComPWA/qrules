@@ -1,6 +1,7 @@
 # Output files
 *.gv
 *.json
+*.mmd
 *.npy
 *.pdf
 *.pickle
@@ -27,7 +28,6 @@ version.py
 .coverage.*
 .ipynb_checkpoints/
 .jupyter_ystore.db
-.mypy*/
 .pytest_cache/
 .virtual_documents/
 __pycache__/
@@ -39,12 +39,16 @@ TAGS
 
 # Virtual environments
 *venv/
-.tox/
 pyvenv*/
 
 # Settings
+.agents/
+.claude/
 .idea/
+.pr_body.md
 **.code-workspace
+AGENTS.md
+CLAUDE.md
 
 # Exceptions
 !.cspell.json
@@ -55,4 +59,3 @@ pyvenv*/
 !.vscode/*.json
 !.zenodo.json
 !codecov.yml
-!pyrightconfig.json

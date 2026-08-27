@@ -16,22 +16,19 @@ from attrs import define, field, frozen
 from attrs.validators import in_, instance_of
 from tqdm.auto import tqdm
 
+from qrules._attrs import to_fraction
 from qrules._implementers import implement_pretty_repr
 from qrules.combinatorics import (
     InitialFacts,
     StateDefinition,
+    StateDefinitionInput,
+    as_state_definition,
     create_initial_facts,
     ensure_nested_list,
     match_external_edges,
     permutate_topology_kinematically,
 )
-from qrules.particle import (
-    Particle,
-    ParticleCollection,
-    ParticleWithSpin,
-    _to_float,
-    load_pdg,
-)
+from qrules.particle import Particle, ParticleCollection, ParticleWithSpin, load_pdg
 from qrules.quantum_numbers import (
     EdgeQuantumNumber,
     EdgeQuantumNumbers,
@@ -76,6 +73,7 @@ from qrules.topology import (
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
+    from fractions import Fraction
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -226,10 +224,10 @@ class StateTransitionManager:
     .. seealso:: :doc:`/usage/reaction` and `.generate_transitions`
     """
 
-    def __init__(  # noqa: C901, PLR0912, PLR0917
+    def __init__(  # ruff: ignore[complex-structure, too-many-branches, too-many-positional-arguments]
         self,
-        initial_state: Sequence[StateDefinition],
-        final_state: Sequence[StateDefinition],
+        initial_state: Sequence[StateDefinitionInput],
+        final_state: Sequence[StateDefinitionInput],
         particle_db: ParticleCollection | None = None,
         allowed_intermediate_particles: list[str] | None = None,
         interaction_type_settings: dict[
@@ -242,7 +240,7 @@ class StateTransitionManager:
         reload_pdg: bool = False,
         mass_conservation_factor: float | None = 3.0,
         max_angular_momentum: int = 1,
-        max_spin_magnitude: float = 2.0,
+        max_spin_magnitude: float = 2,
         number_of_threads: int | None = None,
     ) -> None:
         if number_of_threads is not None:
@@ -250,7 +248,7 @@ class StateTransitionManager:
         self.__number_of_threads = NumberOfThreads.get()
         if interaction_type_settings is None:
             interaction_type_settings = {}
-        spin_formalisms = SpinFormalism.__args__  # type: ignore[attr-defined]
+        spin_formalisms = SpinFormalism.__args__
         if formalism not in set(spin_formalisms):
             msg = (
                 f'Formalism "{formalism}" not implemented. Use one of'
@@ -262,8 +260,8 @@ class StateTransitionManager:
         if particle_db is not None:
             self.__particles = particle_db
         self.reaction_mode = str(solving_mode)
-        self.initial_state = list(initial_state)
-        self.final_state = list(final_state)
+        self.initial_state = list(map(as_state_definition, initial_state))
+        self.final_state = list(map(as_state_definition, final_state))
         self.interaction_type_settings = interaction_type_settings
 
         self.interaction_determinators: list[InteractionDeterminator] = [
@@ -366,11 +364,9 @@ class StateTransitionManager:
     def get_allowed_interaction_types(
         self,
     ) -> list[InteractionType] | dict[int, list[InteractionType]]: ...
-
     @overload
     def get_allowed_interaction_types(self, node_id: int) -> list[InteractionType]: ...
-
-    def get_allowed_interaction_types(self, node_id=None):  # type: ignore[no-untyped-def]
+    def get_allowed_interaction_types(self, node_id=None):
         if node_id is None:
             return self.__allowed_interaction_types
         if isinstance(self.__allowed_interaction_types, list):
@@ -416,7 +412,7 @@ class StateTransitionManager:
         ]
         return _group_by_strength(problem_sets)
 
-    def __determine_graph_settings(  # noqa: C901, PLR0914
+    def __determine_graph_settings(  # ruff: ignore[complex-structure, too-many-locals]
         self, topology: Topology, initial_facts: InitialFacts
     ) -> list[GraphSettings]:
         weak_edge_settings, _ = self.interaction_type_settings[InteractionType.WEAK]
@@ -463,8 +459,7 @@ class StateTransitionManager:
             MutableTransition(
                 topology,
                 states={
-                    edge_id: create_edge_settings(edge_id)  # type: ignore[misc]
-                    for edge_id in topology.edges
+                    edge_id: create_edge_settings(edge_id) for edge_id in topology.edges
                 },
             )
         ]
@@ -500,8 +495,8 @@ class StateTransitionManager:
             )
             _LOGGER.debug(
                 "using %s interaction order for node: %s",
-                str(interaction_types),
-                str(node_id),
+                interaction_types,
+                node_id,
             )
 
             temp_graph_settings: list[GraphSettings] = graph_settings
@@ -516,7 +511,7 @@ class StateTransitionManager:
 
         return graph_settings
 
-    def find_solutions(  # noqa: C901
+    def find_solutions(  # ruff: ignore[complex-structure]
         self, problem_sets: dict[float, list[ProblemSet]]
     ) -> ReactionInfo:
         """Check for solutions for a specific set of interaction settings."""
@@ -658,14 +653,14 @@ class StateTransitionManager:
         """
         solutions = []
         for solution in qn_result.solutions:
-            graph = MutableTransition(  # type: ignore[var-annotated]
+            graph = MutableTransition(
                 topology=topology,
                 interactions={
-                    i: create_interaction_properties(x)  # type: ignore[misc]
+                    i: create_interaction_properties(x)
                     for i, x in solution.interactions.items()
                 },
                 states={
-                    i: find_particle(x, self.__particles)  # type: ignore[misc]
+                    i: find_particle(x, self.__particles)
                     for i, x in solution.states.items()
                 },
             )
@@ -709,11 +704,8 @@ def _match_final_state_ids(
     new_topology = graph.topology.relabel_edges(id_remapping)
     return MutableTransition(
         new_topology,
-        states={
-            i: graph.states[id_remapping.get(i, i)]  # type: ignore[misc]
-            for i in graph.topology.edges
-        },
-        interactions={i: graph.interactions[i] for i in graph.topology.nodes},  # type: ignore[misc]
+        states={i: graph.states[id_remapping.get(i, i)] for i in graph.topology.edges},
+        interactions={i: graph.interactions[i] for i in graph.topology.nodes},
     )
 
 
@@ -731,7 +723,7 @@ def _strip_spin(state_definition: Sequence[StateDefinition]) -> list[str]:
 @frozen(order=True)
 class State:
     particle: Particle = field(validator=instance_of(Particle))
-    spin_projection: float = field(converter=_to_float)
+    spin_projection: Fraction = field(converter=to_fraction)
 
 
 StateTransition = FrozenTransition[State, InteractionProperties]
@@ -750,7 +742,7 @@ class ReactionInfo:
     """Ordered collection of `StateTransition` instances."""
 
     transitions: tuple[StateTransition, ...] = field(converter=_sort_tuple)
-    formalism: SpinFormalism = field(validator=in_(SpinFormalism.__args__))  # type: ignore[attr-defined]
+    formalism: SpinFormalism = field(validator=in_(SpinFormalism.__args__))
 
     initial_state: FrozenDict[int, Particle] = field(init=False, repr=False, eq=False)
     final_state: FrozenDict[int, Particle] = field(init=False, repr=False, eq=False)

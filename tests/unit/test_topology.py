@@ -1,3 +1,6 @@
+import hashlib
+import pickle  # ruff: ignore[suspicious-pickle-import]
+import sys
 import typing
 
 import pytest
@@ -6,7 +9,7 @@ from IPython.lib.pretty import pretty
 
 from qrules.topology import (
     Edge,
-    FrozenDict,  # noqa: F401  # pyright: ignore[reportUnusedImport]
+    FrozenDict,
     InteractionNode,
     MutableTopology,
     SimpleStateTransitionTopologyBuilder,
@@ -39,16 +42,42 @@ class TestEdge:
             edge.ending_node_id += 1
 
 
+class TestFrozenDict:
+    def test_hash(self):
+        obj: FrozenDict = FrozenDict({})
+        if sys.version_info >= (3, 14):
+            assert _compute_hash(obj) == "94a4fe9b33e3b76ae80a8ad180793f4e"
+        else:
+            assert _compute_hash(obj) == "067705e70d037311d05daae1e32e1fce"
+
+        obj = FrozenDict({"key1": "value1"})
+        if sys.version_info >= (3, 14):
+            assert _compute_hash(obj) == "ea696fba01bf7cf7dd2698f612785e9b"
+        else:
+            assert _compute_hash(obj) == "56b0520e2a3af550c0f488cd5de2d474"
+
+        obj = FrozenDict({
+            "key1": "value1",
+            "key2": 2,
+            "key3": (1, 2, 3),
+            "key4": FrozenDict({"nested_key": "nested_value"}),
+        })
+        if sys.version_info >= (3, 14):
+            assert _compute_hash(obj) == "2ef89d6c8709500db43849847ea2bd93"
+        else:
+            assert _compute_hash(obj) == "8568f73c07fce099311f010061f070c6"
+
+
 class TestInteractionNode:
     def test_constructor_exceptions(self):
         with pytest.raises(TypeError):
             assert InteractionNode(
-                number_of_ingoing_edges="has to be int",  # type: ignore[arg-type]
+                number_of_ingoing_edges="has to be int",  # ty: ignore[invalid-argument-type]
                 number_of_outgoing_edges=2,
             )
         with pytest.raises(TypeError):
             assert InteractionNode(
-                number_of_outgoing_edges="has to be int",  # type: ignore[arg-type]
+                number_of_outgoing_edges="has to be int",  # ty: ignore[invalid-argument-type]
                 number_of_ingoing_edges=2,
             )
         with pytest.raises(
@@ -188,6 +217,12 @@ class TestTopology:
         ):
             assert Topology(nodes, edges)
 
+    def test_hash(self, two_to_three_decay: Topology):
+        if sys.version_info >= (3, 14):
+            assert _compute_hash(two_to_three_decay)[:7] == "453a92e"
+        else:
+            assert _compute_hash(two_to_three_decay)[:7] == "cbaea5d"
+
     @pytest.mark.parametrize("repr_method", [repr, pretty])
     def test_repr_and_eq(self, repr_method, two_to_three_decay: Topology):
         topology = eval(repr_method(two_to_three_decay))
@@ -299,3 +334,17 @@ def test_create_n_body_topology(n_initial: int, n_final: int, exception):
         assert len(topology.outgoing_edge_ids) == n_final
         assert len(topology.intermediate_edge_ids) == 0
         assert len(topology.nodes) == 1
+
+
+def _compute_hash(obj) -> str:
+    b = _to_bytes(obj)
+    h = hashlib.md5(b)  # ruff: ignore[hashlib-insecure-hash-function]
+    return h.hexdigest()
+
+
+def _to_bytes(obj) -> bytes:
+    if isinstance(obj, bytearray):
+        return bytes(obj)
+    if isinstance(obj, bytes):
+        return obj
+    return pickle.dumps(obj)

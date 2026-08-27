@@ -1,13 +1,21 @@
-# pyright: reportUnusedImport=false
+import hashlib
+import pickle  # ruff: ignore[suspicious-pickle-import]
+import sys
 from copy import deepcopy
+from fractions import Fraction
 
 import pytest
 from IPython.lib.pretty import pretty
 
-from qrules.particle import Parity, Particle, ParticleCollection, Spin  # noqa: F401
-from qrules.quantum_numbers import InteractionProperties  # noqa: F401
+from qrules.particle import (  # ruff: ignore[unused-import]
+    Parity,
+    Particle,
+    ParticleCollection,
+    Spin,
+)
+from qrules.quantum_numbers import InteractionProperties  # ruff: ignore[unused-import]
 from qrules.settings import InteractionType
-from qrules.topology import (  # noqa: F401
+from qrules.topology import (  # ruff: ignore[unused-import]
     Edge,
     FrozenDict,
     FrozenTransition,
@@ -15,6 +23,26 @@ from qrules.topology import (  # noqa: F401
     Topology,
 )
 from qrules.transition import ReactionInfo, State, StateTransitionManager
+
+NAMESPACE_WITH_FRACTIONS = globals()
+NAMESPACE_WITH_FRACTIONS["Fraction"] = Fraction
+
+
+class TestMutableTransition:
+    def test_intermediate_states(self):
+        stm = StateTransitionManager(
+            initial_state=[("J/psi(1S)", [-1, +1])],
+            final_state=["K0", "Sigma+", "p~"],
+            allowed_intermediate_particles=["N(1700)", "Sigma(1750)"],
+            formalism="helicity",
+            mass_conservation_factor=0,
+        )
+        stm.set_allowed_interaction_types([InteractionType.STRONG, InteractionType.EM])
+        problem_sets = stm.create_problem_sets()
+        some_problem_set = problem_sets[3600.0][0]
+        assert set(some_problem_set.initial_facts.initial_states) == {-1}
+        assert set(some_problem_set.initial_facts.final_states) == {0, 1, 2}
+        assert set(some_problem_set.initial_facts.intermediate_states) == set()
 
 
 class TestReactionInfo:
@@ -34,11 +62,30 @@ class TestReactionInfo:
     @pytest.mark.parametrize("repr_method", [repr, pretty])
     def test_repr(self, repr_method, reaction: ReactionInfo):
         instance = reaction
-        from_repr = eval(repr_method(instance))
+        from_repr = eval(repr_method(instance), NAMESPACE_WITH_FRACTIONS)
         assert from_repr == instance
 
     def test_hash(self, reaction: ReactionInfo):
         assert hash(deepcopy(reaction)) == hash(reaction)
+
+    def test_hash_value(self, reaction: ReactionInfo):
+        if sys.version_info >= (3, 11) and not sys.version_info >= (3, 14):
+            expected_hash = {
+                "canonical-helicity": "65106a44301f9340e633d09f66ad7d17",
+                "helicity": "9646d3ee5c5e8534deb8019435161f2e",
+            }[reaction.formalism]
+        elif sys.version_info >= (3, 14):
+            expected_hash = {
+                "canonical-helicity": "762cc006a8c4c0a0a88fce934a32577d",
+                "helicity": "17fefe55a7da0810371e90bd762a176a",
+            }[reaction.formalism]
+        else:
+            expected_hash = {
+                "canonical-helicity": "0d8bc378677986e0dc2d3b02f5627e0b",
+                "helicity": "71404ad43550850a02109e8db044bd28",
+            }[reaction.formalism]
+
+        assert _compute_hash(reaction) == expected_hash
 
 
 class TestState:
@@ -66,7 +113,7 @@ class TestState:
 class TestStateTransitionManager:
     def test_allowed_intermediate_particles(self):
         stm = StateTransitionManager(
-            initial_state=[("J/psi(1S)", [-1, +1])],
+            initial_state=[("J/psi(1S)", list(map(Fraction, [-1, +1])))],
             final_state=["p", "p~", "eta"],
         )
         particle_name = "N(753)"
@@ -102,3 +149,17 @@ class TestStateTransitionManager:
             "Delta(1900)++",
             "Delta(1920)++",
         ]
+
+
+def _compute_hash(obj) -> str:
+    b = _to_bytes(obj)
+    h = hashlib.md5(b)  # ruff: ignore[hashlib-insecure-hash-function]
+    return h.hexdigest()
+
+
+def _to_bytes(obj) -> bytes:
+    if isinstance(obj, bytearray):
+        return bytes(obj)
+    if isinstance(obj, bytes):
+        return obj
+    return pickle.dumps(obj)

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from collections import abc
+from fractions import Fraction
 from os.path import dirname, realpath
 from typing import Any
 
@@ -28,12 +29,12 @@ def from_attrs_decorated(inst: Any) -> dict:
     )
 
 
-def _value_serializer(inst: type, field: attrs.Attribute, value: Any) -> Any:  # noqa: ARG001
+def _value_serializer(inst: type, field: attrs.Attribute, value: Any) -> Any:  # ruff: ignore[unused-function-argument, too-many-return-statements]
     if isinstance(value, abc.Mapping):
         if all(isinstance(p, Particle) for p in value.values()):
             return {k: v.name for k, v in value.items()}
         return dict(value)
-    if not isinstance(inst, (ReactionInfo, State, FrozenTransition)):  # noqa: SIM102
+    if not isinstance(inst, (ReactionInfo, State, FrozenTransition)):  # ruff: ignore[collapsible-if]
         if isinstance(value, Particle):
             return value.name
     if isinstance(value, Parity):
@@ -43,6 +44,8 @@ def _value_serializer(inst: type, field: attrs.Attribute, value: Any) -> Any:  #
             "magnitude": value.magnitude,
             "projection": value.projection,
         }
+    if isinstance(value, Fraction):
+        return float(value)
     return value
 
 
@@ -108,7 +111,7 @@ def build_topology(definition: dict) -> Topology:
 
 
 def validate_particle_collection(instance: dict) -> None:
-    import jsonschema  # noqa: PLC0415
+    import jsonschema  # ruff: ignore[import-outside-top-level]
 
     jsonschema.validate(instance=instance, schema=__SCHEMA_PARTICLES)
 

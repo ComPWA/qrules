@@ -1,3 +1,4 @@
+from fractions import Fraction
 from itertools import product
 
 import pytest
@@ -55,7 +56,9 @@ def test_c_parity_all_defined(rule_input, expected):
                     CParityEdgeInput(spin_magnitude=0, pid=100),
                     CParityEdgeInput(spin_magnitude=0, pid=-100),
                 ],
-                CParityNodeInput(l_magnitude=l_magnitude, s_magnitude=0),
+                CParityNodeInput(
+                    l_magnitude=Fraction(l_magnitude), s_magnitude=Fraction(0)
+                ),
             ),
             (-1) ** l_magnitude == c_parity,
         )
@@ -80,7 +83,9 @@ def test_c_parity_multiparticle_boson(rule_input, expected):
                     CParityEdgeInput(spin_magnitude=0.5, pid=100),
                     CParityEdgeInput(spin_magnitude=0.5, pid=-100),
                 ],
-                CParityNodeInput(l_magnitude=l_magnitude, s_magnitude=s_magnitude),
+                CParityNodeInput(
+                    l_magnitude=Fraction(l_magnitude), s_magnitude=Fraction(s_magnitude)
+                ),
             ),
             (s_magnitude + l_magnitude) % 2 == abs(c_parity - 1) / 2,
         )

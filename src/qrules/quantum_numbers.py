@@ -1,17 +1,16 @@
 """Definitions used internally for type hints and signatures.
 
-`qrules` is strictly typed (enforced through :doc:`mypy <mypy:index>`). This module
-bundles structures and definitions that don't serve as data containers but only as type
-hints. `.EdgeQuantumNumbers` and `.NodeQuantumNumbers` are the main structures and serve
-as a bridge between the :mod:`.particle` and the :mod:`.conservation_rules` module.
+`qrules` is strictly typed. This module bundles structures and definitions that don't
+serve as data containers but only as type hints. `.EdgeQuantumNumbers` and
+`.NodeQuantumNumbers` are the main structures and serve as a bridge between the
+:mod:`.particle` and the :mod:`.conservation_rules` module.
 """
 
 from __future__ import annotations
 
-from decimal import Decimal
 from fractions import Fraction
 from functools import total_ordering
-from typing import TYPE_CHECKING, Any, Literal, NewType, Union
+from typing import TYPE_CHECKING, Any, Literal, NewType, Protocol, TypeVar
 
 from attrs import field, frozen
 
@@ -21,7 +20,9 @@ if TYPE_CHECKING:
     from collections.abc import Generator
 
 
-def _to_parity(value: int) -> Literal[-1, 1]:
+def _to_parity_int(value: int | Parity) -> Literal[-1, 1]:
+    if isinstance(value, Parity):
+        return value.value
     if not isinstance(value, int):
         msg = f"Parity must be an integer, not {type(value)}"
         raise TypeError(msg)
@@ -35,8 +36,8 @@ def _to_parity(value: int) -> Literal[-1, 1]:
 
 @total_ordering
 @frozen(eq=False, hash=True, order=False, repr=False)
-class Parity:  # noqa: PLW1641
-    value: Literal[-1, 1] = field(converter=_to_parity)
+class Parity:  # ruff: ignore[eq-without-hash]
+    value: Literal[-1, 1] = field(converter=_to_parity_int)
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Parity):
@@ -55,14 +56,13 @@ class Parity:  # noqa: PLW1641
         return Parity(-self.value)
 
     def __repr__(self) -> str:
-        return f"{type(self).__name__}({_to_fraction(self.value)})"
+        return f"{type(self).__name__}({_float_as_signed_str(self.value)})"
 
 
-def _to_fraction(value: float, render_plus: bool = False) -> str:
-    label = str(Fraction(value))
-    if render_plus and value > 0:
-        return f"+{label}"
-    return label
+def _float_as_signed_str(value: float, render_plus: bool = False) -> str:
+    if value > 0 or render_plus:
+        return f"+{value}"
+    return str(value)
 
 
 @frozen(init=False)
@@ -80,11 +80,11 @@ class EdgeQuantumNumbers:
     pid = NewType("pid", int)
     mass = NewType("mass", float)
     width = NewType("width", float)
-    spin_magnitude = NewType("spin_magnitude", float)
-    spin_projection = NewType("spin_projection", float)
+    spin_magnitude = NewType("spin_magnitude", Fraction)
+    spin_projection = NewType("spin_projection", Fraction)
     charge = NewType("charge", int)
-    isospin_magnitude = NewType("isospin_magnitude", float)
-    isospin_projection = NewType("isospin_projection", float)
+    isospin_magnitude = NewType("isospin_magnitude", Fraction)
+    isospin_projection = NewType("isospin_projection", Fraction)
     strangeness = NewType("strangeness", int)
     charmness = NewType("charmness", int)
     bottomness = NewType("bottomness", int)
@@ -104,50 +104,41 @@ for edge_qn_name, edge_qn_type in EdgeQuantumNumbers.__dict__.items():
         edge_qn_type.__module__ = __name__
 
 
-EdgeQuantumNumber = Union[
-    EdgeQuantumNumbers.pid,
-    EdgeQuantumNumbers.mass,
-    EdgeQuantumNumbers.width,
-    EdgeQuantumNumbers.spin_magnitude,
-    EdgeQuantumNumbers.spin_projection,
-    EdgeQuantumNumbers.charge,
-    EdgeQuantumNumbers.isospin_magnitude,
-    EdgeQuantumNumbers.isospin_projection,
-    EdgeQuantumNumbers.strangeness,
-    EdgeQuantumNumbers.charmness,
-    EdgeQuantumNumbers.bottomness,
-    EdgeQuantumNumbers.topness,
-    EdgeQuantumNumbers.baryon_number,
-    EdgeQuantumNumbers.electron_lepton_number,
-    EdgeQuantumNumbers.muon_lepton_number,
-    EdgeQuantumNumbers.tau_lepton_number,
-    EdgeQuantumNumbers.parity,
-    EdgeQuantumNumbers.c_parity,
-    EdgeQuantumNumbers.g_parity,
-]
+EdgeQuantumNumber = (
+    EdgeQuantumNumbers.pid
+    | EdgeQuantumNumbers.mass
+    | EdgeQuantumNumbers.width
+    | EdgeQuantumNumbers.spin_magnitude
+    | EdgeQuantumNumbers.spin_projection
+    | EdgeQuantumNumbers.charge
+    | EdgeQuantumNumbers.isospin_magnitude
+    | EdgeQuantumNumbers.isospin_projection
+    | EdgeQuantumNumbers.strangeness
+    | EdgeQuantumNumbers.charmness
+    | EdgeQuantumNumbers.bottomness
+    | EdgeQuantumNumbers.topness
+    | EdgeQuantumNumbers.baryon_number
+    | EdgeQuantumNumbers.electron_lepton_number
+    | EdgeQuantumNumbers.muon_lepton_number
+    | EdgeQuantumNumbers.tau_lepton_number
+    | EdgeQuantumNumbers.parity
+    | EdgeQuantumNumbers.c_parity
+    | EdgeQuantumNumbers.g_parity
+)
 """Type hint for quantum numbers of edges"""
 
-EdgeQuantumNumberTypes = Union[
-    type[EdgeQuantumNumbers.pid],
-    type[EdgeQuantumNumbers.mass],
-    type[EdgeQuantumNumbers.width],
-    type[EdgeQuantumNumbers.spin_magnitude],
-    type[EdgeQuantumNumbers.spin_projection],
-    type[EdgeQuantumNumbers.charge],
-    type[EdgeQuantumNumbers.isospin_magnitude],
-    type[EdgeQuantumNumbers.isospin_projection],
-    type[EdgeQuantumNumbers.strangeness],
-    type[EdgeQuantumNumbers.charmness],
-    type[EdgeQuantumNumbers.bottomness],
-    type[EdgeQuantumNumbers.topness],
-    type[EdgeQuantumNumbers.baryon_number],
-    type[EdgeQuantumNumbers.electron_lepton_number],
-    type[EdgeQuantumNumbers.muon_lepton_number],
-    type[EdgeQuantumNumbers.tau_lepton_number],
-    type[EdgeQuantumNumbers.parity],
-    type[EdgeQuantumNumbers.c_parity],
-    type[EdgeQuantumNumbers.g_parity],
-]
+_QuantumNumber_co = TypeVar("_QuantumNumber_co", covariant=True)
+
+
+class QuantumNumberType(Protocol[_QuantumNumber_co]):
+    """Runtime factory object created by `typing.NewType`."""
+
+    __name__: str
+
+    def __call__(self, value: Any, /) -> _QuantumNumber_co: ...
+
+
+EdgeQuantumNumberTypes = QuantumNumberType[EdgeQuantumNumber]
 """Type-Union for accessing the keys of the dicts in `.EdgeSettings`"""
 
 
@@ -155,10 +146,10 @@ EdgeQuantumNumberTypes = Union[
 class NodeQuantumNumbers:
     """Definition of quantum numbers for interaction nodes."""
 
-    l_magnitude = NewType("l_magnitude", float)
-    l_projection = NewType("l_projection", float)
-    s_magnitude = NewType("s_magnitude", float)
-    s_projection = NewType("s_projection", float)
+    l_magnitude = NewType("l_magnitude", Fraction)
+    l_projection = NewType("l_projection", Fraction)
+    s_magnitude = NewType("s_magnitude", Fraction)
+    s_projection = NewType("s_projection", Fraction)
     parity_prefactor = NewType("parity_prefactor", float)
 
 
@@ -169,23 +160,17 @@ for node_qn_name, node_qn_type in NodeQuantumNumbers.__dict__.items():
 
 
 # for static typing
-NodeQuantumNumber = Union[
-    NodeQuantumNumbers.l_magnitude,
-    NodeQuantumNumbers.l_projection,
-    NodeQuantumNumbers.s_magnitude,
-    NodeQuantumNumbers.s_projection,
-    NodeQuantumNumbers.parity_prefactor,
-]
+NodeQuantumNumber = (
+    NodeQuantumNumbers.l_magnitude
+    | NodeQuantumNumbers.l_projection
+    | NodeQuantumNumbers.s_magnitude
+    | NodeQuantumNumbers.s_projection
+    | NodeQuantumNumbers.parity_prefactor
+)
 """Type hint for quantum numbers of interaction nodes."""
 
 # for accessing the keys of the dicts in NodeSettings
-NodeQuantumNumberTypes = Union[
-    type[NodeQuantumNumbers.l_magnitude],
-    type[NodeQuantumNumbers.l_projection],
-    type[NodeQuantumNumbers.s_magnitude],
-    type[NodeQuantumNumbers.s_projection],
-    type[NodeQuantumNumbers.parity_prefactor],
-]
+NodeQuantumNumberTypes = QuantumNumberType[NodeQuantumNumber]
 """Type-Union for accessing the keys of the dicts in `.NodeSettings`"""
 
 
@@ -193,6 +178,12 @@ def _to_optional_float(optional_float: float | None) -> float | None:
     if optional_float is None:
         return None
     return float(optional_float)
+
+
+def _to_optional_fraction(optional_fraction: Fraction | None) -> Fraction | None:
+    if optional_fraction is None:
+        return None
+    return Fraction(optional_fraction)
 
 
 def _to_optional_int(optional_int: int | None) -> int | None:
@@ -223,13 +214,16 @@ class InteractionProperties:
         default=None, converter=_to_optional_int
     )
     l_projection: int | None = field(default=None, converter=_to_optional_int)
-    s_magnitude: float | None = field(default=None, converter=_to_optional_float)
-    s_projection: float | None = field(default=None, converter=_to_optional_float)
+    s_magnitude: Fraction | None = field(default=None, converter=_to_optional_fraction)
+    s_projection: Fraction | None = field(default=None, converter=_to_optional_fraction)
     parity_prefactor: float | None = field(default=None, converter=_to_optional_float)
 
 
-def arange(x_1: float, x_2: float, delta: float = 1.0) -> Generator[float, None, None]:
-    current = Decimal(x_1)
+def arange(
+    x_1: Fraction, x_2: Fraction, delta: Fraction = Fraction(1)
+) -> Generator[Fraction, None, None]:
+    current = Fraction(x_1)
+    delta = Fraction(delta)
     while current < x_2:
-        yield float(current)
-        current += Decimal(delta)
+        yield current
+        current += delta

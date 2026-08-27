@@ -47,7 +47,6 @@ QRules consists of three major components:
    one node (in correspondence to
    [Feynman graphs](https://en.wikipedia.org/wiki/Feynman_diagram)). This way, a graph
    describes the transition from one state to another.
-
    - **Edges** correspond to states (particles with spin). In other words, edges are a
      collection of properties such as the quantum numbers that characterize a state that
      the particle is in.

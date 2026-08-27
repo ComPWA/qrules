@@ -22,67 +22,36 @@ import logging
 from abc import ABC, abstractmethod
 from collections import abc
 from functools import total_ordering
-from typing import TYPE_CHECKING, Any, Callable, Generic, Protocol, TypeVar, overload
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, overload
 
 import attrs
 from attrs import define, field, frozen
 from attrs.validators import deep_iterable, deep_mapping, instance_of
+from frozendict import frozendict
 
 from qrules._implementers import implement_pretty_repr
 
 if TYPE_CHECKING:
-    from collections.abc import (
-        ItemsView,
-        Iterable,
-        Iterator,
-        KeysView,
-        Mapping,
-        Sequence,
-        ValuesView,
-    )
+    from collections.abc import Callable, Iterable, Mapping, Sequence
 
-    from IPython.lib.pretty import PrettyPrinter
+    from IPython.lib.pretty import RepresentationPrinter
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class _Comparable(Protocol):
-    @abstractmethod
-    def __lt__(self, other: Any) -> bool: ...
-
-
-KT = TypeVar("KT", bound=_Comparable)
+KT = TypeVar("KT", bound=abc.Hashable)
 VT = TypeVar("VT")
 
 
 @total_ordering
-class FrozenDict(abc.Hashable, abc.Mapping, Generic[KT, VT]):
-    """An **immutable** and **hashable** version of a `dict`.
+class FrozenDict(frozendict, Generic[KT, VT]):
+    """A sortable version of :code:`frozendict`.
 
-    `FrozenDict` makes it possible to make classes hashable if they are decorated with
-    :func:`attr.frozen` and contain `~typing.Mapping`-like attributes. If these
-    attributes were to be implemented with a normal `dict`, the instance is strictly
-    speaking still mutable (even if those attributes are a `property`) and the class is
-    therefore not safely hashable.
-
-    .. warning:: The keys have to be comparable, that is, they need to have a
-        :meth:`~object.__lt__` method.
+    Keys must be mutually orderable when comparing instances. Values associated with
+    equal keys must also be mutually orderable.
     """
 
-    def __init__(self, mapping: Mapping | None = None) -> None:
-        self.__mapping: dict[KT, VT] = {}
-        if mapping is not None:
-            self.__mapping = dict(mapping)
-        self.__hash = hash(None)
-        if len(self.__mapping) != 0:
-            self.__hash = 0
-            for key_value_pair in self.items():
-                self.__hash ^= hash(key_value_pair)
-
-    def __repr__(self) -> str:
-        return f"{type(self).__name__}({self.__mapping})"
-
-    def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
+    def _repr_pretty_(self, p: RepresentationPrinter, cycle: bool) -> None:
         class_name = type(self).__name__
         if cycle:
             p.text(f"{class_name}(...)")
@@ -91,19 +60,10 @@ class FrozenDict(abc.Hashable, abc.Mapping, Generic[KT, VT]):
                 for key, value in self.items():
                     p.breakable()
                     p.text(f"{key}: ")
-                    p.pretty(value)  # type: ignore[attr-defined]
+                    p.pretty(value)
                     p.text(",")
             p.breakable()
             p.text("})")
-
-    def __iter__(self) -> Iterator[KT]:
-        return iter(self.__mapping)
-
-    def __len__(self) -> int:
-        return len(self.__mapping)
-
-    def __getitem__(self, key: KT) -> VT:
-        return self.__mapping[key]
 
     def __gt__(self, other: Any) -> bool:
         if isinstance(other, abc.Mapping):
@@ -116,18 +76,6 @@ class FrozenDict(abc.Hashable, abc.Mapping, Generic[KT, VT]):
             f" {type(other).__name__}"
         )
         raise NotImplementedError(msg)
-
-    def __hash__(self) -> int:
-        return self.__hash
-
-    def keys(self) -> KeysView[KT]:
-        return self.__mapping.keys()
-
-    def items(self) -> ItemsView[KT, VT]:
-        return self.__mapping.items()
-
-    def values(self) -> ValuesView[VT]:
-        return self.__mapping.values()
 
 
 def _convert_mapping_to_sorted_tuple(
@@ -161,16 +109,20 @@ class Edge:
 
     def get_connected_nodes(self) -> set[int]:
         """Get all node IDs to which the `Edge` is connected."""
-        connected_nodes = {self.ending_node_id, self.originating_node_id}
-        connected_nodes.discard(None)
-        return connected_nodes  # type: ignore[return-value]
+        return {
+            node_id
+            for node_id in {self.ending_node_id, self.originating_node_id}
+            if node_id is not None
+        }
 
 
-def _to_topology_nodes(inst: Iterable[int]) -> frozenset[int]:
+def _to_topology_nodes(inst: Iterable[int], /) -> frozenset[int]:
     return frozenset(inst)
 
 
-def _to_topology_edges(inst: Mapping[int, Edge]) -> FrozenDict[int, Edge]:
+def _to_topology_edges(
+    inst: Mapping[int, Edge] | Iterable[tuple[int, Edge]], /
+) -> FrozenDict[int, Edge]:
     return FrozenDict(inst)
 
 
@@ -378,7 +330,9 @@ class Topology:
         return self.relabel_edges({edge_id1: edge_id2, edge_id2: edge_id1})
 
 
-def get_originating_node_list(topology: Topology, edge_ids: Iterable[int]) -> list[int]:
+def get_originating_node_list(
+    topology: Topology | MutableTopology, edge_ids: Iterable[int]
+) -> list[int]:
     """Get list of node ids from which the supplied edges originate from.
 
     Args:
@@ -570,7 +524,7 @@ class SimpleStateTransitionTopologyBuilder:
         if not isinstance(interaction_node_set, list):
             msg = "interaction_node_set must be a list"
             raise TypeError(msg)
-        self.interaction_node_set: list[InteractionNode] = list(interaction_node_set)
+        self.interaction_node_set = interaction_node_set
 
     def build(
         self, number_of_initial_edges: int, number_of_final_edges: int
@@ -637,12 +591,8 @@ class SimpleStateTransitionTopologyBuilder:
                 # remove all combinations that originate from the same nodes
                 for comb1, comb2 in itertools.combinations(combis, 2):
                     if get_originating_node_list(
-                        topology,  # type: ignore[arg-type]
-                        comb1,
-                    ) == get_originating_node_list(
-                        topology,  # type: ignore[arg-type]
-                        comb2,
-                    ):
+                        topology, edge_ids=comb1
+                    ) == get_originating_node_list(topology, edge_ids=comb2):
                         combis.remove(comb2)
 
                 for combi in combis:
@@ -828,7 +778,11 @@ class Transition(ABC, Generic[EdgeType, NodeType]):
 
     def filter_states(self, edge_ids: Iterable[int]) -> dict[int, EdgeType]:
         """Filter `states` by a selection of :code:`edge_ids`."""
-        return {i: self.states[i] for i in edge_ids}
+        return {i: self.states[i] for i in edge_ids if i in self.states}
+
+
+def _to_frozen_dict(inst: Mapping[KT, VT], /) -> FrozenDict[KT, VT]:
+    return FrozenDict(inst)
 
 
 @implement_pretty_repr
@@ -837,8 +791,8 @@ class FrozenTransition(Transition, Generic[EdgeType, NodeType]):
     """Defines a frozen mapping of edge and node properties on a `Topology`."""
 
     topology: Topology = field(validator=instance_of(Topology))
-    states: FrozenDict[int, EdgeType] = field(converter=FrozenDict)
-    interactions: FrozenDict[int, NodeType] = field(converter=FrozenDict)
+    states: FrozenDict[int, EdgeType] = field(converter=_to_frozen_dict)
+    interactions: FrozenDict[int, NodeType] = field(converter=_to_frozen_dict)
 
     def __attrs_post_init__(self) -> None:
         _assert_all_defined(self.topology.nodes, self.interactions)
@@ -850,17 +804,14 @@ class FrozenTransition(Transition, Generic[EdgeType, NodeType]):
 
     @overload
     def convert(self) -> FrozenTransition[EdgeType, NodeType]: ...
-
     @overload
     def convert(
         self, state_converter: Callable[[EdgeType], NewEdgeType]
     ) -> FrozenTransition[NewEdgeType, NodeType]: ...
-
     @overload
     def convert(
         self, *, interaction_converter: Callable[[NodeType], NewNodeType]
     ) -> FrozenTransition[EdgeType, NewNodeType]: ...
-
     @overload
     def convert(
         self,
@@ -868,7 +819,7 @@ class FrozenTransition(Transition, Generic[EdgeType, NodeType]):
         interaction_converter: Callable[[NodeType], NewNodeType],
     ) -> FrozenTransition[NewEdgeType, NewNodeType]: ...
 
-    def convert(self, state_converter=None, interaction_converter=None):  # type: ignore[no-untyped-def]
+    def convert(self, state_converter=None, interaction_converter=None):
         """Cast the edge and/or node properties to another type."""
         if state_converter is None:
             state_converter = _identity_function
@@ -884,15 +835,15 @@ class FrozenTransition(Transition, Generic[EdgeType, NodeType]):
         )
 
 
-def _identity_function(obj: Any) -> Any:
+def _identity_function(obj: Any, /) -> Any:
     return obj
 
 
-def _cast_states(obj: Mapping[int, EdgeType]) -> dict[int, EdgeType]:
+def _cast_states(obj: Mapping[int, EdgeType], /) -> dict[int, EdgeType]:
     return dict(obj)
 
 
-def _cast_interactions(obj: Mapping[int, NodeType]) -> dict[int, NodeType]:
+def _cast_interactions(obj: Mapping[int, NodeType], /) -> dict[int, NodeType]:
     return dict(obj)
 
 
@@ -959,7 +910,6 @@ def _assert_all_defined(items: Iterable, properties: Iterable) -> None:
         raise ValueError(msg)
 
 
-# pyright: reportUnusedFunction=false
 def _assert_not_overdefined(items: Iterable, properties: Iterable) -> None:
     existing = set(items)
     defined = set(properties)

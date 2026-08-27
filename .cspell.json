@@ -26,6 +26,7 @@
     "*particle*.*ml",
     ".editorconfig",
     ".envrc",
+    ".github/dependabot.yml",
     ".gitignore",
     ".pre-commit-config.yaml",
     ".prettierignore",
@@ -34,11 +35,9 @@
     "CITATION.cff",
     "codecov.yml",
     "docs/conf.py",
-    "pyproject.toml",
-    "typings"
+    "pyproject.toml"
   ],
   "ignoreWords": [
-    "MAINT",
     "adrs",
     "ampform",
     "arange",
@@ -50,7 +49,6 @@
     "bgcolor",
     "cano",
     "celltoolbar",
-    "codacy",
     "codecov",
     "codemirror",
     "colab",
@@ -104,6 +102,7 @@
     "nrows",
     "nsimplify",
     "pandoc",
+    "pbar",
     "permalinks",
     "phsp",
     "pids",
@@ -116,7 +115,6 @@
     "pylance",
     "pypi",
     "pyproject",
-    "pyright",
     "pytestconfig",
     "rightarrow",
     "risch",
@@ -145,8 +143,10 @@
     "ylim"
   ],
   "language": "en-US",
+  "useGitignore": true,
   "version": "0.2",
   "words": [
+    "asmermaid",
     "blatt",
     "bosonic",
     "bottomness",
@@ -184,7 +184,6 @@
     "lineshape",
     "lineshapes",
     "mathbb",
-    "mypy",
     "nishijima",
     "pydot",
     "PyPA",

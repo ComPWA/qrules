@@ -1,5 +1,5 @@
 codecov:
-  require_ci_to_pass: yes
+  require_ci_to_pass: true
 
 coverage:
   precision: 2
@@ -9,33 +9,23 @@ coverage:
   status:
     project:
       default:
-        # basic
-        target: 85% # can't go below this percentage
-        threshold: 1% # allow drops by this percentage
+        target: 85%
+        threshold: 1%
         base: auto
-        # advanced
-        branches: null
         if_no_uploads: error
         if_not_found: success
         if_ci_failed: error
         only_pulls: false
-        flags: null
-        paths: null
     patch:
       default:
-        # basic
         target: 0
         threshold: 5%
         base: auto
-        # advanced
-        branches: null
         if_no_uploads: error
         if_not_found: success
         if_ci_failed: error
         only_pulls: false
-        flags: null
-        paths: null
-    changes: no
+    changes: false
 
 parsers:
   gcov:

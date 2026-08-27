@@ -16,66 +16,73 @@ import re
 import sys
 from collections import abc
 from difflib import get_close_matches
+from fractions import Fraction
 from functools import total_ordering
 from math import copysign
-from typing import TYPE_CHECKING, Any, Callable, SupportsFloat
+from typing import TYPE_CHECKING, Any
 
 import attrs
 from attrs import field, frozen
 from attrs.converters import optional
 from attrs.validators import instance_of
 
+from qrules._attrs import to_fraction, to_parity
 from qrules.conservation_rules import GellMannNishijimaInput, gellmann_nishijima
-from qrules.quantum_numbers import Parity, _to_fraction
+from qrules.quantum_numbers import Parity, _float_as_signed_str
 
-if sys.version_info < (3, 11):
-    from typing_extensions import Self
-else:
+if sys.version_info >= (3, 11):
     from typing import Self
+else:
+    from typing_extensions import Self
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Iterator
+    from collections.abc import Callable, Iterable, Iterator
 
-    from IPython.lib.pretty import PrettyPrinter
+    from attrs import Attribute
+    from IPython.lib.pretty import RepresentationPrinter
     from particle import Particle as PdgDatabase
     from particle.particle import enums
 
 _LOGGER = logging.getLogger(__name__)
 
 
-def _to_float(value: SupportsFloat) -> float:
-    float_value = float(value)
-    if float_value == -0.0:
-        float_value = 0.0
-    return float_value
+def _validate_fraction_for_spin(
+    instance: Spin,
+    attribute: Attribute,  # ruff: ignore[unused-function-argument]
+    value: Fraction,  # ruff: ignore[unused-function-argument]
+) -> Any:
+    if instance.magnitude % Fraction(1, 2) != Fraction(0):
+        msg = f"Spin magnitude {instance.magnitude} has to be a multitude of 0.5"
+        raise ValueError(msg)
+    if abs(instance.projection) > instance.magnitude:
+        if instance.magnitude < Fraction(0):
+            msg = f"Spin magnitude has to be positive, but is {instance.magnitude}"
+            raise ValueError(msg)
+        msg = (
+            "Absolute value of spin projection cannot be larger than its"
+            f" magnitude:\n abs({instance.projection}) > {instance.magnitude}"
+        )
+        raise ValueError(msg)
+    if (instance.projection - instance.magnitude).denominator != 1:
+        msg = (
+            f"{type(instance).__name__}{(instance.magnitude, instance.projection)}: (projection -"
+            " magnitude) should be integer"
+        )
+        raise ValueError(msg)
 
 
 @total_ordering
 @frozen(eq=False, hash=True, order=False)
-class Spin:  # noqa: PLW1641
+class Spin:  # ruff: ignore[eq-without-hash]
     """Safe, immutable data container for spin **with projection**."""
 
-    magnitude: float = field(converter=_to_float)
-    projection: float = field(converter=_to_float)
-
-    def __attrs_post_init__(self) -> None:
-        if self.magnitude % 0.5 != 0.0:
-            msg = f"Spin magnitude {self.magnitude} has to be a multitude of 0.5"
-            raise ValueError(msg)
-        if abs(self.projection) > self.magnitude:
-            if self.magnitude < 0.0:
-                msg = f"Spin magnitude has to be positive, but is {self.magnitude}"
-                raise ValueError(msg)
-            msg = (
-                "Absolute value of spin projection cannot be larger than its"
-                f" magnitude:\n abs({self.projection}) > {self.magnitude}"
-            )
-            raise ValueError(msg)
-        if not (self.projection - self.magnitude).is_integer():
-            msg = (
-                f"{type(self).__name__}{self.magnitude, self.projection}: (projection -"
-                " magnitude) should be integer"
-            )
-            raise ValueError(msg)
+    magnitude: Fraction = field(
+        converter=to_fraction,
+        validator=_validate_fraction_for_spin,
+    )
+    projection: Fraction = field(
+        converter=to_fraction,
+        validator=_validate_fraction_for_spin,
+    )
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Spin):
@@ -86,7 +93,7 @@ class Spin:  # noqa: PLW1641
         return self.magnitude == other
 
     def __float__(self) -> float:
-        return self.magnitude
+        return float(self.magnitude)
 
     def __gt__(self, other: Any) -> bool:
         if isinstance(other, Spin):
@@ -99,20 +106,23 @@ class Spin:  # noqa: PLW1641
     def __repr__(self) -> str:
         return f"{type(self).__name__}{(self.magnitude, self.projection)}"
 
-    def _repr_pretty_(self, p: PrettyPrinter, _: bool) -> None:
+    def _repr_pretty_(self, p: RepresentationPrinter, _: bool) -> None:
         class_name = type(self).__name__
-        magnitude = _to_fraction(self.magnitude)
-        projection = _to_fraction(self.projection, render_plus=True)
+        magnitude = _render_fraction(self.magnitude)
+        projection = _render_fraction(self.projection, plusminus=True)
         p.text(f"{class_name}({magnitude}, {projection})")
 
 
-def _to_parity(value: Parity | int) -> Parity:
-    return Parity(int(value))
+def _render_fraction(fraction: Fraction, plusminus: bool = False) -> str:
+    if plusminus and fraction.numerator > 0:
+        return f"+{fraction}"
+    return str(fraction)
 
 
-def _to_spin(value: Spin | tuple[float, float]) -> Spin:
+def _to_spin(value: Spin | tuple[Fraction, Fraction] | tuple[float, float], /) -> Spin:
     if isinstance(value, tuple):
-        return Spin(*value)
+        magnitude, projection = value
+        return Spin(magnitude, projection)
     return value
 
 
@@ -141,7 +151,7 @@ class Particle:
     pid: int = field(eq=False)
     latex: str | None = field(eq=False, default=None)
     # Unique properties
-    spin: float = field(converter=float)
+    spin: Fraction = field(converter=Fraction)
     mass: float = field(converter=float)
     width: float = field(converter=float, default=0.0)
     charge: int = field(default=0)
@@ -154,9 +164,9 @@ class Particle:
     electron_lepton_number: int = field(default=0, validator=instance_of(int))
     muon_lepton_number: int = field(default=0, validator=instance_of(int))
     tau_lepton_number: int = field(default=0, validator=instance_of(int))
-    parity: Parity | None = field(converter=optional(_to_parity), default=None)
-    c_parity: Parity | None = field(converter=optional(_to_parity), default=None)
-    g_parity: Parity | None = field(converter=optional(_to_parity), default=None)
+    parity: Parity | None = field(converter=optional(to_parity), default=None)
+    c_parity: Parity | None = field(converter=optional(to_parity), default=None)
+    g_parity: Parity | None = field(converter=optional(to_parity), default=None)
 
     def __attrs_post_init__(self) -> None:
         if self.isospin is not None and not gellmann_nishijima(
@@ -209,21 +219,21 @@ class Particle:
             or self.tau_lepton_number != 0
         )
 
-    def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
+    def _repr_pretty_(self, p: RepresentationPrinter, cycle: bool) -> None:
         class_name = type(self).__name__
         if cycle:
             p.text(f"{class_name}(...)")
         else:
             with p.group(indent=2, open=f"{class_name}("):
-                for attribute in attrs.fields(type(self)):  # type: ignore[misc]
+                for attribute in attrs.fields(type(self)):
                     value = getattr(self, attribute.name)
                     if value != attribute.default:
                         p.breakable()
                         p.text(f"{attribute.name}=")
                         if isinstance(value, Parity):
-                            p.text(_to_fraction(int(value), render_plus=True))
+                            p.text(_float_as_signed_str(int(value), render_plus=True))
                         else:
-                            p.pretty(value)  # type: ignore[attr-defined]
+                            p.pretty(value)
                         p.text(",")
             p.breakable()
             p.text(")")
@@ -236,11 +246,11 @@ def _get_name_root(name: str) -> str:
     return re.sub(r"[\*\+\-~\d']", "", name_root)
 
 
-ParticleWithSpin = tuple[Particle, float]
+ParticleWithSpin = tuple[Particle, Fraction]
 """A particle and its spin projection."""
 
 
-class ParticleCollection(abc.MutableSet):  # noqa: PLW1641
+class ParticleCollection(abc.MutableSet):  # ruff: ignore[eq-without-hash]
     """Searchable collection of immutable `.Particle` instances."""
 
     def __init__(self, particles: Iterable[Particle] | None = None) -> None:
@@ -305,7 +315,7 @@ class ParticleCollection(abc.MutableSet):  # noqa: PLW1641
         output += "})"
         return output
 
-    def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
+    def _repr_pretty_(self, p: RepresentationPrinter, cycle: bool) -> None:
         class_name = type(self).__name__
         if cycle:
             p.text(f"{class_name}(...)")
@@ -313,7 +323,7 @@ class ParticleCollection(abc.MutableSet):  # noqa: PLW1641
             with p.group(indent=2, open=f"{class_name}({{"):
                 for particle in self:
                     p.breakable()
-                    p.pretty(particle)  # type: ignore[attr-defined]
+                    p.pretty(particle)
                     p.text(",")
             p.breakable()
             p.text("})")
@@ -373,10 +383,12 @@ class ParticleCollection(abc.MutableSet):  # noqa: PLW1641
         >>> from qrules.particle import load_pdg
         >>> pdg = load_pdg()
         >>> subset = pdg.filter(
-        ...     lambda p: p.mass > 1.8
-        ...     and p.mass < 2.0
-        ...     and p.spin == 2
-        ...     and p.strangeness == 1
+        ...     lambda p: (
+        ...         p.mass > 1.8
+        ...         and p.mass < 2.15
+        ...         and p.spin == 2
+        ...         and p.strangeness == 1
+        ...     )
         ... )
         >>> sorted(subset.names)
         ['K(2)(1820)+', 'K(2)(1820)0', 'K(2)*(1980)+', 'K(2)*(1980)0']
@@ -398,7 +410,7 @@ class ParticleCollection(abc.MutableSet):  # noqa: PLW1641
         return [p.name for p in sorted(self)]
 
 
-def create_particle(  # noqa: PLR0917
+def create_particle(  # ruff: ignore[too-many-positional-arguments]
     template_particle: Particle,
     name: str | None = None,
     latex: str | None = None,
@@ -455,7 +467,7 @@ def create_antiparticle(
         isospin = -template_particle.isospin
     parity: Parity | None = None
     if template_particle.parity is not None:
-        if template_particle.spin.is_integer():
+        if template_particle.spin.denominator == 1:
             parity = template_particle.parity
         else:
             parity = -template_particle.parity
@@ -488,15 +500,19 @@ def load_pdg() -> ParticleCollection:
     PDG info is imported from the `scikit-hep/particle
     <https://github.com/scikit-hep/particle>`_ package.
     """
-    from particle import Particle as PdgDatabase  # noqa: PLC0415
+    from particle import (  # ruff: ignore[import-outside-top-level]
+        Particle as PdgDatabase,
+    )
 
     all_pdg_particles = PdgDatabase.findall(
-        lambda item: item.charge is not None
-        and item.charge.is_integer()  # remove quarks
-        and item.J is not None  # remove new physics and nuclei
-        and abs(item.pdgid) < 1e9  # p and n as nucleus
-        and item.name not in __skip_particles
-        and not (item.mass is None and not item.name.startswith("nu"))
+        lambda item: (
+            item.charge is not None
+            and float(item.charge).is_integer()  # remove quarks
+            and item.J is not None  # remove new physics and nuclei
+            and abs(item.pdgid) < 1e9  # p and n as nucleus
+            and item.name not in __skip_particles
+            and not (item.mass is None and not item.name.startswith("nu"))
+        )
     )
     particle_collection = ParticleCollection()
     for pdg_particle in all_pdg_particles:
@@ -524,6 +540,12 @@ def __convert_pdg_instance(pdg_particle: PdgDatabase) -> Particle:
             return 0.0
         return float(value) / 1e3  # https://github.com/ComPWA/qrules/issues/14
 
+    def convert_spin(value: Fraction | float | None) -> float:
+        if value is None:
+            msg = f"PDG instance has no spin:\n{pdg_particle}"
+            raise ValueError(msg)
+        return float(value)
+
     if pdg_particle.charge is None:
         msg = f"PDG instance has no charge:\n{pdg_particle}"
         raise ValueError(msg)
@@ -543,7 +565,7 @@ def __convert_pdg_instance(pdg_particle: PdgDatabase) -> Particle:
         mass=convert_mass_width(pdg_particle.mass),
         width=convert_mass_width(pdg_particle.width),
         charge=int(pdg_particle.charge),
-        spin=float(pdg_particle.J),
+        spin=convert_spin(pdg_particle.J),
         strangeness=quark_numbers[0],
         charmness=quark_numbers[1],
         bottomness=quark_numbers[2],
@@ -604,12 +626,12 @@ def __compute_baryonnumber(pdg_particle: PdgDatabase) -> int:
 def __create_isospin(pdg_particle: PdgDatabase) -> Spin | None:
     if pdg_particle.I is None:
         return None
-    magnitude = pdg_particle.I
+    magnitude = Fraction(pdg_particle.I)
     projection = __isospin_projection_from_pdg(pdg_particle)
     return Spin(magnitude, projection)
 
 
-def __isospin_projection_from_pdg(pdg_particle: PdgDatabase) -> float:
+def __isospin_projection_from_pdg(pdg_particle: PdgDatabase, /) -> Fraction:
     if pdg_particle.charge is None:
         msg = f"PDG instance has no charge:\n{pdg_particle}"
         raise ValueError(msg)
@@ -628,10 +650,13 @@ def __isospin_projection_from_pdg(pdg_particle: PdgDatabase) -> float:
             projection += quark_content.count("u") + quark_content.count("D")
             projection -= quark_content.count("U") + quark_content.count("d")
             projection *= 0.5
-    if pdg_particle.I is not None and not (pdg_particle.I - projection).is_integer():
+    if (
+        pdg_particle.I is not None
+        and not float(pdg_particle.I - projection).is_integer()
+    ):
         msg = f"Cannot have isospin {pdg_particle.I, projection}"
         raise ValueError(msg)
-    return projection
+    return Fraction(projection)
 
 
 def __filter_quark_content(pdg_particle: PdgDatabase) -> str:
@@ -642,7 +667,7 @@ def __filter_quark_content(pdg_particle: PdgDatabase) -> str:
 
 
 def __create_parity(parity_enum: enums.Parity) -> Parity | None:
-    from particle.particle import enums  # noqa: PLC0415
+    from particle.particle import enums  # ruff: ignore[import-outside-top-level]
 
     if parity_enum is None or parity_enum == enums.Parity.u:
         return None

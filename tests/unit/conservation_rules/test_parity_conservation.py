@@ -1,3 +1,4 @@
+from fractions import Fraction
 from itertools import product
 
 import pytest
@@ -21,7 +22,7 @@ from qrules.quantum_numbers import NodeQuantumNumbers, Parity
                 Parity(parity_out1),
                 Parity(1),
             ],
-            NodeQuantumNumbers.l_magnitude(l_magnitude),
+            NodeQuantumNumbers.l_magnitude(Fraction(l_magnitude)),
             parity_in == parity_out1 * (-1) ** (l_magnitude),
         )
         for parity_in, parity_out1, l_magnitude in product([-1, 1], [-1, 1], range(5))

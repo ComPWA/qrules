@@ -1,3 +1,4 @@
+from fractions import Fraction
 from itertools import product
 
 import pytest
@@ -37,7 +38,7 @@ from qrules.quantum_numbers import Parity
                         g_parity=Parity(g_parity_out[0][1]),
                     ),
                 ],
-                GParityNodeInput(l_magnitude=0, s_magnitude=0),
+                GParityNodeInput(l_magnitude=Fraction(0), s_magnitude=Fraction(0)),
             ),
             g_parity_in[1] is g_parity_out[1],
         )
@@ -84,7 +85,9 @@ def test_g_parity_all_defined(rule_input, expected):
                         pid=-100,
                     ),
                 ],
-                GParityNodeInput(l_magnitude=l_magnitude, s_magnitude=0),
+                GParityNodeInput(
+                    l_magnitude=Fraction(l_magnitude), s_magnitude=Fraction(0)
+                ),
             ),
             (-1) ** (l_magnitude + isospin) == g_parity,
         )
