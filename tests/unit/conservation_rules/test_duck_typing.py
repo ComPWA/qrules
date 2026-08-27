@@ -1,8 +1,10 @@
 """Check duck typing.
 
-Ideally, the rule input classes use a `~typing.Protocol`. This is not possible, however,
-because of https://github.com/python/mypy/issues/6850. Duck typing is therefore checked
-through functions defined in this test.
+The rule input classes have to be constructible from the quantum numbers listed in
+`.EdgeQuantumNumbers` and `.NodeQuantumNumbers`, so each of their fields has to exist on
+the corresponding container. A `~typing.Protocol` cannot express that here, because the
+check is a runtime one and `issubclass` rejects protocols that have non-method members.
+Duck typing is therefore checked through the functions defined in this test.
 """
 
 from __future__ import annotations
@@ -68,7 +70,7 @@ def test_is_duck_type():
 
 
 def __is_duck_type(duck_type: type, class_type: type) -> bool:
-    """See https://github.com/python/mypy/issues/6850."""
+    """Check whether the members of `duck_type` are a subset of those of `class_type`."""
     return __get_members(duck_type) <= __get_members(class_type)
 
 
@@ -101,7 +103,7 @@ def test_get_members():
 def __get_members(class_type: type) -> set[str]:
     use_attrs = class_type not in {EdgeQuantumNumbers, NodeQuantumNumbers}
     if use_attrs and attrs.has(class_type):
-        return {f.name for f in attrs.fields(class_type)}  # type: ignore[misc]
+        return {f.name for f in attrs.fields(class_type)}
     return {
         a.name
         for a in inspect.classify_class_attrs(class_type)

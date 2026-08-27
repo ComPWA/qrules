@@ -4,10 +4,9 @@ ci:
   autoupdate_schedule: quarterly
   skip:
     - check-jsonschema
-    - mypy
-    - pyright
     - tombi-format
     - tombi-lint
+    - ty
     - uv-lock
 
 repos:
@@ -61,7 +60,7 @@ repos:
       - id: strip-nb-whitespace
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.0
+    rev: v0.16.4
     hooks:
       - id: ruff-check
         args: [--fix]
@@ -90,10 +89,11 @@ repos:
       - id: name-tests-test
         name: Tests should start with test_
         args: ["--django"]
+        exclude: (^|/)helpers\.py$
       - id: trailing-whitespace
 
   - repo: https://github.com/tombi-toml/tombi-pre-commit
-    rev: v1.2.4
+    rev: v1.4.1
     hooks:
       - id: tombi-format
       - id: tombi-lint
@@ -105,7 +105,7 @@ repos:
       - id: prettier
 
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0.37.4
+    rev: 0.38.0
     hooks:
       - id: check-jsonschema
         name: Check CITATION.cff
@@ -123,7 +123,7 @@ repos:
       - id: cspell
 
   - repo: https://github.com/editorconfig-checker/editorconfig-checker.python
-    rev: 3.6.1
+    rev: 3.11.1
     hooks:
       - id: editorconfig-checker
         name: editorconfig
@@ -133,21 +133,13 @@ repos:
             .*\.py
           )$
 
-  - repo: local
+  - repo: https://github.com/astral-sh/ty-pre-commit
+    rev: v0.0.75
     hooks:
-      - id: mypy
-        name: mypy
-        entry: mypy
-        language: system
-        require_serial: true
-        types: [python]
-
-  - repo: https://github.com/ComPWA/pyright-pre-commit
-    rev: v1.1.407
-    hooks:
-      - id: pyright
+      - id: ty
+        args: [--group=types, --no-default-groups]
 
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.12.0
+    rev: 0.12.6
     hooks:
       - id: uv-lock

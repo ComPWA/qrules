@@ -28,7 +28,6 @@ version.py
 .coverage.*
 .ipynb_checkpoints/
 .jupyter_ystore.db
-.mypy*/
 .pytest_cache/
 .virtual_documents/
 __pycache__/
@@ -60,4 +59,3 @@ CLAUDE.md
 !.vscode/*.json
 !.zenodo.json
 !codecov.yml
-!pyrightconfig.json

@@ -5,22 +5,33 @@ import re
 from fractions import Fraction
 from functools import singledispatch
 from inspect import isfunction
-from typing import TYPE_CHECKING, Any, Protocol, cast
+from typing import TYPE_CHECKING, Any, Protocol
 
 import attrs
 
 from qrules.particle import Particle, ParticleWithSpin, Spin, _render_fraction
 from qrules.quantum_numbers import InteractionProperties
-from qrules.solving import EdgeSettings, NodeSettings, QNProblemSet
+from qrules.solving import (
+    EdgeSettings,
+    GraphEdgePropertyMap,
+    NodeSettings,
+    QNProblemSet,
+)
 from qrules.topology import FrozenTransition, MutableTransition, Topology, Transition
 from qrules.transition import ProblemSet, State
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
 
-    from qrules.argument_handling import Rule
+    from typing_extensions import TypeIs
+
+    from qrules.argument_handling import Rule, RuleKey
 
 _LOGGER = logging.getLogger(__name__)
+
+RenderedGraph = ProblemSet | QNProblemSet | Topology | Transition
+RenderPair = tuple[Topology, RenderedGraph]
+RenderInput = RenderedGraph | RenderPair
 
 _TEXT_TO_LATEX_ESCAPES = str.maketrans({
     "\\": R"\textbackslash{}",
@@ -45,6 +56,15 @@ hands the result to.
 """
 
 
+def is_render_pair(value: object, /) -> TypeIs[RenderPair]:
+    return (
+        isinstance(value, tuple)
+        and len(value) == 2
+        and isinstance(value[0], Topology)
+        and isinstance(value[1], (ProblemSet, QNProblemSet, Topology, Transition))
+    )
+
+
 def create_edge_label(
     graph: ProblemSet | QNProblemSet | Topology | Transition,
     edge_id: int,
@@ -61,11 +81,13 @@ def create_edge_label(
     if isinstance(graph, (ProblemSet, QNProblemSet)):
         edge_setting = graph.solving_settings.states.get(edge_id)
         initial_fact = graph.initial_facts.states.get(edge_id)
-        edge_property: EdgeSettings | ParticleWithSpin | None = None
+        edge_property: EdgeSettings | GraphEdgePropertyMap | ParticleWithSpin | None = (
+            None
+        )
         if edge_setting:
             edge_property = edge_setting
         if initial_fact:
-            edge_property = initial_fact  # type: ignore[assignment]
+            edge_property = initial_fact
         return __render_edge_with_id(
             edge_id, edge_property, render_edge_id, render_label
         )
@@ -127,23 +149,14 @@ def as_latex(obj: Any) -> str:
 
 class _LabelFormatter(Protocol):
     def render(self, obj: Any) -> str: ...
-
     def text(self, value: str) -> str: ...
-
     def fraction(self, value: Fraction, *, plusminus: bool = False) -> str: ...
-
     def lines(self, values: list[str]) -> str: ...
-
     def domain(self, values: list[str]) -> str: ...
-
     def assignment(self, key: str, value: str, *, compact: bool = False) -> str: ...
-
     def membership(self, key: str, domain: str) -> str: ...
-
     def particle(self, name: str, latex: str | None) -> str: ...
-
     def spin(self, magnitude: str, projection: str) -> str: ...
-
     def state(self, particle: str, projection: str) -> str: ...
 
 
@@ -388,7 +401,7 @@ def __render_settings(
     return formatter.lines(lines)
 
 
-def __get_priority(rule: Any, rule_priorities: dict[Any, int]) -> int | str:
+def __get_priority(rule: Rule, rule_priorities: dict[RuleKey, int]) -> int | str:
     rule_type = __get_type(rule)
     return rule_priorities.get(rule_type, "NA")
 
@@ -397,9 +410,9 @@ def __render_rule(rule: Rule) -> str:
     return __get_type(rule).__name__
 
 
-def __get_type(rule: Rule) -> type[Rule]:
+def __get_type(rule: Rule, /) -> type[Rule]:
     if isfunction(rule):
-        return rule  # type: ignore[return-value]
+        return rule  # ty: ignore[invalid-return-type]
     return type(rule)
 
 
@@ -519,8 +532,6 @@ def get_particle_graphs(
     """
     inventory = set()
     for transition in graphs:
-        if isinstance(transition, FrozenTransition):
-            transition = transition.convert(lambda s: (s.particle, s.spin_projection))
         stripped_transition = strip_projections(transition)
         topology = stripped_transition.topology
         particle_transition: FrozenTransition[Particle, None] = FrozenTransition(
@@ -538,7 +549,7 @@ def get_particle_graphs(
 def strip_projections(
     graph: Transition[Any, InteractionProperties],
 ) -> FrozenTransition[Particle, InteractionProperties]:
-    transition = cast("FrozenTransition[Any, InteractionProperties]", graph)
+    transition = FrozenTransition(graph.topology, graph.states, graph.interactions)
     return transition.convert(
         state_converter=__to_particle,
         interaction_converter=lambda i: attrs.evolve(

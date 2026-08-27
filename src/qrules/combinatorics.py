@@ -20,6 +20,8 @@ from qrules.quantum_numbers import InteractionProperties, arange
 from qrules.topology import MutableTransition, Topology, get_originating_node_list
 
 if TYPE_CHECKING:
+    from typing_extensions import TypeIs
+
     from qrules.particle import ParticleCollection
 
 
@@ -39,7 +41,7 @@ def as_state_definition(
         return definition
     if type(definition) is tuple:
         name, state = definition
-        return name, list(map(Fraction, state))  # type: ignore  # ruff: ignore[blanket-type-ignore]
+        return name, [Fraction(x) for x in state]
     msg = f"value has to be of type {StateDefinitionInput}, got {type(definition)}"
     raise ValueError(msg)
 
@@ -108,12 +110,11 @@ class _KinematicRepresentation:  # ruff: ignore[eq-without-hash]
             return is_sublist(other.initial_state, self.initial_state) and is_sublist(
                 other.final_state, self.final_state
             )
-        if isinstance(other, list):
-            for item in other:
-                if not isinstance(item, list):
-                    msg = "Comparison representation needs to be a list of lists"
-                    raise TypeError(msg)
+        if _is_nested_string_list(other):
             return is_sublist(other, self.final_state)
+        if isinstance(other, list):
+            msg = "Comparison representation needs to be a list of lists"
+            raise TypeError(msg)
         msg = f"Cannot compare {type(self).__name__} with {type(other).__name__}"
         raise ValueError(msg)
 
@@ -125,12 +126,20 @@ def _sort_nested(nested_list: list[list[str]]) -> list[list[str]]:
 def ensure_nested_list(
     nested_list: list[str] | list[list[str]],
 ) -> list[list[str]]:
-    if any(not isinstance(item, list) for item in nested_list):
-        nested_list = [nested_list]  # type: ignore[assignment]
-    if any(not isinstance(i, str) for lst in nested_list for i in lst):
-        msg = "Not all grouping items are particle names"
+    if _is_string_list(nested_list):
+        return [nested_list]
+    if not _is_nested_string_list(nested_list):
+        msg = "Grouping items have to be either all strings or all lists of strings"
         raise ValueError(msg)
-    return nested_list  # type: ignore[return-value]
+    return nested_list
+
+
+def _is_string_list(value: object, /) -> TypeIs[list[str]]:
+    return isinstance(value, list) and all(isinstance(item, str) for item in value)
+
+
+def _is_nested_string_list(value: object, /) -> TypeIs[list[list[str]]]:
+    return isinstance(value, list) and all(_is_string_list(item) for item in value)
 
 
 def _get_kinematic_representation(
@@ -209,7 +218,7 @@ def create_initial_facts(
         particle_db,
     )
     spin_states = __generate_spin_combinations(states, particle_db)
-    return [MutableTransition(topology, state) for state in spin_states]  # type: ignore[arg-type]
+    return [MutableTransition(topology, states) for states in spin_states]
 
 
 def __create_states_with_spin_projections(
