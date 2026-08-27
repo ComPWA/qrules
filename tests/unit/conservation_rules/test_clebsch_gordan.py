@@ -1,6 +1,7 @@
 from fractions import Fraction
 
 import pytest
+from tests.unit.conservation_rules.test_spin import __create_two_body_decay_spin_data
 
 from qrules.conservation_rules import (
     IsoSpinEdgeInput,
@@ -11,7 +12,6 @@ from qrules.conservation_rules import (
     spin_conservation,
 )
 from qrules.particle import Spin
-from tests.unit.conservation_rules.test_spin import __create_two_body_decay_spin_data
 
 _SpinRuleInputType = tuple[list[SpinEdgeInput], list[SpinEdgeInput], SpinNodeInput]
 

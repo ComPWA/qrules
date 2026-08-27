@@ -62,10 +62,6 @@
   "ruff.enable": true,
   "ruff.importStrategy": "fromEnvironment",
   "ruff.organizeImports": true,
-  "search.exclude": {
-    "**/tests/**/__init__.py": true,
-    "**/uv.lock": true
-  },
   "telemetry.telemetryLevel": "off",
   "testing.coverageToolbarEnabled": true,
   "testing.showCoverageInExplorer": true,
