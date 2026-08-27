@@ -99,8 +99,8 @@ def test_spin_all_defined(rule_input: SpinRuleInputType, expected: bool) -> None
                 [1],
                 [spin2_mag, 1],
                 SpinMagnitudeNodeInput(
-                    Fraction(ang_mom_mag),
-                    Fraction(coupled_spin_mag),
+                    l_magnitude=Fraction(ang_mom_mag),
+                    s_magnitude=Fraction(coupled_spin_mag),
                 ),
             ),
             True,
@@ -115,8 +115,8 @@ def test_spin_all_defined(rule_input: SpinRuleInputType, expected: bool) -> None
                 [1],
                 [spin2_mag, 1],
                 SpinMagnitudeNodeInput(
-                    Fraction(ang_mom_mag),
-                    Fraction(coupled_spin_mag),
+                    l_magnitude=Fraction(ang_mom_mag),
+                    s_magnitude=Fraction(coupled_spin_mag),
                 ),
             ),
             False,

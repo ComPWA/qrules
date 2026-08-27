@@ -21,9 +21,9 @@ from tests.unit.conservation_rules.helpers import (
     [
         (
             create_two_body_decay_spin_data(
-                Spin(1, 0),
-                Spin(1, 0),
-                Spin(1, 0),
+                in_spin=Spin(1, 0),
+                out_spin1=Spin(1, 0),
+                out_spin2=Spin(1, 0),
                 angular_momentum=Spin(1, 0),
                 coupled_spin=Spin(0, 0),
             ),
@@ -31,9 +31,9 @@ from tests.unit.conservation_rules.helpers import (
         ),
         (
             create_two_body_decay_spin_data(
-                Spin(1, 0),
-                Spin(1, 0),
-                Spin(1, 0),
+                in_spin=Spin(1, 0),
+                out_spin1=Spin(1, 0),
+                out_spin2=Spin(1, 0),
                 angular_momentum=Spin(1, 0),
                 coupled_spin=Spin(1, 0),
             ),
@@ -41,9 +41,9 @@ from tests.unit.conservation_rules.helpers import (
         ),
         (
             create_two_body_decay_spin_data(
-                Spin(1, 1),
-                Spin(1, 1),
-                Spin(1, 0),
+                in_spin=Spin(1, 1),
+                out_spin1=Spin(1, 1),
+                out_spin2=Spin(1, 0),
                 angular_momentum=Spin(1, 0),
                 coupled_spin=Spin(1, 0),
             ),
@@ -51,9 +51,9 @@ from tests.unit.conservation_rules.helpers import (
         ),
         (
             create_two_body_decay_spin_data(
-                Spin(1, 1),
-                Spin(1, 1),
-                Spin(1, 0),
+                in_spin=Spin(1, 1),
+                out_spin1=Spin(1, 1),
+                out_spin2=Spin(1, 0),
                 angular_momentum=Spin(1, 0),
                 coupled_spin=Spin(1, 1),
             ),
@@ -61,9 +61,9 @@ from tests.unit.conservation_rules.helpers import (
         ),
         (
             create_two_body_decay_spin_data(
-                Spin(1, 0),
-                Spin(1, 1),
-                Spin(1, -1),
+                in_spin=Spin(1, 0),
+                out_spin1=Spin(1, 1),
+                out_spin2=Spin(1, -1),
                 angular_momentum=Spin(1, 0),
                 coupled_spin=Spin(1, 0),
             ),
@@ -71,9 +71,9 @@ from tests.unit.conservation_rules.helpers import (
         ),
         (
             create_two_body_decay_spin_data(
-                Spin(1, 1),
-                Spin(1, 1),
-                Spin(1, -1),
+                in_spin=Spin(1, 1),
+                out_spin1=Spin(1, 1),
+                out_spin2=Spin(1, -1),
                 angular_momentum=Spin(1, 1),
                 coupled_spin=Spin(1, 0),
             ),
@@ -81,9 +81,9 @@ from tests.unit.conservation_rules.helpers import (
         ),
         (
             create_two_body_decay_spin_data(
-                Spin(2, 0),
-                Spin(0, 0),
-                Spin(1, 1),
+                in_spin=Spin(2, 0),
+                out_spin1=Spin(0, 0),
+                out_spin2=Spin(1, 1),
                 angular_momentum=Spin(2, 0),
                 coupled_spin=Spin(1, 0),
             ),
@@ -91,9 +91,9 @@ from tests.unit.conservation_rules.helpers import (
         ),
         (
             create_two_body_decay_spin_data(
-                Spin(3, 0),
-                Spin(1, 1),
-                Spin(1, -1),
+                in_spin=Spin(3, 0),
+                out_spin1=Spin(1, 1),
+                out_spin2=Spin(1, -1),
                 angular_momentum=Spin(2, 0),
                 coupled_spin=Spin(1, 0),
             ),
@@ -113,9 +113,9 @@ def test_clebsch_gordan_ls_coupling(
     [
         (
             create_two_body_decay_spin_data(
-                Spin(1, 0),
-                Spin(1, 1),
-                Spin(1, 1),
+                in_spin=Spin(1, 0),
+                out_spin1=Spin(1, 1),
+                out_spin2=Spin(1, 1),
                 angular_momentum=Spin(0, 0),
                 coupled_spin=Spin(1, 0),
             ),
@@ -123,9 +123,9 @@ def test_clebsch_gordan_ls_coupling(
         ),
         (
             create_two_body_decay_spin_data(
-                Spin(1, 0),
-                Spin(1, 1),
-                Spin(1, -1),
+                in_spin=Spin(1, 0),
+                out_spin1=Spin(1, 1),
+                out_spin2=Spin(1, -1),
                 angular_momentum=Spin(0, 0),
                 coupled_spin=Spin(1, 0),
             ),
@@ -133,9 +133,9 @@ def test_clebsch_gordan_ls_coupling(
         ),
         (
             create_two_body_decay_spin_data(
-                Spin(1, 0),
-                Spin(1, 1),
-                Spin(1, 1),
+                in_spin=Spin(1, 0),
+                out_spin1=Spin(1, 1),
+                out_spin2=Spin(1, 1),
                 angular_momentum=Spin(1, 0),
                 coupled_spin=Spin(1, 0),
             ),
@@ -143,9 +143,9 @@ def test_clebsch_gordan_ls_coupling(
         ),
         (
             create_two_body_decay_spin_data(
-                Spin(1, -1),
-                Spin(1, 0),
-                Spin(1, 1),
+                in_spin=Spin(1, -1),
+                out_spin1=Spin(1, 0),
+                out_spin2=Spin(1, 1),
                 angular_momentum=Spin(1, 0),
                 coupled_spin=Spin(1, -1),
             ),
@@ -153,9 +153,9 @@ def test_clebsch_gordan_ls_coupling(
         ),
         (
             create_two_body_decay_spin_data(
-                Spin(1.5, -0.5),
-                Spin(0.5, 0.5),
-                Spin(1, 1),
+                in_spin=Spin(1.5, -0.5),
+                out_spin1=Spin(0.5, 0.5),
+                out_spin2=Spin(1, 1),
                 angular_momentum=Spin(1, 0),
                 coupled_spin=Spin(0.5, -0.5),
             ),
@@ -163,9 +163,9 @@ def test_clebsch_gordan_ls_coupling(
         ),
         (
             create_two_body_decay_spin_data(
-                Spin(1.5, -0.5),
-                Spin(0.5, 0.5),
-                Spin(1, 1),
+                in_spin=Spin(1.5, -0.5),
+                out_spin1=Spin(0.5, 0.5),
+                out_spin2=Spin(1, 1),
                 angular_momentum=Spin(0, 0),
                 coupled_spin=Spin(0.5, -0.5),
             ),
@@ -177,9 +177,9 @@ def test_clebsch_gordan_ls_coupling(
         ),
         (
             create_two_body_decay_spin_data(
-                Spin(1.5, -0.5),
-                Spin(0.5, 0.5),
-                Spin(1, 1),
+                in_spin=Spin(1.5, -0.5),
+                out_spin1=Spin(0.5, 0.5),
+                out_spin2=Spin(1, 1),
                 angular_momentum=Spin(0, 0),
                 coupled_spin=Spin(1.5, 0.5),
             ),
