@@ -99,15 +99,73 @@ _LOGGER = logging.getLogger(__name__)
 class AllowedIntermediateParticles:
     """Selection of the particles that are allowed as intermediate states.
 
-    Create an instance with `filter_intermediate_particles`. The selection is fed both
-    to `create_problem_sets` (to build the quantum number domains of the intermediate
-    edges) and to `solve` (to match solutions against the particle database).
+    Create an instance with `filter_intermediate_particles`, then narrow it down with
+    `select` and `exclude`. The selection is fed both to `create_problem_sets` (to build
+    the quantum number domains of the intermediate edges) and to `solve` (to match
+    solutions against the particle database).
     """
 
     particles: tuple[GraphEdgePropertyMap, ...]
     """Quantum number property maps of the selected particles."""
-    names: tuple[str, ...] | None = None
-    """Names of the selected particles, or `None` if no filter was applied."""
+    names: tuple[str, ...]
+    """Names of the selected particles, in the same order as `particles`."""
+    is_filtered: bool = True
+    """Whether the selection is a subset of the particle database.
+
+    If `False`, the selection covers the entire database and the default quantum
+    number domains are used for the intermediate edges, instead of domains that are
+    derived from `particles`.
+    """
+
+    def select(
+        self, name_patterns: Iterable[str] | str, regex: bool = False
+    ) -> AllowedIntermediateParticles:
+        """Narrow the selection down to the particles that match a name pattern.
+
+        Raises:
+            LookupError: If a name pattern does not match any selected particle.
+        """
+        return self.__filter(name_patterns, regex, keep_matches=True)
+
+    def exclude(
+        self, name_patterns: Iterable[str] | str, regex: bool = False
+    ) -> AllowedIntermediateParticles:
+        """Remove the particles that match a name pattern from the selection.
+
+        Raises:
+            LookupError: If a name pattern does not match any selected particle.
+        """
+        return self.__filter(name_patterns, regex, keep_matches=False)
+
+    def __filter(
+        self,
+        name_patterns: Iterable[str] | str,
+        regex: bool,
+        keep_matches: bool,
+    ) -> AllowedIntermediateParticles:
+        if isinstance(name_patterns, str):
+            name_patterns = [name_patterns]
+        matches: set[str] = set()
+        for pattern in name_patterns:
+            pattern_matches = {
+                name for name in self.names if _matches_name(name, pattern, regex)
+            }
+            if not pattern_matches:
+                msg = (
+                    "Could not find any matches for allowed intermediate particle"
+                    f' pattern "{pattern}"'
+                )
+                raise LookupError(msg)
+            matches.update(pattern_matches)
+        selected = [
+            (properties, name)
+            for properties, name in zip(self.particles, self.names, strict=True)
+            if (name in matches) is keep_matches
+        ]
+        return AllowedIntermediateParticles(
+            particles=tuple(properties for properties, _ in selected),
+            names=tuple(name for _, name in selected),
+        )
 
 
 def filter_intermediate_particles(
@@ -121,8 +179,11 @@ def filter_intermediate_particles(
         LookupError: If a name pattern does not match any particle in the database.
     """
     if name_patterns is None:
+        sorted_particles = sorted(particle_db)
         return AllowedIntermediateParticles(
-            particles=tuple(create_edge_properties(x) for x in particle_db),
+            particles=tuple(create_edge_properties(x) for x in sorted_particles),
+            names=tuple(x.name for x in sorted_particles),
+            is_filtered=False,
         )
     if isinstance(name_patterns, str):
         name_patterns = [name_patterns]
@@ -146,15 +207,16 @@ def filter_intermediate_particles(
 def _filter_by_name_pattern(
     particles: ParticleCollection, pattern: str, regex: bool
 ) -> ParticleCollection:
-    def match_regex(particle: Particle) -> bool:
-        return re.match(pattern, particle.name) is not None
+    def match(particle: Particle) -> bool:
+        return _matches_name(particle.name, pattern, regex)
 
-    def match_substring(particle: Particle) -> bool:
-        return pattern in particle.name
+    return particles.filter(match)
 
+
+def _matches_name(name: str, pattern: str, regex: bool) -> bool:
     if regex:
-        return particles.filter(match_regex)
-    return particles.filter(match_substring)
+        return re.match(pattern, name) is not None
+    return pattern in name
 
 
 @implement_pretty_repr
@@ -224,7 +286,7 @@ def create_graph_settings(  # ruff: ignore[complex-structure, too-many-locals]
     weak_edge_settings, _ = interaction_config.type_settings[InteractionType.WEAK]
 
     def create_intermediate_edge_qn_domains() -> dict:
-        if intermediate_particles.names is None:
+        if not intermediate_particles.is_filtered:
             return weak_edge_settings.qn_domains
 
         # if a list of intermediate states is given by user,

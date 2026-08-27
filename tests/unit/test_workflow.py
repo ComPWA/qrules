@@ -1,6 +1,7 @@
 import pytest
 
 from qrules.particle import ParticleCollection, load_pdg
+from qrules.quantum_numbers import EdgeQuantumNumbers
 from qrules.settings import (
     DEFAULT_INTERACTION_TYPES,
     InteractionType,
@@ -19,8 +20,9 @@ from qrules.workflow import (
 class TestFilterIntermediateParticles:
     def test_no_filter_selects_all(self, particle_database: ParticleCollection):
         selection = filter_intermediate_particles(particle_database)
-        assert selection.names is None
+        assert not selection.is_filtered
         assert len(selection.particles) == len(particle_database)
+        assert len(selection.names) == len(particle_database)
 
     def test_substring_pattern(self, particle_database: ParticleCollection):
         selection = filter_intermediate_particles(particle_database, "f(0)(98")
@@ -36,6 +38,44 @@ class TestFilterIntermediateParticles:
     def test_unmatched_pattern_raises(self, particle_database: ParticleCollection):
         with pytest.raises(LookupError, match="no such particle"):
             filter_intermediate_particles(particle_database, "no such particle")
+
+    def test_select(self, particle_database: ParticleCollection):
+        selection = filter_intermediate_particles(particle_database, "f(0)")
+        narrowed = selection.select(["f(0)(980)", "f(0)(1500)"])
+        assert narrowed.names == ("f(0)(980)", "f(0)(1500)")
+        assert len(narrowed.particles) == 2
+        assert narrowed.is_filtered
+
+    def test_exclude(self, particle_database: ParticleCollection):
+        selection = filter_intermediate_particles(
+            particle_database, ["f(0)(980)", "f(0)(1500)"]
+        )
+        assert selection.exclude("f(0)(1500)").names == ("f(0)(980)",)
+
+    def test_select_from_unfiltered_selection(
+        self, particle_database: ParticleCollection
+    ):
+        selection = filter_intermediate_particles(particle_database)
+        narrowed = selection.select(r"^f\(0\)\(9\d0\)", regex=True)
+        assert narrowed.names == ("f(0)(980)",)
+        assert narrowed.is_filtered
+
+    def test_select_unmatched_pattern_raises(
+        self, particle_database: ParticleCollection
+    ):
+        selection = filter_intermediate_particles(particle_database, "f(0)")
+        with pytest.raises(LookupError, match="Delta"):
+            selection.select("Delta")
+
+    def test_names_and_particles_stay_aligned(
+        self, particle_database: ParticleCollection
+    ):
+        selection = filter_intermediate_particles(
+            particle_database, ["f(0)(980)", "f(0)(1500)", "a(2)(1320)0"]
+        )
+        assert [p[EdgeQuantumNumbers.pid] for p in selection.particles] == [
+            particle_database.find(name).pid for name in selection.names
+        ]
 
 
 class TestInteractionConfig:
