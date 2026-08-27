@@ -682,14 +682,16 @@ def find_solutions(  # ruff: ignore[too-many-positional-arguments]
     `QNProblemSetCollection`, the final state, formalism, and intermediate-particle
     selection default to the values with which the problem sets were created; explicit
     arguments override them. Given a plain `dict` of `.QNProblemSet` objects, the
-    :code:`formalism` has to be specified, because it determines which quantum numbers
-    are filtered out of the solutions. The :code:`particle_db` is required, because a
-    `.QNProblemSet` contains quantum numbers only: particles are re-matched by PID via
+    :code:`formalism` and :code:`allowed_intermediate_particles` have to be specified:
+    the formalism determines which quantum numbers are filtered out of the solutions
+    and the particle selection determines which particles the intermediate states are
+    matched against. The :code:`particle_db` is required, because a `.QNProblemSet`
+    contains quantum numbers only: particles are re-matched by PID via
     `.find_particle`.
 
     Raises:
-        ValueError: If :code:`formalism` is not given and cannot be inferred from
-            :code:`qn_problem_sets`.
+        ValueError: If :code:`formalism` or :code:`allowed_intermediate_particles` is
+            not given and cannot be inferred from :code:`qn_problem_sets`.
     """
     if isinstance(qn_problem_sets, QNProblemSetCollection):
         if final_state is None:
@@ -703,6 +705,14 @@ def find_solutions(  # ruff: ignore[too-many-positional-arguments]
         msg = (
             "Cannot infer the spin formalism from a plain dict of QNProblemSets."
             " Pass a formalism explicitly, or a QNProblemSetCollection."
+        )
+        raise ValueError(msg)
+    if allowed_intermediate_particles is None:
+        msg = (
+            "Cannot infer the allowed intermediate particles from a plain dict of"
+            " QNProblemSets. Pass allowed_intermediate_particles explicitly (use"
+            " filter_intermediate_particles(particle_db) to allow all particles), or a"
+            " QNProblemSetCollection."
         )
         raise ValueError(msg)
     _validate_formalism(formalism)
