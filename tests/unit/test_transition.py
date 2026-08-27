@@ -22,7 +22,7 @@ from qrules.topology import (  # ruff: ignore[unused-import]
     MutableTransition,
     Topology,
 )
-from qrules.transition import ReactionInfo, State, StateTransitionManager
+from qrules.transition import ReactionInfo, SolvingMode, State, StateTransitionManager
 
 NAMESPACE_WITH_FRACTIONS = globals()
 NAMESPACE_WITH_FRACTIONS["Fraction"] = Fraction
@@ -136,6 +136,19 @@ class TestStateTransitionManager:
         stm = StateTransitionManager(initial_state, final_state=["pi0", "pi0", "pi0"])
         problem_sets = stm.create_problem_sets()
         assert sorted(problem_sets) == expected_strengths
+
+    def test_fast_solving_mode(self):
+        def count_transitions(solving_mode: SolvingMode) -> int:
+            stm = StateTransitionManager(
+                initial_state=["J/psi(1S)"],
+                final_state=["gamma", "pi0", "pi0"],
+                solving_mode=solving_mode,
+            )
+            reaction = stm.find_solutions(stm.create_problem_sets())
+            return len(reaction.transitions)
+
+        assert count_transitions(SolvingMode.FULL) == 294
+        assert count_transitions(SolvingMode.FAST) == 90
 
     def test_regex_pattern(self):
         stm = StateTransitionManager(
