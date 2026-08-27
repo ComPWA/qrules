@@ -804,17 +804,14 @@ class FrozenTransition(Transition, Generic[EdgeType, NodeType]):
 
     @overload
     def convert(self) -> FrozenTransition[EdgeType, NodeType]: ...
-
     @overload
     def convert(
         self, state_converter: Callable[[EdgeType], NewEdgeType]
     ) -> FrozenTransition[NewEdgeType, NodeType]: ...
-
     @overload
     def convert(
         self, *, interaction_converter: Callable[[NodeType], NewNodeType]
     ) -> FrozenTransition[EdgeType, NewNodeType]: ...
-
     @overload
     def convert(
         self,

@@ -364,10 +364,8 @@ class StateTransitionManager:
     def get_allowed_interaction_types(
         self,
     ) -> list[InteractionType] | dict[int, list[InteractionType]]: ...
-
     @overload
     def get_allowed_interaction_types(self, node_id: int) -> list[InteractionType]: ...
-
     def get_allowed_interaction_types(self, node_id=None):
         if node_id is None:
             return self.__allowed_interaction_types
