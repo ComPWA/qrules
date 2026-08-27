@@ -22,7 +22,7 @@ from qrules.topology import (  # ruff: ignore[unused-import]
     MutableTransition,
     Topology,
 )
-from qrules.transition import ReactionInfo, State, StateTransitionManager
+from qrules.transition import ReactionInfo, SolvingMode, State, StateTransitionManager
 
 NAMESPACE_WITH_FRACTIONS = globals()
 NAMESPACE_WITH_FRACTIONS["Fraction"] = Fraction
@@ -122,6 +122,33 @@ class TestStateTransitionManager:
             match=r"Could not find any matches for allowed intermediate particle",
         ):
             stm.set_allowed_intermediate_particles(particle_name)
+
+    @pytest.mark.parametrize(
+        ("initial_state", "expected_strengths"),
+        [
+            (["gamma"], [0.0001, 1.0, 60.0]),
+            (["nu(e)"], [1e-08, 0.0001, 0.006]),
+        ],
+    )
+    def test_initial_state_restricts_interaction_types(
+        self, initial_state: list[str], expected_strengths: list[float]
+    ):
+        stm = StateTransitionManager(initial_state, final_state=["pi0", "pi0", "pi0"])
+        problem_sets = stm.create_problem_sets()
+        assert sorted(problem_sets) == expected_strengths
+
+    def test_fast_solving_mode(self):
+        def count_transitions(solving_mode: SolvingMode) -> int:
+            stm = StateTransitionManager(
+                initial_state=["J/psi(1S)"],
+                final_state=["gamma", "pi0", "pi0"],
+                solving_mode=solving_mode,
+            )
+            reaction = stm.find_solutions(stm.create_problem_sets())
+            return len(reaction.transitions)
+
+        assert count_transitions(SolvingMode.FULL) == 294
+        assert count_transitions(SolvingMode.FAST) == 90
 
     def test_regex_pattern(self):
         stm = StateTransitionManager(
