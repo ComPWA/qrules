@@ -273,7 +273,7 @@ def create_graph_settings(  # ruff: ignore[complex-structure, too-many-locals]
     for node_id in topology.nodes:
         interaction_types: list[InteractionType] = []
         out_edge_ids = topology.get_edge_ids_outgoing_from_node(node_id)
-        in_edge_ids = topology.get_edge_ids_outgoing_from_node(node_id)
+        in_edge_ids = topology.get_edge_ids_ingoing_to_node(node_id)
         in_states = [
             initial_facts.states[edge_id]
             for edge_id in [x for x in in_edge_ids if x in initial_state_edges]
