@@ -1,8 +1,8 @@
 """Find allowed transitions with a pipeline of functions instead of the STM.
 
 This module decomposes the `.StateTransitionManager` into free functions that exchange
-explicit data structures, so that intermediate results — most notably the
-`.QNProblemSet` collections — can be inspected, modified, and fed back into the
+explicit data structures, so that intermediate results, most notably the
+`.QNProblemSet` collections, can be inspected, modified, and fed back into the
 pipeline. The default use-case is covered by two functions:
 
 1. `create_qn_problem_sets`, which turns initial and final state definitions into a
@@ -186,7 +186,7 @@ class InteractionConfig:
     @overload
     def get_allowed_interaction_types(self, node_id: int) -> list[InteractionType]: ...
 
-    def get_allowed_interaction_types(self, node_id=None):  # type: ignore[no-untyped-def]
+    def get_allowed_interaction_types(self, node_id: int | None = None):
         if node_id is None:
             return self.allowed_types
         if isinstance(self.allowed_types, list):
@@ -265,8 +265,7 @@ def create_graph_settings(  # ruff: ignore[complex-structure, too-many-locals]
         MutableTransition(
             topology,
             states={
-                edge_id: create_edge_settings(edge_id)  # type: ignore[misc]
-                for edge_id in topology.edges
+                edge_id: create_edge_settings(edge_id) for edge_id in topology.edges
             },
         )
     ]
@@ -462,15 +461,14 @@ def _convert_to_particle_definitions(
     """
     solutions = []
     for solution in qn_result.solutions:
-        graph = MutableTransition(  # type: ignore[var-annotated]
+        graph = MutableTransition(
             topology=topology,
             interactions={
-                i: create_interaction_properties(x)  # type: ignore[misc]
+                i: create_interaction_properties(x)
                 for i, x in solution.interactions.items()
             },
             states={
-                i: find_particle(x, particle_db)  # type: ignore[misc]
-                for i, x in solution.states.items()
+                i: find_particle(x, particle_db) for i, x in solution.states.items()
             },
         )
         solutions.append(graph)
@@ -684,7 +682,7 @@ def find_solutions(  # ruff: ignore[too-many-positional-arguments]
     `QNProblemSetCollection`, the final state, formalism, and intermediate-particle
     selection default to the values with which the problem sets were created;
     explicit arguments override them. The :code:`particle_db` is required, because a
-    `.QNProblemSet` contains quantum numbers only — particles are re-matched by PID
+    `.QNProblemSet` contains quantum numbers only: particles are re-matched by PID
     via `.find_particle`.
     """
     if isinstance(qn_problem_sets, QNProblemSetCollection):
@@ -721,11 +719,8 @@ def _match_final_state_ids(
     new_topology = graph.topology.relabel_edges(id_remapping)
     return MutableTransition(
         new_topology,
-        states={
-            i: graph.states[id_remapping.get(i, i)]  # type: ignore[misc]
-            for i in graph.topology.edges
-        },
-        interactions={i: graph.interactions[i] for i in graph.topology.nodes},  # type: ignore[misc]
+        states={i: graph.states[id_remapping.get(i, i)] for i in graph.topology.edges},
+        interactions={i: graph.interactions[i] for i in graph.topology.nodes},
     )
 
 
@@ -782,7 +777,7 @@ def _create_qn_filters(
 
 
 def _validate_formalism(formalism: str) -> None:
-    spin_formalisms = SpinFormalism.__args__  # type: ignore[attr-defined]
+    spin_formalisms = SpinFormalism.__args__
     if formalism not in set(spin_formalisms):
         msg = (
             f'Formalism "{formalism}" not implemented. Use one of'

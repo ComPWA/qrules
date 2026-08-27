@@ -2,6 +2,7 @@
 name = "qrules"
 description = "Rule-based particle reaction problem solver on a quantum number level"
 requires-python = ">=3.10"
+license = "Apache-2.0"
 license-files = ["LICENSE"]
 authors = [
     { name = "Common Partial Wave Analysis", email = "compwa-admin@ep1.rub.de" },
@@ -79,6 +80,7 @@ doc = [
     "sphinx-thebe",
     "sphinx-togglebutton",
     "sphinxcontrib-bibtex >=2",
+    "sphinxcontrib-mermaid",
     { include-group = "notebooks" },
 ]
 jupyter = [
@@ -95,7 +97,7 @@ jupyter = [
 ]
 notebooks = ["qrules[viz]"]
 style = [
-    "mypy",
+    "ty",
     { include-group = "types" },
 ]
 test = [
@@ -106,6 +108,7 @@ test = [
     "pytest-xdist",
 ]
 types = [
+    "graphviz",
     "ipython",
     "pydot",
     "pytest",
@@ -126,7 +129,7 @@ repo-name = "qrules"
 repo-title = "QRules"
 
 [tool.compwa.policy.python]
-type-checker = ["mypy", "pyright"]
+type-checker = ["ty"]
 
 [tool.coverage.report]
 exclude_also = ["if TYPE_CHECKING:"]
@@ -141,55 +144,6 @@ omit = [
     "tests/**/*.py",
 ]
 source = ["src"]
-
-[tool.mypy]
-disallow_incomplete_defs = true
-disallow_untyped_defs = true
-exclude = "_build"
-show_error_code_links = true
-warn_unused_configs = true
-
-[[tool.mypy.overrides]]
-check_untyped_defs = true
-disallow_incomplete_defs = false
-disallow_untyped_defs = false
-module = ["tests.*"]
-
-[[tool.mypy.overrides]]
-ignore_errors = true
-module = ["typings.*"]
-
-[[tool.mypy.overrides]]
-ignore_missing_imports = true
-module = ["IPython.*"]
-
-[[tool.mypy.overrides]]
-ignore_missing_imports = true
-module = ["constraint.*"]
-
-[[tool.mypy.overrides]]
-ignore_missing_imports = true
-module = ["jsonschema.*"]
-
-[[tool.mypy.overrides]]
-ignore_missing_imports = true
-module = ["particle.*"]
-
-[[tool.mypy.overrides]]
-ignore_missing_imports = true
-module = ["pybtex.*"]
-
-[[tool.mypy.overrides]]
-ignore_missing_imports = true
-module = ["pydot.*"]
-
-[[tool.mypy.overrides]]
-ignore_missing_imports = true
-module = ["sphinx.*"]
-
-[[tool.mypy.overrides]]
-ignore_missing_imports = true
-module = ["tqdm.*"]
 
 [tool.poe.executor]
 isolated = true
@@ -393,41 +347,6 @@ executor = { type = "simple" }
 executor = { type = "simple" }
 cmd = "uv lock --upgrade"
 
-[tool.pyright]
-reportArgumentType = false
-reportAssignmentType = false
-reportAttributeAccessIssue = false
-reportCallIssue = false
-reportGeneralTypeIssues = false
-reportIncompatibleMethodOverride = false
-reportIndexIssue = false
-reportInvalidTypeArguments = false
-reportMissingParameterType = false
-reportMissingTypeArgument = false
-reportMissingTypeStubs = false
-reportOperatorIssue = false
-reportOverlappingOverload = false
-reportPrivateImportUsage = false
-reportPrivateUsage = false
-reportReturnType = false
-reportUnboundVariable = false
-reportUnknownArgumentType = false
-reportUnknownLambdaType = false
-reportUnknownMemberType = false
-reportUnknownParameterType = false
-reportUnknownVariableType = false
-reportUnnecessaryComparison = false
-reportUnnecessaryContains = false
-reportUnnecessaryIsInstance = false
-reportUntypedFunctionDecorator = false
-reportUnusedClass = true
-reportUnusedFunction = true
-reportUnusedImport = true
-reportUnusedVariable = true
-typeCheckingMode = "strict"
-venv = ".venv"
-venvPath = "."
-
 [tool.pytest]
 addopts = [
     "--color=yes",
@@ -461,7 +380,6 @@ testpaths = [
 ]
 
 [tool.ruff]
-extend-exclude = ["typings"]
 extend-include = ["*.ipynb"]
 preview = true
 show-fixes = true
@@ -477,10 +395,10 @@ line-ending = "lf"
 [tool.ruff.lint]
 ignore = [
     "DOC",
+    "FBT00",
     "PTH",
     "any-type",
-    "boolean-default-value-positional-argument",
-    "boolean-type-hint-positional-argument",
+    "collapsible-else-if",
     "if-else-block-instead-of-if-exp",
     "incorrect-blank-line-before-class",
     "line-too-long",
@@ -520,71 +438,57 @@ ban-relative-imports = "all"
 
 [tool.ruff.lint.isort]
 known-first-party = ["qrules"]
+known-local-folder = ["tests"]
 split-on-trailing-comma = false
 
 [tool.ruff.lint.per-file-ignores]
 "*.ipynb" = [
     "ANN",
-    "B018",
     "C90",
     "D",
-    "E303",
-    "E402",
-    "E703",
-    "N806",
-    "N816",
     "PLR09",
-    "PLW0602",
-    "PLW0603",
-    "S101",
     "T20",
     "TC00",
     "assert",
     "global-statement",
     "global-variable-not-assigned",
     "mixed-case-variable-in-global-scope",
+    "module-import-not-at-top-of-file",
     "non-lowercase-variable-in-function",
     "too-many-blank-lines",
     "useless-expression",
     "useless-semicolon",
 ]
 "docs/*" = [
-    "E402",
-    "INP001",
-    "S101",
-    "S113",
-    "T201",
     "assert",
     "implicit-namespace-package",
+    "module-import-not-at-top-of-file",
+    "print",
     "request-without-timeout",
 ]
-"docs/_extend_docstrings.py" = ["A002", "PLC0415"]
+"docs/_extend_docstrings.py" = [
+    "builtin-argument-shadowing",
+    "import-outside-top-level"
+]
 "docs/conf.py" = [
-    "A001",
-    "D100",
-    "FLY002",
     "builtin-variable-shadowing",
+    "static-join-to-f-string",
     "undocumented-public-module",
 ]
-"setup.py" = ["D100"]
-"src/qrules/conservation_rules.py" = ["FA100"]
+"setup.py" = ["undocumented-public-module"]
+"src/qrules/conservation_rules.py" = ["future-rewritable-type-annotation"]
 "tests/*" = [
     "ANN",
     "D",
-    "INP001",
-    "PLC2701",
-    "PLR6301",
-    "RUF069",
-    "S101",
-    "S307",
-    "SLF001",
     "T20",
     "assert",
+    "boolean-type-hint-positional-argument",
     "float-equality-comparison",
     "implicit-namespace-package",
     "import-private-name",
     "no-self-use",
     "private-member-access",
+    "suspicious-eval-usage",
 ]
 
 [tool.ruff.lint.pydocstyle]
@@ -621,3 +525,11 @@ key-empty = "off"
 root = "tool.compwa.policy"
 path = "https://raw.githubusercontent.com/ComPWA/policy/0.9.3/compwa-policy.schema.json"
 include = ["pyproject.toml"]
+
+[tool.ty.rules]
+division-by-zero = "warn"
+possibly-missing-import = "warn"
+possibly-unresolved-reference = "warn"
+
+[tool.ty.terminal]
+error-on-warning = true

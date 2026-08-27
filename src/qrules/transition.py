@@ -301,8 +301,11 @@ class StateTransitionManager:
     @overload
     def get_allowed_interaction_types(self, node_id: int) -> list[InteractionType]: ...
 
-    def get_allowed_interaction_types(self, node_id=None):  # type: ignore[no-untyped-def]
-        return self.__create_interaction_config().get_allowed_interaction_types(node_id)
+    def get_allowed_interaction_types(self, node_id: int | None = None):
+        interaction_config = self.__create_interaction_config()
+        if node_id is None:
+            return interaction_config.get_allowed_interaction_types()
+        return interaction_config.get_allowed_interaction_types(node_id)
 
     def set_allowed_interaction_types(
         self,
@@ -381,7 +384,7 @@ class StateTransitionManager:
             self.__intermediate_particles,
             # reaction_mode is a str, so the FAST-mode break never triggers here
             # (pre-existing behavior, kept for backwards compatibility)
-            solving_mode=self.reaction_mode,  # type: ignore[arg-type]
+            solving_mode=self.reaction_mode,  # ty: ignore[invalid-argument-type]
             number_of_threads=self.__number_of_threads,
         )
 
@@ -409,7 +412,7 @@ class ReactionInfo:
     """Ordered collection of `StateTransition` instances."""
 
     transitions: tuple[StateTransition, ...] = field(converter=_sort_tuple)
-    formalism: SpinFormalism = field(validator=in_(SpinFormalism.__args__))  # type: ignore[attr-defined]
+    formalism: SpinFormalism = field(validator=in_(SpinFormalism.__args__))
 
     initial_state: FrozenDict[int, Particle] = field(init=False, repr=False, eq=False)
     final_state: FrozenDict[int, Particle] = field(init=False, repr=False, eq=False)

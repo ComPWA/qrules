@@ -9,7 +9,7 @@ from IPython.lib.pretty import pretty
 
 from qrules.topology import (
     Edge,
-    FrozenDict,  # pyright: ignore[reportUnusedImport]
+    FrozenDict,
     InteractionNode,
     MutableTopology,
     SimpleStateTransitionTopologyBuilder,
@@ -72,12 +72,12 @@ class TestInteractionNode:
     def test_constructor_exceptions(self):
         with pytest.raises(TypeError):
             assert InteractionNode(
-                number_of_ingoing_edges="has to be int",  # type: ignore[arg-type]
+                number_of_ingoing_edges="has to be int",  # ty: ignore[invalid-argument-type]
                 number_of_outgoing_edges=2,
             )
         with pytest.raises(TypeError):
             assert InteractionNode(
-                number_of_outgoing_edges="has to be int",  # type: ignore[arg-type]
+                number_of_outgoing_edges="has to be int",  # ty: ignore[invalid-argument-type]
                 number_of_ingoing_edges=2,
             )
         with pytest.raises(

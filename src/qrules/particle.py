@@ -38,7 +38,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Iterator
 
     from attrs import Attribute
-    from IPython.lib.pretty import PrettyPrinter
+    from IPython.lib.pretty import RepresentationPrinter
     from particle import Particle as PdgDatabase
     from particle.particle import enums
 
@@ -106,7 +106,7 @@ class Spin:  # ruff: ignore[eq-without-hash]
     def __repr__(self) -> str:
         return f"{type(self).__name__}{(self.magnitude, self.projection)}"
 
-    def _repr_pretty_(self, p: PrettyPrinter, _: bool) -> None:
+    def _repr_pretty_(self, p: RepresentationPrinter, _: bool) -> None:
         class_name = type(self).__name__
         magnitude = _render_fraction(self.magnitude)
         projection = _render_fraction(self.projection, plusminus=True)
@@ -119,9 +119,10 @@ def _render_fraction(fraction: Fraction, plusminus: bool = False) -> str:
     return str(fraction)
 
 
-def _to_spin(value: Spin | tuple[Fraction, Fraction] | tuple[float, float]) -> Spin:
+def _to_spin(value: Spin | tuple[Fraction, Fraction] | tuple[float, float], /) -> Spin:
     if isinstance(value, tuple):
-        return Spin(*value)
+        magnitude, projection = value
+        return Spin(magnitude, projection)
     return value
 
 
@@ -218,13 +219,13 @@ class Particle:
             or self.tau_lepton_number != 0
         )
 
-    def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
+    def _repr_pretty_(self, p: RepresentationPrinter, cycle: bool) -> None:
         class_name = type(self).__name__
         if cycle:
             p.text(f"{class_name}(...)")
         else:
             with p.group(indent=2, open=f"{class_name}("):
-                for attribute in attrs.fields(type(self)):  # type: ignore[misc]
+                for attribute in attrs.fields(type(self)):
                     value = getattr(self, attribute.name)
                     if value != attribute.default:
                         p.breakable()
@@ -232,7 +233,7 @@ class Particle:
                         if isinstance(value, Parity):
                             p.text(_float_as_signed_str(int(value), render_plus=True))
                         else:
-                            p.pretty(value)  # type: ignore[attr-defined]
+                            p.pretty(value)
                         p.text(",")
             p.breakable()
             p.text(")")
@@ -314,7 +315,7 @@ class ParticleCollection(abc.MutableSet):  # ruff: ignore[eq-without-hash]
         output += "})"
         return output
 
-    def _repr_pretty_(self, p: PrettyPrinter, cycle: bool) -> None:
+    def _repr_pretty_(self, p: RepresentationPrinter, cycle: bool) -> None:
         class_name = type(self).__name__
         if cycle:
             p.text(f"{class_name}(...)")
@@ -322,7 +323,7 @@ class ParticleCollection(abc.MutableSet):  # ruff: ignore[eq-without-hash]
             with p.group(indent=2, open=f"{class_name}({{"):
                 for particle in self:
                     p.breakable()
-                    p.pretty(particle)  # type: ignore[attr-defined]
+                    p.pretty(particle)
                     p.text(",")
             p.breakable()
             p.text("})")
@@ -630,7 +631,7 @@ def __create_isospin(pdg_particle: PdgDatabase) -> Spin | None:
     return Spin(magnitude, projection)
 
 
-def __isospin_projection_from_pdg(pdg_particle: PdgDatabase) -> Fraction:
+def __isospin_projection_from_pdg(pdg_particle: PdgDatabase, /) -> Fraction:
     if pdg_particle.charge is None:
         msg = f"PDG instance has no charge:\n{pdg_particle}"
         raise ValueError(msg)
@@ -649,7 +650,10 @@ def __isospin_projection_from_pdg(pdg_particle: PdgDatabase) -> Fraction:
             projection += quark_content.count("u") + quark_content.count("D")
             projection -= quark_content.count("U") + quark_content.count("d")
             projection *= 0.5
-    if pdg_particle.I is not None and not (pdg_particle.I - projection).is_integer():
+    if (
+        pdg_particle.I is not None
+        and not float(pdg_particle.I - projection).is_integer()
+    ):
         msg = f"Cannot have isospin {pdg_particle.I, projection}"
         raise ValueError(msg)
     return Fraction(projection)
