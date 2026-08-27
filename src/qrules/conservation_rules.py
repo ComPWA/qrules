@@ -154,7 +154,7 @@ def additive_quantum_number_rule(
             "outgoing_edge_qns": GenericAlias(list, quantum_number),
             "return": bool,
         }
-        rule_class.__call__ = new_call  # ty:ignore[invalid-assignment]
+        rule_class.__call__ = new_call  # ty: ignore[invalid-assignment]
         rule_class.__doc__ = dedent(
             f"""
             Decorated via `{additive_quantum_number_rule.__name__}`.

@@ -63,7 +63,7 @@ class TestParticle:
             isospin=(Fraction(1), Fraction(0)),
         )
         with pytest.raises(FrozenInstanceError):
-            test_state.charge = 1  # ty:ignore[invalid-assignment]
+            test_state.charge = 1  # ty: ignore[invalid-assignment]
         with pytest.raises(
             ValueError,
             match=r"Fails Gell-Mann–Nishijima",  # ruff: ignore[ambiguous-unicode-character-string]
@@ -168,7 +168,7 @@ class TestParticleCollection:
         assert new_pdg is not particle_database
         assert new_pdg == particle_database
         with pytest.raises(TypeError):
-            ParticleCollection(1)  # ty:ignore[invalid-argument-type]
+            ParticleCollection(1)  # ty: ignore[invalid-argument-type]
 
     def test_equality(self, particle_database: ParticleCollection):
         assert list(particle_database) == particle_database
@@ -235,7 +235,7 @@ class TestParticleCollection:
         assert pim.name == "pi-"  # still exists
 
         with pytest.raises(NotImplementedError):
-            pions.discard(111)  # ty:ignore[invalid-argument-type]
+            pions.discard(111)  # ty: ignore[invalid-argument-type]
 
     def test_filter(
         self, particle_database: ParticleCollection, skh_particle_version: str
@@ -326,9 +326,9 @@ class TestParticleCollection:
         ):
             particle_database += create_particle(gamma, name="gamma_new")
         with pytest.raises(NotImplementedError):
-            particle_database.find(3.12)  # ty:ignore[invalid-argument-type]
+            particle_database.find(3.12)  # ty: ignore[invalid-argument-type]
         with pytest.raises(NotImplementedError):
-            particle_database += 3.12  # ty:ignore[unsupported-operator]
+            particle_database += 3.12  # ty: ignore[unsupported-operator]
         with pytest.raises(NotImplementedError):
             assert 3.12 in particle_database
         with pytest.raises(AssertionError):
