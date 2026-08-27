@@ -120,7 +120,7 @@ def _render_fraction(fraction: Fraction, plusminus: bool = False) -> str:
     return str(fraction)
 
 
-def _to_spin(value: Spin | tuple[Fraction, Fraction] | tuple[float, float]) -> Spin:
+def _to_spin(value: Spin | tuple[Fraction, Fraction] | tuple[float, float], /) -> Spin:
     if isinstance(value, tuple):
         magnitude, projection = value
         return Spin(magnitude, projection)
@@ -632,7 +632,7 @@ def __create_isospin(pdg_particle: PdgDatabase) -> Spin | None:
     return Spin(magnitude, projection)
 
 
-def __isospin_projection_from_pdg(pdg_particle: PdgDatabase) -> Fraction:
+def __isospin_projection_from_pdg(pdg_particle: PdgDatabase, /) -> Fraction:
     if pdg_particle.charge is None:
         msg = f"PDG instance has no charge:\n{pdg_particle}"
         raise ValueError(msg)

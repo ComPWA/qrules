@@ -56,7 +56,7 @@ hands the result to.
 """
 
 
-def is_render_pair(value: object) -> TypeIs[RenderPair]:
+def is_render_pair(value: object, /) -> TypeIs[RenderPair]:
     return (
         isinstance(value, tuple)
         and len(value) == 2
@@ -419,7 +419,7 @@ def __render_rule(rule: Rule) -> str:
     return __get_type(rule).__name__
 
 
-def __get_type(rule: Rule) -> type[Rule]:
+def __get_type(rule: Rule, /) -> type[Rule]:
     if isfunction(rule):
         return rule  # ty: ignore[invalid-return-type]
     return type(rule)

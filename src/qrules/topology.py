@@ -783,7 +783,7 @@ class Transition(ABC, Generic[EdgeType, NodeType]):
         return {i: self.states[i] for i in edge_ids if i in self.states}
 
 
-def _to_frozen_dict(inst: Mapping[KT, VT]) -> FrozenDict[KT, VT]:
+def _to_frozen_dict(inst: Mapping[KT, VT], /) -> FrozenDict[KT, VT]:
     return FrozenDict(inst)
 
 
@@ -840,15 +840,15 @@ class FrozenTransition(Transition, Generic[EdgeType, NodeType]):
         )
 
 
-def _identity_function(obj: Any) -> Any:
+def _identity_function(obj: Any, /) -> Any:
     return obj
 
 
-def _cast_states(obj: Mapping[int, EdgeType]) -> dict[int, EdgeType]:
+def _cast_states(obj: Mapping[int, EdgeType], /) -> dict[int, EdgeType]:
     return dict(obj)
 
 
-def _cast_interactions(obj: Mapping[int, NodeType]) -> dict[int, NodeType]:
+def _cast_interactions(obj: Mapping[int, NodeType], /) -> dict[int, NodeType]:
     return dict(obj)
 
 

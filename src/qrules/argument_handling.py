@@ -209,9 +209,7 @@ class RuleArgumentHandler:
         pass
 
     @staticmethod
-    def __create_requirements_check(
-        argument_types: list[type],
-    ) -> Callable:
+    def __create_requirements_check(argument_types: list[type], /) -> Callable:
         individual_argument_checkers = []
         for input_type in argument_types:
             is_list = False
@@ -240,9 +238,7 @@ class RuleArgumentHandler:
         return _check_all_arguments(individual_argument_checkers)
 
     @staticmethod
-    def __create_argument_builder(
-        argument_types: list[type],
-    ) -> Callable:
+    def __create_argument_builder(argument_types: list[type], /) -> Callable:
         individual_argument_builders = []
         for input_type in argument_types:
             is_list = False
