@@ -541,7 +541,7 @@ class CSPSolver(Solver):
         self.__non_executable_edge_rules: dict[int, set[GraphElementRule]] = (
             defaultdict(set)
         )
-        self.__problem = Problem(BacktrackingSolver(True))
+        self.__problem = Problem(BacktrackingSolver(forwardcheck=True))
         self.__allowed_intermediate_states = tuple(allowed_intermediate_states)
         self.__scoresheet = Scoresheet()
 
@@ -629,7 +629,7 @@ class CSPSolver(Solver):
         self.__var_string_to_data = {}
         self.__node_rules = defaultdict(set)
         self.__edge_rules = defaultdict(set)
-        self.__problem = Problem(BacktrackingSolver(True))
+        self.__problem = Problem(BacktrackingSolver(forwardcheck=True))
         self.__scoresheet = Scoresheet()
 
     def __initialize_constraints(  # ruff: ignore[too-many-locals]
