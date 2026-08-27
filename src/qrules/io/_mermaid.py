@@ -23,10 +23,6 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 
-_RenderedGraph = ProblemSet | QNProblemSet | Topology | Transition
-_RenderInput = _RenderedGraph | tuple[Topology, _RenderedGraph]
-
-
 _LABEL_ESCAPES: dict[str, str] = {
     "\\": r"\\",
     '"': r"\"",
@@ -126,11 +122,11 @@ class MermaidPrinter:
 
     def _render_transition(  # ruff: ignore[complex-structure, too-many-branches, too-many-locals, too-many-statements]
         self,
-        obj: _RenderInput,
+        obj: _labels.RenderInput,
         prefix: str = "",
     ) -> list[str]:
         lines: list[str] = []
-        if isinstance(obj, tuple):
+        if _labels.is_render_pair(obj):
             topology, rendered_graph = obj
         elif isinstance(obj, (ProblemSet, QNProblemSet, Transition)):
             rendered_graph = obj

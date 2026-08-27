@@ -23,9 +23,15 @@ from qrules.transition import ProblemSet, State
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
 
+    from typing_extensions import TypeIs
+
     from qrules.argument_handling import Rule, RuleKey
 
 _LOGGER = logging.getLogger(__name__)
+
+RenderedGraph = ProblemSet | QNProblemSet | Topology | Transition
+RenderPair = tuple[Topology, RenderedGraph]
+RenderInput = RenderedGraph | RenderPair
 
 _TEXT_TO_LATEX_ESCAPES = str.maketrans({
     "\\": R"\textbackslash{}",
@@ -48,6 +54,15 @@ interpolates them. The replacements are the `standard LaTeX escapes
 KaTeX <https://katex.org/docs/support_table>`_ as well, the renderer that ``._mermaid``
 hands the result to.
 """
+
+
+def is_render_pair(value: object) -> TypeIs[RenderPair]:
+    return (
+        isinstance(value, tuple)
+        and len(value) == 2
+        and isinstance(value[0], Topology)
+        and isinstance(value[1], (ProblemSet, QNProblemSet, Topology, Transition))
+    )
 
 
 def create_edge_label(
