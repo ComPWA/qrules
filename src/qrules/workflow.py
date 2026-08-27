@@ -136,12 +136,10 @@ def filter_intermediate_particles(
             )
             raise LookupError(msg)
         selected_particles.update(matches)
+    sorted_particles = sorted(selected_particles)
     return AllowedIntermediateParticles(
-        particles=tuple(
-            create_edge_properties(x)
-            for x in sorted(selected_particles, key=lambda p: p.name)
-        ),
-        names=tuple(selected_particles.names),
+        particles=tuple(create_edge_properties(x) for x in sorted_particles),
+        names=tuple(x.name for x in sorted_particles),
     )
 
 
