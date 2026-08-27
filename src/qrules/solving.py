@@ -23,6 +23,7 @@ from constraint import BacktrackingSolver, Constraint, Problem, Unassigned, Vari
 from qrules._implementers import implement_pretty_repr
 from qrules.argument_handling import (
     GraphEdgePropertyMap,
+    GraphElementPropertyMap,
     GraphElementRule,
     GraphNodePropertyMap,
     Rule,
@@ -347,7 +348,7 @@ def validate_full_solution(problem_set: QNProblemSet) -> QNResult:  # ruff: igno
 
     def _create_node_variables(
         node_id: int, qn_list: set[type[NodeQuantumNumber]]
-    ) -> dict[type[NodeQuantumNumber], Scalar]:
+    ) -> GraphNodePropertyMap:
         """Create variables for the quantum numbers of the specified node."""
         variables = {}
         if node_id in problem_set.initial_facts.interactions:
@@ -890,7 +891,7 @@ class _GraphElementConstraint(Constraint, Generic[_QNType]):
         self,
         rule: GraphElementRule,
         variables: set[tuple[int, QuantumNumberType[_QNType]]],
-        fixed_variables: dict[int, dict[QuantumNumberType[_QNType], Scalar]],
+        fixed_variables: dict[int, GraphElementPropertyMap[_QNType]],
         argument_handler: RuleArgumentHandler,
         scoresheet: Callable[[bool], None],
     ) -> None:
@@ -905,7 +906,7 @@ class _GraphElementConstraint(Constraint, Generic[_QNType]):
         self.__score_callback = scoresheet
 
         self.__var_string_to_data: dict[str, QuantumNumberType[_QNType]] = {}
-        self.__qns: dict[QuantumNumberType[_QNType], Scalar | None] = {}
+        self.__qns: GraphElementPropertyMap[_QNType] = {}
 
         self.__initialize_variable_containers(variables, fixed_variables)
 
@@ -916,7 +917,7 @@ class _GraphElementConstraint(Constraint, Generic[_QNType]):
     def __initialize_variable_containers(
         self,
         variables: set[tuple[int, QuantumNumberType[_QNType]]],
-        fixed_variables: dict[int, dict[QuantumNumberType[_QNType], Scalar]],
+        fixed_variables: dict[int, GraphElementPropertyMap[_QNType]],
     ) -> None:
         """Fill the name decoding map.
 
@@ -1042,7 +1043,7 @@ class _ConservationRuleConstraintWrapper(Constraint):
 
         def _initialize_edge_container(
             variable_set: set[_EdgeVariableInfo],
-            fixed_variables: dict[int, dict[type[EdgeQuantumNumber], Scalar]],
+            fixed_variables: dict[int, GraphEdgePropertyMap],
             container: dict[int, GraphEdgePropertyMap],
         ) -> None:
             container.update(fixed_variables)

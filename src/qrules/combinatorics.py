@@ -41,7 +41,7 @@ def as_state_definition(
         return definition
     if type(definition) is tuple:
         name, state = definition
-        return name, list(map(Fraction, state))  # type:ignore  # ruff: ignore[blanket-type-ignore]
+        return name, [Fraction(x) for x in state]
     msg = f"value has to be of type {StateDefinitionInput}, got {type(definition)}"
     raise ValueError(msg)
 

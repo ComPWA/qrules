@@ -39,7 +39,7 @@ if TYPE_CHECKING:
 
     from typing_extensions import TypeForm, TypeIs
 
-Scalar = int | float | Fraction | None
+Scalar = int | float | Fraction
 Rule = GraphElementRule | EdgeQNConservationRule | ConservationRule
 """Any type of rule"""
 
@@ -54,7 +54,7 @@ RuleKey = (
 
 _ElementType = TypeVar("_ElementType")
 
-GraphElementPropertyMap = dict[QuantumNumberType[_ElementType], Scalar]
+GraphElementPropertyMap = dict[QuantumNumberType[_ElementType], Scalar | None]
 GraphEdgePropertyMap = GraphElementPropertyMap[EdgeQuantumNumber]
 """Type alias for a graph edge property map."""
 GraphNodePropertyMap = GraphElementPropertyMap[NodeQuantumNumber]
