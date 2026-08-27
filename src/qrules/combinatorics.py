@@ -218,7 +218,7 @@ def create_initial_facts(
         particle_db,
     )
     spin_states = __generate_spin_combinations(states, particle_db)
-    return [MutableTransition(topology, state) for state in spin_states]
+    return [MutableTransition(topology, states) for states in spin_states]
 
 
 def __create_states_with_spin_projections(
