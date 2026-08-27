@@ -200,7 +200,7 @@ class StateTransitionManager:
         | None = None,
         formalism: SpinFormalism = "helicity",
         topology_building: str = "isobar",
-        solving_mode: SolvingMode = SolvingMode.FAST,
+        solving_mode: SolvingMode = SolvingMode.FULL,
         reload_pdg: bool = False,
         mass_conservation_factor: float | None = 3.0,
         max_angular_momentum: int = 1,
@@ -224,7 +224,8 @@ class StateTransitionManager:
         self.__particles = ParticleCollection()
         if particle_db is not None:
             self.__particles = particle_db
-        self.reaction_mode = str(solving_mode)
+        self.solving_mode = solving_mode
+        """Whether to search for all solutions or stop at the strongest interaction."""
         self.initial_state = list(map(as_state_definition, initial_state))
         self.final_state = list(map(as_state_definition, final_state))
         self.interaction_type_settings = interaction_type_settings
@@ -388,9 +389,7 @@ class StateTransitionManager:
         return solve(
             qn_problem_sets,
             self.__intermediate_particles,
-            # reaction_mode is a str, so the FAST-mode break never triggers here
-            # (pre-existing behavior, kept for backwards compatibility)
-            solving_mode=self.reaction_mode,  # ty: ignore[invalid-argument-type]
+            solving_mode=self.solving_mode,
             number_of_threads=self.__number_of_threads,
         )
 
