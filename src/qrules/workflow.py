@@ -680,10 +680,16 @@ def find_solutions(  # ruff: ignore[too-many-positional-arguments]
     This function covers the default use-case in a single call: it chains `solve`,
     `convert_to_particle_transitions`, and `collect_reaction_info`. Given a
     `QNProblemSetCollection`, the final state, formalism, and intermediate-particle
-    selection default to the values with which the problem sets were created;
-    explicit arguments override them. The :code:`particle_db` is required, because a
-    `.QNProblemSet` contains quantum numbers only: particles are re-matched by PID
-    via `.find_particle`.
+    selection default to the values with which the problem sets were created; explicit
+    arguments override them. Given a plain `dict` of `.QNProblemSet` objects, the
+    :code:`formalism` has to be specified, because it determines which quantum numbers
+    are filtered out of the solutions. The :code:`particle_db` is required, because a
+    `.QNProblemSet` contains quantum numbers only: particles are re-matched by PID via
+    `.find_particle`.
+
+    Raises:
+        ValueError: If :code:`formalism` is not given and cannot be inferred from
+            :code:`qn_problem_sets`.
     """
     if isinstance(qn_problem_sets, QNProblemSetCollection):
         if final_state is None:
@@ -694,7 +700,11 @@ def find_solutions(  # ruff: ignore[too-many-positional-arguments]
             allowed_intermediate_particles = qn_problem_sets.intermediate_particles
         qn_problem_sets = qn_problem_sets.problem_sets
     if formalism is None:
-        formalism = "helicity"
+        msg = (
+            "Cannot infer the spin formalism from a plain dict of QNProblemSets."
+            " Pass a formalism explicitly, or a QNProblemSetCollection."
+        )
+        raise ValueError(msg)
     _validate_formalism(formalism)
     qn_results = solve(
         qn_problem_sets,
