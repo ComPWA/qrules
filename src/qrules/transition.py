@@ -116,13 +116,19 @@ class ExecutionInfo:
 
 
 @frozen
-class _SolutionContainer:
-    """Defines a result of a `.ProblemSet`."""
+class SolutionContainer:
+    """Particle-level solutions to a `.ProblemSet`.
+
+    Returned by `.convert_to_particle_transitions` and summarized as `.ReactionInfo`
+    by `.collect_reaction_info`.
+    """
 
     solutions: list[MutableTransition[ParticleWithSpin, InteractionProperties]] = field(
         factory=list
     )
+    """Transitions that satisfy all conservation rules."""
     execution_info: ExecutionInfo = field(default=ExecutionInfo())
+    """Rules that were violated or could not be executed."""
 
     def __attrs_post_init__(self) -> None:
         if self.solutions and (
@@ -140,7 +146,7 @@ class _SolutionContainer:
             )
 
     def extend(
-        self, other: _SolutionContainer, intersect_violations: bool = False
+        self, other: SolutionContainer, intersect_violations: bool = False
     ) -> None:
         if self.solutions or other.solutions:
             self.solutions.extend(other.solutions)
@@ -361,7 +367,7 @@ class StateTransitionManager:
 
     def _find_particle_transitions(
         self, problem_sets: dict[float, list[ProblemSet]]
-    ) -> dict[float, _SolutionContainer]:
+    ) -> dict[float, SolutionContainer]:
         from qrules.workflow import (  # ruff: ignore[import-outside-top-level]
             convert_to_particle_transitions,
         )

@@ -69,10 +69,10 @@ from qrules.transition import (
     ExecutionInfo,
     ProblemSet,
     ReactionInfo,
+    SolutionContainer,
     SolvingMode,
     SpinFormalism,
     State,
-    _SolutionContainer,
 )
 
 if TYPE_CHECKING:
@@ -434,9 +434,9 @@ def solve(
 def convert_to_particle_transitions(
     qn_results: dict[float, list[tuple[QNProblemSet, QNResult]]],
     particle_db: ParticleCollection,
-) -> dict[float, _SolutionContainer]:
+) -> dict[float, SolutionContainer]:
     """Match pure quantum number solutions to particles from a database."""
-    results: dict[float, _SolutionContainer] = defaultdict(_SolutionContainer)
+    results: dict[float, SolutionContainer] = defaultdict(SolutionContainer)
     for strength, qn_solutions in qn_results.items():
         for qn_problem_set, qn_result in qn_solutions:
             particle_result = _convert_to_particle_definitions(
@@ -453,8 +453,8 @@ def convert_to_particle_transitions(
 
 def _convert_to_particle_definitions(
     topology: Topology, qn_result: QNResult, particle_db: ParticleCollection
-) -> _SolutionContainer:
-    """Convert a `.QNResult` with a `.Topology` into a `._SolutionContainer`.
+) -> SolutionContainer:
+    """Convert a `.QNResult` with a `.Topology` into a `.SolutionContainer`.
 
     The ParticleCollection is used to retrieve a particle instance reference to lower
     the memory footprint.
@@ -473,7 +473,7 @@ def _convert_to_particle_definitions(
         )
         solutions.append(graph)
 
-    return _SolutionContainer(
+    return SolutionContainer(
         solutions,
         ExecutionInfo(
             violated_edge_rules=qn_result.violated_edge_rules,
@@ -485,7 +485,7 @@ def _convert_to_particle_definitions(
 
 
 def collect_reaction_info(  # ruff: ignore[complex-structure, too-many-branches]
-    results: dict[float, _SolutionContainer],
+    results: dict[float, SolutionContainer],
     final_state: Sequence[StateDefinitionInput] | None = None,
     formalism: SpinFormalism = "helicity",
     filter_remove_qns: set[type[NodeQuantumNumber]] | None = None,
@@ -504,7 +504,7 @@ def collect_reaction_info(  # ruff: ignore[complex-structure, too-many-branches]
             f"QN solving: {len(result.solutions)}",
         )
 
-    final_result = _SolutionContainer()
+    final_result = SolutionContainer()
     for particle_result in results.values():
         final_result.extend(particle_result)
 

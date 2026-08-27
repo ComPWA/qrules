@@ -291,7 +291,6 @@ nb_output_stderr = "remove"
 nb_render_markdown_format = "myst"
 nitpick_ignore = [
     ("py:class", "StrPath"),
-    ("py:class", "_SolutionContainer"),
 ]
 nitpick_ignore_regex = [
     (r"py:(class|obj)", "json.encoder.JSONEncoder"),
