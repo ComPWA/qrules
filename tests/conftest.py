@@ -8,7 +8,7 @@ from qrules.settings import NumberOfThreads
 
 # Ensure consistent test coverage when running pytest multithreaded
 # https://github.com/ComPWA/qrules/issues/11
-NumberOfThreads.set(1)
+NumberOfThreads.set(n_cores=1)
 
 
 @pytest.fixture(scope="session")
