@@ -120,10 +120,7 @@ def check_reaction_violations(  # ruff: ignore[complex-structure, too-many-posit
 
     .. seealso:: :ref:`usage:Check allowed reactions`
     """
-    if _is_state_definition_input(initial_state):
-        initial_state_definitions = [initial_state]
-    else:
-        initial_state_definitions = list(initial_state)
+    initial_state_definitions = _to_state_definitions(initial_state)
 
     if particle_db is None:
         particle_db = load_pdg()
@@ -359,10 +356,7 @@ def generate_transitions(  # ruff: ignore[too-many-positional-arguments]
     >>> len(reaction.group_by_topology())
     3
     """
-    if _is_state_definition_input(initial_state):
-        initial_state_definitions = [initial_state]
-    else:
-        initial_state_definitions = list(initial_state)
+    initial_state_definitions = _to_state_definitions(initial_state)
     stm = StateTransitionManager(
         initial_state=initial_state_definitions,
         final_state=final_state,
@@ -386,6 +380,14 @@ def generate_transitions(  # ruff: ignore[too-many-positional-arguments]
         stm.set_allowed_interaction_types(list(interaction_types))
     problem_sets = stm.create_problem_sets()
     return stm.find_solutions(problem_sets)
+
+
+def _to_state_definitions(
+    state: StateDefinitionInput | Sequence[StateDefinitionInput], /
+) -> list[StateDefinitionInput]:
+    if _is_state_definition_input(state):
+        return [state]
+    return list(state)
 
 
 def _is_state_definition_input(value: object, /) -> TypeIs[StateDefinitionInput]:
