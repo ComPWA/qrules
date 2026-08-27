@@ -467,7 +467,7 @@ class StateTransitionManager:
         for node_id in topology.nodes:
             interaction_types: list[InteractionType] = []
             out_edge_ids = topology.get_edge_ids_outgoing_from_node(node_id)
-            in_edge_ids = topology.get_edge_ids_outgoing_from_node(node_id)
+            in_edge_ids = topology.get_edge_ids_ingoing_to_node(node_id)
             in_states = [
                 initial_facts.states[edge_id]
                 for edge_id in [x for x in in_edge_ids if x in initial_state_edges]
@@ -633,7 +633,9 @@ class StateTransitionManager:
                     qn_solution = self._solve(problem)
                     qn_results[strength].append(qn_solution)
                     progress_bar.update()
-            if qn_results[strength] and self.reaction_mode == SolvingMode.FAST:
+            if self.reaction_mode == SolvingMode.FAST and any(
+                qn_result.solutions for _, qn_result in qn_results[strength]
+            ):
                 break
         progress_bar.close()
         return qn_results

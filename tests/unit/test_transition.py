@@ -123,6 +123,20 @@ class TestStateTransitionManager:
         ):
             stm.set_allowed_intermediate_particles(particle_name)
 
+    @pytest.mark.parametrize(
+        ("initial_state", "expected_strengths"),
+        [
+            (["gamma"], [0.0001, 1.0, 60.0]),
+            (["nu(e)"], [1e-08, 0.0001, 0.006]),
+        ],
+    )
+    def test_initial_state_restricts_interaction_types(
+        self, initial_state: list[str], expected_strengths: list[float]
+    ):
+        stm = StateTransitionManager(initial_state, final_state=["pi0", "pi0", "pi0"])
+        problem_sets = stm.create_problem_sets()
+        assert sorted(problem_sets) == expected_strengths
+
     def test_regex_pattern(self):
         stm = StateTransitionManager(
             initial_state=["Lambda(c)+"],
