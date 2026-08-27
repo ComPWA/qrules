@@ -201,7 +201,10 @@ def check_reaction_violations(  # ruff: ignore[complex-structure, too-many-posit
     # Using a n-body topology is enough, to determine the violations reliably
     # since only certain spin rules require the isobar model. These spin rules
     # are not required here though.
-    topology = create_n_body_topology(len(initial_state_definitions), len(final_state))
+    topology = create_n_body_topology(
+        number_of_initial_states=len(initial_state_definitions),
+        number_of_final_states=len(final_state),
+    )
     node_id = next(iter(topology.nodes))
 
     initial_facts = create_initial_facts(
