@@ -6,7 +6,7 @@ from qrules.settings import (
     InteractionType,
     create_interaction_settings,
 )
-from qrules.transition import ReactionInfo
+from qrules.transition import ReactionInfo, SolvingMode
 from qrules.workflow import (
     InteractionConfig,
     QNProblemSetCollection,
@@ -114,3 +114,38 @@ def test_find_solutions_requires_intermediate_particles(
             particle_db=particle_database,
             formalism="helicity",
         )
+
+
+@pytest.mark.parametrize(
+    ("initial_state", "final_state", "expected_strengths"),
+    [
+        (["gamma"], ["pi0", "pi0", "pi0"], [0.0001, 1.0, 60.0]),
+        (["nu(e)"], ["e-", "pi0", "pi+"], [1e-08, 0.0001, 0.006]),
+    ],
+)
+def test_initial_state_restricts_interaction_types(
+    initial_state: list[str],
+    final_state: list[str],
+    expected_strengths: list[float],
+    particle_database: ParticleCollection,
+):
+    qn_problem_sets = create_qn_problem_sets(
+        initial_state, final_state, particle_database
+    )
+    assert sorted(qn_problem_sets.problem_sets) == expected_strengths
+
+
+def test_fast_solving_mode(particle_database: ParticleCollection):
+    def count_transitions(solving_mode: SolvingMode) -> int:
+        qn_problem_sets = create_qn_problem_sets(
+            initial_state=["J/psi(1S)"],
+            final_state=["gamma", "pi0", "pi0"],
+            particle_db=particle_database,
+        )
+        reaction = find_solutions(
+            qn_problem_sets, particle_database, solving_mode=solving_mode
+        )
+        return len(reaction.transitions)
+
+    assert count_transitions(SolvingMode.FULL) == 294
+    assert count_transitions(SolvingMode.FAST) == 90
