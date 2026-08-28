@@ -37,10 +37,10 @@ classifiers = [
 dependencies = [
     "PyYAML",
     "attrs >=20.1.0",  # on_setattr and https://www.attrs.org/en/stable/api.html#next-gen
-    "compwa-python-constraint",
     "frozendict",
     "jsonschema",
     "particle",
+    "python-constraint2",
     "tqdm >=4.24.0",  # autonotebook
 ]
 dynamic = ["version"]
