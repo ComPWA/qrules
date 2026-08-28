@@ -18,7 +18,10 @@ from typing import TYPE_CHECKING, Any, Generic, TypeVar, overload
 
 import attrs
 from attrs import define, field, frozen
-from constraint import BacktrackingSolver, Constraint, Problem, Unassigned, Variable
+from constraint.constraints import Constraint
+from constraint.domain import Unassigned, Variable
+from constraint.problem import Problem
+from constraint.solvers import BacktrackingSolver
 
 from qrules._implementers import implement_pretty_repr
 from qrules.argument_handling import (
@@ -881,7 +884,7 @@ _QNType = TypeVar("_QNType", EdgeQuantumNumber, NodeQuantumNumber)
 
 
 class _GraphElementConstraint(Constraint, Generic[_QNType]):
-    """Wrapper class of the `~constraints.Constraint` class.
+    """Wrapper class of the `~constraint.Constraint` class.
 
     This allows a customized definition of conservation rules, and hence a cleaner user
     interface.
@@ -1000,7 +1003,7 @@ class _GraphElementConstraint(Constraint, Generic[_QNType]):
 
 
 class _ConservationRuleConstraintWrapper(Constraint):
-    """Wrapper class of the `~constraints.Constraint` class.
+    """Wrapper class of the `~constraint.Constraint` class.
 
     This allows a customized definition of conservation rules, and hence a cleaner user
     interface.
