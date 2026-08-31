@@ -16,7 +16,7 @@ repos:
       - id: check-useless-excludes
 
   - repo: https://github.com/ComPWA/policy
-    rev: 0.9.3
+    rev: 0.9.6
     hooks:
       - id: check-dev-files
 
@@ -60,7 +60,7 @@ repos:
       - id: strip-nb-whitespace
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.4
+    rev: v0.16.5
     hooks:
       - id: ruff-check
         args: [--fix]
@@ -93,7 +93,7 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/tombi-toml/tombi-pre-commit
-    rev: v1.4.1
+    rev: v1.5.0
     hooks:
       - id: tombi-format
       - id: tombi-lint
@@ -118,7 +118,7 @@ repos:
         pass_filenames: false
 
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v10.0.1
+    rev: v10.1.0
     hooks:
       - id: cspell
 
@@ -134,12 +134,12 @@ repos:
           )$
 
   - repo: https://github.com/astral-sh/ty-pre-commit
-    rev: v0.0.75
+    rev: v0.0.76
     hooks:
       - id: ty
         args: [--group=types, --no-default-groups]
 
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.12.6
+    rev: 0.12.7
     hooks:
       - id: uv-lock
