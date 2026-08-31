@@ -146,9 +146,9 @@ def asmermaid(
 
         collapse: Optionally combine transitions. With ``"spin"``, transitions that
             differ only in their spin projections are combined. With ``"topology"``,
-            transitions with equivalent kinematic topologies are grouped and all
-            allowed particles on each edge are collected. Node properties cannot be
-            rendered when collapsing by topology.
+            transitions with equivalent kinematic topologies are grouped and all allowed
+            particles on each edge are collected. Node properties cannot be rendered
+            when collapsing by topology.
 
         render_node: Whether or not to render node ID (in the case of a `.Topology`)
             and/or node properties (in the case of a `.MutableTransition`). Meaning of
