@@ -547,6 +547,27 @@ def get_particle_graphs(
     )
 
 
+def prepare_transitions(
+    transitions: Iterable[Any],
+    *,
+    collapse: CollapseMode | None,
+    render_node: bool | None,
+) -> list[Any]:
+    if collapse is None:
+        return list(transitions)
+    if collapse == "spin":
+        if render_node:
+            return sorted({strip_projections(t) for t in transitions})
+        return get_particle_graphs(transitions)
+    if collapse == "topology":
+        if render_node:
+            msg = "Transitions collapsed by topology cannot render node properties"
+            raise ValueError(msg)
+        return collapse_graphs(transitions)
+    msg = f"Unknown collapse mode {collapse!r}; expected None, 'spin', or 'topology'"
+    raise ValueError(msg)
+
+
 def strip_projections(
     graph: Transition[Any, InteractionProperties],
 ) -> FrozenTransition[Particle, InteractionProperties]:

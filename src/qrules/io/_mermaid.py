@@ -78,8 +78,7 @@ class MermaidPrinter:
     render_final_state_id: bool = True
     render_resonance_id: bool = False
     render_initial_state_id: bool = False
-    strip_spin: bool = False
-    collapse_graphs: bool = False
+    collapse: _labels.CollapseMode | None = None
     figure_style: dict[str, Any] = attrs.field(converter=_to_style_dict, default=None)
     edge_style: dict[str, Any] = attrs.field(converter=_to_style_dict, default=None)
     node_style: dict[str, Any] = attrs.field(converter=_to_style_dict, default=None)
@@ -104,16 +103,11 @@ class MermaidPrinter:
         raise NotImplementedError(msg)
 
     def _render_multiple_transitions(self, obj: Iterable) -> list[str]:
-        transitions: Iterable[Transition[Any, Any]]
-        if self.collapse_graphs:
-            transitions = _labels.collapse_graphs(obj)
-        elif self.strip_spin:
-            if self.render_node:
-                transitions = sorted({_labels.strip_projections(t) for t in obj})
-            else:
-                transitions = _labels.get_particle_graphs(obj)
-        else:
-            transitions = list(obj)
+        transitions = _labels.prepare_transitions(
+            obj,
+            collapse=self.collapse,
+            render_node=self.render_node,
+        )
 
         lines: list[str] = []
         for i, graph in enumerate(reversed(list(transitions))):

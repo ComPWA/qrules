@@ -10,7 +10,7 @@ import string
 from collections import abc
 from typing import TYPE_CHECKING, Any
 
-from attrs import Attribute, define, field
+from attrs import define, field
 from attrs.converters import default_if_none
 
 from qrules.io import _labels
@@ -22,19 +22,6 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
 
 _LOGGER = logging.getLogger(__name__)
-
-
-def _check_booleans(
-    instance: GraphvizPrinter,
-    _attribute: Attribute,
-    _value: bool,
-) -> None:
-    if instance.strip_spin and instance.collapse_graphs:
-        msg = "Cannot both strip spin and collapse graphs"
-        raise ValueError(msg)
-    if instance.collapse_graphs and instance.render_node:
-        msg = "Collapsed graphs cannot be rendered with node properties"
-        raise ValueError(msg)
 
 
 def _create_default_figure_style(style: dict[str, Any] | None) -> dict[str, Any]:
@@ -51,8 +38,7 @@ class GraphvizPrinter:
     render_final_state_id: bool = True
     render_resonance_id: bool = False
     render_initial_state_id: bool = False
-    strip_spin: bool = False
-    collapse_graphs: bool = False
+    collapse: _labels.CollapseMode | None = None
 
     figure_style: dict[str, Any] = field(
         converter=_create_default_figure_style, default=None
@@ -97,15 +83,11 @@ class GraphvizPrinter:
         raise NotImplementedError(msg)
 
     def _render_multiple_transitions(self, obj: Iterable) -> list[str]:
-        if self.collapse_graphs:
-            transitions: list = _labels.collapse_graphs(obj)
-        elif self.strip_spin:
-            if self.render_node:
-                transitions = sorted({_labels.strip_projections(t) for t in obj})
-            else:
-                transitions = _labels.get_particle_graphs(obj)
-        else:
-            transitions = list(obj)
+        transitions = _labels.prepare_transitions(
+            obj,
+            collapse=self.collapse,
+            render_node=self.render_node,
+        )
         lines = []
         for i, graph in enumerate(reversed(list(transitions))):
             lines += self._render_transition(graph, prefix=f"T{i}_")
