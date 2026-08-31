@@ -5,7 +5,7 @@ import re
 from fractions import Fraction
 from functools import singledispatch
 from inspect import isfunction
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Any, Literal, Protocol, TypeAlias
 
 import attrs
 
@@ -29,6 +29,7 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 
+CollapseMode: TypeAlias = Literal["spin", "topology"]
 RenderedGraph = ProblemSet | QNProblemSet | Topology | Transition
 RenderPair = tuple[Topology, RenderedGraph]
 RenderInput = RenderedGraph | RenderPair
