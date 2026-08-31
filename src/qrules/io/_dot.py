@@ -32,7 +32,7 @@ def _create_default_figure_style(style: dict[str, Any] | None) -> dict[str, Any]
     return figure_style
 
 
-@define(on_setattr=_check_booleans)
+@define(kw_only=True)
 class GraphvizPrinter:
     render_node: bool | None = None
     render_final_state_id: bool = True
