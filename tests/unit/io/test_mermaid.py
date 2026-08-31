@@ -169,8 +169,8 @@ def test_asmermaid_keeps_blank_initial_state_before_initial_split():
     src = io.asmermaid(
         topology,
         render_final_state_id=False,
-        render_resonance_id=True,
         render_node=False,
+        render_resonance_id=True,
     )
     assert '    A@{ shape: text, label: " " }' in src
     assert "    A --- N0" in src
