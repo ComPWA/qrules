@@ -164,7 +164,13 @@ class MermaidPrinter:
         if len(topology.incoming_edge_ids) == 1 and not render_node:
             initial_edge_id = next(iter(topology.incoming_edge_ids))
             initial_edge = topology.edges[initial_edge_id]
-            if initial_edge.ending_node_id is not None:
+            initial_edge_label = _labels.create_edge_label(
+                rendered_graph,
+                initial_edge_id,
+                self.render_initial_state_id,
+                render_label=render_label,
+            )
+            if initial_edge.ending_node_id is not None and initial_edge_label:
                 folded_initial_edge_id = initial_edge_id
 
         for edge_id in topology.incoming_edge_ids | topology.outgoing_edge_ids:
