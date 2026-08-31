@@ -85,13 +85,13 @@ def test_asmermaid_latex_reaction(reaction: ReactionInfo):
 
 
 def test_asmermaid_latex_collapsed_graph(reaction: ReactionInfo):
-    src = io.asmermaid(reaction, collapse_graphs=True, latex=True)
+    src = io.asmermaid(reaction, collapse="topology", latex=True)
     assert R"$$\begin{gathered} f_{0}(980)" in src
     assert R"\\\ f_{0}(1500) \end{gathered}$$" in src
 
 
-def test_asmermaid_latex_strip_spin(reaction: ReactionInfo):
-    src = io.asmermaid(reaction, strip_spin=True, latex=True)
+def test_asmermaid_latex_collapse_spin(reaction: ReactionInfo):
+    src = io.asmermaid(reaction, collapse="spin", latex=True)
     assert R"J/\psi(1S)$$" in src
     assert R"\gamma$$" in src
     assert R"\left[" not in src
@@ -132,10 +132,10 @@ def test_asmermaid_reaction(reaction: ReactionInfo):
     src = io.asmermaid(reaction, latex=False)
     assert src.startswith("flowchart LR\n")
     assert " --- " in src
-    src = io.asmermaid(reaction, strip_spin=True, latex=False)
+    src = io.asmermaid(reaction, collapse="spin", latex=False)
     assert src.startswith("flowchart LR\n")
     assert " --- " in src
-    src = io.asmermaid(reaction, collapse_graphs=True, latex=False)
+    src = io.asmermaid(reaction, collapse="topology", latex=False)
     assert src.startswith("flowchart LR\n")
     assert " --- " in src
 

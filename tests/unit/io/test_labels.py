@@ -3,6 +3,7 @@ from fractions import Fraction
 from textwrap import dedent
 
 import attrs
+import pytest
 
 import qrules
 from qrules.io._labels import (
@@ -11,6 +12,7 @@ from qrules.io._labels import (
     collapse_graphs,
     create_edge_label,
     get_particle_graphs,
+    prepare_transitions,
     strip_projections,
 )
 from qrules.particle import Particle, ParticleCollection
@@ -303,6 +305,48 @@ def test_collapse_graphs(
     assert isinstance(intermediate_states, tuple)
     assert all(isinstance(i, Particle) for i in intermediate_states)
     assert intermediate_states == f_resonances
+
+
+def test_prepare_transitions(reaction: ReactionInfo):
+    transitions = reaction.transitions
+    assert prepare_transitions(
+        transitions,
+        collapse=None,
+        render_node=False,
+    ) == list(transitions)
+    assert prepare_transitions(
+        transitions,
+        collapse="spin",
+        render_node=False,
+    ) == get_particle_graphs(transitions)
+    assert prepare_transitions(
+        transitions,
+        collapse="spin",
+        render_node=True,
+    ) == sorted({strip_projections(t) for t in transitions})
+    assert prepare_transitions(
+        transitions,
+        collapse="topology",
+        render_node=False,
+    ) == collapse_graphs(transitions)
+
+
+def test_prepare_transitions_rejects_node_properties(reaction: ReactionInfo):
+    with pytest.raises(ValueError, match="cannot render node properties"):
+        prepare_transitions(
+            reaction.transitions,
+            collapse="topology",
+            render_node=True,
+        )
+
+
+def test_prepare_transitions_rejects_unknown_mode(reaction: ReactionInfo):
+    with pytest.raises(ValueError, match="Unknown collapse mode 'invalid'"):
+        prepare_transitions(
+            reaction.transitions,
+            collapse="invalid",  # ty: ignore[invalid-argument-type]
+            render_node=False,
+        )
 
 
 def test_get_particle_graphs(

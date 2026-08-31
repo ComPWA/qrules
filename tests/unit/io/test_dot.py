@@ -19,9 +19,9 @@ def test_asdot(reaction: ReactionInfo):
         assert is_valid_dot(src)
     src = io.asdot(reaction)
     assert is_valid_dot(src)
-    src = io.asdot(reaction, strip_spin=True)
+    src = io.asdot(reaction, collapse="spin")
     assert is_valid_dot(src)
-    src = io.asdot(reaction, collapse_graphs=True)
+    src = io.asdot(reaction, collapse="topology")
     assert is_valid_dot(src)
 
 
@@ -192,10 +192,10 @@ class TestWrite:
                 src = stream.read()
             assert is_valid_dot(src)
 
-    def test_write_strip_spin(self, output_dir: str, reaction: ReactionInfo):
+    def test_write_collapse_spin(self, output_dir: str, reaction: ReactionInfo):
         output_file = output_dir + "test_particle_graphs.gv"
         io.write(
-            instance=io.asdot(reaction, strip_spin=True),
+            instance=io.asdot(reaction, collapse="spin"),
             filename=output_file,
         )
         with open(output_file) as stream:
