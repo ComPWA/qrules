@@ -164,6 +164,18 @@ def test_asmermaid_keeps_multiple_initial_states_separate():
     assert "    B --- N0" in src
 
 
+def test_asmermaid_keeps_blank_initial_state_before_initial_split():
+    topology = create_isobar_topologies(5)[0]
+    src = io.asmermaid(
+        topology,
+        render_final_state_id=False,
+        render_node=False,
+        render_resonance_id=True,
+    )
+    assert '    A@{ shape: text, label: " " }' in src
+    assert "    A --- N0" in src
+
+
 def test_asmermaid_edge_id_options():
     topology = create_isobar_topologies(5)[0]
     src = io.asmermaid(
