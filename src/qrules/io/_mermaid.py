@@ -297,7 +297,7 @@ class MermaidPrinter:
             if self.latex:
                 style = {**self.figure_style, **self.node_style}
                 label = self._apply_latex_color(label, style, target="node")
-            escaped_label = self._escape_label(label)
+            escaped_label = self._escape_label(label, for_node_shape=True)
         else:
             escaped_label = " "
         return f'    {node_id}@{{ shape: text, label: "{escaped_label}" }}'
@@ -345,15 +345,23 @@ class MermaidPrinter:
             return label
         return Rf"\textcolor{{{color}}}{{{label}}}"
 
-    def _escape_label(self, label: str, *, for_edge: bool = False) -> str:
+    def _escape_label(
+        self,
+        label: str,
+        *,
+        for_edge: bool = False,
+        for_node_shape: bool = False,
+    ) -> str:
         if self.latex:
-            escaped_label = _escape_latex_for_mermaid(label)
+            escaped_label = _escape_latex_for_mermaid(
+                label, for_node_shape=for_node_shape
+            )
             return f"$${escaped_label}$$"
         table = _EDGE_LABEL_TABLE if for_edge else _NODE_LABEL_TABLE
         return str(label).strip().translate(table)
 
 
-def _escape_latex_for_mermaid(label: str) -> str:
+def _escape_latex_for_mermaid(label: str, *, for_node_shape: bool = False) -> str:
     R"""Escape a KaTeX label so that it survives Mermaid's string lexer.
 
     Within a quoted label, Mermaid reads ``\\`` and ``\"`` as escape sequences and
@@ -363,10 +371,18 @@ def _escape_latex_for_mermaid(label: str) -> str:
     exactly that: the KaTeX row separator ``\\`` arrives as two backslashes, and an
     accent such as ``\"`` arrives with its quote intact.
 
+    The expanded node shape syntax requires every backslash in a quoted attribute to be
+    doubled instead.
+
     >>> print(_escape_latex_for_mermaid(R"L = 0 \\ S = 1"))
     L = 0 \\\ S = 1
     >>> print(_escape_latex_for_mermaid(R"\"o"))
     \\\"o
+    >>> print(_escape_latex_for_mermaid(R"\alpha", for_node_shape=True))
+    \\alpha
     """
-    escaped_label = str(label).strip().replace("\n", " ").replace('"', R"\"")
+    escaped_label = str(label).strip().replace("\n", " ")
+    if for_node_shape:
+        return escaped_label.translate(_NODE_LABEL_TABLE)
+    escaped_label = escaped_label.replace('"', R"\"")
     return escaped_label.replace(2 * "\\", 3 * "\\")
