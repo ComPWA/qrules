@@ -52,7 +52,7 @@ def test_as_latex_fallback(caplog):
 def test_as_latex_particle_and_state(particle_database: ParticleCollection):
     particle = particle_database["J/psi(1S)"]
     assert as_latex(particle) == R"J/\psi(1S)"
-    expected_state = R"J/\psi(1S)\left[-\frac{1}{2}\right]"
+    expected_state = R"J/\psi(1S)\left[\text{-}\frac{1}{2}\right]"
     assert as_latex(State(particle, Fraction(-1, 2))) == expected_state
     assert as_latex((particle, Fraction(-1, 2))) == expected_state
 
@@ -76,7 +76,7 @@ def test_as_latex_particle_and_state(particle_database: ParticleCollection):
 
 def test_as_latex_spin_and_interaction():
     assert as_latex((Fraction(1, 2), Fraction(1, 2))) == (
-        R"\left|\frac{1}{2},+\frac{1}{2}\right\rangle"
+        R"\left|\frac{1}{2},\text{+}\frac{1}{2}\right\rangle"
     )
     interaction = InteractionProperties(
         l_magnitude=1,
@@ -88,7 +88,7 @@ def test_as_latex_spin_and_interaction():
     assert src.startswith(R"\begin{gathered}")
     assert R"L = \left|1,0\right\rangle" in src
     assert R"S = \frac{1}{2}" in src
-    assert "P = +1" in src
+    assert R"P = \text{+}1" in src
 
     assert not as_latex(InteractionProperties())
     assert as_latex(InteractionProperties(l_magnitude=1)) == "L = 1"
@@ -98,7 +98,7 @@ def test_as_latex_spin_and_interaction():
                 s_magnitude=Fraction(1, 2), s_projection=Fraction(-1, 2)
             )
         )
-        == R"S = \left|\frac{1}{2},-\frac{1}{2}\right\rangle"
+        == R"S = \left|\frac{1}{2},\text{-}\frac{1}{2}\right\rangle"
     )
 
 
@@ -108,8 +108,8 @@ def test_as_latex_dict_and_basic_values():
     assert as_latex(R"\alpha") == R"\alpha"
     src = as_latex({"spin_magnitude": Fraction(1, 2), "parity": 1})
     assert R"\text{spin\_magnitude} = \frac{1}{2}" in src
-    assert R"\text{parity} = +1" in src
-    assert as_latex(Fraction(-1, 2)) == R"-\frac{1}{2}"
+    assert R"\text{parity} = \text{+}1" in src
+    assert as_latex(Fraction(-1, 2)) == R"\text{-}\frac{1}{2}"
     assert as_latex(None) == R"\mathrm{None}"
     assert not as_latex({})
     assert as_latex({"pid": 1}) == R"\text{pid} = 1"
@@ -279,10 +279,17 @@ def test_as_string_dict(
     latex = as_latex(node_setting)
     assert R"\text{ChargeConservation - 100}" in latex
     assert R"\text{l\_magnitude} \in \left[0, 1\right]" in latex
+    assert R"\text{parity\_prefactor} \in \left[\text{-}1, \text{+}1\right]" in latex
+    assert (
+        R"\text{s\_projection} \in \left[\text{-}2, "
+        R"\text{-}\frac{3}{2}, \text{-}1, \text{-}\frac{1}{2}, 0, "
+        R"\text{+}\frac{1}{2}, \text{+}1, \text{+}\frac{3}{2}, "
+        R"\text{+}2\right]"
+    ) in latex
 
     latex = as_latex(intermediate_state)
     assert R"\text{spin\_magnitude} = \frac{1}{2}" in latex
-    assert R"\text{parity} = +1" in latex
+    assert R"\text{parity} = \text{+}1" in latex
 
 
 def test_as_string_spin_tuple(particle_database: ParticleCollection):

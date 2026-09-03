@@ -69,7 +69,7 @@ def test_asmermaid_latex_reaction(reaction: ReactionInfo):
     assert not src.startswith("```mermaid")
     assert R"J/\psi(1S)\left[" in src
     assert R"f_{0}(980)\left[" in src
-    assert "P = +1" in src
+    assert R"P = \text{+}1" in src
     assert "<br/>" not in src
     if reaction.formalism == "canonical-helicity":
         assert R"$$\begin{gathered} L =" in src
@@ -234,7 +234,7 @@ def test_asmermaid_qn_result(qn_problem_and_result: tuple[QNProblemSet, QNResult
 
     src = io.asmermaid(qn_result, render_node=True, latex=True)
     assert R"$$\begin{gathered}" in src
-    assert R"\text{parity\_prefactor} = +1" in src
+    assert R"\text{parity\_prefactor} = \text{+}1" in src
 
 
 @pytest.mark.parametrize(

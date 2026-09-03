@@ -313,10 +313,10 @@ def __render_key_and_value(
 def _render_latex_fraction(value: Fraction, *, plusminus: bool = False) -> str:
     sign = ""
     if value < 0:
-        sign = "-"
+        sign = R"\text{-}"
         value = abs(value)
     elif plusminus and value > 0:
-        sign = "+"
+        sign = R"\text{+}"
     if value.denominator == 1:
         return f"{sign}{value.numerator}"
     return Rf"{sign}\frac{{{value.numerator}}}{{{value.denominator}}}"
