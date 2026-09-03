@@ -105,7 +105,7 @@ api_target_types: dict[str, str | tuple[str, str]] = {
     "qrules.solving.GraphSettings": "obj",
     "qrules.transition.StateTransition": "obj",
 }
-author = "Common Partial Wave Analysis"
+author = ""
 autodoc_default_options = {
     "exclude-members": ", ".join([
         "items",

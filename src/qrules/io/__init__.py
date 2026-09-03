@@ -152,7 +152,8 @@ def asmermaid(
 
         collapse_graphs: Group all transitions by equivalent kinematic topology
             and combine all allowed particles on each edge. With LaTeX rendering,
-            particle lists longer than six entries are arranged in two columns.
+            particle lists longer than six entries are arranged in columns of at most
+            six rows.
 
         render_node: Whether or not to render node ID (in the case of a `.Topology`)
             and/or node properties (in the case of a `.MutableTransition`). Meaning of

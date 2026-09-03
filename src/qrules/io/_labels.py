@@ -251,7 +251,7 @@ class _LatexFormatter:
 
 _PLAIN_FORMATTER = _PlainFormatter()
 _LATEX_FORMATTER = _LatexFormatter()
-_PARTICLE_COLUMN_THRESHOLD = 6
+_PARTICLE_COLUMN_MAX_ROWS = 6
 
 
 @as_latex.register(int)
@@ -521,7 +521,7 @@ def __render_tuple(obj: tuple, formatter: _LabelFormatter) -> str:
     rendered_items = [formatter.render(item) for item in obj]
     if (
         formatter is _LATEX_FORMATTER
-        and len(obj) > _PARTICLE_COLUMN_THRESHOLD
+        and len(obj) > _PARTICLE_COLUMN_MAX_ROWS
         and all(isinstance(item, Particle) for item in obj)
     ):
         return _render_latex_columns(rendered_items)
@@ -529,15 +529,18 @@ def __render_tuple(obj: tuple, formatter: _LabelFormatter) -> str:
 
 
 def _render_latex_columns(items: list[str]) -> str:
-    row_count = (len(items) + 1) // 2
-    first_column = items[:row_count]
-    second_column = items[row_count:]
+    column_count = (len(items) + _PARTICLE_COLUMN_MAX_ROWS - 1) // (
+        _PARTICLE_COLUMN_MAX_ROWS
+    )
+    row_count = (len(items) + column_count - 1) // column_count
+    columns = [items[i * row_count : (i + 1) * row_count] for i in range(column_count)]
     rows = [
-        f"{first} & {second_column[i] if i < len(second_column) else ''}"
-        for i, first in enumerate(first_column)
+        " & ".join(column[i] if i < len(column) else "" for column in columns)
+        for i in range(row_count)
     ]
     content = R" \\ ".join(rows)
-    return Rf"\begin{{array}}{{ll}} {content} \end{{array}}"
+    alignment = "l" * column_count
+    return Rf"\begin{{array}}{{{alignment}}} {content} \end{{array}}"
 
 
 def get_particle_graphs(

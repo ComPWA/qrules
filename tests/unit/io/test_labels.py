@@ -143,6 +143,20 @@ def test_as_latex_long_particle_tuple_uses_columns(
     )
 
 
+def test_as_latex_particle_tuple_uses_additional_columns(
+    particle_database: ParticleCollection,
+):
+    particle = particle_database["f(0)(980)"]
+    particles = tuple(
+        attrs.evolve(particle, name=f"x{i}", latex=Rf"x_{{{i}}}") for i in range(13)
+    )
+    assert as_latex(particles) == (
+        R"\begin{array}{lll} x_{0} & x_{5} & x_{10} \\ "
+        R"x_{1} & x_{6} & x_{11} \\ x_{2} & x_{7} & x_{12} \\ "
+        R"x_{3} & x_{8} &  \\ x_{4} & x_{9} &  \end{array}"
+    )
+
+
 def test_create_edge_label_accepts_renderer(reaction: ReactionInfo):
     transition = reaction.transitions[0]
     edge_id = next(iter(transition.topology.incoming_edge_ids))
