@@ -298,8 +298,9 @@ class MermaidPrinter:
                 style = {**self.figure_style, **self.node_style}
                 label = self._apply_latex_color(label, style, target="node")
             escaped_label = self._escape_label(label)
-            return f'    {node_id}["{escaped_label}"]'
-        return f'    {node_id}@{{ shape: text, label: " " }}'
+        else:
+            escaped_label = " "
+        return f'    {node_id}@{{ shape: text, label: "{escaped_label}" }}'
 
     def _create_mermaid_edge(
         self, from_node: str, to_node: str, label: str = ""

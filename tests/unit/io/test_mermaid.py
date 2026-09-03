@@ -78,7 +78,7 @@ def test_asmermaid_latex_reaction(reaction: ReactionInfo):
     labeled_lines = [
         line
         for line in src.splitlines()
-        if '["' in line or '---|"' in line or '--"' in line
+        if 'shape: text, label: "' in line or '---|"' in line or '--"' in line
     ]
     assert labeled_lines
     assert all(line.count("$$") == 2 for line in labeled_lines)
@@ -127,7 +127,9 @@ def test_asmermaid_reaction(reaction: ReactionInfo):
         initial_state_id = next(iter(transition.topology.incoming_edge_ids))
         initial_node_id = transition.topology.edges[initial_state_id].ending_node_id
         initial_state = transition.states[initial_state_id]
-        assert f'N{initial_node_id}["{initial_state.particle.name}' in src
+        assert (
+            f'N{initial_node_id}@{{ shape: text, label: "{initial_state.particle.name}'
+        ) in src
         assert f"    A --- N{initial_node_id}" not in src
     src = io.asmermaid(reaction, latex=False)
     assert src.startswith("flowchart LR\n")
@@ -192,18 +194,18 @@ def test_asmermaid_edge_id_options():
     assert " ---|2| " not in src
 
 
-def test_asmermaid_renders_unlabeled_nodes_without_boxes():
+def test_asmermaid_renders_nodes_without_boxes():
     topology = create_isobar_topologies(5)[0]
     src = io.asmermaid(
         topology,
-        render_final_state_id=False,
-        render_node=False,
+        render_final_state_id=True,
+        render_node=True,
+        latex=False,
     )
     node_declarations = set(src.splitlines())
-    assert '    n_0@{ shape: text, label: " " }' in node_declarations
-    assert '    N0@{ shape: text, label: " " }' in node_declarations
-    assert "    n_0" not in node_declarations
-    assert "    N0" not in node_declarations
+    assert '    n_0@{ shape: text, label: "0" }' in node_declarations
+    assert '    N0@{ shape: text, label: "(0)" }' in node_declarations
+    assert not any('["' in line for line in node_declarations)
 
 
 def test_asmermaid_qn_problem_set(qn_problem_and_result: tuple[QNProblemSet, QNResult]):
@@ -291,13 +293,16 @@ def test_mermaid_latex_labels_are_wrapped_and_escaped():
         "A", R"\begin{gathered} L = 0 \\ S = 1 \end{gathered}"
     )
 
-    assert node_line == R'    A["$$\alpha + \"quoted\" + \beta$$"]'
+    assert node_line == (
+        R'    A@{ shape: text, label: "$$\alpha + \"quoted\" + \beta$$" }'
+    )
     assert edge_line == R'    A ---|"$$\gamma$$"| B'
     assert ket_edge_line == (
         R'    A --"$$\left|\frac{1}{2},+\frac{1}{2}\right\rangle$$"--- B'
     )
     assert multiline_node_line == (
-        R'    A["$$\begin{gathered} L = 0 \\\ S = 1 \end{gathered}$$"]'
+        R"    A@{ shape: text, label: "
+        R'"$$\begin{gathered} L = 0 \\\ S = 1 \end{gathered}$$" }'
     )
 
 
@@ -327,7 +332,9 @@ def test_mermaid_latex_label_colors_are_applied():
     node_line = printer._create_mermaid_node("A", R"\alpha")
     edge_line = printer._create_mermaid_edge("A", "B", R"\gamma")
 
-    assert node_line == R'    A["$$\textcolor{gray}{\alpha}$$"]'
+    assert node_line == (
+        R'    A@{ shape: text, label: "$$\textcolor{gray}{\alpha}$$" }'
+    )
     assert edge_line == R'    A ---|"$$\textcolor{blue}{\gamma}$$"| B'
 
 
@@ -335,7 +342,8 @@ def test_mermaid_latex_label_colors_are_applied():
 def test_mermaid_latex_supported_label_colors(color: str):
     printer = MermaidPrinter(latex=True, node_style={"fontcolor": color})
     assert printer._create_mermaid_node("A", R"\alpha") == (
-        Rf'    A["$$\textcolor{{{color}}}{{\alpha}}$$"]'
+        Rf"    A@{{ shape: text, label: "
+        Rf'"$$\textcolor{{{color}}}{{\alpha}}$$" }}'
     )
 
 
