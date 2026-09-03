@@ -74,11 +74,7 @@ def test_asmermaid_latex_reaction(reaction: ReactionInfo):
     if reaction.formalism == "canonical-helicity":
         assert R"$$\begin{gathered} L =" in src
 
-    labeled_lines = [
-        line
-        for line in src.splitlines()
-        if '["' in line or '---|"' in line or '--"' in line
-    ]
+    labeled_lines = [line for line in src.splitlines() if '["' in line or '("' in line]
     assert labeled_lines
     assert all(line.count("$$") == 2 for line in labeled_lines)
 
@@ -104,8 +100,9 @@ def test_asmermaid_accepts_style_parameters():
         edge_style={"color": "blue", "fontsize": 25},
         node_style={"fill": "green"},
     )
+    source_lines = set(src.splitlines())
     assert src.startswith("flowchart LR\n")
-    assert "style n_0 fill:green,stroke:transparent" in src
+    assert "    style n_0 fill:green" in source_lines
     assert "linkStyle 0 stroke:blue,font-size:25px" in src
 
 
@@ -185,25 +182,51 @@ def test_asmermaid_edge_id_options():
         latex=False,
     )
     assert src.startswith("flowchart LR\n")
-    assert any(label in src for label in (" ---|5| ", " ---|6| ", " ---|7| "))
-    assert " ---|0| " not in src
-    assert " ---|1| " not in src
-    assert " ---|2| " not in src
+    node_declarations = set(src.splitlines())
+    assert any(
+        f'    n_{edge_id}("{edge_id}")' in node_declarations for edge_id in range(5, 8)
+    )
+    assert all(
+        f'    n_{edge_id}("{edge_id}")' not in node_declarations for edge_id in range(3)
+    )
 
 
-def test_asmermaid_renders_nodes_without_boxes():
+def test_asmermaid_styles_intermediate_states_as_edges():
+    topology = create_isobar_topologies(5)[0]
+    src = io.asmermaid(
+        topology,
+        render_resonance_id=True,
+        edge_style={"color": "blue", "fontcolor": "red", "fontsize": 25},
+        latex=False,
+    )
+    source_lines = src.splitlines()
+    assert "    style n_5 stroke:blue,color:red,font-size:25px" in source_lines
+    assert len([line for line in source_lines if "linkStyle" in line]) == len([
+        line for line in source_lines if " --- " in line
+    ])
+
+
+def test_asmermaid_distinguishes_state_and_interaction_nodes():
     topology = create_isobar_topologies(5)[0]
     src = io.asmermaid(
         topology,
         render_final_state_id=True,
+        render_initial_state_id=True,
         render_node=True,
         latex=False,
     )
     node_declarations = set(src.splitlines())
+    assert '    A["-1"]' in node_declarations
     assert '    n_0["0"]' in node_declarations
-    assert '    N0["(0)"]' in node_declarations
-    assert "    style n_0 fill:transparent,stroke:transparent" in node_declarations
-    assert "    style N0 fill:transparent,stroke:transparent" in node_declarations
+    assert '    N0(("(0)"))' in node_declarations
+    assert not any("stroke:transparent" in line for line in node_declarations)
+
+
+def test_asmermaid_keeps_folded_initial_state_box(reaction: ReactionInfo):
+    src = io.asmermaid(reaction.transitions[0], latex=False)
+    initial_state_id = next(iter(reaction.transitions[0].topology.incoming_edge_ids))
+    node_id = reaction.transitions[0].topology.edges[initial_state_id].ending_node_id
+    assert f'    N{node_id}["' in src
 
 
 def test_asmermaid_qn_problem_set(qn_problem_and_result: tuple[QNProblemSet, QNResult]):
@@ -212,6 +235,13 @@ def test_asmermaid_qn_problem_set(qn_problem_and_result: tuple[QNProblemSet, QNR
     assert src.startswith("flowchart LR\n")
     assert "RULES" in src
     assert "DOMAINS" in src
+    interaction_node_lines = [
+        line
+        for line in src.splitlines()
+        if line.lstrip().startswith("N") and "RULES" in line
+    ]
+    assert interaction_node_lines
+    assert all('["' in line for line in interaction_node_lines)
 
 
 def test_asmermaid_latex_qn_problem_set(
@@ -290,6 +320,10 @@ def test_mermaid_latex_labels_are_wrapped_and_escaped():
     multiline_node_line = printer._create_mermaid_node(
         "A", R"\begin{gathered} L = 0 \\ S = 1 \end{gathered}"
     )
+    intermediate_state_line = printer._create_mermaid_node(
+        "A", R"\gamma", shape="rounded"
+    )
+    interaction_node_line = printer._create_mermaid_node("A", "L = 0", shape="circle")
 
     assert node_line == R'    A["$$\alpha + \"quoted\" + \beta$$"]'
     assert edge_line == R'    A ---|"$$\gamma$$"| B'
@@ -299,6 +333,8 @@ def test_mermaid_latex_labels_are_wrapped_and_escaped():
     assert multiline_node_line == (
         R'    A["$$\begin{gathered} L = 0 \\\ S = 1 \end{gathered}$$"]'
     )
+    assert intermediate_state_line == R'    A("$$\gamma$$")'
+    assert interaction_node_line == R'    A(("$$L = 0$$"))'
 
 
 @pytest.mark.parametrize(

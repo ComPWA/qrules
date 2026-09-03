@@ -9,7 +9,7 @@ import logging
 import re
 import string
 from collections import abc
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 import attrs
 
@@ -142,6 +142,8 @@ class MermaidPrinter:
         edge_lines: list[str] = []
         node_labels: dict[str, str] = {}
         node_order: list[str] = []
+        circular_node_ids: set[str] = set()
+        intermediate_state_nodes: set[str] = set()
 
         def add_node(raw_id: str, label: str = "") -> str:
             node_id = self._normalize_node_id(raw_id)
@@ -191,7 +193,9 @@ class MermaidPrinter:
             label = ""
             if isinstance(rendered_graph, Topology) and render_node:
                 label = f"({node_id})"
-            add_node(f"{prefix}N{node_id}", label)
+            mermaid_node_id = add_node(f"{prefix}N{node_id}", label)
+            if label:
+                circular_node_ids.add(mermaid_node_id)
 
         if isinstance(rendered_graph, (ProblemSet, QNProblemSet)) and render_node:
             for (
@@ -202,7 +206,10 @@ class MermaidPrinter:
 
         if isinstance(rendered_graph, Transition) and render_node:
             for node_id, node_prop in rendered_graph.interactions.items():
-                add_node(f"{prefix}N{node_id}", render_label(node_prop))
+                mermaid_node_id = add_node(
+                    f"{prefix}N{node_id}", render_label(node_prop)
+                )
+                circular_node_ids.add(mermaid_node_id)
 
         edge_style_lines: list[str] = []
         edge_index = 0
@@ -214,6 +221,7 @@ class MermaidPrinter:
             to_node = add_node(prefix + _get_mermaid_node(edge_id, j))
             if j is None or k is None:
                 edge_lines.append(self._create_mermaid_edge(from_node, to_node))
+                number_of_links = 1
             else:
                 label = _labels.create_edge_label(
                     rendered_graph,
@@ -221,26 +229,49 @@ class MermaidPrinter:
                     self.render_resonance_id,
                     render_label=render_label,
                 )
-                edge_lines.append(self._create_mermaid_edge(from_node, to_node, label))
-            if self.edge_style:
-                edge_style_lines.append(
-                    self._create_mermaid_link_style(edge_index, self.edge_style)
-                )
-            edge_index += 1
+                if label:
+                    state_node = add_node(prefix + _get_mermaid_node(edge_id), label)
+                    intermediate_state_nodes.add(state_node)
+                    edge_lines.extend([
+                        self._create_mermaid_edge(from_node, state_node),
+                        self._create_mermaid_edge(state_node, to_node),
+                    ])
+                    number_of_links = 2
+                else:
+                    edge_lines.append(self._create_mermaid_edge(from_node, to_node))
+                    number_of_links = 1
+            for _ in range(number_of_links):
+                if self.edge_style:
+                    edge_style_lines.append(
+                        self._create_mermaid_link_style(edge_index, self.edge_style)
+                    )
+                edge_index += 1
 
         node_lines.extend(
-            self._create_mermaid_node(node_id, node_labels[node_id])
+            self._create_mermaid_node(
+                node_id,
+                node_labels[node_id],
+                shape=(
+                    "rounded"
+                    if node_id in intermediate_state_nodes
+                    else "circle"
+                    if node_id in circular_node_ids
+                    else "rectangle"
+                ),
+            )
             for node_id in node_order
         )
         style_lines: list[str] = []
         for node_id in node_order:
+            if node_id in intermediate_state_nodes:
+                if self.edge_style:
+                    style_lines.append(
+                        self._create_mermaid_node_style(
+                            node_id, self.edge_style, target="edge"
+                        )
+                    )
+                continue
             node_style = self.node_style
-            if node_labels[node_id]:
-                node_style = {
-                    "fill": "transparent",
-                    "stroke": "transparent",
-                    **node_style,
-                }
             if node_style:
                 style_lines.append(self._create_mermaid_node_style(node_id, node_style))
         if self.edge_style:
@@ -259,8 +290,10 @@ class MermaidPrinter:
             return []
         return [f"classDef default {style}"]
 
-    def _create_mermaid_node_style(self, node_id: str, style: dict[str, Any]) -> str:
-        style_definition = self._format_style_dict(style, target="node")
+    def _create_mermaid_node_style(
+        self, node_id: str, style: dict[str, Any], *, target: str = "node"
+    ) -> str:
+        style_definition = self._format_style_dict(style, target=target)
         if not style_definition:
             return ""
         return f"    style {node_id} {style_definition}"
@@ -297,12 +330,27 @@ class MermaidPrinter:
             mapping = _STYLE_KEYS
         return mapping.get(normalized)
 
-    def _create_mermaid_node(self, node_id: str, label: str = "") -> str:
+    def _create_mermaid_node(
+        self,
+        node_id: str,
+        label: str = "",
+        *,
+        shape: Literal["circle", "rectangle", "rounded"] = "rectangle",
+    ) -> str:
         if label:
             if self.latex:
-                style = {**self.figure_style, **self.node_style}
-                label = self._apply_latex_color(label, style, target="node")
+                if shape == "rounded":
+                    label = self._apply_latex_color(
+                        label, self.edge_style, target="edge"
+                    )
+                else:
+                    style = {**self.figure_style, **self.node_style}
+                    label = self._apply_latex_color(label, style, target="node")
             escaped_label = self._escape_label(label)
+            if shape == "circle":
+                return f'    {node_id}(("{escaped_label}"))'
+            if shape == "rounded":
+                return f'    {node_id}("{escaped_label}")'
             return f'    {node_id}["{escaped_label}"]'
         return f'    {node_id}@{{ shape: text, label: " " }}'
 
