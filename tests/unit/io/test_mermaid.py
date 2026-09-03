@@ -54,7 +54,7 @@ def test_asmermaid_markdown_fence():
 def test_asmermaid_latex_markdown(reaction: ReactionInfo):
     src = io.asmermaid(reaction.transitions[0], latex=True, markdown=True)
     assert src.startswith("```mermaid\nflowchart LR\n")
-    assert R"$$J/\\psi(1S)" in src
+    assert R"$$J/\psi(1S)" in src
     assert src.endswith("\n```\n")
 
 
@@ -67,17 +67,17 @@ def test_asmermaid_latex_reaction(reaction: ReactionInfo):
     )
     assert src.startswith("flowchart LR\n")
     assert not src.startswith("```mermaid")
-    assert R"J/\\psi(1S)\\left[" in src
+    assert R"J/\psi(1S)\left[" in src
     assert R"f_{0}(980)\left[" in src
     assert "P = +1" in src
     assert "<br/>" not in src
     if reaction.formalism == "canonical-helicity":
-        assert R"$$\\begin{gathered} L =" in src
+        assert R"$$\begin{gathered} L =" in src
 
     labeled_lines = [
         line
         for line in src.splitlines()
-        if 'shape: text, label: "' in line or '---|"' in line or '--"' in line
+        if '["' in line or '---|"' in line or '--"' in line
     ]
     assert labeled_lines
     assert all(line.count("$$") == 2 for line in labeled_lines)
@@ -91,9 +91,9 @@ def test_asmermaid_latex_collapsed_graph(reaction: ReactionInfo):
 
 def test_asmermaid_latex_strip_spin(reaction: ReactionInfo):
     src = io.asmermaid(reaction, strip_spin=True, latex=True)
-    assert R"J/\\psi(1S)$$" in src
-    assert R"\\gamma$$" in src
-    assert "left[" not in src
+    assert R"J/\psi(1S)$$" in src
+    assert R"\gamma$$" in src
+    assert R"\left[" not in src
 
 
 def test_asmermaid_accepts_style_parameters():
@@ -105,7 +105,7 @@ def test_asmermaid_accepts_style_parameters():
         node_style={"fill": "green"},
     )
     assert src.startswith("flowchart LR\n")
-    assert "style n_0 fill:green" in src
+    assert "style n_0 fill:green,stroke:transparent" in src
     assert "linkStyle 0 stroke:blue,font-size:25px" in src
 
 
@@ -126,9 +126,7 @@ def test_asmermaid_reaction(reaction: ReactionInfo):
         initial_state_id = next(iter(transition.topology.incoming_edge_ids))
         initial_node_id = transition.topology.edges[initial_state_id].ending_node_id
         initial_state = transition.states[initial_state_id]
-        assert (
-            f'N{initial_node_id}@{{ shape: text, label: "{initial_state.particle.name}'
-        ) in src
+        assert f'N{initial_node_id}["{initial_state.particle.name}' in src
         assert f"    A --- N{initial_node_id}" not in src
     src = io.asmermaid(reaction, latex=False)
     assert src.startswith("flowchart LR\n")
@@ -202,9 +200,10 @@ def test_asmermaid_renders_nodes_without_boxes():
         latex=False,
     )
     node_declarations = set(src.splitlines())
-    assert '    n_0@{ shape: text, label: "0" }' in node_declarations
-    assert '    N0@{ shape: text, label: "(0)" }' in node_declarations
-    assert not any('["' in line for line in node_declarations)
+    assert '    n_0["0"]' in node_declarations
+    assert '    N0["(0)"]' in node_declarations
+    assert "    style n_0 fill:transparent,stroke:transparent" in node_declarations
+    assert "    style N0 fill:transparent,stroke:transparent" in node_declarations
 
 
 def test_asmermaid_qn_problem_set(qn_problem_and_result: tuple[QNProblemSet, QNResult]):
@@ -235,7 +234,7 @@ def test_asmermaid_qn_result(qn_problem_and_result: tuple[QNProblemSet, QNResult
 
     src = io.asmermaid(qn_result, render_node=True, latex=True)
     assert R"$$\begin{gathered}" in src
-    assert R"\\text{parity\\_prefactor} = +1" in src
+    assert R"\text{parity\_prefactor} = +1" in src
 
 
 @pytest.mark.parametrize(
@@ -292,16 +291,13 @@ def test_mermaid_latex_labels_are_wrapped_and_escaped():
         "A", R"\begin{gathered} L = 0 \\ S = 1 \end{gathered}"
     )
 
-    assert node_line == (
-        R'    A@{ shape: text, label: "$$\\alpha + \"quoted\" + \\beta$$" }'
-    )
+    assert node_line == R'    A["$$\alpha + \"quoted\" + \beta$$"]'
     assert edge_line == R'    A ---|"$$\gamma$$"| B'
     assert ket_edge_line == (
         R'    A --"$$\left|\frac{1}{2},+\frac{1}{2}\right\rangle$$"--- B'
     )
     assert multiline_node_line == (
-        R"    A@{ shape: text, label: "
-        R'"$$\\begin{gathered} L = 0 \\\\ S = 1 \\end{gathered}$$" }'
+        R'    A["$$\begin{gathered} L = 0 \\\ S = 1 \end{gathered}$$"]'
     )
 
 
@@ -331,9 +327,7 @@ def test_mermaid_latex_label_colors_are_applied():
     node_line = printer._create_mermaid_node("A", R"\alpha")
     edge_line = printer._create_mermaid_edge("A", "B", R"\gamma")
 
-    assert node_line == (
-        R'    A@{ shape: text, label: "$$\\textcolor{gray}{\\alpha}$$" }'
-    )
+    assert node_line == R'    A["$$\textcolor{gray}{\alpha}$$"]'
     assert edge_line == R'    A ---|"$$\textcolor{blue}{\gamma}$$"| B'
 
 
@@ -341,8 +335,7 @@ def test_mermaid_latex_label_colors_are_applied():
 def test_mermaid_latex_supported_label_colors(color: str):
     printer = MermaidPrinter(latex=True, node_style={"fontcolor": color})
     assert printer._create_mermaid_node("A", R"\alpha") == (
-        Rf"    A@{{ shape: text, label: "
-        Rf'"$$\\textcolor{{{color}}}{{\\alpha}}$$" }}'
+        Rf'    A["$$\textcolor{{{color}}}{{\alpha}}$$"]'
     )
 
 
