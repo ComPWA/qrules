@@ -251,6 +251,7 @@ class _LatexFormatter:
 
 _PLAIN_FORMATTER = _PlainFormatter()
 _LATEX_FORMATTER = _LatexFormatter()
+_PARTICLE_COLUMN_THRESHOLD = 6
 
 
 @as_latex.register(int)
@@ -517,7 +518,26 @@ def __render_tuple(obj: tuple, formatter: _LabelFormatter) -> str:
             return __render_state(State(*obj), formatter)
         if all(isinstance(o, (Fraction, float, int)) for o in obj):
             return __render_spin(Spin(*obj), formatter)
-    return formatter.lines([formatter.render(item) for item in obj])
+    rendered_items = [formatter.render(item) for item in obj]
+    if (
+        formatter is _LATEX_FORMATTER
+        and len(obj) > _PARTICLE_COLUMN_THRESHOLD
+        and all(isinstance(item, Particle) for item in obj)
+    ):
+        return _render_latex_columns(rendered_items)
+    return formatter.lines(rendered_items)
+
+
+def _render_latex_columns(items: list[str]) -> str:
+    row_count = (len(items) + 1) // 2
+    first_column = items[:row_count]
+    second_column = items[row_count:]
+    rows = [
+        f"{first} & {second_column[i] if i < len(second_column) else ''}"
+        for i, first in enumerate(first_column)
+    ]
+    content = R" \\ ".join(rows)
+    return Rf"\begin{{array}}{{ll}} {content} \end{{array}}"
 
 
 def get_particle_graphs(

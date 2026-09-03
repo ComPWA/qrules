@@ -125,6 +125,24 @@ def test_as_latex_collapsed_particle_tuple(particle_database: ParticleCollection
     )
 
 
+def test_as_latex_six_particles_use_one_column(particle_database: ParticleCollection):
+    particle = particle_database["f(0)(980)"]
+    assert as_latex((particle,) * 6).startswith(R"\begin{gathered}")
+
+
+def test_as_latex_long_particle_tuple_uses_columns(
+    particle_database: ParticleCollection,
+):
+    particle = particle_database["f(0)(980)"]
+    particles = tuple(
+        attrs.evolve(particle, name=f"x{i}", latex=Rf"x_{{{i}}}") for i in range(7)
+    )
+    assert as_latex(particles) == (
+        R"\begin{array}{ll} x_{0} & x_{4} \\ x_{1} & x_{5} \\ "
+        R"x_{2} & x_{6} \\ x_{3} &  \end{array}"
+    )
+
+
 def test_create_edge_label_accepts_renderer(reaction: ReactionInfo):
     transition = reaction.transitions[0]
     edge_id = next(iter(transition.topology.incoming_edge_ids))
