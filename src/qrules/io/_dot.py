@@ -100,8 +100,8 @@ class GraphvizPrinter:
         transitions = _labels.select_transitions(
             obj,
             collapse=self.collapse_graphs,
-            strip_spin=self.strip_spin,
             render_node=self.render_node,
+            strip_spin=self.strip_spin,
         )
         lines = []
         for i, graph in enumerate(reversed(transitions)):

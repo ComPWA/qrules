@@ -221,8 +221,8 @@ class MermaidPrinter:
         transitions = _labels.select_transitions(
             obj,
             collapse=self.collapse_graphs,
-            strip_spin=self.strip_spin,
             render_node=self.render_node,
+            strip_spin=self.strip_spin,
         )
         lines: list[str] = []
         for i, graph in enumerate(reversed(transitions)):
@@ -254,11 +254,11 @@ class MermaidPrinter:
         else:
             render_node = self.render_node
         context = _RenderContext(
-            topology=topology,
             graph=graph,
             prefix=prefix,
-            render_node=render_node,
             render_label=_labels.as_latex if self.latex else _labels.as_string,
+            render_node=render_node,
+            topology=topology,
         )
         context.folded_initial_edge_id = self._find_folded_initial_edge(context)
         return context

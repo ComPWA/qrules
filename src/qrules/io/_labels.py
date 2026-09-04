@@ -86,8 +86,8 @@ def select_transitions(
     /,
     *,
     collapse: bool,
-    strip_spin: bool,
     render_node: bool | None,
+    strip_spin: bool,
 ) -> list[Any]:
     """Reduce a collection of transitions to the graphs that are worth rendering.
 

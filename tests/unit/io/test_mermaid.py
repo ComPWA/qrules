@@ -274,9 +274,9 @@ def describe_asmermaid():
         topology = create_isobar_topologies(5)[0]
         src = io.asmermaid(
             topology,
-            render_resonance_id=True,
             edge_style={"color": "blue", "fontcolor": "red", "fontsize": 25},
             latex=False,
+            render_resonance_id=True,
         )
         source_lines = src.splitlines()
         assert "    style n_5 stroke:blue,color:red,font-size:25px" in source_lines
@@ -288,10 +288,10 @@ def describe_asmermaid():
         topology = create_isobar_topologies(5)[0]
         src = io.asmermaid(
             topology,
+            latex=False,
             render_final_state_id=True,
             render_initial_state_id=True,
             render_node=True,
-            latex=False,
         )
         node_declarations = set(src.splitlines())
         assert '    A["-1"]' in node_declarations
