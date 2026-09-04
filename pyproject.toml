@@ -128,6 +128,9 @@ doc-apt-packages = "graphviz"
 repo-name = "qrules"
 repo-title = "QRules"
 
+[tool.compwa.policy.github]
+macos-python-version = "3.13"
+
 [tool.compwa.policy.python]
 type-checker = ["ty"]
 
