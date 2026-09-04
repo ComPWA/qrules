@@ -65,6 +65,45 @@ def is_render_pair(value: object, /) -> TypeIs[RenderPair]:
     )
 
 
+def unpack_render_input(obj: RenderInput) -> RenderPair:
+    """Split a render input into the topology and the graph that is rendered onto it.
+
+    A `.RenderPair` carries a topology that may differ from the one embedded in the
+    graph, so it is returned as-is. Any other graph renders onto its own topology.
+    """
+    if is_render_pair(obj):
+        return obj
+    if isinstance(obj, (ProblemSet, QNProblemSet, Transition)):
+        return obj.topology, obj
+    if isinstance(obj, Topology):
+        return obj, obj
+    msg = f"Cannot render a {type(obj).__name__} as a transition graph"
+    raise NotImplementedError(msg)
+
+
+def select_transitions(
+    graphs: Iterable[Any],
+    /,
+    *,
+    collapse: bool,
+    strip_spin: bool,
+    render_node: bool | None,
+) -> list[Any]:
+    """Reduce a collection of transitions to the graphs that are worth rendering.
+
+    The ``collapse`` and ``strip_spin`` flags are the printer attributes
+    :code:`collapse_graphs` and :code:`strip_spin`. Spin projections can only be
+    stripped from the interaction nodes if those nodes are not rendered.
+    """
+    if collapse:
+        return collapse_graphs(graphs)
+    if strip_spin:
+        if render_node:
+            return sorted({strip_projections(g) for g in graphs})
+        return get_particle_graphs(graphs)
+    return list(graphs)
+
+
 def create_edge_label(
     graph: ProblemSet | QNProblemSet | Topology | Transition,
     edge_id: int,

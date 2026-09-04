@@ -11,7 +11,7 @@ import string
 from collections import abc
 from typing import TYPE_CHECKING, Any, Literal
 
-import attrs
+from attrs import define, field
 
 from qrules.io import _labels
 from qrules.solving import QNProblemSet, QNResult
@@ -19,9 +19,11 @@ from qrules.topology import Topology, Transition
 from qrules.transition import ProblemSet, ReactionInfo
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Callable, Iterable, Iterator
 
 _LOGGER = logging.getLogger(__name__)
+
+_NodeShape = Literal["circle", "rectangle", "rounded"]
 
 _LABEL_ESCAPES: dict[str, str] = {
     "\\": r"\\",
@@ -70,7 +72,119 @@ def _to_style_dict(style: dict[str, Any] | None) -> dict[str, Any]:
     return dict(style) if style else {}
 
 
-@attrs.define(kw_only=True)
+_NodeRole = Literal["state", "interaction", "intermediate"]
+"""What a node represents in a transition, which decides its shape and its styling."""
+_NODE_SHAPES: dict[_NodeRole, _NodeShape] = {
+    "state": "rectangle",
+    "interaction": "circle",
+    "intermediate": "rounded",
+}
+
+
+@define
+class _NodeRegistry:
+    """Nodes of a single flowchart, in the order in which they were declared.
+
+    Nodes are declared several times while a transition is rendered, first for their
+    label and later as the endpoint of an edge. A repeated declaration only refines what
+    is already known: an empty label or role leaves the existing one in place.
+    """
+
+    _labels: dict[str, str] = field(factory=dict)
+    _roles: dict[str, _NodeRole] = field(factory=dict)
+
+    def add(
+        self, raw_id: str, label: str = "", *, role: _NodeRole | None = None
+    ) -> str:
+        node_id = _normalize_node_id(raw_id)
+        if node_id not in self._labels:
+            self._labels[node_id] = label
+            self._roles[node_id] = role or "state"
+        else:
+            if label:
+                self._labels[node_id] = label
+            if role is not None:
+                self._roles[node_id] = role
+        return node_id
+
+    def __iter__(self) -> Iterator[tuple[str, str, _NodeRole]]:
+        for node_id, label in self._labels.items():
+            yield node_id, label, self._roles[node_id]
+
+
+def _normalize_node_id(node_id: str) -> str:
+    normalized = re.sub(r"[^A-Za-z0-9_]", "_", node_id)
+    if not normalized:
+        normalized = "node"
+    if normalized[0].isdigit():
+        normalized = f"n_{normalized}"
+    return normalized
+
+
+@define
+class _RenderContext:
+    """Everything the render helpers need while building one flowchart."""
+
+    topology: Topology
+    graph: _labels.RenderedGraph
+    prefix: str
+    render_node: bool
+    render_label: Callable[[Any], str]
+    folded_initial_edge_id: int | None = None
+    """Initial state edge that is rendered as the label of the node it points to."""
+    nodes: _NodeRegistry = field(factory=_NodeRegistry)
+
+    def create_edge_label(self, edge_id: int, render_edge_id: bool) -> str:
+        return _labels.create_edge_label(
+            self.graph, edge_id, render_edge_id, render_label=self.render_label
+        )
+
+    def add_state_node(
+        self,
+        edge_id: int,
+        node_id: int | None = None,
+        *,
+        label: str = "",
+        role: _NodeRole | None = None,
+    ) -> str:
+        """Declare the node that an edge starts or ends on.
+
+        Without a ``node_id``, this is the node that represents the state on the edge
+        itself. With one, it is the interaction node that the edge is attached to.
+        """
+        raw_id = self.prefix + _get_mermaid_node(edge_id, node_id)
+        return self.nodes.add(raw_id, label, role=role)
+
+    def add_interaction_node(
+        self, node_id: int | None, label: str = "", *, role: _NodeRole | None = None
+    ) -> str:
+        return self.nodes.add(f"{self.prefix}N{node_id}", label, role=role)
+
+    def add_interaction_nodes(self) -> None:
+        """Declare a node for each interaction node in the topology.
+
+        Topologies have no interaction properties to render, so their nodes are labeled
+        with their node ID instead.
+        """
+        for node_id in self.topology.nodes:
+            if isinstance(self.graph, Topology) and self.render_node:
+                self.add_interaction_node(node_id, f"({node_id})", role="interaction")
+            else:
+                self.add_interaction_node(node_id)
+        if not self.render_node:
+            return
+        if isinstance(self.graph, (ProblemSet, QNProblemSet)):
+            interactions = self.graph.solving_settings.interactions
+            for node_id, settings in interactions.items():
+                self.add_interaction_node(node_id, self.render_label(settings))
+        elif isinstance(self.graph, Transition):
+            for node_id, node_prop in self.graph.interactions.items():
+                self.add_interaction_node(
+                    node_id, self.render_label(node_prop), role="interaction"
+                )
+
+
+@define(kw_only=True)
 class MermaidPrinter:
     """Render qrules graph objects as Mermaid flowcharts."""
 
@@ -80,9 +194,9 @@ class MermaidPrinter:
     render_initial_state_id: bool = False
     strip_spin: bool = False
     collapse_graphs: bool = False
-    figure_style: dict[str, Any] = attrs.field(converter=_to_style_dict, default=None)
-    edge_style: dict[str, Any] = attrs.field(converter=_to_style_dict, default=None)
-    node_style: dict[str, Any] = attrs.field(converter=_to_style_dict, default=None)
+    figure_style: dict[str, Any] = field(converter=_to_style_dict, default=None)
+    edge_style: dict[str, Any] = field(converter=_to_style_dict, default=None)
+    node_style: dict[str, Any] = field(converter=_to_style_dict, default=None)
     latex: bool = True
 
     def __call__(self, obj: Any) -> str:
@@ -104,182 +218,125 @@ class MermaidPrinter:
         raise NotImplementedError(msg)
 
     def _render_multiple_transitions(self, obj: Iterable) -> list[str]:
-        transitions: Iterable[Transition[Any, Any]]
-        if self.collapse_graphs:
-            transitions = _labels.collapse_graphs(obj)
-        elif self.strip_spin:
-            if self.render_node:
-                transitions = sorted({_labels.strip_projections(t) for t in obj})
-            else:
-                transitions = _labels.get_particle_graphs(obj)
-        else:
-            transitions = list(obj)
-
+        transitions = _labels.select_transitions(
+            obj,
+            collapse=self.collapse_graphs,
+            strip_spin=self.strip_spin,
+            render_node=self.render_node,
+        )
         lines: list[str] = []
-        for i, graph in enumerate(reversed(list(transitions))):
+        for i, graph in enumerate(reversed(transitions)):
             lines.extend(self._render_transition(graph, prefix=f"T{i}_"))
         return lines
 
-    def _render_transition(  # ruff: ignore[complex-structure, too-many-branches, too-many-locals, too-many-statements]
+    def _render_transition(
         self,
         obj: _labels.RenderInput,
         prefix: str = "",
     ) -> list[str]:
-        lines: list[str] = []
-        if _labels.is_render_pair(obj):
-            topology, rendered_graph = obj
-        elif isinstance(obj, (ProblemSet, QNProblemSet, Transition)):
-            rendered_graph = obj
-            topology = obj.topology
-        elif isinstance(obj, Topology):
-            rendered_graph = obj
-            topology = obj
-        else:
-            msg = f"Cannot render {type(obj).__name__} as Mermaid"
-            raise NotImplementedError(msg)
+        context = self._create_render_context(obj, prefix)
+        self._add_state_nodes(context)
+        context.add_interaction_nodes()
+        edge_lines = self._create_edge_lines(context)
+        node_lines = [
+            self._create_mermaid_node(node_id, label, shape=_NODE_SHAPES[role])
+            for node_id, label, role in context.nodes
+        ]
+        style_lines = self._create_style_lines(context.nodes, len(edge_lines))
+        return [*node_lines, *edge_lines, *style_lines]
 
-        node_lines: list[str] = []
-        edge_lines: list[str] = []
-        node_labels: dict[str, str] = {}
-        node_order: list[str] = []
-        circular_node_ids: set[str] = set()
-        intermediate_state_nodes: set[str] = set()
-
-        def add_node(raw_id: str, label: str = "") -> str:
-            node_id = self._normalize_node_id(raw_id)
-            if node_id not in node_labels:
-                node_order.append(node_id)
-                node_labels[node_id] = label
-            elif label:
-                node_labels[node_id] = label
-            return node_id
-
+    def _create_render_context(
+        self, obj: _labels.RenderInput, prefix: str
+    ) -> _RenderContext:
+        topology, graph = _labels.unpack_render_input(obj)
         if self.render_node is None:
-            render_node = (
-                isinstance(rendered_graph, Topology) and len(topology.nodes) > 1
-            )
+            render_node = isinstance(graph, Topology) and len(topology.nodes) > 1
         else:
             render_node = self.render_node
-        render_label = _labels.as_latex if self.latex else _labels.as_string
-
-        folded_initial_edge_id: int | None = None
-        if len(topology.incoming_edge_ids) == 1 and not render_node:
-            initial_edge_id = next(iter(topology.incoming_edge_ids))
-            initial_edge = topology.edges[initial_edge_id]
-            initial_edge_label = _labels.create_edge_label(
-                rendered_graph,
-                initial_edge_id,
-                self.render_initial_state_id,
-                render_label=render_label,
-            )
-            if initial_edge.ending_node_id is not None and initial_edge_label:
-                folded_initial_edge_id = initial_edge_id
-
-        for edge_id in topology.incoming_edge_ids | topology.outgoing_edge_ids:
-            if edge_id in topology.incoming_edge_ids:
-                render = self.render_initial_state_id
-            else:
-                render = self.render_final_state_id
-            label = _labels.create_edge_label(
-                rendered_graph, edge_id, render, render_label=render_label
-            )
-            if edge_id == folded_initial_edge_id:
-                node_id = topology.edges[edge_id].ending_node_id
-                add_node(f"{prefix}N{node_id}", label)
-            else:
-                add_node(prefix + _get_mermaid_node(edge_id), label)
-
-        for node_id in topology.nodes:
-            label = ""
-            if isinstance(rendered_graph, Topology) and render_node:
-                label = f"({node_id})"
-            mermaid_node_id = add_node(f"{prefix}N{node_id}", label)
-            if label:
-                circular_node_ids.add(mermaid_node_id)
-
-        if isinstance(rendered_graph, (ProblemSet, QNProblemSet)) and render_node:
-            for (
-                node_id,
-                settings,
-            ) in rendered_graph.solving_settings.interactions.items():
-                add_node(f"{prefix}N{node_id}", render_label(settings))
-
-        if isinstance(rendered_graph, Transition) and render_node:
-            for node_id, node_prop in rendered_graph.interactions.items():
-                mermaid_node_id = add_node(
-                    f"{prefix}N{node_id}", render_label(node_prop)
-                )
-                circular_node_ids.add(mermaid_node_id)
-
-        edge_style_lines: list[str] = []
-        edge_index = 0
-        for edge_id, edge in topology.edges.items():
-            if edge_id == folded_initial_edge_id:
-                continue
-            j, k = edge.ending_node_id, edge.originating_node_id
-            from_node = add_node(prefix + _get_mermaid_node(edge_id, k))
-            to_node = add_node(prefix + _get_mermaid_node(edge_id, j))
-            if j is None or k is None:
-                edge_lines.append(self._create_mermaid_edge(from_node, to_node))
-                number_of_links = 1
-            else:
-                label = _labels.create_edge_label(
-                    rendered_graph,
-                    edge_id,
-                    self.render_resonance_id,
-                    render_label=render_label,
-                )
-                if label:
-                    state_node = add_node(prefix + _get_mermaid_node(edge_id), label)
-                    intermediate_state_nodes.add(state_node)
-                    edge_lines.extend([
-                        self._create_mermaid_edge(from_node, state_node),
-                        self._create_mermaid_edge(state_node, to_node),
-                    ])
-                    number_of_links = 2
-                else:
-                    edge_lines.append(self._create_mermaid_edge(from_node, to_node))
-                    number_of_links = 1
-            for _ in range(number_of_links):
-                if self.edge_style:
-                    edge_style_lines.append(
-                        self._create_mermaid_link_style(edge_index, self.edge_style)
-                    )
-                edge_index += 1
-
-        node_lines.extend(
-            self._create_mermaid_node(
-                node_id,
-                node_labels[node_id],
-                shape=(
-                    "rounded"
-                    if node_id in intermediate_state_nodes
-                    else "circle"
-                    if node_id in circular_node_ids
-                    else "rectangle"
-                ),
-            )
-            for node_id in node_order
+        context = _RenderContext(
+            topology=topology,
+            graph=graph,
+            prefix=prefix,
+            render_node=render_node,
+            render_label=_labels.as_latex if self.latex else _labels.as_string,
         )
-        style_lines: list[str] = []
-        for node_id in node_order:
-            if node_id in intermediate_state_nodes:
+        context.folded_initial_edge_id = self._find_folded_initial_edge(context)
+        return context
+
+    def _find_folded_initial_edge(self, context: _RenderContext) -> int | None:
+        """Find the initial state edge whose label can be merged into its node.
+
+        A decay with a single initial state has no incoming edge to draw, so its label
+        is written onto the interaction node that the edge points to. This is only
+        possible if that node does not carry a label of its own.
+        """
+        topology = context.topology
+        if context.render_node or len(topology.incoming_edge_ids) != 1:
+            return None
+        edge_id = next(iter(topology.incoming_edge_ids))
+        if topology.edges[edge_id].ending_node_id is None:
+            return None
+        if not context.create_edge_label(edge_id, self.render_initial_state_id):
+            return None
+        return edge_id
+
+    def _add_state_nodes(self, context: _RenderContext) -> None:
+        topology = context.topology
+        for edge_id in topology.incoming_edge_ids | topology.outgoing_edge_ids:
+            render_edge_id = (
+                self.render_initial_state_id
+                if edge_id in topology.incoming_edge_ids
+                else self.render_final_state_id
+            )
+            label = context.create_edge_label(edge_id, render_edge_id)
+            if edge_id == context.folded_initial_edge_id:
+                context.add_interaction_node(
+                    topology.edges[edge_id].ending_node_id, label
+                )
+            else:
+                context.add_state_node(edge_id, label=label)
+
+    def _create_edge_lines(self, context: _RenderContext) -> list[str]:
+        lines: list[str] = []
+        for edge_id, edge in context.topology.edges.items():
+            if edge_id == context.folded_initial_edge_id:
+                continue
+            from_node = context.add_state_node(edge_id, edge.originating_node_id)
+            to_node = context.add_state_node(edge_id, edge.ending_node_id)
+            label = ""
+            if edge.originating_node_id is not None and edge.ending_node_id is not None:
+                label = context.create_edge_label(edge_id, self.render_resonance_id)
+            if label:
+                state_node = context.add_state_node(
+                    edge_id, label=label, role="intermediate"
+                )
+                lines.extend([
+                    self._create_mermaid_edge(from_node, state_node),
+                    self._create_mermaid_edge(state_node, to_node),
+                ])
+            else:
+                lines.append(self._create_mermaid_edge(from_node, to_node))
+        return lines
+
+    def _create_style_lines(
+        self, nodes: _NodeRegistry, number_of_links: int
+    ) -> list[str]:
+        lines: list[str] = []
+        for node_id, _, role in nodes:
+            if role == "intermediate":
                 if self.edge_style:
-                    style_lines.append(
+                    lines.append(
                         self._create_mermaid_node_style(
                             node_id, self.edge_style, target="edge"
                         )
                     )
-                continue
-            node_style = self.node_style
-            if node_style:
-                style_lines.append(self._create_mermaid_node_style(node_id, node_style))
+            elif self.node_style:
+                lines.append(self._create_mermaid_node_style(node_id, self.node_style))
         if self.edge_style:
-            style_lines.extend(edge_style_lines)
-
-        lines.extend(node_lines)
-        lines.extend(edge_lines)
-        lines.extend(style_lines)
+            lines.extend(
+                self._create_mermaid_link_style(i, self.edge_style)
+                for i in range(number_of_links)
+            )
         return lines
 
     def _create_figure_style_lines(self) -> list[str]:
@@ -331,28 +388,22 @@ class MermaidPrinter:
         return mapping.get(normalized)
 
     def _create_mermaid_node(
-        self,
-        node_id: str,
-        label: str = "",
-        *,
-        shape: Literal["circle", "rectangle", "rounded"] = "rectangle",
+        self, node_id: str, label: str = "", *, shape: _NodeShape = "rectangle"
     ) -> str:
-        if label:
-            if self.latex:
-                if shape == "rounded":
-                    label = self._apply_latex_color(
-                        label, self.edge_style, target="edge"
-                    )
-                else:
-                    style = {**self.figure_style, **self.node_style}
-                    label = self._apply_latex_color(label, style, target="node")
-            escaped_label = self._escape_label(label)
-            if shape == "circle":
-                return f'    {node_id}(("{escaped_label}"))'
+        if not label:
+            return f'    {node_id}@{{ shape: text, label: " " }}'
+        if self.latex:
             if shape == "rounded":
-                return f'    {node_id}("{escaped_label}")'
-            return f'    {node_id}["{escaped_label}"]'
-        return f'    {node_id}@{{ shape: text, label: " " }}'
+                label = self._apply_latex_color(label, self.edge_style, target="edge")
+            else:
+                style = {**self.figure_style, **self.node_style}
+                label = self._apply_latex_color(label, style, target="node")
+        escaped_label = self._escape_label(label)
+        if shape == "circle":
+            return f'    {node_id}(("{escaped_label}"))'
+        if shape == "rounded":
+            return f'    {node_id}("{escaped_label}")'
+        return f'    {node_id}["{escaped_label}"]'
 
     def _create_mermaid_edge(
         self, from_node: str, to_node: str, label: str = ""
@@ -370,15 +421,6 @@ class MermaidPrinter:
                 escaped_label = f'"{escaped_label}"'
             return f"    {from_node} ---|{escaped_label}| {to_node}"
         return f"    {from_node} --- {to_node}"
-
-    @staticmethod
-    def _normalize_node_id(node_id: str) -> str:
-        normalized = re.sub(r"[^A-Za-z0-9_]", "_", node_id)
-        if not normalized:
-            normalized = "node"
-        if normalized[0].isdigit():
-            normalized = f"n_{normalized}"
-        return normalized
 
     @classmethod
     def _apply_latex_color(
