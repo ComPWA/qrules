@@ -55,10 +55,10 @@ def describe_MermaidPrinter():
             "A", R"\begin{gathered} L = 0 \\ S = 1 \end{gathered}"
         )
         intermediate_state_line = printer._create_mermaid_node(
-            "A", R"\gamma", shape="rounded"
+            node_id="A", label=R"\gamma", shape="rounded"
         )
         interaction_node_line = printer._create_mermaid_node(
-            "A", "L = 0", shape="circle"
+            node_id="A", label="L = 0", shape="circle"
         )
 
         assert node_line == R'    A["$$\alpha + \"quoted\" + \beta$$"]'
