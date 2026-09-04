@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from _typeshed import StrPath
 
 
-def asdict(instance: object) -> dict:
+def asdict(instance: object, /) -> dict:
     if isinstance(instance, ParticleCollection):
         return _dict.from_particle_collection(instance)
     if attrs.has(type(instance)):
@@ -31,7 +31,7 @@ def asdict(instance: object) -> dict:
     raise NotImplementedError(msg)
 
 
-def fromdict(definition: dict) -> object:
+def fromdict(definition: dict, /) -> object:
     keys = set(definition.keys())
     if keys >= __REQUIRED_PARTICLE_FIELDS:
         return _dict.build_particle(definition)
@@ -57,6 +57,7 @@ __REQUIRED_TOPOLOGY_FIELDS = {
 
 def asdot(
     instance: object,
+    /,
     *,
     render_node: bool | None = None,
     render_final_state_id: bool = True,
@@ -124,6 +125,7 @@ def asdot(
 
 def asmermaid(
     instance: object,
+    /,
     *,
     render_node: bool | None = None,
     render_final_state_id: bool = True,
