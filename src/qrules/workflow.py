@@ -1,14 +1,14 @@
 """Find allowed transitions with a pipeline of functions instead of the STM.
 
 This module decomposes the `.StateTransitionManager` into free functions that exchange
-explicit data structures, so that intermediate results, most notably the
-`.QNProblemSet` collections, can be inspected, modified, and fed back into the
-pipeline. The default use-case is covered by two functions:
+explicit data structures, so that intermediate results, most notably the `.QNProblemSet`
+collections, can be inspected, modified, and fed back into the pipeline. The default
+use-case is covered by two functions:
 
 1. `create_qn_problem_sets`, which turns initial and final state definitions into a
    `QNProblemSetCollection`: `.QNProblemSet` groups per interaction strength.
-2. `find_solutions`, which solves them and summarizes the solutions as a
-   `.ReactionInfo` object.
+2. `find_solutions`, which solves them and summarizes the solutions as a `.ReactionInfo`
+   object.
 
 The remaining functions implement the individual stages of the pipeline, so that each
 intermediate result can be worked with directly.
@@ -112,9 +112,9 @@ class AllowedIntermediateParticles:
     is_filtered: bool = True
     """Whether the selection is a subset of the particle database.
 
-    If `False`, the selection covers the entire database and the default quantum
-    number domains are used for the intermediate edges, instead of domains that are
-    derived from `particles`.
+    If `False`, the selection covers the entire database and the default quantum number
+    domains are used for the intermediate edges, instead of domains that are derived
+    from `particles`.
     """
 
     def select(
@@ -669,11 +669,11 @@ def create_qn_problem_sets(  # ruff: ignore[too-many-positional-arguments]
 ) -> QNProblemSetCollection:
     """Create a `.QNProblemSet` collection for a reaction, grouped by strength.
 
-    This function covers the default use-case in a single call: it fans the initial
-    and final state definitions out into `.QNProblemSet` objects over all topologies,
-    kinematic permutations, and allowed interaction types. Solve the returned
-    collection with `find_solutions`, optionally after inspecting or modifying its
-    problem sets (see e.g. `.filter_quantum_number_problem_set`).
+    This function covers the default use-case in a single call: it fans the initial and
+    final state definitions out into `.QNProblemSet` objects over all topologies,
+    kinematic permutations, and allowed interaction types. Solve the returned collection
+    with `find_solutions`, optionally after inspecting or modifying its problem sets
+    (see e.g. `.filter_quantum_number_problem_set`).
     """
     _validate_formalism(formalism)
     if particle_db is None:
@@ -745,11 +745,10 @@ def find_solutions(  # ruff: ignore[too-many-positional-arguments]
     selection default to the values with which the problem sets were created; explicit
     arguments override them. Given a plain `dict` of `.QNProblemSet` objects, the
     :code:`formalism` and :code:`allowed_intermediate_particles` have to be specified:
-    the formalism determines which quantum numbers are filtered out of the solutions
-    and the particle selection determines which particles the intermediate states are
+    the formalism determines which quantum numbers are filtered out of the solutions and
+    the particle selection determines which particles the intermediate states are
     matched against. The :code:`particle_db` is required, because a `.QNProblemSet`
-    contains quantum numbers only: particles are re-matched by PID via
-    `.find_particle`.
+    contains quantum numbers only: particles are re-matched by PID via `.find_particle`.
 
     Raises:
         ValueError: If :code:`formalism` or :code:`allowed_intermediate_particles` is
