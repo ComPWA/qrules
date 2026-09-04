@@ -23,8 +23,8 @@ NAMESPACE_WITH_FRACTIONS = globals()
 NAMESPACE_WITH_FRACTIONS["Fraction"] = Fraction
 
 
-class TestMutableTransition:
-    def test_intermediate_states(self):
+def describe_MutableTransition():
+    def it_intermediate_states():
         stm = StateTransitionManager(
             initial_state=[("J/psi(1S)", [-1, +1])],
             final_state=["K0", "Sigma+", "p~"],
@@ -40,8 +40,8 @@ class TestMutableTransition:
         assert set(some_problem_set.initial_facts.intermediate_states) == set()
 
 
-class TestReactionInfo:
-    def test_properties(self, reaction: ReactionInfo):
+def describe_ReactionInfo():
+    def it_properties(reaction: ReactionInfo):
         assert reaction.initial_state[-1].name == "J/psi(1S)"
         assert reaction.final_state[0].name == "gamma"
         assert reaction.final_state[1].name == "pi0"
@@ -55,15 +55,15 @@ class TestReactionInfo:
             assert isinstance(transition, FrozenTransition)
 
     @pytest.mark.parametrize("repr_method", [repr, pretty])
-    def test_repr(self, repr_method, reaction: ReactionInfo):
+    def it_repr(repr_method, reaction: ReactionInfo):
         instance = reaction
         from_repr = eval(repr_method(instance), NAMESPACE_WITH_FRACTIONS)
         assert from_repr == instance
 
-    def test_hash(self, reaction: ReactionInfo):
+    def it_hash(reaction: ReactionInfo):
         assert hash(deepcopy(reaction)) == hash(reaction)
 
-    def test_hash_value(self, reaction: ReactionInfo):
+    def it_hash_value(reaction: ReactionInfo):
         if sys.version_info >= (3, 11) and not sys.version_info >= (3, 14):
             expected_hash = {
                 "canonical-helicity": "65106a44301f9340e633d09f66ad7d17",
@@ -83,7 +83,7 @@ class TestReactionInfo:
         assert _compute_hash(reaction) == expected_hash
 
 
-class TestState:
+def describe_State():
     @pytest.mark.parametrize(
         ("state_def_1", "state_def_2"),
         [
@@ -93,7 +93,7 @@ class TestState:
             (("a", -1), ("b", +1)),
         ],
     )
-    def test_ordering(self, state_def_1, state_def_2):
+    def it_ordering(state_def_1, state_def_2):
         def create_state(state_def) -> State:
             return State(
                 particle=Particle(name=state_def[0], pid=0, spin=0, mass=0),
@@ -105,8 +105,8 @@ class TestState:
         assert state2 >= state1
 
 
-class TestStateTransitionManager:
-    def test_allowed_intermediate_particles(self):
+def describe_StateTransitionManager():
+    def it_allowed_intermediate_particles():
         stm = StateTransitionManager(
             initial_state=[("J/psi(1S)", list(map(Fraction, [-1, +1])))],
             final_state=["p", "p~", "eta"],
@@ -125,14 +125,14 @@ class TestStateTransitionManager:
             (["nu(e)"], [1e-08, 0.0001, 0.006]),
         ],
     )
-    def test_initial_state_restricts_interaction_types(
-        self, initial_state: list[str], expected_strengths: list[float]
+    def it_initial_state_restricts_interaction_types(
+        initial_state: list[str], expected_strengths: list[float]
     ):
         stm = StateTransitionManager(initial_state, final_state=["pi0", "pi0", "pi0"])
         problem_sets = stm.create_problem_sets()
         assert sorted(problem_sets) == expected_strengths
 
-    def test_fast_solving_mode(self):
+    def it_fast_solving_mode():
         def count_transitions(solving_mode: SolvingMode) -> int:
             stm = StateTransitionManager(
                 initial_state=["J/psi(1S)"],
@@ -145,7 +145,7 @@ class TestStateTransitionManager:
         assert count_transitions(SolvingMode.FULL) == 294
         assert count_transitions(SolvingMode.FAST) == 90
 
-    def test_regex_pattern(self):
+    def it_regex_pattern():
         stm = StateTransitionManager(
             initial_state=["Lambda(c)+"],
             final_state=["p", "K-", "pi+"],

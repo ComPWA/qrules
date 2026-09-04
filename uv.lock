@@ -2197,6 +2197,18 @@ wheels = [
 ]
 
 [[package]]
+name = "pytest-describe"
+version = "3.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pytest" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c2/87/87d60fcacee9b003a78c802034fca975ec1ee5e744788ff98aa0b25cbbdc/pytest_describe-3.2.0.tar.gz", hash = "sha256:8697f9818c330c80312c28c731022618ac96d0dab3b5238116c4a7d0cd187d9f", size = 15042, upload-time = "2026-06-12T21:29:00.66Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e1/40/dc0a52e0d1213a847ac7ce493ce49109fe62986e31d4b2587bd22052e1eb/pytest_describe-3.2.0-py3-none-any.whl", hash = "sha256:ea4ef9968145d017847b0e705d058b1ea35ea35c59b5adf4a34378c418ac455a", size = 11732, upload-time = "2026-06-12T21:28:59.378Z" },
+]
+
+[[package]]
 name = "pytest-xdist"
 version = "3.8.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2599,6 +2611,7 @@ dev = [
     { name = "pydot" },
     { name = "pytest" },
     { name = "pytest-cov" },
+    { name = "pytest-describe" },
     { name = "pytest-xdist" },
     { name = "python-lsp-ruff" },
     { name = "python-lsp-server" },
@@ -2676,6 +2689,7 @@ test = [
     { name = "pydot" },
     { name = "pytest" },
     { name = "pytest-cov" },
+    { name = "pytest-describe" },
     { name = "pytest-xdist" },
 ]
 types = [
@@ -2716,6 +2730,7 @@ dev = [
     { name = "pydot" },
     { name = "pytest" },
     { name = "pytest-cov" },
+    { name = "pytest-describe" },
     { name = "pytest-xdist" },
     { name = "python-lsp-ruff" },
     { name = "python-lsp-server" },
@@ -2781,6 +2796,7 @@ test = [
     { name = "pydot" },
     { name = "pytest" },
     { name = "pytest-cov" },
+    { name = "pytest-describe" },
     { name = "pytest-xdist" },
 ]
 types = [
