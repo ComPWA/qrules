@@ -52,7 +52,7 @@ def describe_as_latex():
     def it_particle_and_state(particle_database: ParticleCollection):
         particle = particle_database["J/psi(1S)"]
         assert as_latex(particle) == R"J/\psi(1S)"
-        expected_state = R"J/\psi(1S)\left[-\frac{1}{2}\right]"
+        expected_state = R"J/\psi(1S)\left[\text{-}\frac{1}{2}\right]"
         assert as_latex(State(particle, Fraction(-1, 2))) == expected_state
         assert as_latex((particle, Fraction(-1, 2))) == expected_state
 
@@ -75,7 +75,7 @@ def describe_as_latex():
 
     def it_spin_and_interaction():
         assert as_latex((Fraction(1, 2), Fraction(1, 2))) == (
-            R"\left|\frac{1}{2},+\frac{1}{2}\right\rangle"
+            R"\left|\frac{1}{2},\text{+}\frac{1}{2}\right\rangle"
         )
         interaction = InteractionProperties(
             l_magnitude=1,
@@ -87,7 +87,7 @@ def describe_as_latex():
         assert src.startswith(R"\begin{gathered}")
         assert R"L = \left|1,0\right\rangle" in src
         assert R"S = \frac{1}{2}" in src
-        assert "P = +1" in src
+        assert R"P = \text{+}1" in src
 
         assert not as_latex(InteractionProperties())
         assert as_latex(InteractionProperties(l_magnitude=1)) == "L = 1"
@@ -97,7 +97,7 @@ def describe_as_latex():
                     s_magnitude=Fraction(1, 2), s_projection=Fraction(-1, 2)
                 )
             )
-            == R"S = \left|\frac{1}{2},-\frac{1}{2}\right\rangle"
+            == R"S = \left|\frac{1}{2},\text{-}\frac{1}{2}\right\rangle"
         )
 
     def it_dict_and_basic_values():
@@ -106,8 +106,8 @@ def describe_as_latex():
         assert as_latex(R"\alpha") == R"\alpha"
         src = as_latex({"spin_magnitude": Fraction(1, 2), "parity": 1})
         assert R"\text{spin\_magnitude} = \frac{1}{2}" in src
-        assert R"\text{parity} = +1" in src
-        assert as_latex(Fraction(-1, 2)) == R"-\frac{1}{2}"
+        assert R"\text{parity} = \text{+}1" in src
+        assert as_latex(Fraction(-1, 2)) == R"\text{-}\frac{1}{2}"
         assert as_latex(None) == R"\mathrm{None}"
         assert not as_latex({})
         assert as_latex({"pid": 1}) == R"\text{pid} = 1"
@@ -119,6 +119,35 @@ def describe_as_latex():
         )
         assert as_latex(particles) == (
             R"\begin{gathered} f_{0}(980) \\ f_{0}(1500) \end{gathered}"
+        )
+
+    def it_keeps_six_particles_in_one_column(particle_database: ParticleCollection):
+        particle = particle_database["f(0)(980)"]
+        assert as_latex((particle,) * 6).startswith(R"\begin{gathered}")
+
+    def it_uses_columns_for_a_long_particle_tuple(
+        particle_database: ParticleCollection,
+    ):
+        particle = particle_database["f(0)(980)"]
+        particles = tuple(
+            attrs.evolve(particle, name=f"x{i}", latex=Rf"x_{{{i}}}") for i in range(7)
+        )
+        assert as_latex(particles) == (
+            R"\begin{array}{ll} x_{0} & x_{4} \\ x_{1} & x_{5} \\ "
+            R"x_{2} & x_{6} \\ x_{3} &  \end{array}"
+        )
+
+    def it_adds_columns_to_a_longer_particle_tuple(
+        particle_database: ParticleCollection,
+    ):
+        particle = particle_database["f(0)(980)"]
+        particles = tuple(
+            attrs.evolve(particle, name=f"x{i}", latex=Rf"x_{{{i}}}") for i in range(13)
+        )
+        assert as_latex(particles) == (
+            R"\begin{array}{lll} x_{0} & x_{5} & x_{10} \\ "
+            R"x_{1} & x_{6} & x_{11} \\ x_{2} & x_{7} & x_{12} \\ "
+            R"x_{3} & x_{8} &  \\ x_{4} & x_{9} &  \end{array}"
         )
 
 
@@ -261,10 +290,19 @@ def describe_as_string():
         latex = as_latex(node_setting)
         assert R"\text{ChargeConservation - 100}" in latex
         assert R"\text{l\_magnitude} \in \left[0, 1\right]" in latex
+        assert (
+            R"\text{parity\_prefactor} \in \left[\text{-}1, \text{+}1\right]" in latex
+        )
+        assert (
+            R"\text{s\_projection} \in \left[\text{-}2, "
+            R"\text{-}\frac{3}{2}, \text{-}1, \text{-}\frac{1}{2}, 0, "
+            R"\text{+}\frac{1}{2}, \text{+}1, \text{+}\frac{3}{2}, "
+            R"\text{+}2\right]"
+        ) in latex
 
         latex = as_latex(intermediate_state)
         assert R"\text{spin\_magnitude} = \frac{1}{2}" in latex
-        assert R"\text{parity} = +1" in latex
+        assert R"\text{parity} = \text{+}1" in latex
 
     def it_spin_tuple(particle_database: ParticleCollection):
         # non-spin

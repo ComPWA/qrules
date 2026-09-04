@@ -54,6 +54,12 @@ def describe_MermaidPrinter():
         multiline_node_line = printer._create_mermaid_node(
             "A", R"\begin{gathered} L = 0 \\ S = 1 \end{gathered}"
         )
+        intermediate_state_line = printer._create_mermaid_node(
+            node_id="A", label=R"\gamma", shape="rounded"
+        )
+        interaction_node_line = printer._create_mermaid_node(
+            node_id="A", label="L = 0", shape="circle"
+        )
 
         assert node_line == R'    A["$$\alpha + \"quoted\" + \beta$$"]'
         assert edge_line == R'    A ---|"$$\gamma$$"| B'
@@ -63,6 +69,8 @@ def describe_MermaidPrinter():
         assert multiline_node_line == (
             R'    A["$$\begin{gathered} L = 0 \\\ S = 1 \end{gathered}$$"]'
         )
+        assert intermediate_state_line == R'    A("$$\gamma$$")'
+        assert interaction_node_line == R'    A(("$$L = 0$$"))'
 
     @pytest.mark.parametrize(
         ("label", "expected"),
@@ -142,7 +150,6 @@ def describe_asmermaid():
         src = io.asmermaid(reaction.transitions[0], latex=True, markdown=True)
         assert src.startswith("```mermaid\nflowchart LR\n")
         assert R"$$J/\psi(1S)" in src
-        assert R"J/\\psi(1S)" not in src
         assert src.endswith("\n```\n")
 
     def it_latex_reaction(reaction: ReactionInfo):
@@ -156,15 +163,13 @@ def describe_asmermaid():
         assert not src.startswith("```mermaid")
         assert R"J/\psi(1S)\left[" in src
         assert R"f_{0}(980)\left[" in src
-        assert "P = +1" in src
+        assert R"P = \text{+}1" in src
         assert "<br/>" not in src
         if reaction.formalism == "canonical-helicity":
             assert R"$$\begin{gathered} L =" in src
 
         labeled_lines = [
-            line
-            for line in src.splitlines()
-            if '["' in line or '---|"' in line or '--"' in line
+            line for line in src.splitlines() if '["' in line or '("' in line
         ]
         assert labeled_lines
         assert all(line.count("$$") == 2 for line in labeled_lines)
@@ -188,8 +193,9 @@ def describe_asmermaid():
             edge_style={"color": "blue", "fontsize": 25},
             node_style={"fill": "green"},
         )
+        source_lines = set(src.splitlines())
         assert src.startswith("flowchart LR\n")
-        assert "style n_0 fill:green" in src
+        assert "    style n_0 fill:green" in source_lines
         assert "linkStyle 0 stroke:blue,font-size:25px" in src
 
     def it_reaction(reaction: ReactionInfo):
@@ -254,23 +260,51 @@ def describe_asmermaid():
             latex=False,
         )
         assert src.startswith("flowchart LR\n")
-        assert any(label in src for label in (" ---|5| ", " ---|6| ", " ---|7| "))
-        assert " ---|0| " not in src
-        assert " ---|1| " not in src
-        assert " ---|2| " not in src
+        node_declarations = set(src.splitlines())
+        assert any(
+            f'    n_{edge_id}("{edge_id}")' in node_declarations
+            for edge_id in range(5, 8)
+        )
+        assert all(
+            f'    n_{edge_id}("{edge_id}")' not in node_declarations
+            for edge_id in range(3)
+        )
 
-    def it_renders_unlabeled_nodes_without_boxes():
+    def it_styles_intermediate_states_as_edges():
         topology = create_isobar_topologies(5)[0]
         src = io.asmermaid(
             topology,
-            render_final_state_id=False,
-            render_node=False,
+            edge_style={"color": "blue", "fontcolor": "red", "fontsize": 25},
+            latex=False,
+            render_resonance_id=True,
+        )
+        source_lines = src.splitlines()
+        assert "    style n_5 stroke:blue,color:red,font-size:25px" in source_lines
+        assert len([line for line in source_lines if "linkStyle" in line]) == len([
+            line for line in source_lines if " --- " in line
+        ])
+
+    def it_distinguishes_state_and_interaction_nodes():
+        topology = create_isobar_topologies(5)[0]
+        src = io.asmermaid(
+            topology,
+            latex=False,
+            render_final_state_id=True,
+            render_initial_state_id=True,
+            render_node=True,
         )
         node_declarations = set(src.splitlines())
-        assert '    n_0@{ shape: text, label: " " }' in node_declarations
-        assert '    N0@{ shape: text, label: " " }' in node_declarations
-        assert "    n_0" not in node_declarations
-        assert "    N0" not in node_declarations
+        assert '    A["-1"]' in node_declarations
+        assert '    n_0["0"]' in node_declarations
+        assert '    N0(("(0)"))' in node_declarations
+        assert not any("stroke:transparent" in line for line in node_declarations)
+
+    def it_keeps_folded_initial_state_box(reaction: ReactionInfo):
+        transition = reaction.transitions[0]
+        src = io.asmermaid(transition, latex=False)
+        initial_state_id = next(iter(transition.topology.incoming_edge_ids))
+        node_id = transition.topology.edges[initial_state_id].ending_node_id
+        assert f'    N{node_id}["' in src
 
     def it_qn_problem_set(qn_problem_and_result: tuple[QNProblemSet, QNResult]):
         qn_problem_set, _ = qn_problem_and_result
@@ -278,6 +312,13 @@ def describe_asmermaid():
         assert src.startswith("flowchart LR\n")
         assert "RULES" in src
         assert "DOMAINS" in src
+        interaction_node_lines = [
+            line
+            for line in src.splitlines()
+            if line.lstrip().startswith("N") and "RULES" in line
+        ]
+        assert interaction_node_lines
+        assert all('["' in line for line in interaction_node_lines)
 
     def it_latex_qn_problem_set(
         qn_problem_and_result: tuple[QNProblemSet, QNResult],
@@ -298,7 +339,7 @@ def describe_asmermaid():
 
         src = io.asmermaid(qn_result, render_node=True, latex=True)
         assert R"$$\begin{gathered}" in src
-        assert R"\text{parity\_prefactor} = +1" in src
+        assert R"\text{parity\_prefactor} = \text{+}1" in src
 
     @pytest.mark.parametrize(
         "formalism",

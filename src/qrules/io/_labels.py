@@ -65,6 +65,45 @@ def is_render_pair(value: object, /) -> TypeIs[RenderPair]:
     )
 
 
+def unpack_render_input(obj: RenderInput) -> RenderPair:
+    """Split a render input into the topology and the graph that is rendered onto it.
+
+    A `.RenderPair` carries a topology that may differ from the one embedded in the
+    graph, so it is returned as-is. Any other graph renders onto its own topology.
+    """
+    if is_render_pair(obj):
+        return obj
+    if isinstance(obj, (ProblemSet, QNProblemSet, Transition)):
+        return obj.topology, obj
+    if isinstance(obj, Topology):
+        return obj, obj
+    msg = f"Cannot render a {type(obj).__name__} as a transition graph"
+    raise NotImplementedError(msg)
+
+
+def select_transitions(
+    graphs: Iterable[Any],
+    /,
+    *,
+    collapse: bool,
+    render_node: bool | None,
+    strip_spin: bool,
+) -> list[Any]:
+    """Reduce a collection of transitions to the graphs that are worth rendering.
+
+    The ``collapse`` and ``strip_spin`` flags are the printer attributes
+    :code:`collapse_graphs` and :code:`strip_spin`. Spin projections can only be
+    stripped from the interaction nodes if those nodes are not rendered.
+    """
+    if collapse:
+        return collapse_graphs(graphs)
+    if strip_spin:
+        if render_node:
+            return sorted({strip_projections(g) for g in graphs})
+        return get_particle_graphs(graphs)
+    return list(graphs)
+
+
 def create_edge_label(
     graph: ProblemSet | QNProblemSet | Topology | Transition,
     edge_id: int,
@@ -251,6 +290,7 @@ class _LatexFormatter:
 
 _PLAIN_FORMATTER = _PlainFormatter()
 _LATEX_FORMATTER = _LatexFormatter()
+_PARTICLE_COLUMN_MAX_ROWS = 6
 
 
 @as_latex.register(int)
@@ -312,10 +352,10 @@ def __render_key_and_value(
 def _render_latex_fraction(value: Fraction, *, plusminus: bool = False) -> str:
     sign = ""
     if value < 0:
-        sign = "-"
+        sign = R"\text{-}"
         value = abs(value)
     elif plusminus and value > 0:
-        sign = "+"
+        sign = R"\text{+}"
     if value.denominator == 1:
         return f"{sign}{value.numerator}"
     return Rf"{sign}\frac{{{value.numerator}}}{{{value.denominator}}}"
@@ -517,7 +557,29 @@ def __render_tuple(obj: tuple, formatter: _LabelFormatter) -> str:
             return __render_state(State(*obj), formatter)
         if all(isinstance(o, (Fraction, float, int)) for o in obj):
             return __render_spin(Spin(*obj), formatter)
-    return formatter.lines([formatter.render(item) for item in obj])
+    rendered_items = [formatter.render(item) for item in obj]
+    if (
+        formatter is _LATEX_FORMATTER
+        and len(obj) > _PARTICLE_COLUMN_MAX_ROWS
+        and all(isinstance(item, Particle) for item in obj)
+    ):
+        return _render_latex_columns(rendered_items)
+    return formatter.lines(rendered_items)
+
+
+def _render_latex_columns(items: list[str]) -> str:
+    column_count = (len(items) + _PARTICLE_COLUMN_MAX_ROWS - 1) // (
+        _PARTICLE_COLUMN_MAX_ROWS
+    )
+    row_count = (len(items) + column_count - 1) // column_count
+    columns = [items[i * row_count : (i + 1) * row_count] for i in range(column_count)]
+    rows = [
+        " & ".join(column[i] if i < len(column) else "" for column in columns)
+        for i in range(row_count)
+    ]
+    content = R" \\ ".join(rows)
+    alignment = "l" * column_count
+    return Rf"\begin{{array}}{{{alignment}}} {content} \end{{array}}"
 
 
 def get_particle_graphs(
