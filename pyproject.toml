@@ -105,6 +105,7 @@ test = [
     "pydot",
     "pytest",
     "pytest-cov",
+    "pytest-describe",
     "pytest-xdist",
 ]
 types = [
@@ -127,6 +128,9 @@ build-backend = "setuptools.build_meta"
 doc-apt-packages = "graphviz"
 repo-name = "qrules"
 repo-title = "QRules"
+
+[tool.compwa.policy.github]
+macos-python-version = "3.13"
 
 [tool.compwa.policy.python]
 type-checker = ["ty"]
@@ -441,6 +445,12 @@ known-first-party = ["qrules"]
 known-local-folder = ["tests"]
 split-on-trailing-comma = false
 
+[tool.ruff.lint.pep8-naming]
+extend-ignore-names = [
+    "describe_*",
+    "test_*",
+]
+
 [tool.ruff.lint.per-file-ignores]
 "*.ipynb" = [
     "ANN",
@@ -483,12 +493,14 @@ split-on-trailing-comma = false
     "T20",
     "assert",
     "boolean-type-hint-positional-argument",
+    "complex-structure",
     "float-equality-comparison",
     "implicit-namespace-package",
     "import-private-name",
     "no-self-use",
     "private-member-access",
     "suspicious-eval-usage",
+    "too-many-statements",
 ]
 
 [tool.ruff.lint.pydocstyle]
@@ -523,7 +535,7 @@ key-empty = "off"
 
 [[tool.tombi.schemas]]
 root = "tool.compwa.policy"
-path = "https://raw.githubusercontent.com/ComPWA/policy/0.9.6/compwa-policy.schema.json"
+path = "https://raw.githubusercontent.com/ComPWA/policy/0.9.7/compwa-policy.schema.json"
 include = ["pyproject.toml"]
 
 [tool.ty.rules]

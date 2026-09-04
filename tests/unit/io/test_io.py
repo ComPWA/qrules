@@ -20,41 +20,40 @@ def through_dict(instance):
     return io.fromdict(asdict)
 
 
-def test_asdict_fromdict(particle_selection: ParticleCollection):
-    # ParticleCollection
-    fromdict = through_dict(particle_selection)
-    assert isinstance(fromdict, ParticleCollection)
-    assert particle_selection == fromdict
-    # Particle
-    for particle in particle_selection:
-        fromdict = through_dict(particle)
-        assert isinstance(fromdict, Particle)
-        assert particle == fromdict
-    # Topology
-    for n_final_states in range(2, 6):
-        for topology in create_isobar_topologies(n_final_states):
-            fromdict = through_dict(topology)
-            assert isinstance(fromdict, Topology)
-            assert topology == fromdict
-        for n_initial_states in range(1, 3):
-            topology = create_n_body_topology(n_initial_states, n_final_states)
-            fromdict = through_dict(topology)
-            assert isinstance(fromdict, Topology)
-            assert topology == fromdict
+def describe_serialization():
+    def it_round_trips_particles(particle_selection: ParticleCollection):
+        # ParticleCollection
+        fromdict = through_dict(particle_selection)
+        assert isinstance(fromdict, ParticleCollection)
+        assert particle_selection == fromdict
+        # Particle
+        for particle in particle_selection:
+            fromdict = through_dict(particle)
+            assert isinstance(fromdict, Particle)
+            assert particle == fromdict
+        # Topology
+        for n_final_states in range(2, 6):
+            for topology in create_isobar_topologies(n_final_states):
+                fromdict = through_dict(topology)
+                assert isinstance(fromdict, Topology)
+                assert topology == fromdict
+            for n_initial_states in range(1, 3):
+                topology = create_n_body_topology(n_initial_states, n_final_states)
+                fromdict = through_dict(topology)
+                assert isinstance(fromdict, Topology)
+                assert topology == fromdict
 
+    def it_reaction(reaction: ReactionInfo):
+        # FrozenTransition
+        for graph in reaction.transitions:
+            fromdict = through_dict(graph)
+            assert isinstance(fromdict, FrozenTransition)
+            assert graph == fromdict
+        # ReactionInfo
+        fromdict = through_dict(reaction)
+        assert isinstance(fromdict, ReactionInfo)
+        assert reaction == fromdict
 
-def test_asdict_fromdict_reaction(reaction: ReactionInfo):
-    # FrozenTransition
-    for graph in reaction.transitions:
-        fromdict = through_dict(graph)
-        assert isinstance(fromdict, FrozenTransition)
-        assert graph == fromdict
-    # ReactionInfo
-    fromdict = through_dict(reaction)
-    assert isinstance(fromdict, ReactionInfo)
-    assert reaction == fromdict
-
-
-def test_fromdict_exceptions():
-    with pytest.raises(NotImplementedError):
-        io.fromdict({"non-sense": 1})
+    def it_exceptions():
+        with pytest.raises(NotImplementedError):
+            io.fromdict({"non-sense": 1})

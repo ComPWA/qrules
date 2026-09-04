@@ -105,7 +105,7 @@ api_target_types: dict[str, str | tuple[str, str]] = {
     "qrules.solving.GraphSettings": "obj",
     "qrules.transition.StateTransition": "obj",
 }
-author = "Common Partial Wave Analysis"
+author = ""
 autodoc_default_options = {
     "exclude-members": ", ".join([
         "items",
@@ -176,7 +176,10 @@ extensions = [
 generate_apidoc_package_path = f"../src/{PACKAGE}"
 graphviz_output_format = "svg"
 html_copy_source = True  # needed for download notebook button
-html_css_files = ["linebreaks-api.css"]
+html_css_files = [
+    "linebreaks-api.css",
+    "mermaid.css",
+]
 html_favicon = "_static/favicon.ico"
 html_last_updated_fmt = "%-d %B %Y"
 html_logo = (
@@ -262,6 +265,16 @@ linkcheck_ignore = [
     "https://doi.org/10.1002/andp.19955070504",  # 403 for onlinelibrary.wiley.com
     "https://doi.org/10.1103/PhysRevD.86.010001",
 ]
+mermaid_height = "auto"  # do not stretch diagrams to the default 500px
+mermaid_init_config = {
+    "flowchart": {
+        "nodeSpacing": 30,
+        "rankSpacing": 40,
+        "useMaxWidth": False,
+    },
+    "startOnLoad": False,
+    "themeVariables": {"fontSize": "12px"},
+}
 project = REPO_TITLE
 modindex_common_prefix = [f"{PACKAGE}."]
 myst_enable_extensions = [

@@ -19,51 +19,53 @@ if TYPE_CHECKING:
     from qrules.argument_handling import GraphEdgePropertyMap
 
 
-def test_solve(
-    all_particles: qrules.particle.ParticleCollection,
-    quantum_number_problem_set: QNProblemSet,
-) -> None:
-    solver = CSPSolver(all_particles)
-    result = solver.find_solutions(quantum_number_problem_set)
-    assert len(result.solutions) == 19
+def describe_CSPSolver():
+    def it_finds_solutions(
+        all_particles: qrules.particle.ParticleCollection,
+        quantum_number_problem_set: QNProblemSet,
+    ) -> None:
+        solver = CSPSolver(all_particles)
+        result = solver.find_solutions(quantum_number_problem_set)
+        assert len(result.solutions) == 19
 
+    @pytest.mark.parametrize("with_spin_projection", [True, False])
+    def it_with_filtered_quantum_number_problem_set(
+        all_particles: list[GraphEdgePropertyMap],
+        quantum_number_problem_set: QNProblemSet,
+        with_spin_projection: bool,
+    ) -> None:
+        solver = CSPSolver(all_particles)
+        parametrized_edge_properties_and_domains = {
+            EdgeQuantumNumbers.pid,  # had to be added for c_parity_conservation to work
+            EdgeQuantumNumbers.spin_magnitude,
+            EdgeQuantumNumbers.parity,
+            EdgeQuantumNumbers.c_parity,
+        }
+        if with_spin_projection:
+            parametrized_edge_properties_and_domains.add(
+                EdgeQuantumNumbers.spin_projection
+            )
 
-@pytest.mark.parametrize("with_spin_projection", [True, False])
-def test_solve_with_filtered_quantum_number_problem_set(
-    all_particles: list[GraphEdgePropertyMap],
-    quantum_number_problem_set: QNProblemSet,
-    with_spin_projection: bool,
-) -> None:
-    solver = CSPSolver(all_particles)
-    parametrized_edge_properties_and_domains = {
-        EdgeQuantumNumbers.pid,  # had to be added for c_parity_conservation to work
-        EdgeQuantumNumbers.spin_magnitude,
-        EdgeQuantumNumbers.parity,
-        EdgeQuantumNumbers.c_parity,
-    }
-    if with_spin_projection:
-        parametrized_edge_properties_and_domains.add(EdgeQuantumNumbers.spin_projection)
+        new_quantum_number_problem_set = filter_quantum_number_problem_set(
+            quantum_number_problem_set,
+            edge_rules={spin_validity},
+            node_rules={
+                spin_magnitude_conservation,
+                parity_conservation,
+                c_parity_conservation,
+            },
+            edge_properties=parametrized_edge_properties_and_domains,
+            node_properties=(
+                NodeQuantumNumbers.l_magnitude,
+                NodeQuantumNumbers.s_magnitude,
+            ),
+        )
+        result = solver.find_solutions(new_quantum_number_problem_set)
 
-    new_quantum_number_problem_set = filter_quantum_number_problem_set(
-        quantum_number_problem_set,
-        edge_rules={spin_validity},
-        node_rules={
-            spin_magnitude_conservation,
-            parity_conservation,
-            c_parity_conservation,
-        },
-        edge_properties=parametrized_edge_properties_and_domains,
-        node_properties=(
-            NodeQuantumNumbers.l_magnitude,
-            NodeQuantumNumbers.s_magnitude,
-        ),
-    )
-    result = solver.find_solutions(new_quantum_number_problem_set)
-
-    if with_spin_projection:
-        assert len(result.solutions) == 319
-    else:
-        assert len(result.solutions) == 127
+        if with_spin_projection:
+            assert len(result.solutions) == 319
+        else:
+            assert len(result.solutions) == 127
 
 
 @pytest.fixture(scope="session")
