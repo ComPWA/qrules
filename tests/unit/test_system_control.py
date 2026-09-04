@@ -261,7 +261,7 @@ def make_ls_test_graph_scrambled(
     return MutableTransition(topology, states, interactions)
 
 
-class TestSolutionFilter:
+def describe_SolutionFilter():
     @pytest.mark.parametrize(
         ("ls_pairs", "result"),
         [
@@ -269,7 +269,7 @@ class TestSolutionFilter:
             ([(1, 0), (1, 0)], 1),
         ],
     )
-    def test_remove_duplicates(self, ls_pairs, result, particle_database):
+    def it_remove_duplicates(ls_pairs, result, particle_database):
         pi0 = particle_database["pi0"]
         graphs = [make_ls_test_graph(L, S, pi0) for L, S in ls_pairs]
 
@@ -330,8 +330,8 @@ class TestSolutionFilter:
             ),
         ],
     )
-    def test_filter_graphs_for_interaction_qns(
-        self, input_values, filter_parameters, result, particle_database
+    def it_filter_graphs_for_interaction_qns(
+        input_values, filter_parameters, result, particle_database
     ):
         graphs = []
         pi0 = particle_database["pi0"]

@@ -278,9 +278,7 @@ class StateTransitionManager:
     def set_allowed_intermediate_particles(
         self, name_patterns: Iterable[str] | str, regex: bool = False
     ) -> None:
-        from qrules.workflow import (  # ruff: ignore[import-outside-top-level]
-            filter_intermediate_particles,
-        )
+        from qrules.workflow import filter_intermediate_particles  # ruff: ignore[import-outside-top-level]
 
         self.__intermediate_particles = filter_intermediate_particles(
             self.__particles, name_patterns, regex
@@ -324,9 +322,7 @@ class StateTransitionManager:
         self.__allowed_interaction_types = config.allowed_types
 
     def __create_interaction_config(self) -> InteractionConfig:
-        from qrules.workflow import (  # ruff: ignore[import-outside-top-level]
-            InteractionConfig,
-        )
+        from qrules.workflow import InteractionConfig  # ruff: ignore[import-outside-top-level]
 
         return InteractionConfig(
             type_settings=self.interaction_type_settings,
@@ -335,9 +331,7 @@ class StateTransitionManager:
         )
 
     def create_problem_sets(self) -> dict[float, list[ProblemSet]]:
-        from qrules.workflow import (  # ruff: ignore[import-outside-top-level]
-            create_problem_sets,
-        )
+        from qrules.workflow import create_problem_sets  # ruff: ignore[import-outside-top-level]
 
         return create_problem_sets(
             self.initial_state,
@@ -353,9 +347,7 @@ class StateTransitionManager:
         self, problem_sets: dict[float, list[ProblemSet]]
     ) -> ReactionInfo:
         """Check for solutions for a specific set of interaction settings."""
-        from qrules.workflow import (  # ruff: ignore[import-outside-top-level]
-            collect_reaction_info,
-        )
+        from qrules.workflow import collect_reaction_info  # ruff: ignore[import-outside-top-level]
 
         results = self._find_particle_transitions(problem_sets)
         return collect_reaction_info(
@@ -369,9 +361,7 @@ class StateTransitionManager:
     def _find_particle_transitions(
         self, problem_sets: dict[float, list[ProblemSet]]
     ) -> dict[float, SolutionContainer]:
-        from qrules.workflow import (  # ruff: ignore[import-outside-top-level]
-            convert_to_particle_transitions,
-        )
+        from qrules.workflow import convert_to_particle_transitions  # ruff: ignore[import-outside-top-level]
 
         qn_results = self.find_quantum_number_transitions(problem_sets)
         return convert_to_particle_transitions(qn_results, self.__particles)
@@ -380,10 +370,7 @@ class StateTransitionManager:
         self, problem_sets: dict[float, list[ProblemSet]]
     ) -> dict[float, list[tuple[QNProblemSet, QNResult]]]:
         """Find allowed transitions purely in terms of quantum number sets."""
-        from qrules.workflow import (  # ruff: ignore[import-outside-top-level]
-            _to_qn_problem_sets,
-            solve,
-        )
+        from qrules.workflow import _to_qn_problem_sets, solve  # ruff: ignore[import-outside-top-level]
 
         qn_problem_sets = _to_qn_problem_sets(problem_sets)
         return solve(

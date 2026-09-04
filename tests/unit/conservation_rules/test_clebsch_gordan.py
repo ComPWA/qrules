@@ -16,182 +16,182 @@ from tests.unit.conservation_rules.helpers import (
 )
 
 
-@pytest.mark.parametrize(
-    ("rule_input", "expected"),
-    [
-        (
-            create_two_body_decay_spin_data(
-                in_spin=Spin(1, 0),
-                out_spin1=Spin(1, 0),
-                out_spin2=Spin(1, 0),
-                angular_momentum=Spin(1, 0),
-                coupled_spin=Spin(0, 0),
+def describe_clebsch_gordan():
+    @pytest.mark.parametrize(
+        ("rule_input", "expected"),
+        [
+            (
+                create_two_body_decay_spin_data(
+                    in_spin=Spin(1, 0),
+                    out_spin1=Spin(1, 0),
+                    out_spin2=Spin(1, 0),
+                    angular_momentum=Spin(1, 0),
+                    coupled_spin=Spin(0, 0),
+                ),
+                True,
             ),
-            True,
-        ),
-        (
-            create_two_body_decay_spin_data(
-                in_spin=Spin(1, 0),
-                out_spin1=Spin(1, 0),
-                out_spin2=Spin(1, 0),
-                angular_momentum=Spin(1, 0),
-                coupled_spin=Spin(1, 0),
+            (
+                create_two_body_decay_spin_data(
+                    in_spin=Spin(1, 0),
+                    out_spin1=Spin(1, 0),
+                    out_spin2=Spin(1, 0),
+                    angular_momentum=Spin(1, 0),
+                    coupled_spin=Spin(1, 0),
+                ),
+                False,
             ),
-            False,
-        ),
-        (
-            create_two_body_decay_spin_data(
-                in_spin=Spin(1, 1),
-                out_spin1=Spin(1, 1),
-                out_spin2=Spin(1, 0),
-                angular_momentum=Spin(1, 0),
-                coupled_spin=Spin(1, 0),
+            (
+                create_two_body_decay_spin_data(
+                    in_spin=Spin(1, 1),
+                    out_spin1=Spin(1, 1),
+                    out_spin2=Spin(1, 0),
+                    angular_momentum=Spin(1, 0),
+                    coupled_spin=Spin(1, 0),
+                ),
+                False,
             ),
-            False,
-        ),
-        (
-            create_two_body_decay_spin_data(
-                in_spin=Spin(1, 1),
-                out_spin1=Spin(1, 1),
-                out_spin2=Spin(1, 0),
-                angular_momentum=Spin(1, 0),
-                coupled_spin=Spin(1, 1),
+            (
+                create_two_body_decay_spin_data(
+                    in_spin=Spin(1, 1),
+                    out_spin1=Spin(1, 1),
+                    out_spin2=Spin(1, 0),
+                    angular_momentum=Spin(1, 0),
+                    coupled_spin=Spin(1, 1),
+                ),
+                True,
             ),
-            True,
-        ),
-        (
-            create_two_body_decay_spin_data(
-                in_spin=Spin(1, 0),
-                out_spin1=Spin(1, 1),
-                out_spin2=Spin(1, -1),
-                angular_momentum=Spin(1, 0),
-                coupled_spin=Spin(1, 0),
+            (
+                create_two_body_decay_spin_data(
+                    in_spin=Spin(1, 0),
+                    out_spin1=Spin(1, 1),
+                    out_spin2=Spin(1, -1),
+                    angular_momentum=Spin(1, 0),
+                    coupled_spin=Spin(1, 0),
+                ),
+                False,
             ),
-            False,
-        ),
-        (
-            create_two_body_decay_spin_data(
-                in_spin=Spin(1, 1),
-                out_spin1=Spin(1, 1),
-                out_spin2=Spin(1, -1),
-                angular_momentum=Spin(1, 1),
-                coupled_spin=Spin(1, 0),
+            (
+                create_two_body_decay_spin_data(
+                    in_spin=Spin(1, 1),
+                    out_spin1=Spin(1, 1),
+                    out_spin2=Spin(1, -1),
+                    angular_momentum=Spin(1, 1),
+                    coupled_spin=Spin(1, 0),
+                ),
+                True,
             ),
-            True,
-        ),
-        (
-            create_two_body_decay_spin_data(
-                in_spin=Spin(2, 0),
-                out_spin1=Spin(0, 0),
-                out_spin2=Spin(1, 1),
-                angular_momentum=Spin(2, 0),
-                coupled_spin=Spin(1, 0),
+            (
+                create_two_body_decay_spin_data(
+                    in_spin=Spin(2, 0),
+                    out_spin1=Spin(0, 0),
+                    out_spin2=Spin(1, 1),
+                    angular_momentum=Spin(2, 0),
+                    coupled_spin=Spin(1, 0),
+                ),
+                False,
             ),
-            False,
-        ),
-        (
-            create_two_body_decay_spin_data(
-                in_spin=Spin(3, 0),
-                out_spin1=Spin(1, 1),
-                out_spin2=Spin(1, -1),
-                angular_momentum=Spin(2, 0),
-                coupled_spin=Spin(1, 0),
+            (
+                create_two_body_decay_spin_data(
+                    in_spin=Spin(3, 0),
+                    out_spin1=Spin(1, 1),
+                    out_spin2=Spin(1, -1),
+                    angular_momentum=Spin(2, 0),
+                    coupled_spin=Spin(1, 0),
+                ),
+                True,
             ),
-            True,
-        ),
-    ],
-)
-def test_clebsch_gordan_ls_coupling(
-    rule_input: SpinRuleInputType,
-    expected: bool,
-):
-    assert spin_conservation(*rule_input) is expected
+        ],
+    )
+    def it_ls_coupling(
+        rule_input: SpinRuleInputType,
+        expected: bool,
+    ):
+        assert spin_conservation(*rule_input) is expected
 
-
-@pytest.mark.parametrize(
-    ("rule_input", "expected"),
-    [
-        (
-            create_two_body_decay_spin_data(
-                in_spin=Spin(1, 0),
-                out_spin1=Spin(1, 1),
-                out_spin2=Spin(1, 1),
-                angular_momentum=Spin(0, 0),
-                coupled_spin=Spin(1, 0),
+    @pytest.mark.parametrize(
+        ("rule_input", "expected"),
+        [
+            (
+                create_two_body_decay_spin_data(
+                    in_spin=Spin(1, 0),
+                    out_spin1=Spin(1, 1),
+                    out_spin2=Spin(1, 1),
+                    angular_momentum=Spin(0, 0),
+                    coupled_spin=Spin(1, 0),
+                ),
+                True,
             ),
-            True,
-        ),
-        (
-            create_two_body_decay_spin_data(
-                in_spin=Spin(1, 0),
-                out_spin1=Spin(1, 1),
-                out_spin2=Spin(1, -1),
-                angular_momentum=Spin(0, 0),
-                coupled_spin=Spin(1, 0),
+            (
+                create_two_body_decay_spin_data(
+                    in_spin=Spin(1, 0),
+                    out_spin1=Spin(1, 1),
+                    out_spin2=Spin(1, -1),
+                    angular_momentum=Spin(0, 0),
+                    coupled_spin=Spin(1, 0),
+                ),
+                False,
             ),
-            False,
-        ),
-        (
-            create_two_body_decay_spin_data(
-                in_spin=Spin(1, 0),
-                out_spin1=Spin(1, 1),
-                out_spin2=Spin(1, 1),
-                angular_momentum=Spin(1, 0),
-                coupled_spin=Spin(1, 0),
+            (
+                create_two_body_decay_spin_data(
+                    in_spin=Spin(1, 0),
+                    out_spin1=Spin(1, 1),
+                    out_spin2=Spin(1, 1),
+                    angular_momentum=Spin(1, 0),
+                    coupled_spin=Spin(1, 0),
+                ),
+                False,
             ),
-            False,
-        ),
-        (
-            create_two_body_decay_spin_data(
-                in_spin=Spin(1, -1),
-                out_spin1=Spin(1, 0),
-                out_spin2=Spin(1, 1),
-                angular_momentum=Spin(1, 0),
-                coupled_spin=Spin(1, -1),
+            (
+                create_two_body_decay_spin_data(
+                    in_spin=Spin(1, -1),
+                    out_spin1=Spin(1, 0),
+                    out_spin2=Spin(1, 1),
+                    angular_momentum=Spin(1, 0),
+                    coupled_spin=Spin(1, -1),
+                ),
+                True,
             ),
-            True,
-        ),
-        (
-            create_two_body_decay_spin_data(
-                in_spin=Spin(1.5, -0.5),
-                out_spin1=Spin(0.5, 0.5),
-                out_spin2=Spin(1, 1),
-                angular_momentum=Spin(1, 0),
-                coupled_spin=Spin(0.5, -0.5),
+            (
+                create_two_body_decay_spin_data(
+                    in_spin=Spin(1.5, -0.5),
+                    out_spin1=Spin(0.5, 0.5),
+                    out_spin2=Spin(1, 1),
+                    angular_momentum=Spin(1, 0),
+                    coupled_spin=Spin(0.5, -0.5),
+                ),
+                True,
             ),
-            True,
-        ),
-        (
-            create_two_body_decay_spin_data(
-                in_spin=Spin(1.5, -0.5),
-                out_spin1=Spin(0.5, 0.5),
-                out_spin2=Spin(1, 1),
-                angular_momentum=Spin(0, 0),
-                coupled_spin=Spin(0.5, -0.5),
+            (
+                create_two_body_decay_spin_data(
+                    in_spin=Spin(1.5, -0.5),
+                    out_spin1=Spin(0.5, 0.5),
+                    out_spin2=Spin(1, 1),
+                    angular_momentum=Spin(0, 0),
+                    coupled_spin=Spin(0.5, -0.5),
+                ),
+                True,
+                # This case does actually not work for spin magnitude reasons.
+                # However the spin magnitude rule is already filtering out such,
+                # cases that the Clebsch Gordan rule does not have to implement,
+                # this functionality.
             ),
-            True,
-            # This case does actually not work for spin magnitude reasons.
-            # However the spin magnitude rule is already filtering out such,
-            # cases that the Clebsch Gordan rule does not have to implement,
-            # this functionality.
-        ),
-        (
-            create_two_body_decay_spin_data(
-                in_spin=Spin(1.5, -0.5),
-                out_spin1=Spin(0.5, 0.5),
-                out_spin2=Spin(1, 1),
-                angular_momentum=Spin(0, 0),
-                coupled_spin=Spin(1.5, 0.5),
+            (
+                create_two_body_decay_spin_data(
+                    in_spin=Spin(1.5, -0.5),
+                    out_spin1=Spin(0.5, 0.5),
+                    out_spin2=Spin(1, 1),
+                    angular_momentum=Spin(0, 0),
+                    coupled_spin=Spin(1.5, 0.5),
+                ),
+                False,
             ),
-            False,
-        ),
-    ],
-)
-def test_clebsch_gordan_helicity_canonical(
-    rule_input: SpinRuleInputType,
-    expected: bool,
-):
-    assert clebsch_gordan_helicity_to_canonical(*rule_input) is expected
+        ],
+    )
+    def it_helicity_canonical(
+        rule_input: SpinRuleInputType,
+        expected: bool,
+    ):
+        assert clebsch_gordan_helicity_to_canonical(*rule_input) is expected
 
 
 @pytest.mark.parametrize(

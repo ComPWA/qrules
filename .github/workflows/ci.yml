@@ -36,5 +36,5 @@ jobs:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     with:
       coverage-python-version: "3.13"
-      macos-python-version: "3.10"
+      macos-python-version: "3.13"
       test-output-path: tests/output/

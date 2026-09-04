@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from qrules.transition import SpinFormalism
 
 
-class TestInteractionType:
+def describe_InteractionType():
     @pytest.mark.parametrize(
         ("description", "expected"),
         [
@@ -33,7 +33,7 @@ class TestInteractionType:
             ("non-existing", ValueError),
         ],
     )
-    def test_from_str(self, description: str, expected: InteractionType):
+    def it_from_str(description: str, expected: InteractionType):
         if expected is ValueError:
             with pytest.raises(ValueError, match=r"interaction type"):
                 assert InteractionType.from_str(description)

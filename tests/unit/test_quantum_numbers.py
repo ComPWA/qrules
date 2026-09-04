@@ -7,14 +7,14 @@ from qrules.io._labels import _render_fraction
 from qrules.quantum_numbers import Parity
 
 
-class TestParity:
-    def test_init_and_eq(self):
+def describe_Parity():
+    def it_init_and_eq():
         parity = Parity(+1)
         assert parity == +1
         assert int(parity) == +1
         assert parity > None
 
-    def test_comparison(self):
+    def it_comparison():
         neg = Parity(-1)
         pos = Parity(+1)
         assert pos > 0
@@ -27,23 +27,23 @@ class TestParity:
         assert neg <= 0
         assert pos > 0
 
-    def test_hash(self):
+    def it_hash():
         neg = Parity(-1)
         pos = Parity(+1)
         assert {pos, neg, deepcopy(pos)} == {neg, pos}
 
-    def test_neg(self):
+    def it_neg():
         parity = Parity(+1)
         flipped_parity = -parity
         assert flipped_parity.value == -parity.value
 
     @pytest.mark.parametrize("value", [-1, +1])
-    def test_repr(self, value):
+    def it_repr(value):
         parity = Parity(value)
         from_repr = eval(repr(parity))
         assert from_repr == parity
 
-    def test_exceptions(self):
+    def it_exceptions():
         with pytest.raises(TypeError):
             Parity(1.2)  # ty: ignore[invalid-argument-type]
         with pytest.raises(ValueError, match=r"Parity can only be \+1 or -1, not 0"):

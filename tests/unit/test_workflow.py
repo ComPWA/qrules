@@ -17,59 +17,57 @@ from qrules.workflow import (
 )
 
 
-class TestFilterIntermediateParticles:
-    def test_no_filter_selects_all(self, particle_database: ParticleCollection):
+def describe_AllowedIntermediateParticles():
+    def describe_exclude():
+        def it_drops_matching_names(particle_database: ParticleCollection):
+            selection = filter_intermediate_particles(
+                particle_database, ["f(0)(980)", "f(0)(1500)"]
+            )
+            assert selection.exclude("f(0)(1500)").names == ("f(0)(980)",)
+
+    def describe_select():
+        def it_narrows_a_filtered_selection(particle_database: ParticleCollection):
+            selection = filter_intermediate_particles(particle_database, "f(0)")
+            narrowed = selection.select(["f(0)(980)", "f(0)(1500)"])
+            assert narrowed.names == ("f(0)(980)", "f(0)(1500)")
+            assert len(narrowed.particles) == 2
+            assert narrowed.is_filtered
+
+        def it_narrows_an_unfiltered_selection(particle_database: ParticleCollection):
+            selection = filter_intermediate_particles(particle_database)
+            narrowed = selection.select(r"^f\(0\)\(9\d0\)", regex=True)
+            assert narrowed.names == ("f(0)(980)",)
+            assert narrowed.is_filtered
+
+        def it_raises_on_unmatched_pattern(particle_database: ParticleCollection):
+            selection = filter_intermediate_particles(particle_database, "f(0)")
+            with pytest.raises(LookupError, match="Delta"):
+                selection.select("Delta")
+
+
+def describe_filter_intermediate_particles():
+    def it_selects_all_without_filter(particle_database: ParticleCollection):
         selection = filter_intermediate_particles(particle_database)
         assert not selection.is_filtered
         assert len(selection.particles) == len(particle_database)
         assert len(selection.names) == len(particle_database)
 
-    def test_substring_pattern(self, particle_database: ParticleCollection):
+    def it_matches_substring_pattern(particle_database: ParticleCollection):
         selection = filter_intermediate_particles(particle_database, "f(0)(98")
         assert selection.names == ("f(0)(980)",)
         assert len(selection.particles) == 1
 
-    def test_regex_pattern(self, particle_database: ParticleCollection):
+    def it_matches_regex_pattern(particle_database: ParticleCollection):
         selection = filter_intermediate_particles(
             particle_database, r"f\(0\)\(9\d0\)", regex=True
         )
         assert selection.names == ("f(0)(980)",)
 
-    def test_unmatched_pattern_raises(self, particle_database: ParticleCollection):
+    def it_raises_on_unmatched_pattern(particle_database: ParticleCollection):
         with pytest.raises(LookupError, match="no such particle"):
             filter_intermediate_particles(particle_database, "no such particle")
 
-    def test_select(self, particle_database: ParticleCollection):
-        selection = filter_intermediate_particles(particle_database, "f(0)")
-        narrowed = selection.select(["f(0)(980)", "f(0)(1500)"])
-        assert narrowed.names == ("f(0)(980)", "f(0)(1500)")
-        assert len(narrowed.particles) == 2
-        assert narrowed.is_filtered
-
-    def test_exclude(self, particle_database: ParticleCollection):
-        selection = filter_intermediate_particles(
-            particle_database, ["f(0)(980)", "f(0)(1500)"]
-        )
-        assert selection.exclude("f(0)(1500)").names == ("f(0)(980)",)
-
-    def test_select_from_unfiltered_selection(
-        self, particle_database: ParticleCollection
-    ):
-        selection = filter_intermediate_particles(particle_database)
-        narrowed = selection.select(r"^f\(0\)\(9\d0\)", regex=True)
-        assert narrowed.names == ("f(0)(980)",)
-        assert narrowed.is_filtered
-
-    def test_select_unmatched_pattern_raises(
-        self, particle_database: ParticleCollection
-    ):
-        selection = filter_intermediate_particles(particle_database, "f(0)")
-        with pytest.raises(LookupError, match="Delta"):
-            selection.select("Delta")
-
-    def test_names_and_particles_stay_aligned(
-        self, particle_database: ParticleCollection
-    ):
+    def it_aligns_names_and_particles(particle_database: ParticleCollection):
         selection = filter_intermediate_particles(
             particle_database, ["f(0)(980)", "f(0)(1500)", "a(2)(1320)0"]
         )
@@ -78,19 +76,48 @@ class TestFilterIntermediateParticles:
         ]
 
 
-class TestInteractionConfig:
+def describe_find_solutions():
+    def it_requires_formalism(particle_database: ParticleCollection):
+        with pytest.raises(ValueError, match="Cannot infer the spin formalism"):
+            find_solutions(qn_problem_sets={}, particle_db=particle_database)
+
+    def it_requires_intermediate_particles(particle_database: ParticleCollection):
+        with pytest.raises(ValueError, match="Cannot infer the allowed intermediate"):
+            find_solutions(
+                qn_problem_sets={},
+                particle_db=particle_database,
+                formalism="helicity",
+            )
+
+    def it_honors_fast_solving_mode(particle_database: ParticleCollection):
+        def count_transitions(solving_mode: SolvingMode) -> int:
+            qn_problem_sets = create_qn_problem_sets(
+                initial_state=["J/psi(1S)"],
+                final_state=["gamma", "pi0", "pi0"],
+                particle_db=particle_database,
+            )
+            reaction = find_solutions(
+                qn_problem_sets, particle_database, solving_mode=solving_mode
+            )
+            return len(reaction.transitions)
+
+        assert count_transitions(SolvingMode.FULL) == 294
+        assert count_transitions(SolvingMode.FAST) == 90
+
+
+def describe_InteractionConfig():
     @pytest.fixture
-    def config(self, particle_database: ParticleCollection) -> InteractionConfig:
+    def config(particle_database: ParticleCollection) -> InteractionConfig:
         return InteractionConfig(
             type_settings=create_interaction_settings(
                 "helicity", particle_db=particle_database
             )
         )
 
-    def test_default_allowed_types(self, config: InteractionConfig):
+    def it_allows_all_types_by_default(config: InteractionConfig):
         assert config.get_allowed_interaction_types() == list(DEFAULT_INTERACTION_TYPES)
 
-    def test_set_globally_and_per_node(self, config: InteractionConfig):
+    def it_sets_types_globally_and_per_node(config: InteractionConfig):
         config.set_allowed_interaction_types([InteractionType.STRONG])
         assert config.get_allowed_interaction_types(node_id=0) == [
             InteractionType.STRONG
@@ -101,14 +128,33 @@ class TestInteractionConfig:
             DEFAULT_INTERACTION_TYPES
         )
 
-    def test_non_interaction_type_raises(self, config: InteractionConfig):
+    def it_raises_on_non_interaction_type(config: InteractionConfig):
         with pytest.raises(TypeError, match="must be of type"):
             config.set_allowed_interaction_types(["strong"])  # ty: ignore[invalid-argument-type]
 
-    def test_unknown_interaction_type_raises(self):
+    def it_raises_on_unknown_interaction_type():
         config = InteractionConfig(type_settings={})
         with pytest.raises(ValueError, match="not found in settings"):
             config.set_allowed_interaction_types([InteractionType.WEAK])
+
+
+@pytest.mark.parametrize(
+    ("initial_state", "final_state", "expected_strengths"),
+    [
+        (["gamma"], ["pi0", "pi0", "pi0"], [0.0001, 1.0, 60.0]),
+        (["nu(e)"], ["e-", "pi0", "pi+"], [1e-08, 0.0001, 0.006]),
+    ],
+)
+def test_initial_state_restricts_interaction_types(
+    initial_state: list[str],
+    final_state: list[str],
+    expected_strengths: list[float],
+    particle_database: ParticleCollection,
+):
+    qn_problem_sets = create_qn_problem_sets(
+        initial_state, final_state, particle_database
+    )
+    assert sorted(qn_problem_sets.problem_sets) == expected_strengths
 
 
 def test_pipeline_reproduces_state_transition_manager(reaction: ReactionInfo):
@@ -138,54 +184,3 @@ def test_pipeline_reproduces_state_transition_manager(reaction: ReactionInfo):
     )
     workflow_reaction = find_solutions(qn_problem_sets, particle_db)
     assert workflow_reaction == reaction
-
-
-def test_find_solutions_requires_formalism(particle_database: ParticleCollection):
-    with pytest.raises(ValueError, match="Cannot infer the spin formalism"):
-        find_solutions(qn_problem_sets={}, particle_db=particle_database)
-
-
-def test_find_solutions_requires_intermediate_particles(
-    particle_database: ParticleCollection,
-):
-    with pytest.raises(ValueError, match="Cannot infer the allowed intermediate"):
-        find_solutions(
-            qn_problem_sets={},
-            particle_db=particle_database,
-            formalism="helicity",
-        )
-
-
-@pytest.mark.parametrize(
-    ("initial_state", "final_state", "expected_strengths"),
-    [
-        (["gamma"], ["pi0", "pi0", "pi0"], [0.0001, 1.0, 60.0]),
-        (["nu(e)"], ["e-", "pi0", "pi+"], [1e-08, 0.0001, 0.006]),
-    ],
-)
-def test_initial_state_restricts_interaction_types(
-    initial_state: list[str],
-    final_state: list[str],
-    expected_strengths: list[float],
-    particle_database: ParticleCollection,
-):
-    qn_problem_sets = create_qn_problem_sets(
-        initial_state, final_state, particle_database
-    )
-    assert sorted(qn_problem_sets.problem_sets) == expected_strengths
-
-
-def test_fast_solving_mode(particle_database: ParticleCollection):
-    def count_transitions(solving_mode: SolvingMode) -> int:
-        qn_problem_sets = create_qn_problem_sets(
-            initial_state=["J/psi(1S)"],
-            final_state=["gamma", "pi0", "pi0"],
-            particle_db=particle_database,
-        )
-        reaction = find_solutions(
-            qn_problem_sets, particle_database, solving_mode=solving_mode
-        )
-        return len(reaction.transitions)
-
-    assert count_transitions(SolvingMode.FULL) == 294
-    assert count_transitions(SolvingMode.FAST) == 90
