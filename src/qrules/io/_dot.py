@@ -83,33 +83,23 @@ class GraphvizPrinter:
         raise NotImplementedError(msg)
 
     def _render_multiple_transitions(self, obj: Iterable) -> list[str]:
-        transitions = _labels.prepare_transitions(
+        transitions = _labels.select_transitions(
             obj,
             collapse=self.collapse,
             render_node=self.render_node,
         )
         lines = []
-        for i, graph in enumerate(reversed(list(transitions))):
+        for i, graph in enumerate(reversed(transitions)):
             lines += self._render_transition(graph, prefix=f"T{i}_")
         return lines
 
-    def _render_transition(  # ruff: ignore[complex-structure, too-many-branches, too-many-statements]
+    def _render_transition(  # ruff: ignore[complex-structure, too-many-branches]
         self,
         obj: _labels.RenderInput,
         prefix: str = "",
     ) -> list[str]:
         lines: list[str] = []
-        if _labels.is_render_pair(obj):
-            topology, rendered_graph = obj
-        elif isinstance(obj, (ProblemSet, QNProblemSet, Transition)):
-            rendered_graph = obj
-            topology = obj.topology
-        elif isinstance(obj, Topology):
-            rendered_graph = obj
-            topology = obj
-        else:
-            msg = f"Cannot render {type(obj).__name__} as dot"
-            raise NotImplementedError(msg)
+        topology, rendered_graph = _labels.unpack_render_input(obj)
         for edge_id in topology.incoming_edge_ids | topology.outgoing_edge_ids:
             if edge_id in topology.incoming_edge_ids:
                 render = self.render_initial_state_id

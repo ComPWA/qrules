@@ -24,7 +24,7 @@ if TYPE_CHECKING:
     from _typeshed import StrPath
 
 
-def asdict(instance: object) -> dict:
+def asdict(instance: object, /) -> dict:
     if isinstance(instance, ParticleCollection):
         return _dict.from_particle_collection(instance)
     if attrs.has(type(instance)):
@@ -33,7 +33,7 @@ def asdict(instance: object) -> dict:
     raise NotImplementedError(msg)
 
 
-def fromdict(definition: dict) -> object:
+def fromdict(definition: dict, /) -> object:
     keys = set(definition.keys())
     if keys >= __REQUIRED_PARTICLE_FIELDS:
         return _dict.build_particle(definition)
@@ -59,6 +59,7 @@ __REQUIRED_TOPOLOGY_FIELDS = {
 
 def asdot(
     instance: object,
+    /,
     *,
     render_node: bool | None = None,
     render_final_state_id: bool = True,
@@ -79,9 +80,9 @@ def asdot(
 
         collapse: Optionally combine transitions. With ``"spin"``, transitions that
             differ only in their spin projections are combined. With ``"topology"``,
-            transitions with equivalent kinematic topologies are grouped and all
-            allowed particles on each edge are collected. Node properties cannot be
-            rendered when collapsing by topology.
+            transitions with equivalent kinematic topologies are grouped and all allowed
+            particles on each edge are collected. Node properties cannot be rendered
+            when collapsing by topology.
 
         render_node: Whether or not to render node ID (in the case of a `.Topology`)
             and/or node properties (in the case of a `.MutableTransition`). Meaning of
@@ -123,6 +124,7 @@ def asdot(
 
 def asmermaid(
     instance: object,
+    /,
     *,
     render_node: bool | None = None,
     render_final_state_id: bool = True,
@@ -148,7 +150,8 @@ def asmermaid(
             differ only in their spin projections are combined. With ``"topology"``,
             transitions with equivalent kinematic topologies are grouped and all allowed
             particles on each edge are collected. Node properties cannot be rendered
-            when collapsing by topology.
+            when collapsing by topology. With LaTeX rendering, particle lists longer
+            than six entries are arranged in columns of at most six rows.
 
         render_node: Whether or not to render node ID (in the case of a `.Topology`)
             and/or node properties (in the case of a `.MutableTransition`). Meaning of
