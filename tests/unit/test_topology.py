@@ -20,8 +20,8 @@ from qrules.topology import (
 )
 
 
-class TestEdge:
-    def test_get_connected_nodes(self):
+def describe_Edge():
+    def it_get_connected_nodes():
         edge = Edge(1, 2)
         assert edge.get_connected_nodes() == {1, 2}
         edge = Edge(originating_node_id=3)
@@ -30,7 +30,7 @@ class TestEdge:
         assert edge.get_connected_nodes() == {4}
 
     @typing.no_type_check
-    def test_immutability(self):
+    def it_immutability():
         edge = Edge(1, 2)
         with pytest.raises(FrozenInstanceError):
             edge.originating_node_id = None
@@ -42,8 +42,8 @@ class TestEdge:
             edge.ending_node_id += 1
 
 
-class TestFrozenDict:
-    def test_hash(self):
+def describe_FrozenDict():
+    def it_hash():
         obj: FrozenDict = FrozenDict({})
         if sys.version_info >= (3, 14):
             assert _compute_hash(obj) == "94a4fe9b33e3b76ae80a8ad180793f4e"
@@ -68,8 +68,8 @@ class TestFrozenDict:
             assert _compute_hash(obj) == "8568f73c07fce099311f010061f070c6"
 
 
-class TestInteractionNode:
-    def test_constructor_exceptions(self):
+def describe_InteractionNode():
+    def it_constructor_exceptions():
         with pytest.raises(TypeError):
             assert InteractionNode(
                 number_of_ingoing_edges="has to be int",  # ty: ignore[invalid-argument-type]
@@ -98,8 +98,8 @@ class TestInteractionNode:
             )
 
 
-class TestMutableTopology:
-    def test_add_and_attach(self, two_to_three_decay: Topology):
+def describe_MutableTopology():
+    def it_add_and_attach(two_to_three_decay: Topology):
         topology = MutableTopology(
             edges=two_to_three_decay.edges,
             nodes=two_to_three_decay.nodes,
@@ -115,7 +115,7 @@ class TestMutableTopology:
         topology.attach_edges_to_node_ingoing([2], 3)
         assert isinstance(topology.organize_edge_ids().freeze(), Topology)
 
-    def test_add_exceptions(self, two_to_three_decay: Topology):
+    def it_add_exceptions(two_to_three_decay: Topology):
         topology = MutableTopology(
             edges=two_to_three_decay.edges,
             nodes=two_to_three_decay.nodes,
@@ -137,7 +137,7 @@ class TestMutableTopology:
         with pytest.raises(ValueError, match=r"Edge nr. 5 does not exist"):
             topology.attach_edges_to_node_outgoing([5], 2)
 
-    def test_organize_edge_ids(self):
+    def it_organize_edge_ids():
         topology = MutableTopology(
             nodes={0, 1, 2},
             edges={
@@ -155,15 +155,15 @@ class TestMutableTopology:
         assert sorted(topology.edges) == [-2, -1, 0, 1, 2, 3, 4]
 
 
-class TestSimpleStateTransitionTopologyBuilder:
-    def test_two_body_states(self):
+def describe_SimpleStateTransitionTopologyBuilder():
+    def it_two_body_states():
         two_body_decay_node = InteractionNode(1, 2)
         simple_builder = SimpleStateTransitionTopologyBuilder([two_body_decay_node])
         all_graphs = simple_builder.build(1, 3)
         assert len(all_graphs) == 1
 
 
-class TestTopology:
+def describe_Topology():
     @pytest.mark.parametrize(
         ("nodes", "edges"),
         [
@@ -191,7 +191,7 @@ class TestTopology:
             ),
         ],
     )
-    def test_constructor(self, nodes, edges):
+    def it_constructor(nodes, edges):
         topology = Topology(nodes, edges)
         if nodes is None:
             nodes = set()
@@ -210,26 +210,26 @@ class TestTopology:
             ({0, 1}, {0: Edge(0, None), 1: Edge(None, 1)}),
         ],
     )
-    def test_constructor_exceptions(self, nodes, edges):
+    def it_constructor_exceptions(nodes, edges):
         with pytest.raises(
             ValueError,
             match=r"(not connected to any other node|has non-existing node IDs)",
         ):
             assert Topology(nodes, edges)
 
-    def test_hash(self, two_to_three_decay: Topology):
+    def it_hash(two_to_three_decay: Topology):
         if sys.version_info >= (3, 14):
             assert _compute_hash(two_to_three_decay)[:7] == "453a92e"
         else:
             assert _compute_hash(two_to_three_decay)[:7] == "cbaea5d"
 
     @pytest.mark.parametrize("repr_method", [repr, pretty])
-    def test_repr_and_eq(self, repr_method, two_to_three_decay: Topology):
+    def it_repr_and_eq(repr_method, two_to_three_decay: Topology):
         topology = eval(repr_method(two_to_three_decay))
         assert topology == two_to_three_decay
         assert topology != 0.0
 
-    def test_getters(self, two_to_three_decay: Topology):
+    def it_getters(two_to_three_decay: Topology):
         topology = two_to_three_decay  # shorter name
         assert topology.incoming_edge_ids == {-2, -1}
         assert topology.outgoing_edge_ids == {0, 1, 2}
@@ -238,7 +238,7 @@ class TestTopology:
         assert get_originating_node_list(topology, edge_ids=[1, 2]) == [2, 2]
 
     @typing.no_type_check
-    def test_immutability(self, two_to_three_decay: Topology):
+    def it_immutability(two_to_three_decay: Topology):
         with pytest.raises(FrozenInstanceError):
             two_to_three_decay.edges = {0: Edge(None, None)}
         with pytest.raises(TypeError):
@@ -253,7 +253,7 @@ class TestTopology:
             node += 666
         assert two_to_three_decay.nodes == {0, 1, 2}
 
-    def test_relabel_edges(self, two_to_three_decay: Topology):
+    def it_relabel_edges(two_to_three_decay: Topology):
         edge_ids = set(two_to_three_decay.edges)
         relabeled_topology = two_to_three_decay.relabel_edges({0: 1, 1: 0})
         assert set(relabeled_topology.edges) == edge_ids
@@ -262,7 +262,7 @@ class TestTopology:
         relabeled_topology = relabeled_topology.relabel_edges({3: 4})
         assert set(relabeled_topology.edges) == edge_ids
 
-    def test_swap_edges(self, two_to_three_decay: Topology):
+    def it_swap_edges(two_to_three_decay: Topology):
         original_topology = two_to_three_decay
         topology = original_topology.swap_edges(-2, -1)
         assert topology == original_topology
@@ -272,7 +272,7 @@ class TestTopology:
         assert topology != original_topology
 
     @pytest.mark.parametrize("n_final_states", [2, 3, 4, 5, 6])
-    def test_unique_ordering(self, n_final_states):
+    def it_unique_ordering(n_final_states):
         topologies = create_isobar_topologies(n_final_states)
         assert sorted(topologies) == list(topologies)
 
