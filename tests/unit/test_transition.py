@@ -7,12 +7,7 @@ from fractions import Fraction
 import pytest
 from IPython.lib.pretty import pretty
 
-from qrules.particle import (  # ruff: ignore[unused-import]
-    Parity,
-    Particle,
-    ParticleCollection,
-    Spin,
-)
+from qrules.particle import Parity, Particle, ParticleCollection, Spin  # ruff: ignore[unused-import]
 from qrules.quantum_numbers import InteractionProperties  # ruff: ignore[unused-import]
 from qrules.settings import InteractionType
 from qrules.topology import (  # ruff: ignore[unused-import]
