@@ -3,6 +3,7 @@ from fractions import Fraction
 from textwrap import dedent
 
 import attrs
+import pytest
 
 import qrules
 from qrules.io._labels import (
@@ -11,6 +12,7 @@ from qrules.io._labels import (
     collapse_graphs,
     create_edge_label,
     get_particle_graphs,
+    select_transitions,
     strip_projections,
 )
 from qrules.particle import Particle, ParticleCollection
@@ -353,6 +355,44 @@ def test_get_particle_graphs(
     assert len(graphs[0].topology.edges) == 5
     for i in range(-1, 3):
         assert graphs[0].states[i] is graphs[1].states[i]
+
+
+def describe_select_transitions():
+    def it_keeps_all_transitions(reaction: ReactionInfo):
+        transitions = reaction.transitions
+        selection = select_transitions(transitions, collapse=None, render_node=False)
+        assert selection == list(transitions)
+
+    def it_collapses_spin_into_particle_graphs(reaction: ReactionInfo):
+        transitions = reaction.transitions
+        selection = select_transitions(transitions, collapse="spin", render_node=False)
+        assert selection == get_particle_graphs(transitions)
+
+    def it_strips_projections_when_rendering_nodes(reaction: ReactionInfo):
+        transitions = reaction.transitions
+        selection = select_transitions(transitions, collapse="spin", render_node=True)
+        assert selection == sorted({strip_projections(t) for t in transitions})
+
+    def it_collapses_topologies(reaction: ReactionInfo):
+        transitions = reaction.transitions
+        selection = select_transitions(
+            transitions, collapse="topology", render_node=False
+        )
+        assert selection == collapse_graphs(transitions)
+
+    def it_rejects_node_properties_on_collapsed_topologies(reaction: ReactionInfo):
+        with pytest.raises(ValueError, match="cannot render node properties"):
+            select_transitions(
+                reaction.transitions, collapse="topology", render_node=True
+            )
+
+    def it_rejects_an_unknown_mode(reaction: ReactionInfo):
+        with pytest.raises(ValueError, match="Unknown collapse mode 'invalid'"):
+            select_transitions(
+                reaction.transitions,
+                collapse="invalid",  # ty: ignore[invalid-argument-type]
+                render_node=False,
+            )
 
 
 def test_strip_projections(skh_particle_version: str):
