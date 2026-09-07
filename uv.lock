@@ -1955,6 +1955,19 @@ wheels = [
 ]
 
 [[package]]
+name = "pdg"
+version = "2026.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "sqlalchemy" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/77/07/d582d4ae647b301ff499a04db4cdaa85681c3bc86c1739b1a4f5c765f4af/pdg-2026.0.tar.gz", hash = "sha256:15b5c2971448608b0f78796c33c16ca3ccf0d593028803702f6e66cfa62e565f", size = 8244310, upload-time = "2026-06-01T22:10:28.028Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c2/9d/d37fbde4b234bad0e788982f550e53c06439a386452a42436e928ecae115/pdg-2026.0-py3-none-any.whl", hash = "sha256:681e11f8c9a5accb1cb41ccb87bf7efd398adec8ea39ddb894630b17b45c8e8a", size = 8289676, upload-time = "2026-06-01T22:10:25.672Z" },
+]
+
+[[package]]
 name = "pexpect"
 version = "4.9.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2584,6 +2597,7 @@ dependencies = [
     { name = "frozendict" },
     { name = "jsonschema" },
     { name = "particle" },
+    { name = "pdg" },
     { name = "python-constraint2", version = "2.5.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "python-constraint2", version = "2.7.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "pyyaml" },
@@ -2709,6 +2723,7 @@ requires-dist = [
     { name = "graphviz", marker = "extra == 'viz'" },
     { name = "jsonschema" },
     { name = "particle" },
+    { name = "pdg", specifier = ">=2026.0,<2027" },
     { name = "python-constraint2" },
     { name = "pyyaml" },
     { name = "tqdm", specifier = ">=4.24.0" },
