@@ -112,3 +112,18 @@ def test_flavor_numbers_match_current_loader(
 
 def test_prefers_official_spin(official_particles: ParticleCollection):
     assert official_particles.find(104122).spin == Fraction(3, 2)
+
+
+@pytest.mark.parametrize(
+    ("mcid", "width"),
+    [
+        (9010221, 0.055),  # 10 to 100 MeV
+        (2224, 0.117),  # 114 to 117 to 120 MeV
+    ],
+)
+def test_uses_central_value_for_width_ranges(
+    official_particles: ParticleCollection,
+    mcid: int,
+    width: float,
+):
+    assert official_particles.find(mcid).width == pytest.approx(width)

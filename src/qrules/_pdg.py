@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import re
 from fractions import Fraction
 from typing import TYPE_CHECKING
 
 import pdg
+from pdg.units import convert
 
 from qrules.particle import Particle, ParticleCollection, Spin
 from qrules.quantum_numbers import Parity
@@ -178,7 +180,27 @@ def _range_central_value(
     summary = prop.best_summary()
     if summary is None or summary.is_lower_limit or summary.is_upper_limit:
         return None
-    return summary.get_value("GeV")
+    value = summary.get_value("GeV")
+    if value is not None:
+        return value
+    range_value = _central_value_from_range(summary.value_text)
+    if range_value is None:
+        return None
+    return convert(range_value, summary.units, "GeV")
+
+
+def _central_value_from_range(value: str) -> float | None:
+    """Select the preferred value, or midpoint, from a PDG range."""
+    components = re.split(r"\s+to\s+", value.strip(), flags=re.IGNORECASE)
+    if len(components) not in {2, 3}:
+        return None
+    try:
+        numbers = [float(component) for component in components]
+    except ValueError:
+        return None
+    if len(numbers) == 3:
+        return numbers[1]
+    return sum(numbers) / 2
 
 
 def _to_fraction(value: str | None) -> Fraction | None:
