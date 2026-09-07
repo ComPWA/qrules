@@ -1,7 +1,10 @@
 from fractions import Fraction
+from unittest.mock import MagicMock, PropertyMock
 
 import pytest
+from pdg.errors import PdgNoDataError
 
+from qrules._pdg import _to_mass, _to_width
 from qrules._pdg import load_pdg as load_official_pdg
 from qrules.particle import ParticleCollection
 from qrules.particle import load_pdg as load_scikit_hep_pdg
@@ -135,6 +138,45 @@ def test_flavor_numbers_match_current_loader(
 
 def test_prefers_official_spin(official_particles: ParticleCollection):
     assert official_particles.find(104122).spin == Fraction(3, 2)
+
+
+def test_uses_measured_mass_and_width(official_particles: ParticleCollection):
+    rho = official_particles.find(113)
+    assert rho.mass == pytest.approx(0.7752611563582926)
+    assert rho.width == pytest.approx(0.14739133387028722)
+
+
+def test_derives_width_from_lifetime(official_particles: ParticleCollection):
+    muon = official_particles.find(13)
+    assert muon.width == pytest.approx(2.9959292110062035e-19)
+
+
+def test_uses_zero_width_for_stable_particle(
+    official_particles: ParticleCollection,
+):
+    assert official_particles.find(22).width == 0.0
+
+
+def test_uses_antiparticle_mass_if_particle_has_no_mass():
+    source = MagicMock(self_conjugate=False, mcid=1, name="particle")
+    source.has_mass_entry = False
+    type(source).mass = PropertyMock(side_effect=PdgNoDataError("no mass"))
+    source.antiparticle.has_mass_entry = True
+    source.antiparticle.mass = 0.5
+
+    assert _to_mass(source) == 0.5
+
+
+def test_uses_antiparticle_width_if_particle_has_no_decay_data():
+    source = MagicMock(self_conjugate=False)
+    source.has_width_entry = False
+    source.has_lifetime_entry = False
+    source.width = 0.0
+    source.antiparticle.has_width_entry = True
+    source.antiparticle.has_lifetime_entry = False
+    source.antiparticle.width = 0.25
+
+    assert _to_width(source) == 0.25
 
 
 @pytest.mark.parametrize(

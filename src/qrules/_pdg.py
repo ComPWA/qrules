@@ -7,6 +7,7 @@ from fractions import Fraction
 from typing import TYPE_CHECKING
 
 import pdg
+from pdg.errors import PdgNoDataError
 from pdg.units import convert
 
 from qrules._pdg_latex import create_latex_name
@@ -145,13 +146,15 @@ def _to_spin(value: str | None, mcid: int, *, is_hadron: bool) -> Fraction:
 
 def _to_mass(source: PdgParticle) -> float:
     for candidate in _particle_and_antiparticle(source):
-        if candidate.has_mass_entry:
+        try:
             mass = candidate.mass
-            if mass is not None:
-                return mass
-            mass = _range_central_value(candidate, quantity="mass")
-            if mass is not None:
-                return mass
+        except PdgNoDataError:
+            continue
+        if mass is not None:
+            return mass
+        mass = _range_central_value(candidate, quantity="mass")
+        if mass is not None:
+            return mass
     if abs(source.mcid) in {12, 14, 16, 21, 22}:
         return 0.0
     msg = f"Particle {source.name} has no supported mass value"
@@ -160,10 +163,11 @@ def _to_mass(source: PdgParticle) -> float:
 
 def _to_width(source: PdgParticle) -> float:
     for candidate in _particle_and_antiparticle(source):
-        if candidate.has_width_entry or candidate.has_lifetime_entry:
-            width = candidate.width
-            if width is not None:
+        width = candidate.width
+        if width is not None:
+            if width > 0:
                 return width
+        else:
             width = _range_central_value(candidate, quantity="width")
             if width is not None:
                 return width
