@@ -45,6 +45,29 @@ def test_uses_official_names(
     assert official_particles.find(mcid).name == name
 
 
+def test_all_particles_have_latex(official_particles: ParticleCollection):
+    assert all(particle.latex is not None for particle in official_particles)
+
+
+@pytest.mark.parametrize(
+    ("mcid", "latex"),
+    [
+        (12, R"\nu_{e}"),
+        (211, R"\pi^{+}"),
+        (-2212, R"\overline{p}"),
+        (443, R"J/\psi(1S)"),
+        (9010221, R"f_{0}(980)"),
+        (5122, R"\Lambda_{b}^{0}"),
+    ],
+)
+def test_uses_generated_latex(
+    official_particles: ParticleCollection,
+    mcid: int,
+    latex: str,
+):
+    assert official_particles.find(mcid).latex == latex
+
+
 def test_pion_quantum_numbers(official_particles: ParticleCollection):
     pion = official_particles.find(211)
     assert pion.spin == 0

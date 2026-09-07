@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 import pdg
 from pdg.units import convert
 
+from qrules._pdg_latex import create_latex_name
 from qrules.particle import Particle, ParticleCollection, Spin
 from qrules.quantum_numbers import Parity
 
@@ -96,6 +97,11 @@ def _convert_particle(source: PdgParticle) -> Particle:
 
     return Particle(
         name=source.name,
+        latex=create_latex_name(
+            source.name,
+            isospin=source.quantum_I,
+            self_conjugate=source.self_conjugate,
+        ),
         pid=mcid,
         spin=spin,
         mass=mass,
