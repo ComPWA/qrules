@@ -38,6 +38,8 @@
     "pyproject.toml"
   ],
   "ignoreWords": [
+    "Dbar",
+    "Kbar",
     "Xibar",
     "adrs",
     "ampform",
@@ -95,6 +97,7 @@
     "mimetype",
     "modindex",
     "mystnb",
+    "nbar",
     "nbconvert",
     "nbformat",
     "nbody",

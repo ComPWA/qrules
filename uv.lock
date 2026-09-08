@@ -973,15 +973,6 @@ wheels = [
 ]
 
 [[package]]
-name = "hepunits"
-version = "2.4.6"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/e7/1f/c5f7525bf7e5d14d61750f91845f9f9350a8f33f5ac95672cec92f317038/hepunits-2.4.6.tar.gz", hash = "sha256:bca6ada937147166d66e9fa152566f2378868d798211cad6990080399560fa34", size = 17985, upload-time = "2026-06-16T09:23:36.685Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/85/10/7f9c58d1ec6a0b7f7783fe552f3593f39cda30c2e1d7a9d148ae711e748d/hepunits-2.4.6-py3-none-any.whl", hash = "sha256:089c52c3b84ef67a159b5e9ee9bdd50e1a442e3fd0c101303cc409c1e9011c4d", size = 17090, upload-time = "2026-06-16T09:23:35.35Z" },
-]
-
-[[package]]
 name = "httpcore"
 version = "1.0.9"
 source = { registry = "https://pypi.org/simple" }
@@ -1933,19 +1924,6 @@ wheels = [
 ]
 
 [[package]]
-name = "particle"
-version = "1.0.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "attrs" },
-    { name = "hepunits" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/c3/66/09911bbb658fdffe960903c12edecab95f6cced40fef4909d1cc04bd288b/particle-1.0.0.tar.gz", hash = "sha256:49145dec1cb5044b07f3e8e902280fa050950fa845b058003e69de519bb50492", size = 285766, upload-time = "2026-06-25T14:48:26.893Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/a8/92/05078b696cddbdd60963577c895d5b77e5bf829197b08677351b11761c2b/particle-1.0.0-py3-none-any.whl", hash = "sha256:fc2656f53e729be76e45430f56aa65dc20dea069565a393032016544425b64bf", size = 245760, upload-time = "2026-06-25T14:48:25.238Z" },
-]
-
-[[package]]
 name = "pathspec"
 version = "1.1.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2596,7 +2574,6 @@ dependencies = [
     { name = "attrs" },
     { name = "frozendict" },
     { name = "jsonschema" },
-    { name = "particle" },
     { name = "pdg" },
     { name = "python-constraint2", version = "2.5.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "python-constraint2", version = "2.7.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
@@ -2722,7 +2699,6 @@ requires-dist = [
     { name = "frozendict" },
     { name = "graphviz", marker = "extra == 'viz'" },
     { name = "jsonschema" },
-    { name = "particle" },
     { name = "pdg", specifier = ">=2026.0,<2027" },
     { name = "python-constraint2" },
     { name = "pyyaml" },

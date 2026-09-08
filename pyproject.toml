@@ -39,7 +39,6 @@ dependencies = [
     "attrs >=20.1.0",  # on_setattr and https://www.attrs.org/en/stable/api.html#next-gen
     "frozendict",
     "jsonschema",
-    "particle",
     "pdg >=2026.0,<2027",
     "python-constraint2",
     "tqdm >=4.24.0",  # autonotebook

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from fractions import Fraction
+from functools import cache
 from typing import TYPE_CHECKING
 
 import pdg
@@ -32,16 +33,26 @@ class _UnsupportedParticleError(ValueError):
 
 
 def load_pdg() -> ParticleCollection:
-    """Load particle definitions from the official PDG database."""
+    """Load particle definitions from the official PDG database.
+
+    The converted particle definitions are cached, while each call returns a new
+    collection that callers can modify independently.
+    """
+    return ParticleCollection(_load_pdg_particles())
+
+
+@cache
+def _load_pdg_particles() -> tuple[Particle, ...]:
+    """Load and cache immutable particle definitions from the PDG database."""
     api = pdg.connect()
-    particles = ParticleCollection()
+    particles = []
     for source_particle in _iter_particles(api):
         try:
             particle = _convert_particle(source_particle)
         except _UnsupportedParticleError:
             continue
-        particles.add(particle)
-    return particles
+        particles.append(particle)
+    return tuple(particles)
 
 
 def _iter_particles(api: PdgApi) -> Iterator[PdgParticle]:
