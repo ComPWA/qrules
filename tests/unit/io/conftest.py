@@ -20,7 +20,7 @@ def particle_selection(particle_database: ParticleCollection):
 def stm() -> StateTransitionManager:
     stm = StateTransitionManager(
         initial_state=[("J/psi(1S)", [+1])],
-        final_state=["K0", ("Sigma+", [+0.5]), ("p~", [+0.5])],
+        final_state=["K0", ("Sigma+", [+0.5]), ("pbar", [+0.5])],
         allowed_intermediate_particles=["Sigma(1750)"],
         formalism="canonical-helicity",
     )

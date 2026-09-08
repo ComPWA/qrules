@@ -27,7 +27,7 @@ def describe_MutableTransition():
     def it_intermediate_states():
         stm = StateTransitionManager(
             initial_state=[("J/psi(1S)", [-1, +1])],
-            final_state=["K0", "Sigma+", "p~"],
+            final_state=["K0", "Sigma+", "pbar"],
             allowed_intermediate_particles=["N(1700)", "Sigma(1750)"],
             formalism="helicity",
             mass_conservation_factor=0,
@@ -109,7 +109,7 @@ def describe_StateTransitionManager():
     def it_allowed_intermediate_particles():
         stm = StateTransitionManager(
             initial_state=[("J/psi(1S)", list(map(Fraction, [-1, +1])))],
-            final_state=["p", "p~", "eta"],
+            final_state=["p", "pbar", "eta"],
         )
         particle_name = "N(753)"
         with pytest.raises(
@@ -122,7 +122,7 @@ def describe_StateTransitionManager():
         ("initial_state", "expected_strengths"),
         [
             (["gamma"], [0.0001, 1.0, 60.0]),
-            (["nu(e)"], [1e-08, 0.0001, 0.006]),
+            (["nu_e"], [1e-08, 0.0001, 0.006]),
         ],
     )
     def it_initial_state_restricts_interaction_types(
@@ -147,7 +147,7 @@ def describe_StateTransitionManager():
 
     def it_regex_pattern():
         stm = StateTransitionManager(
-            initial_state=["Lambda(c)+"],
+            initial_state=["Lambda_c()+"],
             final_state=["p", "K-", "pi+"],
             allowed_intermediate_particles=["Delta"],
         )

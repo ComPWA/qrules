@@ -4,10 +4,9 @@ from unittest.mock import MagicMock, PropertyMock
 import pytest
 from pdg.errors import PdgNoDataError
 
-from qrules._pdg import _to_mass, _to_width
+from qrules._pdg import _load_pdg_particles, _to_mass, _to_width
 from qrules._pdg import load_pdg as load_official_pdg
-from qrules.particle import ParticleCollection
-from qrules.particle import load_pdg as load_scikit_hep_pdg
+from qrules.particle import ParticleCollection, load_pdg
 from qrules.quantum_numbers import Parity
 
 
@@ -16,18 +15,22 @@ def official_particles() -> ParticleCollection:
     return load_official_pdg()
 
 
-@pytest.fixture(scope="module")
-def scikit_hep_particles() -> ParticleCollection:
-    return load_scikit_hep_pdg()
-
-
-def test_current_mcids_are_covered(
+def test_caches_particle_definitions_and_returns_independent_collections(
     official_particles: ParticleCollection,
-    scikit_hep_particles: ParticleCollection,
 ):
-    official_mcids = {particle.pid for particle in official_particles}
-    current_mcids = {particle.pid for particle in scikit_hep_particles}
-    assert current_mcids <= official_mcids
+    cache_info_before = _load_pdg_particles.cache_info()
+
+    second_collection = load_pdg()
+
+    cache_info_after = _load_pdg_particles.cache_info()
+    assert cache_info_after.hits == cache_info_before.hits + 1
+    assert cache_info_after.misses == cache_info_before.misses
+    assert second_collection == official_particles
+    assert second_collection is not official_particles
+
+    second_collection.discard("gamma")
+    assert "gamma" not in second_collection
+    assert "gamma" in official_particles
 
 
 @pytest.mark.parametrize(
@@ -117,23 +120,29 @@ def test_lepton_numbers(
     ) == lepton_numbers
 
 
-def test_flavor_numbers_match_current_loader(
+@pytest.mark.parametrize(
+    ("mcid", "flavor_numbers"),
+    [
+        (+321, (+1, 0, 0, 0)),
+        (-321, (-1, 0, 0, 0)),
+        (+411, (0, +1, 0, 0)),
+        (-411, (0, -1, 0, 0)),
+        (+521, (0, 0, +1, 0)),
+        (-521, (0, 0, -1, 0)),
+    ],
+)
+def test_flavor_numbers(
     official_particles: ParticleCollection,
-    scikit_hep_particles: ParticleCollection,
+    mcid: int,
+    flavor_numbers: tuple[int, int, int, int],
 ):
-    for current in scikit_hep_particles:
-        official = official_particles.find(current.pid)
-        assert (
-            official.strangeness,
-            official.charmness,
-            official.bottomness,
-            official.topness,
-        ) == (
-            current.strangeness,
-            current.charmness,
-            current.bottomness,
-            current.topness,
-        )
+    particle = official_particles.find(mcid)
+    assert (
+        particle.strangeness,
+        particle.charmness,
+        particle.bottomness,
+        particle.topness,
+    ) == flavor_numbers
 
 
 def test_prefers_official_spin(official_particles: ParticleCollection):

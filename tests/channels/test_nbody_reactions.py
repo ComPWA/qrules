@@ -23,7 +23,7 @@ def reduce_violated_rules(
     ("test_input", "expected"),
     [
         (
-            (["p", "p~"], ["pi+", "pi0"]),
+            (["p", "pbar"], ["pi+", "pi0"]),
             {"ChargeConservation", "isospin_conservation"},
         ),
         (
@@ -41,7 +41,7 @@ def reduce_violated_rules(
             },
         ),
         (
-            (["Sigma0"], ["Lambda", "pi0"]),
+            (["Sigma0"], ["Lambda0", "pi0"]),
             {"MassConservation"},
         ),
         (
@@ -56,11 +56,11 @@ def reduce_violated_rules(
             {},
         ),
         (
-            (["mu-"], ["e-", "nu(e)~"]),
+            (["mu-"], ["e-", "nubar_e"]),
             {"MuonLNConservation", "spin_magnitude_conservation"},
         ),
         (
-            (["mu-"], ["e-", "nu(e)"]),
+            (["mu-"], ["e-", "nu_e"]),
             {
                 "ElectronLNConservation",
                 "MuonLNConservation",
@@ -72,15 +72,15 @@ def reduce_violated_rules(
             {},
         ),
         (
-            (["nu(e)~", "p"], ["n", "e+"]),
+            (["nubar_e", "p"], ["n", "e+"]),
             {},
         ),
         (
-            (["e-", "p"], ["nu(e)", "pi0"]),
+            (["e-", "p"], ["nu_e", "pi0"]),
             {"BaryonNumberConservation", "spin_magnitude_conservation"},
         ),
         (
-            (["f(0)(980)"], ["pi+", "pi-"]),
+            (["f_0(980)0"], ["pi+", "pi-"]),
             {},
         ),
         (
@@ -100,7 +100,7 @@ def reduce_violated_rules(
             {},
         ),
         (
-            (["J/psi(1S)"], ["pi0", "f(0)(980)"]),
+            (["J/psi(1S)"], ["pi0", "f_0(980)0"]),
             {
                 "isospin_conservation",
                 "c_parity_conservation",
@@ -112,7 +112,7 @@ def reduce_violated_rules(
             {},
         ),
         (
-            (["p", "p"], ["Sigma+", "n", "K~0", "pi+", "pi0"]),
+            (["p", "p"], ["Sigma+", "n", "Kbar0", "pi+", "pi0"]),
             {"StrangenessConservation", "isospin_conservation"},
         ),
         (
@@ -120,11 +120,11 @@ def reduce_violated_rules(
             {"ElectronLNConservation", "BaryonNumberConservation"},
         ),
         (
-            (["p", "p"], ["p", "p", "p", "p~"]),
+            (["p", "p"], ["p", "p", "p", "pbar"]),
             {},
         ),
         (
-            (["n", "n~"], ["pi+", "pi-", "pi0"]),
+            (["n", "nbar"], ["pi+", "pi-", "pi0"]),
             {},
         ),
         (
@@ -143,9 +143,9 @@ def reduce_violated_rules(
             (["Sigma+", "n"], ["Sigma-", "p"]),
             {"ChargeConservation", "isospin_conservation"},
         ),
-        ((["Sigma0"], ["Lambda", "gamma"]), []),
+        ((["Sigma0"], ["Lambda0", "gamma"]), []),
         (
-            (["Xi-"], ["Lambda", "pi-"]),
+            (["Xi-"], ["Lambda0", "pi-"]),
             {"StrangenessConservation", "isospin_conservation"},
         ),
         (
@@ -153,11 +153,11 @@ def reduce_violated_rules(
             {"StrangenessConservation", "isospin_conservation"},
         ),
         (
-            (["pi-", "p"], ["Lambda", "K0"]),
+            (["pi-", "p"], ["Lambda0", "K0"]),
             {},
         ),
         (
-            (["Sigma-"], ["n", "e-", "nu(e)~"]),
+            (["Sigma-"], ["n", "e-", "nubar_e"]),
             {"StrangenessConservation"},
         ),
         (
@@ -185,7 +185,7 @@ def reduce_violated_rules(
             {"c_parity_conservation", "g_parity_conservation"},
         ),
         (
-            (["K~0"], ["pi+", "pi-", "pi0"]),
+            (["Kbar0"], ["pi+", "pi-", "pi0"]),
             {"isospin_conservation", "StrangenessConservation"},
         ),
     ],

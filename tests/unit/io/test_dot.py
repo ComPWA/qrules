@@ -41,7 +41,7 @@ def describe_asdot():
         { rank=same; A }
         { rank=same; 0 1 2 }
         A -> N0
-        N0 -> N1 [label="f(0)(980)[0]"]
+        N0 -> N1 [label="f_0(980)0[0]"]
         N0 -> 0
         N1 -> 1
         N1 -> 2
@@ -63,7 +63,7 @@ def describe_asdot():
         { rank=same; A }
         { rank=same; 0 1 2 }
         A -> N0
-        N0 -> N1 [label="f(0)(980)[0]"]
+        N0 -> N1 [label="f_0(980)0[0]"]
         N0 -> 0
         N1 -> 1
         N1 -> 2
@@ -98,7 +98,7 @@ def describe_asdot():
         with open(output_dir + f"styled_{reaction.formalism}.gv", "w") as stream:
             stream.write(src)
         assert '0 [fontcolor="blue", label="0: gamma[-1]"]' in src
-        assert 'N0 -> N1 [fontcolor="blue", label="f(0)(980)[0]"]' in src
+        assert 'N0 -> N1 [fontcolor="blue", label="f_0(980)0[0]"]' in src
         assert 'N0 [fontcolor="darkgreen", shape="ellipse", label=""]' in src
 
     def it_no_label_overwriting(reaction: ReactionInfo):

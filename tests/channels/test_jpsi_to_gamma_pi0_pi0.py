@@ -8,17 +8,17 @@ def describe_reaction_generation():
     @pytest.mark.parametrize(
         ("allowed_intermediate_particles", "n_topologies", "number_of_solutions"),
         [
-            (["f(0)(1500)"], 1, 4),
-            (["f(0)(980)", "f(0)(1500)"], 1, 8),
-            (["f(2)(1270)"], 1, 12),
-            (["omega(782)"], 1, 8),
+            (["f_0(1500)0"], 1, 4),
+            (["f_0(980)0", "f_0(1500)0"], 1, 8),
+            (["f_2(1270)0"], 1, 12),
+            (["omega(782)0"], 1, 8),
             (
                 [
-                    "f(0)(980)",
-                    "f(2)(1270)",
-                    "f(0)(1500)",
-                    "f(2)(1950)",
-                    "omega(782)",
+                    "f_0(980)0",
+                    "f_2(1270)0",
+                    "f_0(1500)0",
+                    "f_2(1950)0",
+                    "omega(782)0",
                 ],
                 2,
                 40,
@@ -53,7 +53,7 @@ def describe_reaction_generation():
             final_state=["gamma", "pi0", "pi0"],
             particle_db=particle_database,
             allowed_interaction_types="strong",
-            allowed_intermediate_particles=["f(0)(980)"],
+            allowed_intermediate_particles=["f_0(980)0"],
             formalism="helicity",
         )
         assert len(reaction.group_by_topology()) == 1

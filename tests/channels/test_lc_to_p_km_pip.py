@@ -4,7 +4,7 @@ from qrules.transition import StateTransitionManager
 
 def test_resonances():
     stm = StateTransitionManager(
-        initial_state=["Lambda(c)+"],
+        initial_state=["Lambda_c()+"],
         final_state=["p", "K-", "pi+"],
         mass_conservation_factor=0.6,
         max_angular_momentum=2,
@@ -20,18 +20,18 @@ def test_resonances():
         "Delta(1600)++",
         "Delta(1620)++",
         "Delta(1700)++",
-        "K(0)*(700)~0",
-        "K*(892)~0",
-        "K*(1410)~0",
-        "K(0)*(1430)~0",
-        "Lambda(1405)",
-        "Lambda(1520)",
-        "Lambda(1600)",
-        "Lambda(1670)",
-        "Lambda(1690)",
-        "Lambda(1810)",
-        "Lambda(1800)",
-        "Lambda(1890)",
+        "Kbar_0^*(700)0",
+        "Kbar^*(892)0",
+        "Kbar^*(1410)0",
+        "Kbar_0^*(1430)0",
+        "Lambda(1405)0",
+        "Lambda(1520)0",
+        "Lambda(1600)0",
+        "Lambda(1670)0",
+        "Lambda(1690)0",
+        "Lambda(1810)0",
+        "Lambda(1800)0",
+        "Lambda(1890)0",
     }
     sorted_expected = sorted(expected)
     assert sorted_resonances == sorted_expected

@@ -122,9 +122,9 @@ def describe_MermaidPrinter():
 
     def it_edge_labels_with_state_brackets_are_quoted():
         edge_line = MermaidPrinter(latex=False)._create_mermaid_edge(
-            "A", "B", "f(2)(2340)[-2]"
+            "A", "B", "f_2(2340)0[-2]"
         )
-        assert edge_line == '    A ---|"f(2)(2340)[-2]"| B'
+        assert edge_line == '    A ---|"f_2(2340)0[-2]"| B'
 
     def it_edge_labels_with_ket_vectors_are_quoted():
         edge_line = MermaidPrinter(latex=False)._create_mermaid_edge("A", "B", "|1,-1⟩")
@@ -222,7 +222,7 @@ def describe_asmermaid():
         src = io.asmermaid(reaction.transitions[0], render_node=True, latex=False)
         assert src.startswith("flowchart LR\n")
         assert "gamma[-1]" in src
-        assert "f(0)(980)[0]" in src
+        assert "f_0(980)0[0]" in src
         assert "P=+1" in src
         assert "    A --- N0" in src
 
