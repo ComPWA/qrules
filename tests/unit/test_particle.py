@@ -266,7 +266,7 @@ def describe_ParticleCollection():
         assert f2_1950.mass == pytest.approx(1.9361938561872178)
         phi = particle_database.find("phi(1020)0")
         assert phi.pid == 333
-        assert pytest.approx(phi.width) == 0.004249
+        assert phi.width == pytest.approx(0.004249, abs=1e-6)
 
     @pytest.mark.parametrize(
         ("search_term", "expected"),

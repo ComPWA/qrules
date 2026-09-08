@@ -21,7 +21,7 @@ def stm() -> StateTransitionManager:
     stm = StateTransitionManager(
         initial_state=[("J/psi(1S)", [+1])],
         final_state=["K0", ("Sigma+", [+0.5]), ("pbar", [+0.5])],
-        allowed_intermediate_particles=["Sigma(1750)"],
+        allowed_intermediate_particles=["Sigma(1750)", "Sigmabar(1750)"],
         formalism="canonical-helicity",
     )
     stm.set_allowed_interaction_types([InteractionType.STRONG, InteractionType.EM])
@@ -40,4 +40,8 @@ def qn_problem_and_result(
 ) -> tuple[QNProblemSet, QNResult]:
     qn_solutions = stm.find_quantum_number_transitions(problem_sets)
     strong_qn_solutions = qn_solutions[3600.0]
-    return strong_qn_solutions[1]
+    return next(
+        (problem, result)
+        for problem, result in strong_qn_solutions
+        if result.solutions
+    )

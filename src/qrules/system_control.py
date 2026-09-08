@@ -190,7 +190,7 @@ class LeptonCheck(InteractionDeterminator):
         node_interaction_types = list(InteractionType)
         for particle, _ in in_states + out_states:
             if particle.is_lepton():
-                if particle.name.startswith("nu("):
+                if abs(particle.pid) in {12, 14, 16}:
                     node_interaction_types = [InteractionType.WEAK]
                     break
                 node_interaction_types = [
