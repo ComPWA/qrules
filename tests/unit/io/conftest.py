@@ -41,7 +41,5 @@ def qn_problem_and_result(
     qn_solutions = stm.find_quantum_number_transitions(problem_sets)
     strong_qn_solutions = qn_solutions[3600.0]
     return next(
-        (problem, result)
-        for problem, result in strong_qn_solutions
-        if result.solutions
+        (problem, result) for problem, result in strong_qn_solutions if result.solutions
     )
