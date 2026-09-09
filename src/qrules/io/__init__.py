@@ -14,9 +14,11 @@ from typing import TYPE_CHECKING, Any
 import attrs
 import yaml
 
-from qrules.io import _dict, _dot, _mermaid
+from qrules.io import _dict, _dot, _labels, _mermaid
 from qrules.particle import Particle, ParticleCollection
 from qrules.topology import Topology
+
+CollapseMode = _labels.CollapseMode
 
 if TYPE_CHECKING:
     from _typeshed import StrPath
@@ -63,8 +65,7 @@ def asdot(
     render_final_state_id: bool = True,
     render_resonance_id: bool = False,
     render_initial_state_id: bool = False,
-    strip_spin: bool = False,
-    collapse_graphs: bool = False,
+    collapse: CollapseMode | None = None,
     edge_style: dict[str, Any] | None = None,
     node_style: dict[str, Any] | None = None,
     **figure_style: Any,
@@ -77,12 +78,11 @@ def asdot(
     Args:
         instance: the input `object` that is to be rendered as DOT (graphviz) language.
 
-        strip_spin: Normally, each `.MutableTransition` has a `.Particle` with a spin
-            projection on its edges. This option hides the projections, leaving only
-            `.Particle` names on edges.
-
-        collapse_graphs: Group all transitions by equivalent kinematic topology
-            and combine all allowed particles on each edge.
+        collapse: Optionally combine transitions. With ``"spin"``, transitions that
+            differ only in their spin projections are combined. With ``"topology"``,
+            transitions with equivalent kinematic topologies are grouped and all allowed
+            particles on each edge are collected. Node properties cannot be rendered
+            when collapsing by topology.
 
         render_node: Whether or not to render node ID (in the case of a `.Topology`)
             and/or node properties (in the case of a `.MutableTransition`). Meaning of
@@ -114,8 +114,7 @@ def asdot(
         render_final_state_id=render_final_state_id,
         render_resonance_id=render_resonance_id,
         render_initial_state_id=render_initial_state_id,
-        strip_spin=strip_spin,
-        collapse_graphs=collapse_graphs,
+        collapse=collapse,
         figure_style=figure_style,
         edge_style=edge_style,
         node_style=node_style,
@@ -131,8 +130,7 @@ def asmermaid(
     render_final_state_id: bool = True,
     render_resonance_id: bool = False,
     render_initial_state_id: bool = False,
-    strip_spin: bool = False,
-    collapse_graphs: bool = False,
+    collapse: CollapseMode | None = None,
     figure_style: dict[str, Any] | None = None,
     edge_style: dict[str, Any] | None = None,
     node_style: dict[str, Any] | None = None,
@@ -148,14 +146,12 @@ def asmermaid(
         instance: the input `object` that is to be rendered as Mermaid flowchart
             source.
 
-        strip_spin: Normally, each `.MutableTransition` has a `.Particle` with a spin
-            projection on its edges. This option hides the projections, leaving only
-            `.Particle` names on edges.
-
-        collapse_graphs: Group all transitions by equivalent kinematic topology
-            and combine all allowed particles on each edge. With LaTeX rendering,
-            particle lists longer than six entries are arranged in columns of at most
-            six rows.
+        collapse: Optionally combine transitions. With ``"spin"``, transitions that
+            differ only in their spin projections are combined. With ``"topology"``,
+            transitions with equivalent kinematic topologies are grouped and all allowed
+            particles on each edge are collected. Node properties cannot be rendered
+            when collapsing by topology. With LaTeX rendering, particle lists longer
+            than six entries are arranged in columns of at most six rows.
 
         render_node: Whether or not to render node ID (in the case of a `.Topology`)
             and/or node properties (in the case of a `.MutableTransition`). Meaning of
@@ -191,8 +187,7 @@ def asmermaid(
         render_final_state_id=render_final_state_id,
         render_resonance_id=render_resonance_id,
         render_initial_state_id=render_initial_state_id,
-        strip_spin=strip_spin,
-        collapse_graphs=collapse_graphs,
+        collapse=collapse,
         figure_style=figure_style,
         edge_style=edge_style,
         node_style=node_style,

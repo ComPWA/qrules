@@ -174,13 +174,13 @@ def describe_asmermaid():
         assert labeled_lines
         assert all(line.count("$$") == 2 for line in labeled_lines)
 
-    def it_latex_collapsed_graph(reaction: ReactionInfo):
-        src = io.asmermaid(reaction, collapse_graphs=True, latex=True)
+    def it_latex_collapsed_topology(reaction: ReactionInfo):
+        src = io.asmermaid(reaction, collapse="topology", latex=True)
         assert R"$$\begin{gathered} f_{0}(980)" in src
         assert R"\\\ f_{0}(1500) \end{gathered}$$" in src
 
-    def it_latex_strip_spin(reaction: ReactionInfo):
-        src = io.asmermaid(reaction, strip_spin=True, latex=True)
+    def it_latex_collapsed_spin(reaction: ReactionInfo):
+        src = io.asmermaid(reaction, collapse="spin", latex=True)
         assert R"J/\psi(1S)$$" in src
         assert R"\gamma$$" in src
         assert R"\left[" not in src
@@ -211,10 +211,10 @@ def describe_asmermaid():
         src = io.asmermaid(reaction, latex=False)
         assert src.startswith("flowchart LR\n")
         assert " --- " in src
-        src = io.asmermaid(reaction, strip_spin=True, latex=False)
+        src = io.asmermaid(reaction, collapse="spin", latex=False)
         assert src.startswith("flowchart LR\n")
         assert " --- " in src
-        src = io.asmermaid(reaction, collapse_graphs=True, latex=False)
+        src = io.asmermaid(reaction, collapse="topology", latex=False)
         assert src.startswith("flowchart LR\n")
         assert " --- " in src
 

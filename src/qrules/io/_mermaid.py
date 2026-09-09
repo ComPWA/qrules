@@ -192,8 +192,7 @@ class MermaidPrinter:
     render_final_state_id: bool = True
     render_resonance_id: bool = False
     render_initial_state_id: bool = False
-    strip_spin: bool = False
-    collapse_graphs: bool = False
+    collapse: _labels.CollapseMode | None = None
     figure_style: dict[str, Any] = field(converter=_to_style_dict, default=None)
     edge_style: dict[str, Any] = field(converter=_to_style_dict, default=None)
     node_style: dict[str, Any] = field(converter=_to_style_dict, default=None)
@@ -220,9 +219,8 @@ class MermaidPrinter:
     def _render_multiple_transitions(self, obj: Iterable) -> list[str]:
         transitions = _labels.select_transitions(
             obj,
-            collapse=self.collapse_graphs,
+            collapse=self.collapse,
             render_node=self.render_node,
-            strip_spin=self.strip_spin,
         )
         lines: list[str] = []
         for i, graph in enumerate(reversed(transitions)):
