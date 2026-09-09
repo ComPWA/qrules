@@ -17,7 +17,18 @@ from qrules.transition import ReactionInfo, State
 
 
 def from_particle_collection(particles: ParticleCollection) -> dict:
-    return {"particles": [from_attrs_decorated(p) for p in particles]}
+    """Serialize a `.ParticleCollection`, sorted by particle name.
+
+    A `.ParticleCollection` iterates in the order in which particles were added, so
+    serializing it as-is makes the output depend on how the caller built it. Sorting by
+    name keeps the serialization a function of the particles alone, which matters when
+    it is used as a cache key or compared between runs.
+    """
+    return {
+        "particles": [
+            from_attrs_decorated(p) for p in sorted(particles, key=lambda p: p.name)
+        ]
+    }
 
 
 def from_attrs_decorated(inst: Any) -> dict:
