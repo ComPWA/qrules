@@ -95,9 +95,11 @@ def _is_boson(spin_magnitude: Fraction) -> bool:
     return abs(spin_magnitude % 1) < 0.01
 
 
-def _is_particle_antiparticle_pair(pid1: int, pid2: int) -> bool:
+def _is_particle_antiparticle_pair(pid1: int | None, pid2: int | None) -> bool:
     # we just check if the pid is opposite in sign
     # this is a requirement of the pid numbers of course
+    if pid1 is None or pid2 is None:
+        return False
     return pid1 == -pid2
 
 
@@ -300,14 +302,15 @@ def parity_conservation_helicity(
 @frozen
 class CParityEdgeInput:
     spin_magnitude: EdgeSpinMagnitude = field(converter=to_fraction)
-    pid: EdgePid = field(converter=int)
+    pid: EdgePid | None = field(converter=optional(int), default=None)
     c_parity: EdgeCParity | None = field(converter=optional(to_parity), default=None)
 
 
 @frozen
 class CParityNodeInput:
     # optional, so that the rule remains executable for problem sets without LS
-    # couplings (the particle-antiparticle branch then cannot be evaluated)
+    # couplings; the particle-antiparticle branch is then undetermined and is covered
+    # by the LS-free existence rules instead
     l_magnitude: NodeLMagnitude | None = field(
         converter=optional(to_fraction), default=None
     )
@@ -363,14 +366,15 @@ def c_parity_conservation(
 class GParityEdgeInput:
     isospin_magnitude: EdgeIsospinMagnitude = field(converter=to_fraction)
     spin_magnitude: EdgeSpinMagnitude = field(converter=to_fraction)
-    pid: EdgePid = field(converter=int)
+    pid: EdgePid | None = field(converter=optional(int), default=None)
     g_parity: EdgeGParity | None = field(converter=optional(to_parity), default=None)
 
 
 @frozen
 class GParityNodeInput:
     # optional, so that the rule remains executable for problem sets without LS
-    # couplings (the particle-antiparticle branch then cannot be evaluated)
+    # couplings; the particle-antiparticle branch is then undetermined and is covered
+    # by the LS-free existence rules instead
     l_magnitude: NodeLMagnitude | None = field(
         converter=optional(to_fraction), default=None
     )
@@ -1009,6 +1013,198 @@ class SpinParityCoupling(EdgeQNConservationRule):
                 self.__max_angular_momentum,
             )
         )
+
+
+@frozen
+class CParityCouplingEdgeInput:
+    spin_magnitude: EdgeSpinMagnitude = field(converter=to_fraction)
+    parity: EdgeParity = field(converter=to_parity)
+    pid: EdgePid | None = field(converter=optional(int), default=None)
+    c_parity: EdgeCParity | None = field(converter=optional(to_parity), default=None)
+
+
+@frozen
+class GParityCouplingEdgeInput:
+    isospin_magnitude: EdgeIsospinMagnitude = field(converter=to_fraction)
+    spin_magnitude: EdgeSpinMagnitude = field(converter=to_fraction)
+    parity: EdgeParity = field(converter=to_parity)
+    pid: EdgePid | None = field(converter=optional(int), default=None)
+    g_parity: EdgeGParity | None = field(converter=optional(to_parity), default=None)
+
+
+def _iter_parity_conserving_couplings(
+    single: CParityCouplingEdgeInput | GParityCouplingEdgeInput,
+    pair: list[CParityCouplingEdgeInput] | list[GParityCouplingEdgeInput],
+    max_angular_momentum: int,
+) -> Iterator[tuple[int, Fraction]]:
+    """Iterate over the :math:`(L, S)` couplings that also conserve parity."""
+    pair_parity = pair[0].parity.value * pair[1].parity.value
+    for ang_mom, coupled_spin in _iter_ls_couplings(
+        single.spin_magnitude,
+        [x.spin_magnitude for x in pair],
+        max_angular_momentum,
+    ):
+        if single.parity.value == pair_parity * (-1) ** ang_mom:
+            yield ang_mom, coupled_spin
+
+
+def _get_pair_c_parity(
+    pair: list[CParityCouplingEdgeInput] | list[GParityCouplingEdgeInput],
+    ang_mom: int,
+    coupled_spin: Fraction,
+) -> int | None:
+    """Composite :math:`C`-parity of a particle-antiparticle pair, if defined."""
+    if not _is_particle_antiparticle_pair(pair[0].pid, pair[1].pid):
+        return None
+    if _is_boson(pair[0].spin_magnitude):
+        return (-1) ** ang_mom
+    if coupled_spin.denominator == 1:
+        return (-1) ** int(ang_mom + coupled_spin)
+    return None
+
+
+class CParityCoupling(EdgeQNConservationRule):
+    r"""Check that some :math:`(L, S)` combination conserves :math:`C`-parity.
+
+    The :math:`LS`-free counterpart of `c_parity_conservation`. If all states carry a
+    :math:`C`-parity, the rule checks :math:`C_{in} = C_{out}` directly. For a
+    particle-antiparticle pair without individual :math:`C`-parities, the composite
+    :math:`C = (-1)^L` (bosons) or :math:`C = (-1)^{L+S}` (fermions) depends on the
+    coupling, so the rule checks whether *some* :math:`(L, S)` combination with
+    :math:`L \leq L_\mathrm{max}` that conserves parity also conserves
+    :math:`C`-parity.
+
+    >>> from fractions import Fraction
+    >>> rule = CParityCoupling(max_angular_momentum=1)
+    >>> pi_plus = CParityCouplingEdgeInput(spin_magnitude=0, parity=-1, pid=211)
+    >>> pi_minus = CParityCouplingEdgeInput(spin_magnitude=0, parity=-1, pid=-211)
+    >>> rho = CParityCouplingEdgeInput(
+    ...     spin_magnitude=1, parity=-1, pid=113, c_parity=-1
+    ... )
+    >>> rule([rho], [pi_plus, pi_minus])
+    True
+    >>> CParityCoupling(max_angular_momentum=0)([rho], [pi_plus, pi_minus])
+    False
+
+    Parity conservation requires an odd :math:`L` here, so a :math:`1^{-+}` state
+    cannot decay to :math:`\pi^+\pi^-`, even though parity and :math:`C`-parity each
+    allow some coupling on their own:
+
+    >>> exotic = CParityCouplingEdgeInput(
+    ...     spin_magnitude=1, parity=-1, pid=1, c_parity=+1
+    ... )
+    >>> CParityCoupling(max_angular_momentum=3)([exotic], [pi_plus, pi_minus])
+    False
+    """
+
+    def __init__(self, max_angular_momentum: int) -> None:
+        self.__max_angular_momentum = max_angular_momentum
+
+    def __call__(
+        self,
+        ingoing_edge_qns: list[CParityCouplingEdgeInput],
+        outgoing_edge_qns: list[CParityCouplingEdgeInput],
+    ) -> bool:
+        c_parity_in = _multiply_c_parities(ingoing_edge_qns)
+        c_parity_out = _multiply_c_parities(outgoing_edge_qns)
+        if c_parity_in is not None and c_parity_out is not None:
+            return c_parity_in == c_parity_out
+        single, pair = _split_isobar_node(ingoing_edge_qns, outgoing_edge_qns)
+        if single is None or pair is None or single.c_parity is None:
+            return True
+        if not _is_particle_antiparticle_pair(pair[0].pid, pair[1].pid):
+            return True
+        return any(
+            _get_pair_c_parity(pair, ang_mom, coupled_spin) == single.c_parity.value
+            for ang_mom, coupled_spin in _iter_parity_conserving_couplings(
+                single, pair, self.__max_angular_momentum
+            )
+        )
+
+
+def _multiply_c_parities(states: list[CParityCouplingEdgeInput]) -> int | None:
+    if any(x.c_parity is None for x in states):
+        return None
+    return reduce(operator.mul, (x.c_parity.value for x in states if x.c_parity), 1)
+
+
+class GParityCoupling(EdgeQNConservationRule):
+    r"""Check that some :math:`(L, S)` combination conserves :math:`G`-parity.
+
+    The :math:`LS`-free counterpart of `g_parity_conservation`. If all states carry a
+    :math:`G`-parity, the rule checks :math:`G_{in} = G_{out}` directly. For a
+    particle-antiparticle pair without individual :math:`G`-parities, the composite
+    :math:`G = C \cdot (-1)^I` depends on the coupling through :math:`C`, so the rule
+    checks whether *some* :math:`(L, S)` combination with :math:`L \leq
+    L_\mathrm{max}` that conserves parity also conserves :math:`G`-parity.
+
+    >>> from fractions import Fraction
+    >>> rule = GParityCoupling(max_angular_momentum=1)
+    >>> pi_plus = GParityCouplingEdgeInput(
+    ...     isospin_magnitude=1, spin_magnitude=0, parity=-1, pid=211
+    ... )
+    >>> pi_minus = GParityCouplingEdgeInput(
+    ...     isospin_magnitude=1, spin_magnitude=0, parity=-1, pid=-211
+    ... )
+    >>> rho = GParityCouplingEdgeInput(
+    ...     isospin_magnitude=1, spin_magnitude=1, parity=-1, pid=113, g_parity=+1
+    ... )
+    >>> rule([rho], [pi_plus, pi_minus])
+    True
+    >>> GParityCoupling(max_angular_momentum=0)([rho], [pi_plus, pi_minus])
+    False
+    >>> f0 = GParityCouplingEdgeInput(
+    ...     isospin_magnitude=0, spin_magnitude=0, parity=+1, pid=9010221, g_parity=+1
+    ... )
+    >>> GParityCoupling(max_angular_momentum=0)([f0], [pi_plus, pi_minus])
+    True
+    """
+
+    def __init__(self, max_angular_momentum: int) -> None:
+        self.__max_angular_momentum = max_angular_momentum
+
+    def __call__(
+        self,
+        ingoing_edge_qns: list[GParityCouplingEdgeInput],
+        outgoing_edge_qns: list[GParityCouplingEdgeInput],
+    ) -> bool:
+        g_parity_in = _multiply_g_parities(ingoing_edge_qns)
+        g_parity_out = _multiply_g_parities(outgoing_edge_qns)
+        if g_parity_in is not None and g_parity_out is not None:
+            return g_parity_in == g_parity_out
+        single, pair = _split_isobar_node(ingoing_edge_qns, outgoing_edge_qns)
+        if single is None or pair is None or single.g_parity is None:
+            return True
+        if not _is_particle_antiparticle_pair(pair[0].pid, pair[1].pid):
+            return True
+        isospin = single.isospin_magnitude
+        if isospin.denominator != 1:
+            return True
+        return any(
+            _get_pair_g_parity(pair, ang_mom, coupled_spin, isospin)
+            == single.g_parity.value
+            for ang_mom, coupled_spin in _iter_parity_conserving_couplings(
+                single, pair, self.__max_angular_momentum
+            )
+        )
+
+
+def _get_pair_g_parity(
+    pair: list[GParityCouplingEdgeInput],
+    ang_mom: int,
+    coupled_spin: Fraction,
+    isospin: Fraction,
+) -> int | None:
+    c_parity = _get_pair_c_parity(pair, ang_mom, coupled_spin)
+    if c_parity is None:
+        return None
+    return c_parity * (-1) ** int(isospin)
+
+
+def _multiply_g_parities(states: list[GParityCouplingEdgeInput]) -> int | None:
+    if any(x.g_parity is None for x in states):
+        return None
+    return reduce(operator.mul, (x.g_parity.value for x in states if x.g_parity), 1)
 
 
 def clebsch_gordan_helicity_to_canonical(

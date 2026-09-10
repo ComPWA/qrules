@@ -22,7 +22,9 @@ from qrules.conservation_rules import (
     BottomnessConservation,
     ChargeConservation,
     CharmConservation,
+    CParityCoupling,
     ElectronLNConservation,
+    GParityCoupling,
     MassConservation,
     MuonLNConservation,
     SpinCoupling,
@@ -74,6 +76,8 @@ CONSERVATION_LAW_PRIORITIES: dict[RuleKey, int] = {
     spin_magnitude_conservation: 8,
     SpinCoupling: 8,
     SpinParityCoupling: 6,
+    CParityCoupling: 5,
+    GParityCoupling: 3,
     parity_conservation: 6,
     c_parity_conservation: 5,
     g_parity_conservation: 3,
@@ -153,11 +157,11 @@ def create_interaction_settings(  # ruff: ignore[too-many-positional-arguments]
     With :code:`ls_couplings=False`, the settings declare no
     `~.NodeQuantumNumbers.l_magnitude` and `~.NodeQuantumNumbers.s_magnitude`
     domains, so the solver does not enumerate :math:`LS`-combinations. The
-    corresponding constraints are imposed by `.SpinCoupling` and
-    `.SpinParityCoupling` instead, which only check whether *some*
-    :math:`(L, S)` combination up to :code:`max_angular_momentum` exists. The allowed
-    combinations can be reconstructed from the spins and parities of the solutions
-    afterwards.
+    corresponding constraints are imposed by the existence rules `.SpinCoupling`,
+    `.SpinParityCoupling`, `.CParityCoupling`, and `.GParityCoupling` instead, which
+    only check whether *some* :math:`(L, S)` combination up to
+    :code:`max_angular_momentum` exists. The allowed combinations can be reconstructed
+    from the spins and parities of the solutions afterwards.
     """
     default_edge_settings = EdgeSettings(
         conservation_rules=_with_priorities(
@@ -182,12 +186,16 @@ def create_interaction_settings(  # ruff: ignore[too-many-positional-arguments]
                 ),
             },
         )
-        parity_rules: set = {parity_conservation}
+        parity_rule: Rule = parity_conservation
+        c_parity_rule: Rule = c_parity_conservation
+        g_parity_rule: Rule = g_parity_conservation
     else:
         default_node_settings = NodeSettings(
             conservation_rules=_with_priorities({SpinCoupling(max_angular_momentum)}),
         )
-        parity_rules = {SpinParityCoupling(max_angular_momentum)}
+        parity_rule = SpinParityCoupling(max_angular_momentum)
+        c_parity_rule = CParityCoupling(max_angular_momentum)
+        g_parity_rule = GParityCoupling(max_angular_momentum)
     if mass_conservation_factor is not None:
         default_node_settings.conservation_rules.update(
             _with_priorities({MassConservation(mass_conservation_factor)})
@@ -218,8 +226,8 @@ def create_interaction_settings(  # ruff: ignore[too-many-positional-arguments]
             CharmConservation(),
             StrangenessConservation(),
             BottomnessConservation(),
-            *parity_rules,
-            c_parity_conservation,
+            parity_rule,
+            c_parity_rule,
         })
     )
 
@@ -234,7 +242,7 @@ def create_interaction_settings(  # ruff: ignore[too-many-positional-arguments]
     strong_node_settings.conservation_rules.update(
         _with_priorities({
             isospin_conservation,
-            g_parity_conservation,
+            g_parity_rule,
         })
     )
 
