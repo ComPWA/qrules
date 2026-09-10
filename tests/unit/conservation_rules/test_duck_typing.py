@@ -31,7 +31,9 @@ RULE_INPUT_CLASSES = {
 def test_protocol_compliance():
     edge_input_classes = __get_duck_types(EdgeQuantumNumbers)
     assert edge_input_classes == {
+        conservation_rules.CParityCouplingEdgeInput,
         conservation_rules.CParityEdgeInput,
+        conservation_rules.GParityCouplingEdgeInput,
         conservation_rules.GParityEdgeInput,
         conservation_rules.GParityValidityInput,
         conservation_rules.HelicityParityEdgeInput,
