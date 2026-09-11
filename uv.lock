@@ -2724,7 +2724,7 @@ requires-dist = [
     { name = "graphviz", marker = "extra == 'viz'" },
     { name = "jsonschema" },
     { name = "particle" },
-    { name = "pdg", specifier = ">=2026.0,<2027" },
+    { name = "pdg" },
     { name = "python-constraint2" },
     { name = "pyyaml" },
     { name = "tqdm", specifier = ">=4.24.0" },
