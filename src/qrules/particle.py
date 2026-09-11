@@ -494,12 +494,13 @@ def create_antiparticle(
     )
 
 
-def load_pdg(
-    *, source: Literal["scikit-hep", "pdg"] = "scikit-hep"
-) -> ParticleCollection:
+PyPIPackage = Literal["particle", "pdg"]
+
+
+def load_pdg(*, source: PyPIPackage = "particle") -> ParticleCollection:
     """Create a `.ParticleCollection` with all entries from the PDG.
 
-    By default, particle definitions are imported from the `Scikit-HEP particle
+    By default, particle definitions are imported from the `particle
     <https://github.com/scikit-hep/particle>`_ package. Set ``source="pdg"`` to
     import them from the official `PDG Python API <https://pdgapi.lbl.gov/doc/>`_
     instead.
@@ -508,7 +509,7 @@ def load_pdg(
         from qrules._pdg_adapter import load_pdg as load_official_pdg  # ruff: ignore[import-outside-top-level]
 
         return load_official_pdg()
-    if source != "scikit-hep":
+    if source != "particle":
         msg = f"Unknown particle source: {source!r}"
         raise ValueError(msg)
 

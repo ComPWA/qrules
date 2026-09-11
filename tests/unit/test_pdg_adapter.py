@@ -19,7 +19,7 @@ def test_uses_scikit_hep_source_by_default(
     official_particles: ParticleCollection,
 ):
     default_particles = load_pdg()
-    scikit_hep_particles = load_pdg(source="scikit-hep")
+    scikit_hep_particles = load_pdg(source="particle")
 
     assert default_particles == scikit_hep_particles
     assert default_particles.find(-2212).name == "p~"
