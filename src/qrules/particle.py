@@ -503,7 +503,7 @@ def load_pdg(*, use_official_pdg: bool = False) -> ParticleCollection:
     <https://pdgapi.lbl.gov/doc/>`_ instead.
     """
     if use_official_pdg:
-        from qrules._pdg import load_pdg as load_official_pdg  # ruff: ignore[import-outside-top-level]
+        from qrules._pdg_adapter import load_pdg as load_official_pdg  # ruff: ignore[import-outside-top-level]
 
         return load_official_pdg()
 

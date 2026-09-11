@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, PropertyMock
 import pytest
 from pdg.errors import PdgNoDataError
 
-from qrules._pdg import _load_pdg_particles, _to_mass, _to_width
+from qrules._pdg_adapter import _load_pdg_particles, _to_mass, _to_width
 from qrules.particle import ParticleCollection, load_pdg
 from qrules.quantum_numbers import Parity
 
