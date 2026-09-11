@@ -38,9 +38,6 @@
     "pyproject.toml"
   ],
   "ignoreWords": [
-    "Dbar",
-    "Kbar",
-    "Xibar",
     "adrs",
     "ampform",
     "arange",
@@ -97,7 +94,6 @@
     "mimetype",
     "modindex",
     "mystnb",
-    "nbar",
     "nbconvert",
     "nbformat",
     "nbody",
@@ -108,7 +104,6 @@
     "noreply",
     "nrows",
     "nsimplify",
-    "nubar",
     "pandoc",
     "pbar",
     "permalinks",
