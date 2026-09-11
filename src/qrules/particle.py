@@ -19,7 +19,7 @@ from difflib import get_close_matches
 from fractions import Fraction
 from functools import total_ordering
 from math import copysign
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 import attrs
 from attrs import field, frozen
@@ -494,12 +494,24 @@ def create_antiparticle(
     )
 
 
-def load_pdg() -> ParticleCollection:
+PyPIPackage = Literal["particle", "pdg"]
+
+
+def load_pdg(*, source: PyPIPackage = "particle") -> ParticleCollection:
     """Create a `.ParticleCollection` with all entries from the PDG.
 
-    PDG info is imported from the `scikit-hep/particle
-    <https://github.com/scikit-hep/particle>`_ package.
+    By default, particle definitions are imported from the `particle
+    <https://github.com/scikit-hep/particle>`_ package. Set ``source="pdg"`` to import
+    them from the official `PDG Python API <https://pdgapi.lbl.gov/doc/>`_ instead.
     """
+    if source == "pdg":
+        from qrules._pdg_adapter import load_pdg as load_official_pdg  # ruff: ignore[import-outside-top-level]
+
+        return load_official_pdg()
+    if source != "particle":
+        msg = f"Unknown particle source: {source!r}"
+        raise ValueError(msg)
+
     from particle import Particle as PdgDatabase  # ruff: ignore[import-outside-top-level]
 
     all_pdg_particles = PdgDatabase.findall(
