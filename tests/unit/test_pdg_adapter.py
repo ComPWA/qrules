@@ -1,4 +1,5 @@
 from fractions import Fraction
+from typing import Any, cast
 from unittest.mock import MagicMock, PropertyMock
 
 import pytest
@@ -11,16 +12,23 @@ from qrules.quantum_numbers import Parity
 
 @pytest.fixture(scope="module")
 def official_particles() -> ParticleCollection:
-    return load_pdg(use_official_pdg=True)
+    return load_pdg(source="pdg")
 
 
 def test_uses_scikit_hep_source_by_default(
     official_particles: ParticleCollection,
 ):
     default_particles = load_pdg()
+    scikit_hep_particles = load_pdg(source="scikit-hep")
 
+    assert default_particles == scikit_hep_particles
     assert default_particles.find(-2212).name == "p~"
     assert official_particles.find(-2212).name == "pbar"
+
+
+def test_rejects_unknown_source():
+    with pytest.raises(ValueError, match="Unknown particle source"):
+        load_pdg(source=cast("Any", "unknown"))
 
 
 def test_caches_particle_definitions_and_returns_independent_collections(
@@ -28,7 +36,7 @@ def test_caches_particle_definitions_and_returns_independent_collections(
 ):
     cache_info_before = _load_pdg_particles.cache_info()
 
-    second_collection = load_pdg(use_official_pdg=True)
+    second_collection = load_pdg(source="pdg")
 
     cache_info_after = _load_pdg_particles.cache_info()
     assert cache_info_after.hits == cache_info_before.hits + 1
