@@ -344,8 +344,8 @@ def generate_transitions(  # ruff: ignore[too-many-positional-arguments]
     >>> import qrules
     >>> reaction = qrules.generate_transitions(
     ...     initial_state="D0",
-    ...     final_state=["Kbar0", "K+", "K-"],
-    ...     allowed_intermediate_particles=["a_0(980)", "a_2(1320)-"],
+    ...     final_state=["K~0", "K+", "K-"],
+    ...     allowed_intermediate_particles=["a(0)(980)", "a(2)(1320)-"],
     ...     allowed_interaction_types=["e", "w"],
     ...     formalism="helicity",
     ...     particle_db=qrules.load_pdg(),

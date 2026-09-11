@@ -10,7 +10,7 @@ from qrules.transition import StateTransitionManager
 
 @pytest.mark.parametrize(
     "final_state_description",
-    sorted({" ".join(p) for p in itertools.permutations(["pbar", "Sigma+", "K0"])}),
+    sorted({" ".join(p) for p in itertools.permutations(["p~", "Sigma+", "K0"])}),
 )
 def test_create_problem_sets(final_state_description: str):
     input_final_state = final_state_description.split(" ")
@@ -38,7 +38,7 @@ def test_generate_transitions(final_state_description: str):
     reaction = qrules.generate_transitions(
         initial_state=("J/psi(1S)", [-1, +1]),
         final_state=final_state,
-        allowed_intermediate_particles=["omega(782)0"],
+        allowed_intermediate_particles=["omega(782)"],
         allowed_interaction_types=["strong", "EM"],
     )
     ordered_final_state = [

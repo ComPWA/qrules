@@ -20,7 +20,7 @@ def reaction(request: SubRequest) -> ReactionInfo:
     return qrules.generate_transitions(
         initial_state=[("J/psi(1S)", [-1, 1])],
         final_state=["gamma", "pi0", "pi0"],
-        allowed_intermediate_particles=["f_0(980)0", "f_0(1500)0"],
+        allowed_intermediate_particles=["f(0)(980)", "f(0)(1500)"],
         allowed_interaction_types="strong",
         formalism=formalism,
     )

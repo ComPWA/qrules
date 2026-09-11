@@ -114,21 +114,21 @@ def describe_as_latex():
 
     def it_collapsed_particle_tuple(particle_database: ParticleCollection):
         particles = (
-            particle_database["f_0(980)0"],
-            particle_database["f_0(1500)0"],
+            particle_database["f(0)(980)"],
+            particle_database["f(0)(1500)"],
         )
         assert as_latex(particles) == (
             R"\begin{gathered} f_{0}(980) \\ f_{0}(1500) \end{gathered}"
         )
 
     def it_keeps_six_particles_in_one_column(particle_database: ParticleCollection):
-        particle = particle_database["f_0(980)0"]
+        particle = particle_database["f(0)(980)"]
         assert as_latex((particle,) * 6).startswith(R"\begin{gathered}")
 
     def it_uses_columns_for_a_long_particle_tuple(
         particle_database: ParticleCollection,
     ):
-        particle = particle_database["f_0(980)0"]
+        particle = particle_database["f(0)(980)"]
         particles = tuple(
             attrs.evolve(particle, name=f"x{i}", latex=Rf"x_{{{i}}}") for i in range(7)
         )
@@ -140,7 +140,7 @@ def describe_as_latex():
     def it_adds_columns_to_a_longer_particle_tuple(
         particle_database: ParticleCollection,
     ):
-        particle = particle_database["f_0(980)0"]
+        particle = particle_database["f(0)(980)"]
         particles = tuple(
             attrs.evolve(particle, name=f"x{i}", latex=Rf"x_{{{i}}}") for i in range(13)
         )
@@ -335,7 +335,7 @@ def test_collapse_graphs(
     assert len(collapsed_graphs) == 1
     graph = next(iter(collapsed_graphs))
     edge_id = next(iter(graph.topology.intermediate_edge_ids))
-    f_resonances = pdg.filter(lambda p: p.name in {"f_0(980)0", "f_0(1500)0"})
+    f_resonances = pdg.filter(lambda p: p.name in {"f(0)(980)", "f(0)(1500)"})
     intermediate_states = graph.states[edge_id]
     assert isinstance(intermediate_states, tuple)
     assert all(isinstance(i, Particle) for i in intermediate_states)
@@ -348,18 +348,19 @@ def test_get_particle_graphs(
     pdg = particle_database
     graphs = get_particle_graphs(reaction.transitions)
     assert len(graphs) == 2
-    assert graphs[0].states[3] == pdg["f_0(980)0"]
-    assert graphs[1].states[3] == pdg["f_0(1500)0"]
+    assert graphs[0].states[3] == pdg["f(0)(980)"]
+    assert graphs[1].states[3] == pdg["f(0)(1500)"]
     assert len(graphs[0].topology.edges) == 5
     for i in range(-1, 3):
         assert graphs[0].states[i] is graphs[1].states[i]
 
 
-def test_strip_projections():
-    resonance = "Sigmabar(1670)-"
+def test_strip_projections(skh_particle_version: str):
+    assert skh_particle_version is not None  # skips test if particle version too low
+    resonance = "Sigma(1670)~-"
     reaction = qrules.generate_transitions(
         initial_state=[("J/psi(1S)", [+1])],
-        final_state=["K0", ("Sigma+", [+0.5]), ("pbar", [+0.5])],
+        final_state=["K0", ("Sigma+", [+0.5]), ("p~", [+0.5])],
         allowed_intermediate_particles=[resonance],
         allowed_interaction_types="strong",
     )

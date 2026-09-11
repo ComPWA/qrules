@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from fractions import Fraction
+from importlib.metadata import version
 
 import attrs
 import pytest
@@ -37,32 +38,32 @@ from qrules.topology import Edge, MutableTransition, Topology
     [
         (
             [("Y(4260)", [-1])],
-            [("D0", [0]), ("Dbar0", [0]), ("pi0", [0]), ("pi0", [0])],
-            [[["D0", "pi0"], ["Dbar0", "pi0"]]],
+            [("D0", [0]), ("D~0", [0]), ("pi0", [0]), ("pi0", [0])],
+            [[["D0", "pi0"], ["D~0", "pi0"]]],
             1,
         ),
         (
             [("Y(4260)", [-1, 1])],
-            [("D0", [0]), ("Dbar0", [0]), ("pi0", [0]), ("pi0", [0])],
-            [[["D0", "pi0"], ["Dbar0", "pi0"]]],
+            [("D0", [0]), ("D~0", [0]), ("pi0", [0]), ("pi0", [0])],
+            [[["D0", "pi0"], ["D~0", "pi0"]]],
             2,
         ),
         (
             [("Y(4260)", [1])],
-            [("D0", [0]), ("Dbar0", [0]), ("pi0", [0]), ("pi0", [0])],
+            [("D0", [0]), ("D~0", [0]), ("pi0", [0]), ("pi0", [0])],
             [],
             9,
         ),
         (
             [("Y(4260)", [-1, 1])],
-            [("D0", [0]), ("Dbar0", [0]), ("pi0", [0]), ("pi0", [0])],
+            [("D0", [0]), ("D~0", [0]), ("pi0", [0]), ("pi0", [0])],
             [],
             18,
         ),
         (
             [("Y(4260)", [1])],
-            [("D0", [0]), ("Dbar0", [0]), ("pi0", [0]), ("pi0", [0])],
-            [[["D0", "pi0"], ["Dbar0", "pi0"]], ["D0", "pi0"]],
+            [("D0", [0]), ("D~0", [0]), ("pi0", [0]), ("pi0", [0])],
+            [[["D0", "pi0"], ["D~0", "pi0"]], ["D0", "pi0"]],
             3,
         ),
         (
@@ -114,6 +115,26 @@ def test_external_edge_initialization(
         assert len(next(iter(problem_sets.values()))) == result_graph_count
 
 
+def get_pi0_width() -> float:
+    if version("particle") < "0.16":
+        return 7.73e-09
+    return 7.81e-09
+
+
+def __get_d_pos() -> tuple[float, float]:
+    if version("particle") < "0.16":
+        return 1.86965, 6.33e-13
+    if version("particle") < "0.21":
+        return 1.86966, 6.33e-13
+    return 1.86966, 6.37e-13
+
+
+def __get_f2_1270_pos() -> tuple[float, float]:
+    if version("particle") < "0.23":
+        return 1.2755, 0.18669999999999998
+    return 1.2754, 0.1866
+
+
 @pytest.mark.parametrize(
     ("particle_name", "spin_projection", "expected_properties"),
     [
@@ -122,8 +143,8 @@ def test_external_edge_initialization(
             0,
             {
                 EdgeQuantumNumbers.pid: 111,
-                EdgeQuantumNumbers.mass: 0.1349768277676847,
-                EdgeQuantumNumbers.width: 7.811987971364424e-09,
+                EdgeQuantumNumbers.mass: 0.1349768,
+                EdgeQuantumNumbers.width: get_pi0_width(),
                 EdgeQuantumNumbers.spin_magnitude: 0.0,
                 EdgeQuantumNumbers.spin_projection: 0,
                 EdgeQuantumNumbers.charge: 0,
@@ -147,8 +168,8 @@ def test_external_edge_initialization(
             0,
             {
                 EdgeQuantumNumbers.pid: 411,
-                EdgeQuantumNumbers.mass: 1.869664743570898,
-                EdgeQuantumNumbers.width: 6.370029016102887e-13,
+                EdgeQuantumNumbers.mass: __get_d_pos()[0],
+                EdgeQuantumNumbers.width: __get_d_pos()[1],
                 EdgeQuantumNumbers.spin_magnitude: 0.0,
                 EdgeQuantumNumbers.spin_projection: 0,
                 EdgeQuantumNumbers.charge: 1,
@@ -168,12 +189,12 @@ def test_external_edge_initialization(
             },
         ),
         (
-            "f_2(1270)0",  # spin projection 1
+            "f(2)(1270)",  # spin projection 1
             1.0,
             {
                 EdgeQuantumNumbers.pid: 225,
-                EdgeQuantumNumbers.mass: 1.2754120499190051,
-                EdgeQuantumNumbers.width: 0.18655435663732642,
+                EdgeQuantumNumbers.mass: __get_f2_1270_pos()[0],
+                EdgeQuantumNumbers.width: __get_f2_1270_pos()[1],
                 EdgeQuantumNumbers.spin_magnitude: 2.0,
                 EdgeQuantumNumbers.spin_projection: 1.0,
                 EdgeQuantumNumbers.charge: 0,
@@ -199,9 +220,11 @@ def test_create_edge_properties(
     spin_projection,
     expected_properties,
     particle_database,
+    skh_particle_version: str,
 ):
     particle = particle_database[particle_name]
     assert create_edge_properties(particle, spin_projection) == expected_properties
+    assert skh_particle_version is not None  # dummy for skip tests
 
 
 def make_ls_test_graph(
@@ -346,7 +369,7 @@ def _create_graph(
     [
         (
             [("Y(4260)", [-1])],
-            [("D0", [0]), ("Dbar0", [0]), ("pi0", [0]), ("pi0", [0])],
+            [("D0", [0]), ("D~0", [0]), ("pi0", [0]), ("pi0", [0])],
         ),
     ],
 )
@@ -387,7 +410,7 @@ def test_edge_swap(particle_database, initial_state, final_state):
     [
         (
             [("Y(4260)", [-1])],
-            [("D0", [0]), ("Dbar0", [0]), ("pi0", [0]), ("pi0", [0])],
+            [("D0", [0]), ("D~0", [0]), ("pi0", [0]), ("pi0", [0])],
         ),
         (
             [("J/psi(1S)", [-1, 1])],
@@ -440,13 +463,13 @@ def test_match_external_edges(particle_database, initial_state, final_state):
     [
         (
             [("Y(4260)", [1])],
-            [("D0", [0]), ("Dbar0", [0]), ("pi0", [0]), ("pi0", [0])],
-            [[["D0", "pi0"], ["Dbar0", "pi0"]]],
+            [("D0", [0]), ("D~0", [0]), ("pi0", [0]), ("pi0", [0])],
+            [[["D0", "pi0"], ["D~0", "pi0"]]],
             2,
         ),
         (
             [("Y(4260)", [1])],
-            [("D0", [0]), ("Dbar0", [0]), ("pi0", [0]), ("pi0", [0])],
+            [("D0", [0]), ("D~0", [0]), ("pi0", [0]), ("pi0", [0])],
             [["D0", "pi0"]],
             6,
         ),

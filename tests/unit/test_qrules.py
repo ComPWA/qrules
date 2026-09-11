@@ -6,17 +6,17 @@ from qrules import generate_transitions
 @pytest.mark.parametrize(
     "resonance_names",
     [
-        ["Sigmabar(1660)-"],
+        ["Sigma(1660)~-"],
         ["N(1650)+"],
-        ["Kbar^*(1680)0"],
-        ["Sigmabar(1660)-", "N(1650)+"],
-        ["Sigmabar(1660)-", "Kbar^*(1680)0"],
-        ["N(1650)+", "Kbar^*(1680)0"],
-        ["Sigmabar(1660)-", "N(1650)+", "Kbar^*(1680)0"],
+        ["K*(1680)~0"],
+        ["Sigma(1660)~-", "N(1650)+"],
+        ["Sigma(1660)~-", "K*(1680)~0"],
+        ["N(1650)+", "K*(1680)~0"],
+        ["Sigma(1660)~-", "N(1650)+", "K*(1680)~0"],
     ],
 )
 def test_generate_transitions(resonance_names):
-    final_state_names = ["K0", "Sigma+", "pbar"]
+    final_state_names = ["K0", "Sigma+", "p~"]
     reaction = generate_transitions(
         initial_state="J/psi(1S)",
         final_state=final_state_names,

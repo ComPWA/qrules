@@ -26,7 +26,7 @@ class Input(NamedTuple):
             Input(
                 [("J/psi(1S)", [1])],
                 [("gamma", [-1, 1]), ("pi0", [0]), ("pi0", [0])],
-                ["f_0(980)0"],
+                ["f(0)(980)"],
                 ["pi0", "pi0"],
             ),
             "J/psi(1S)",
