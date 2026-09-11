@@ -38,7 +38,6 @@
     "pyproject.toml"
   ],
   "ignoreWords": [
-    "Xibar",
     "adrs",
     "ampform",
     "arange",
@@ -90,7 +89,6 @@
     "mathrm",
     "maxdepth",
     "mcid",
-    "mcids",
     "meijerg",
     "mimetype",
     "modindex",
@@ -105,7 +103,6 @@
     "noreply",
     "nrows",
     "nsimplify",
-    "nubar",
     "pandoc",
     "pbar",
     "permalinks",
