@@ -18,6 +18,7 @@ from collections import abc
 from difflib import get_close_matches
 from fractions import Fraction
 from functools import total_ordering
+from math import copysign
 from typing import TYPE_CHECKING, Any
 
 import attrs
@@ -38,6 +39,8 @@ if TYPE_CHECKING:
 
     from attrs import Attribute
     from IPython.lib.pretty import RepresentationPrinter
+    from particle import Particle as PdgDatabase
+    from particle.particle import enums
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -238,10 +241,9 @@ class Particle:
 
 def _get_name_root(name: str) -> str:
     """Strip a string (particularly the `.Particle.name`) of specifications."""
-    name_root = re.sub(r"\([^)]*\)", "", name)
-    name_root = name_root.split("_", maxsplit=1)[0]
-    name_root = re.sub(r"[\^\*\+\-~\d']", "", name_root)
-    return name_root.removesuffix("bar")
+    name_root = name
+    name_root = re.sub(r"\(.+\)", "", name_root)
+    return re.sub(r"[\*\+\-~\d']", "", name_root)
 
 
 ParticleWithSpin = tuple[Particle, Fraction]
@@ -492,12 +494,188 @@ def create_antiparticle(
     )
 
 
-def load_pdg() -> ParticleCollection:
+def load_pdg(*, use_official_pdg: bool = False) -> ParticleCollection:
     """Create a `.ParticleCollection` with all entries from the PDG.
 
-    PDG info is imported from the official `PDG Python API
-    <https://pdgapi.lbl.gov/doc/>`_.
+    By default, particle definitions are imported from the `Scikit-HEP particle
+    <https://github.com/scikit-hep/particle>`_ package. Set ``use_official_pdg`` to
+    ``True`` to import them from the official `PDG Python API
+    <https://pdgapi.lbl.gov/doc/>`_ instead.
     """
-    from qrules._pdg import load_pdg as load_official_pdg  # ruff: ignore[import-outside-top-level]
+    if use_official_pdg:
+        from qrules._pdg import load_pdg as load_official_pdg  # ruff: ignore[import-outside-top-level]
 
-    return load_official_pdg()
+        return load_official_pdg()
+
+    from particle import Particle as PdgDatabase  # ruff: ignore[import-outside-top-level]
+
+    all_pdg_particles = PdgDatabase.findall(
+        lambda item: (
+            item.charge is not None
+            and float(item.charge).is_integer()  # remove quarks
+            and item.J is not None  # remove new physics and nuclei
+            and abs(item.pdgid) < 1e9  # p and n as nucleus
+            and item.name not in __skip_particles
+            and not (item.mass is None and not item.name.startswith("nu"))
+        )
+    )
+    particle_collection = ParticleCollection()
+    for pdg_particle in all_pdg_particles:
+        new_particle = __convert_pdg_instance(pdg_particle)
+        particle_collection.add(new_particle)
+    return particle_collection
+
+
+__skip_particles = {
+    "K(L)0",  # no isospin projection
+    "K(S)0",  # no isospin projection
+    "B(s2)*(5840)0",  # isospin(0.5, 0.0) ?
+    "B(s2)*(5840)~0",  # isospin(0.5, 0.0) ?
+}
+
+
+def __sign(value: float) -> int:
+    return int(copysign(1, value))
+
+
+# cspell:ignore pdgid
+def __convert_pdg_instance(pdg_particle: PdgDatabase) -> Particle:
+    def convert_mass_width(value: float | None) -> float:
+        if value is None:
+            return 0.0
+        return float(value) / 1e3  # https://github.com/ComPWA/qrules/issues/14
+
+    def convert_spin(value: Fraction | float | None) -> float:
+        if value is None:
+            msg = f"PDG instance has no spin:\n{pdg_particle}"
+            raise ValueError(msg)
+        return float(value)
+
+    if pdg_particle.charge is None:
+        msg = f"PDG instance has no charge:\n{pdg_particle}"
+        raise ValueError(msg)
+    quark_numbers = __compute_quark_numbers(pdg_particle)
+    lepton_numbers = __compute_lepton_numbers(pdg_particle)
+    if pdg_particle.pdgid.is_lepton:  # convention: C(fermion)=+1
+        parity: Parity | None = Parity(__sign(pdg_particle.pdgid))
+    else:
+        parity = __create_parity(pdg_particle.P)
+    latex = None
+    if pdg_particle.latex_name != "Unknown":
+        latex = str(pdg_particle.latex_name)
+    return Particle(
+        name=str(pdg_particle.name),
+        latex=latex,
+        pid=int(pdg_particle.pdgid),
+        mass=convert_mass_width(pdg_particle.mass),
+        width=convert_mass_width(pdg_particle.width),
+        charge=int(pdg_particle.charge),
+        spin=convert_spin(pdg_particle.J),
+        strangeness=quark_numbers[0],
+        charmness=quark_numbers[1],
+        bottomness=quark_numbers[2],
+        topness=quark_numbers[3],
+        baryon_number=__compute_baryonnumber(pdg_particle),
+        electron_lepton_number=lepton_numbers[0],
+        muon_lepton_number=lepton_numbers[1],
+        tau_lepton_number=lepton_numbers[2],
+        isospin=__create_isospin(pdg_particle),
+        parity=parity,
+        c_parity=__create_parity(pdg_particle.C),
+        g_parity=__create_parity(pdg_particle.G),
+    )
+
+
+def __compute_quark_numbers(
+    pdg_particle: PdgDatabase,
+) -> tuple[int, int, int, int]:
+    strangeness = 0
+    charmness = 0
+    bottomness = 0
+    topness = 0
+    if pdg_particle.pdgid.is_hadron:
+        quark_content = __filter_quark_content(pdg_particle)
+        strangeness = quark_content.count("S") - quark_content.count("s")
+        charmness = quark_content.count("c") - quark_content.count("C")
+        bottomness = quark_content.count("B") - quark_content.count("b")
+        topness = quark_content.count("t") - quark_content.count("T")
+    return (
+        strangeness,
+        charmness,
+        bottomness,
+        topness,
+    )
+
+
+def __compute_lepton_numbers(
+    pdg_particle: PdgDatabase,
+) -> tuple[int, int, int]:
+    electron_lepton_number = 0
+    muon_lepton_number = 0
+    tau_lepton_number = 0
+    if pdg_particle.pdgid.is_lepton:
+        lepton_number = int(__sign(pdg_particle.pdgid))
+        if "e" in pdg_particle.name:
+            electron_lepton_number = lepton_number
+        elif "mu" in pdg_particle.name:
+            muon_lepton_number = lepton_number
+        elif "tau" in pdg_particle.name:
+            tau_lepton_number = lepton_number
+    return electron_lepton_number, muon_lepton_number, tau_lepton_number
+
+
+def __compute_baryonnumber(pdg_particle: PdgDatabase) -> int:
+    return int(__sign(pdg_particle.pdgid) * pdg_particle.pdgid.is_baryon)
+
+
+def __create_isospin(pdg_particle: PdgDatabase) -> Spin | None:
+    if pdg_particle.I is None:
+        return None
+    magnitude = Fraction(pdg_particle.I)
+    projection = __isospin_projection_from_pdg(pdg_particle)
+    return Spin(magnitude, projection)
+
+
+def __isospin_projection_from_pdg(pdg_particle: PdgDatabase, /) -> Fraction:
+    if pdg_particle.charge is None:
+        msg = f"PDG instance has no charge:\n{pdg_particle}"
+        raise ValueError(msg)
+    if "qq" in pdg_particle.quarks.lower():
+        strangeness, charmness, bottomness, topness = __compute_quark_numbers(
+            pdg_particle
+        )
+        baryon_number = __compute_baryonnumber(pdg_particle)
+        projection = pdg_particle.charge - 0.5 * (
+            baryon_number + strangeness + charmness + bottomness + topness
+        )
+    else:
+        projection = 0.0
+        if pdg_particle.pdgid.is_hadron:
+            quark_content = __filter_quark_content(pdg_particle)
+            projection += quark_content.count("u") + quark_content.count("D")
+            projection -= quark_content.count("U") + quark_content.count("d")
+            projection *= 0.5
+    if (
+        pdg_particle.I is not None
+        and not float(pdg_particle.I - projection).is_integer()
+    ):
+        msg = f"Cannot have isospin {pdg_particle.I, projection}"
+        raise ValueError(msg)
+    return Fraction(projection)
+
+
+def __filter_quark_content(pdg_particle: PdgDatabase) -> str:
+    matches = re.search(r"([dDuUsScCbBtT+-]{2,})", pdg_particle.quarks)
+    if matches is None:
+        return ""
+    return matches[1]
+
+
+def __create_parity(parity_enum: enums.Parity) -> Parity | None:
+    from particle.particle import enums  # ruff: ignore[import-outside-top-level]
+
+    if parity_enum is None or parity_enum == enums.Parity.u:
+        return None
+    if parity_enum == getattr(parity_enum, "o", None):  # particle < 0.14
+        return None
+    return Parity(int(parity_enum))

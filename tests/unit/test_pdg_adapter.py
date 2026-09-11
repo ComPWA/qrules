@@ -5,14 +5,22 @@ import pytest
 from pdg.errors import PdgNoDataError
 
 from qrules._pdg import _load_pdg_particles, _to_mass, _to_width
-from qrules._pdg import load_pdg as load_official_pdg
 from qrules.particle import ParticleCollection, load_pdg
 from qrules.quantum_numbers import Parity
 
 
 @pytest.fixture(scope="module")
 def official_particles() -> ParticleCollection:
-    return load_official_pdg()
+    return load_pdg(use_official_pdg=True)
+
+
+def test_uses_scikit_hep_source_by_default(
+    official_particles: ParticleCollection,
+):
+    default_particles = load_pdg()
+
+    assert default_particles.find(-2212).name == "p~"
+    assert official_particles.find(-2212).name == "pbar"
 
 
 def test_caches_particle_definitions_and_returns_independent_collections(
@@ -20,7 +28,7 @@ def test_caches_particle_definitions_and_returns_independent_collections(
 ):
     cache_info_before = _load_pdg_particles.cache_info()
 
-    second_collection = load_pdg()
+    second_collection = load_pdg(use_official_pdg=True)
 
     cache_info_after = _load_pdg_particles.cache_info()
     assert cache_info_after.hits == cache_info_before.hits + 1
