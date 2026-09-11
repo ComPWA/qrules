@@ -28,10 +28,6 @@ if TYPE_CHECKING:
 _SKIPPED_MC_IDS = {-535, 130, 310, 535}
 
 
-class _UnsupportedParticleError(ValueError):
-    """Raised when a PDG entry cannot be represented by QRules."""
-
-
 def load_pdg() -> ParticleCollection:
     """Load particle definitions from the official PDG database.
 
@@ -49,7 +45,7 @@ def _load_pdg_particles() -> tuple[Particle, ...]:
     for source_particle in _iter_particles(api):
         try:
             particle = _convert_particle(source_particle)
-        except _UnsupportedParticleError:
+        except ValueError:
             continue
         particles.append(particle)
     return tuple(particles)
@@ -74,10 +70,10 @@ def _convert_particle(source: PdgParticle) -> Particle:
     mcid = source.mcid
     if mcid is None:
         msg = f"Particle {source.name} has no Monte Carlo ID"
-        raise _UnsupportedParticleError(msg)
+        raise ValueError(msg)
     if mcid in _SKIPPED_MC_IDS or abs(mcid) >= 1_000_000_000:
         msg = f"Particle {source.name} is not supported"
-        raise _UnsupportedParticleError(msg)
+        raise ValueError(msg)
 
     charge = _to_integer_charge(source.charge)
     spin = _to_spin(
@@ -137,7 +133,7 @@ def _convert_particle(source: PdgParticle) -> Particle:
 def _to_integer_charge(value: float) -> int:
     if not float(value).is_integer():
         msg = f"QRules does not support fractional charge {value}"
-        raise _UnsupportedParticleError(msg)
+        raise ValueError(msg)
     return int(value)
 
 
@@ -152,7 +148,7 @@ def _to_spin(value: str | None, mcid: int, *, is_hadron: bool) -> Fraction:
     if is_hadron and spin_code > 0:
         return Fraction(spin_code - 1, 2)
     msg = f"Cannot determine spin for MC ID {mcid} from {value!r}"
-    raise _UnsupportedParticleError(msg)
+    raise ValueError(msg)
 
 
 def _to_mass(source: PdgParticle) -> float:
@@ -169,7 +165,7 @@ def _to_mass(source: PdgParticle) -> float:
     if abs(source.mcid) in {12, 14, 16, 21, 22}:
         return 0.0
     msg = f"Particle {source.name} has no supported mass value"
-    raise _UnsupportedParticleError(msg)
+    raise ValueError(msg)
 
 
 def _to_width(source: PdgParticle) -> float:
