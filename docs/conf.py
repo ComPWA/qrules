@@ -264,6 +264,8 @@ linkcheck_anchors = False
 linkcheck_ignore = [
     "https://doi.org/10.1002/andp.19955070504",  # 403 for onlinelibrary.wiley.com
     "https://doi.org/10.1103/PhysRevD.86.010001",
+    "https://github.com/scikit-hep/particle",
+    r"https://zenodo.org/badge/doi/10.5281/zenodo.\d+.svg",
 ]
 mermaid_height = "auto"  # do not stretch diagrams to the default 500px
 mermaid_init_config = {

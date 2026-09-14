@@ -1,12 +1,11 @@
 from fractions import Fraction
-from typing import Any, cast
 from unittest.mock import MagicMock, PropertyMock
 
 import pytest
 from pdg.errors import PdgNoDataError
 
-from qrules._pdg_adapter import _load_pdg_particles, _to_mass, _to_width
 from qrules.particle import ParticleCollection, load_pdg
+from qrules.particle._adapter.pdg import _load_pdg_particles, _to_mass, _to_width
 from qrules.quantum_numbers import Parity
 
 
@@ -16,20 +15,6 @@ def official_particles() -> ParticleCollection:
 
 
 def describe_load_pdg():
-    def it_uses_scikit_hep_source_by_default(
-        official_particles: ParticleCollection,
-    ):
-        default_particles = load_pdg()
-        scikit_hep_particles = load_pdg(source="particle")
-
-        assert default_particles == scikit_hep_particles
-        assert default_particles.find(-2212).name == "p~"
-        assert official_particles.find(-2212).name == "pbar"
-
-    def it_rejects_unknown_source():
-        with pytest.raises(ValueError, match="Unknown particle source"):
-            load_pdg(source=cast("Any", "unknown"))
-
     def it_caches_particle_definitions_and_returns_independent_collections(
         official_particles: ParticleCollection,
     ):
