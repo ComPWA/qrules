@@ -178,7 +178,6 @@ def describe_to_mass():
         type(source).mass = PropertyMock(side_effect=PdgNoDataError("no mass"))
         source.antiparticle.has_mass_entry = True
         source.antiparticle.mass = 0.5
-
         assert _to_mass(source) == 0.5
 
 
@@ -191,5 +190,4 @@ def describe_to_width():
         source.antiparticle.has_width_entry = True
         source.antiparticle.has_lifetime_entry = False
         source.antiparticle.width = 0.25
-
         assert _to_width(source) == 0.25
