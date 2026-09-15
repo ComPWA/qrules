@@ -197,6 +197,7 @@
     "pyplot",
     "pytest",
     "qrules",
+    "regge",
     "setuptools",
     "spflueger",
     "struct",
