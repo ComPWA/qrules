@@ -10,7 +10,7 @@ import string
 from collections import abc
 from typing import TYPE_CHECKING, Any
 
-from attrs import Attribute, define, field
+from attrs import define, field
 from attrs.converters import default_if_none
 
 from qrules.io import _labels
@@ -24,19 +24,6 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-def _check_booleans(
-    instance: GraphvizPrinter,
-    _attribute: Attribute,
-    _value: bool,
-) -> None:
-    if instance.strip_spin and instance.collapse_graphs:
-        msg = "Cannot both strip spin and collapse graphs"
-        raise ValueError(msg)
-    if instance.collapse_graphs and instance.render_node:
-        msg = "Collapsed graphs cannot be rendered with node properties"
-        raise ValueError(msg)
-
-
 def _create_default_figure_style(style: dict[str, Any] | None) -> dict[str, Any]:
     figure_style = {"bgcolor": None}
     if style is None:
@@ -45,14 +32,13 @@ def _create_default_figure_style(style: dict[str, Any] | None) -> dict[str, Any]
     return figure_style
 
 
-@define(on_setattr=_check_booleans)
+@define(kw_only=True)
 class GraphvizPrinter:
     render_node: bool | None = None
     render_final_state_id: bool = True
     render_resonance_id: bool = False
     render_initial_state_id: bool = False
-    strip_spin: bool = False
-    collapse_graphs: bool = False
+    collapse: _labels.CollapseMode | None = None
 
     figure_style: dict[str, Any] = field(
         converter=_create_default_figure_style, default=None
@@ -99,9 +85,8 @@ class GraphvizPrinter:
     def _render_multiple_transitions(self, obj: Iterable) -> list[str]:
         transitions = _labels.select_transitions(
             obj,
-            collapse=self.collapse_graphs,
+            collapse=self.collapse,
             render_node=self.render_node,
-            strip_spin=self.strip_spin,
         )
         lines = []
         for i, graph in enumerate(reversed(transitions)):

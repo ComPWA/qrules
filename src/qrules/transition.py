@@ -336,7 +336,7 @@ class StateTransitionManager:
         return create_problem_sets(
             self.initial_state,
             self.final_state,
-            self.__particles,
+            particle_db=self.__particles,
             interaction_config=self.__create_interaction_config(),
             intermediate_particles=self.__intermediate_particles,
             topologies=self.topologies,

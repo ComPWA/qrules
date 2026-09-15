@@ -5,7 +5,7 @@ import re
 from fractions import Fraction
 from functools import singledispatch
 from inspect import isfunction
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Any, Literal, Protocol, TypeAlias
 
 import attrs
 
@@ -29,6 +29,7 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 
+CollapseMode: TypeAlias = Literal["spin", "topology"]
 RenderedGraph = ProblemSet | QNProblemSet | Topology | Transition
 RenderPair = tuple[Topology, RenderedGraph]
 RenderInput = RenderedGraph | RenderPair
@@ -85,23 +86,28 @@ def select_transitions(
     graphs: Iterable[Any],
     /,
     *,
-    collapse: bool,
+    collapse: CollapseMode | None,
     render_node: bool | None,
-    strip_spin: bool,
 ) -> list[Any]:
     """Reduce a collection of transitions to the graphs that are worth rendering.
 
-    The ``collapse`` and ``strip_spin`` flags are the printer attributes
-    :code:`collapse_graphs` and :code:`strip_spin`. Spin projections can only be
-    stripped from the interaction nodes if those nodes are not rendered.
+    The ``collapse`` mode is the printer attribute :code:`collapse`. Spin projections
+    are only stripped from the interaction nodes if those nodes are not rendered, and
+    topologies cannot be collapsed at all while node properties are rendered.
     """
-    if collapse:
-        return collapse_graphs(graphs)
-    if strip_spin:
+    if collapse is None:
+        return list(graphs)
+    if collapse == "spin":
         if render_node:
             return sorted({strip_projections(g) for g in graphs})
         return get_particle_graphs(graphs)
-    return list(graphs)
+    if collapse == "topology":
+        if render_node:
+            msg = "Transitions collapsed by topology cannot render node properties"
+            raise ValueError(msg)
+        return collapse_graphs(graphs)
+    msg = f"Unknown collapse mode {collapse!r}; expected None, 'spin', or 'topology'"
+    raise ValueError(msg)
 
 
 def create_edge_label(
