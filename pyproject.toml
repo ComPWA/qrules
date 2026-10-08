@@ -542,6 +542,14 @@ root = "tool.compwa.policy"
 path = "https://raw.githubusercontent.com/ComPWA/policy/0.9.8/compwa-policy.schema.json"
 include = ["pyproject.toml"]
 
+[[tool.ty.overrides]]
+include = [
+    "src/qrules/__init__.py",
+    "src/qrules/settings.py",
+    "tests/unit/conservation_rules/test_additive_qn.py",
+]
+rules.call-non-callable = "ignore"
+
 [tool.ty.rules]
 division-by-zero = "warn"
 possibly-missing-import = "warn"
