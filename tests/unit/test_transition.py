@@ -64,20 +64,15 @@ def describe_ReactionInfo():
         assert hash(deepcopy(reaction)) == hash(reaction)
 
     def it_hash_value(reaction: ReactionInfo):
-        if sys.version_info >= (3, 11) and not sys.version_info >= (3, 14):
-            expected_hash = {
-                "canonical-helicity": "65106a44301f9340e633d09f66ad7d17",
-                "helicity": "9646d3ee5c5e8534deb8019435161f2e",
-            }[reaction.formalism]
-        elif sys.version_info >= (3, 14):
+        if sys.version_info >= (3, 14):
             expected_hash = {
                 "canonical-helicity": "762cc006a8c4c0a0a88fce934a32577d",
                 "helicity": "17fefe55a7da0810371e90bd762a176a",
             }[reaction.formalism]
         else:
             expected_hash = {
-                "canonical-helicity": "0d8bc378677986e0dc2d3b02f5627e0b",
-                "helicity": "71404ad43550850a02109e8db044bd28",
+                "canonical-helicity": "65106a44301f9340e633d09f66ad7d17",
+                "helicity": "9646d3ee5c5e8534deb8019435161f2e",
             }[reaction.formalism]
 
         assert _compute_hash(reaction) == expected_hash
