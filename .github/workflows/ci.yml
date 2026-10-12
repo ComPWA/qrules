@@ -20,7 +20,7 @@ on:
 
 jobs:
   doc:
-    uses: ComPWA/actions/.github/workflows/ci-docs.yml@957d1151460aea469a230150b61cc3c99d3f0a0a # v4.1.2
+    uses: ComPWA/actions/.github/workflows/ci-docs.yml@313866498eb92c341d7e6b905e09f33a5979dffb # v4.1.4
     permissions:
       pages: write
       id-token: write
@@ -29,12 +29,12 @@ jobs:
   style:
     secrets:
       token: ${{ secrets.PAT }}
-    uses: ComPWA/actions/.github/workflows/style.yml@957d1151460aea469a230150b61cc3c99d3f0a0a # v4.1.2
+    uses: ComPWA/actions/.github/workflows/style.yml@313866498eb92c341d7e6b905e09f33a5979dffb # v4.1.4
   test:
-    uses: ComPWA/actions/.github/workflows/test.yml@957d1151460aea469a230150b61cc3c99d3f0a0a # v4.1.2
+    uses: ComPWA/actions/.github/workflows/test.yml@313866498eb92c341d7e6b905e09f33a5979dffb # v4.1.4
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     with:
-      coverage-python-version: "3.13"
+      coverage-python-version: "3.14"
       macos-python-version: "3.13"
       test-output-path: tests/output/
