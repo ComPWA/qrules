@@ -78,11 +78,12 @@ def asdot(
     Args:
         instance: the input `object` that is to be rendered as DOT (graphviz) language.
 
-        collapse: Optionally combine transitions. With ``"spin"``, transitions that
-            differ only in their spin projections are combined. With ``"topology"``,
-            transitions with equivalent kinematic topologies are grouped and all allowed
-            particles on each edge are collected. Node properties cannot be rendered
-            when collapsing by topology.
+        collapse: Optionally combine transitions. With ``"spin"``, the interaction
+            properties (such as :math:`LS`-couplings) of the transitions are hidden and
+            the transitions are deduplicated, leaving only unique graphs with `.Particle`
+            names on their edges. With ``"topology"``, transitions with equivalent
+            kinematic topologies are grouped and all allowed particles on each edge are
+            collected. Node properties cannot be rendered when collapsing by topology.
 
         render_node: Whether or not to render node ID (in the case of a `.Topology`)
             and/or node properties (in the case of a `.MutableTransition`). Meaning of
@@ -146,12 +147,14 @@ def asmermaid(
         instance: the input `object` that is to be rendered as Mermaid flowchart
             source.
 
-        collapse: Optionally combine transitions. With ``"spin"``, transitions that
-            differ only in their spin projections are combined. With ``"topology"``,
-            transitions with equivalent kinematic topologies are grouped and all allowed
-            particles on each edge are collected. Node properties cannot be rendered
-            when collapsing by topology. With LaTeX rendering, particle lists longer
-            than six entries are arranged in columns of at most six rows.
+        collapse: Optionally combine transitions. With ``"spin"``, the interaction
+            properties (such as :math:`LS`-couplings) of the transitions are hidden and
+            the transitions are deduplicated, leaving only unique graphs with `.Particle`
+            names on their edges. With ``"topology"``, transitions with equivalent
+            kinematic topologies are grouped and all allowed particles on each edge are
+            collected. Node properties cannot be rendered when collapsing by topology.
+            With LaTeX rendering, particle lists longer than six entries are arranged in
+            columns of at most six rows.
 
         render_node: Whether or not to render node ID (in the case of a `.Topology`)
             and/or node properties (in the case of a `.MutableTransition`). Meaning of

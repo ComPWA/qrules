@@ -27,7 +27,7 @@ quantum numbers it has found.
 
 The resulting state transition objects are particularly useful for **amplitude analysis
 / Partial Wave Analysis** as they contain all information (such as expected masses,
-widths, and spin projections) that is needed to formulate an amplitude model.
+widths, and spin quantum numbers) that is needed to formulate an amplitude model.
 
 The {doc}`/usage` pages illustrate several features of {mod}`qrules`. You can run each
 of them as Jupyter notebooks with the {fa}`rocket` launch button in the top-right

@@ -165,7 +165,6 @@ def reduce_violated_rules(
             {
                 "isospin_conservation",  # Clebsch Gordan coefficient = 0
                 "c_parity_conservation",
-                "identical_particle_symmetrization",
             },
         ),
         (

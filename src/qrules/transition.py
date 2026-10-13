@@ -9,17 +9,11 @@ from typing import TYPE_CHECKING, Literal, overload
 
 import attrs
 from attrs import define, field, frozen
-from attrs.validators import in_, instance_of
+from attrs.validators import in_
 
-from qrules._attrs import to_fraction
 from qrules._implementers import implement_pretty_repr
-from qrules.combinatorics import (
-    InitialFacts,
-    StateDefinitionInput,
-    as_state_definition,
-    ensure_nested_list,
-)
-from qrules.particle import Particle, ParticleCollection, ParticleWithSpin, load_pdg
+from qrules.combinatorics import InitialFacts, ensure_nested_list
+from qrules.particle import Particle, ParticleCollection, load_pdg
 from qrules.quantum_numbers import InteractionProperties, NodeQuantumNumber
 from qrules.settings import (
     DEFAULT_INTERACTION_TYPES,
@@ -51,7 +45,6 @@ from qrules.topology import (
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
-    from fractions import Fraction
 
     from qrules.workflow import InteractionConfig
 
@@ -65,10 +58,10 @@ SpinFormalism = Literal[
 ]
 """Name for the spin formalism to be used.
 
-The options :code:`"helicity"`, :code:`"canonical-helicity"`, and :code:`"canonical"`
-are all used for the helicity formalism, but :code:`"canonical-helicity"` and
-:code:`"canonical"` generate angular momentum and coupled spins as well on the
-interaction nodes.
+The formalism only affects which interaction properties are kept in the output: with
+:code:`"helicity"`, the angular momentum and coupled spin magnitudes are filtered from
+the interaction nodes, whereas :code:`"canonical-helicity"` and :code:`"canonical"`
+keep these :math:`LS`-combinations.
 """
 
 
@@ -129,7 +122,7 @@ class SolutionContainer:
     by `.collect_reaction_info`.
     """
 
-    solutions: list[MutableTransition[ParticleWithSpin, InteractionProperties]] = field(
+    solutions: list[MutableTransition[Particle, InteractionProperties]] = field(
         factory=list
     )
     """Transitions that satisfy all conservation rules."""
@@ -179,8 +172,7 @@ class ProblemSet:
             for k, v in self.initial_facts.interactions.items()
         }
         states = {
-            k: create_edge_properties(v[0], v[1])
-            for k, v in self.initial_facts.states.items()
+            k: create_edge_properties(v) for k, v in self.initial_facts.states.items()
         }
         return QNProblemSet(
             initial_facts=MutableTransition(self.topology, states, interactions),
@@ -196,8 +188,8 @@ class StateTransitionManager:
 
     def __init__(  # ruff: ignore[too-many-positional-arguments]
         self,
-        initial_state: Sequence[StateDefinitionInput],
-        final_state: Sequence[StateDefinitionInput],
+        initial_state: Sequence[str],
+        final_state: Sequence[str],
         particle_db: ParticleCollection | None = None,
         allowed_intermediate_particles: list[str] | None = None,
         interaction_type_settings: dict[
@@ -211,6 +203,7 @@ class StateTransitionManager:
         mass_conservation_factor: float | None = 3.0,
         max_angular_momentum: int = 1,
         max_spin_magnitude: float = 2,
+        ls_couplings: bool = True,
         number_of_threads: int | None = None,
     ) -> None:
         if number_of_threads is not None:
@@ -232,8 +225,8 @@ class StateTransitionManager:
             self.__particles = particle_db
         self.solving_mode = solving_mode
         """Whether to search for all solutions or stop at the strongest interaction."""
-        self.initial_state = list(map(as_state_definition, initial_state))
-        self.final_state = list(map(as_state_definition, final_state))
+        self.initial_state = list(initial_state)
+        self.final_state = list(final_state)
         self.interaction_type_settings = interaction_type_settings
 
         self.interaction_determinators: list[InteractionDeterminator] = [
@@ -266,12 +259,12 @@ class StateTransitionManager:
 
         if not self.interaction_type_settings:
             self.interaction_type_settings = create_interaction_settings(
-                formalism,
                 particle_db=self.__particles,
                 nbody_topology=use_nbody_topology,
                 mass_conservation_factor=mass_conservation_factor,
                 max_angular_momentum=max_angular_momentum,
                 max_spin_magnitude=max_spin_magnitude,
+                ls_couplings=ls_couplings,
             )
 
         if allowed_intermediate_particles is None:
@@ -387,15 +380,8 @@ class StateTransitionManager:
         )
 
 
-@implement_pretty_repr
-@frozen(order=True)
-class State:
-    particle: Particle = field(validator=instance_of(Particle))
-    spin_projection: Fraction = field(converter=to_fraction)
-
-
-StateTransition = FrozenTransition[State, InteractionProperties]
-"""Transition of some initial `.State` to a final `.State`."""
+StateTransition = FrozenTransition[Particle, InteractionProperties]
+"""Transition of initial state `.Particle` instances to final state particles."""
 
 
 def _sort_tuple(
@@ -417,15 +403,13 @@ class ReactionInfo:
 
     def __attrs_post_init__(self) -> None:
         transition = self.transitions[0]
-        initial = {i: s.particle for i, s in transition.initial_states.items()}
-        final = {i: s.particle for i, s in transition.final_states.items()}
-        object.__setattr__(self, "final_state", final)
-        object.__setattr__(self, "initial_state", initial)
+        object.__setattr__(self, "final_state", dict(transition.final_states))
+        object.__setattr__(self, "initial_state", dict(transition.initial_states))
 
     def get_intermediate_particles(self) -> ParticleCollection:
         """Extract the names of the intermediate state particles."""
         particles = {
-            state.particle
+            state
             for transition in self.transitions
             for state in transition.intermediate_states.values()
         }

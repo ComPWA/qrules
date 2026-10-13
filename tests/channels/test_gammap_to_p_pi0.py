@@ -48,7 +48,7 @@ def test_group_by_channel(particle_database):
     )
     channels = {
         channel: {
-            state.particle.name
+            state.name
             for transition in transitions
             for state in transition.intermediate_states.values()
         }

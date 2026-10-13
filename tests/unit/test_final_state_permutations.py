@@ -24,7 +24,7 @@ def test_create_problem_sets(final_state_description: str):
     for problem_set in problem_sets.values():
         for problem in problem_set:
             problem_final_state = [
-                problem.initial_facts.states[i][0].name for i in range(3)
+                problem.initial_facts.states[i].name for i in range(3)
             ]
             assert problem_final_state == input_final_state
 
@@ -36,7 +36,7 @@ def test_create_problem_sets(final_state_description: str):
 def test_generate_transitions(final_state_description: str):
     final_state = final_state_description.split(" ")
     reaction = qrules.generate_transitions(
-        initial_state=("J/psi(1S)", [-1, +1]),
+        initial_state="J/psi(1S)",
         final_state=final_state,
         allowed_intermediate_particles=["omega(782)"],
         allowed_interaction_types=["strong", "EM"],
@@ -46,17 +46,16 @@ def test_generate_transitions(final_state_description: str):
     ]
     assert final_state == ordered_final_state
 
-    assert len(reaction.transitions) == 8
+    assert len(reaction.transitions) == 1
     for transition in reaction.transitions:
         ordered_final_state = [
-            transition.final_states[i].particle.name
-            for i in sorted(transition.final_states)
+            transition.final_states[i].name for i in sorted(transition.final_states)
         ]
         assert final_state == ordered_final_state
 
         topology = transition.topology
         decay_products = {
-            transition.states[i].particle.name
+            transition.states[i].name
             for i in topology.get_edge_ids_outgoing_from_node(1)
         }
         assert decay_products == {"gamma", "pi0"}

@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 import operator
 from abc import ABC, abstractmethod
-from fractions import Fraction
 from typing import TYPE_CHECKING
 
 import attrs
@@ -25,7 +24,7 @@ from qrules.topology import MutableTransition
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
 
-    from qrules.particle import Particle, ParticleCollection, ParticleWithSpin
+    from qrules.particle import Particle, ParticleCollection
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -34,10 +33,7 @@ Strength = float
 GraphSettingsGroups = dict[Strength, list[tuple[MutableTransition, GraphSettings]]]
 
 
-def create_edge_properties(
-    particle: Particle,
-    spin_projection: float | Fraction | None = None,
-) -> GraphEdgePropertyMap:
+def create_edge_properties(particle: Particle) -> GraphEdgePropertyMap:
     edge_qn_mapping: dict[str, type[EdgeQuantumNumber]] = {
         qn_name: qn_type
         for qn_name, qn_type in EdgeQuantumNumbers.__dict__.items()
@@ -56,8 +52,6 @@ def create_edge_properties(
             elif "spin" in qn_name:
                 property_map[EdgeQuantumNumbers.spin_magnitude] = value
 
-    if spin_projection is not None:
-        property_map[EdgeQuantumNumbers.spin_projection] = spin_projection
     if isospin is not None:
         property_map[EdgeQuantumNumbers.isospin_magnitude] = isospin.magnitude
         property_map[EdgeQuantumNumbers.isospin_projection] = isospin.projection
@@ -85,35 +79,28 @@ def create_node_properties(interactions: InteractionProperties) -> GraphNodeProp
     return property_map
 
 
-def find_particle(  # ruff: ignore[undocumented-param]
+def find_particle(
     state: GraphEdgePropertyMap, particle_db: ParticleCollection
-) -> ParticleWithSpin:
-    """Create a Particle with spin projection from a qn dictionary.
+) -> Particle:
+    """Find the `.Particle` that matches a quantum number dictionary by PID.
 
     The implementation assumes the edge properties match the attributes of a particle
     inside the `.ParticleCollection`.
 
     Args:
-        states: The quantum number dictionary. particle_db: A `.ParticleCollection`
-            which is used to retrieve a reference :code:`state` to lower the memory
-            footprint.
+        state: The quantum number dictionary.
+        particle_db: A `.ParticleCollection` which is used to retrieve a reference
+            `.Particle` to lower the memory footprint.
 
     Raises:
         KeyError: If the edge properties do not contain the pid information or no
             particle with the same pid is found in the `.ParticleCollection`.
-
-        ValueError: If the edge properties do not contain spin projection info.
     """
     pid = state[EdgeQuantumNumbers.pid]
     if pid is None:
         msg = f"{GraphEdgePropertyMap.__name__} does not contain a PID"
         raise ValueError(msg)
-    particle = particle_db.find(int(pid))
-    spin_projection = state.get(EdgeQuantumNumbers.spin_projection)
-    if spin_projection is None:
-        msg = f"{GraphEdgePropertyMap.__name__} does not contain a spin projection"
-        raise ValueError(msg)
-    return particle, Fraction(spin_projection)
+    return particle_db.find(int(pid))
 
 
 def create_interaction_properties(
@@ -154,8 +141,8 @@ class InteractionDeterminator(ABC):
     @abstractmethod
     def check(
         self,
-        in_states: list[ParticleWithSpin],
-        out_states: list[ParticleWithSpin],
+        in_states: list[Particle],
+        out_states: list[Particle],
         interactions: InteractionProperties,
     ) -> list[InteractionType]:
         pass
@@ -166,12 +153,12 @@ class GammaCheck(InteractionDeterminator):
 
     def check(  # ruff: ignore[no-self-use]
         self,
-        in_states: list[ParticleWithSpin],
-        out_states: list[ParticleWithSpin],
+        in_states: list[Particle],
+        out_states: list[Particle],
         interactions: InteractionProperties,  # ruff: ignore[unused-method-argument]
     ) -> list[InteractionType]:
         int_types = list(InteractionType)
-        for particle, _ in in_states + out_states:
+        for particle in in_states + out_states:
             if "gamma" in particle.name:
                 int_types = [InteractionType.EM]
                 break
@@ -183,12 +170,12 @@ class LeptonCheck(InteractionDeterminator):
 
     def check(  # ruff: ignore[no-self-use]
         self,
-        in_states: list[ParticleWithSpin],
-        out_states: list[ParticleWithSpin],
+        in_states: list[Particle],
+        out_states: list[Particle],
         interactions: InteractionProperties,  # ruff: ignore[unused-method-argument]
     ) -> list[InteractionType]:
         node_interaction_types = list(InteractionType)
-        for particle, _ in in_states + out_states:
+        for particle in in_states + out_states:
             if particle.is_lepton():
                 if particle.name.startswith("nu("):
                     node_interaction_types = [InteractionType.WEAK]
@@ -201,10 +188,10 @@ class LeptonCheck(InteractionDeterminator):
 
 
 def remove_duplicate_solutions(
-    solutions: list[MutableTransition[ParticleWithSpin, InteractionProperties]],
+    solutions: list[MutableTransition[Particle, InteractionProperties]],
     remove_qns_list: set[type[NodeQuantumNumber]] | None = None,
     ignore_qns_list: set[type[NodeQuantumNumber]] | None = None,
-) -> list[MutableTransition[ParticleWithSpin, InteractionProperties]]:
+) -> list[MutableTransition[Particle, InteractionProperties]]:
     if remove_qns_list is None:
         remove_qns_list = set()
     if ignore_qns_list is None:
@@ -213,9 +200,7 @@ def remove_duplicate_solutions(
     _LOGGER.info(f"removing these qns from graphs: {remove_qns_list}")
     _LOGGER.info(f"ignoring qns in graph comparison: {ignore_qns_list}")
 
-    filtered_solutions: list[
-        MutableTransition[ParticleWithSpin, InteractionProperties]
-    ] = []
+    filtered_solutions: list[MutableTransition[Particle, InteractionProperties]] = []
     remove_counter = 0
     for sol_graph in solutions:
         sol_graph = _remove_qns_from_graph(sol_graph, remove_qns_list)
@@ -234,9 +219,9 @@ def remove_duplicate_solutions(
 
 
 def _remove_qns_from_graph(
-    graph: MutableTransition[ParticleWithSpin, InteractionProperties],
+    graph: MutableTransition[Particle, InteractionProperties],
     qn_list: set[type[NodeQuantumNumber]],
-) -> MutableTransition[ParticleWithSpin, InteractionProperties]:
+) -> MutableTransition[Particle, InteractionProperties]:
     new_interactions = {}
     for node_id in graph.topology.nodes:
         interactions = graph.interactions[node_id]
@@ -327,7 +312,7 @@ def require_interaction_property(
     ingoing_particle_name: str,
     interaction_qn: type[NodeQuantumNumber],
     allowed_values: list,
-) -> Callable[[MutableTransition[ParticleWithSpin, InteractionProperties]], bool]:
+) -> Callable[[MutableTransition[Particle, InteractionProperties]], bool]:
     """Filter function.
 
     Closure, which can be used as a filter function in :func:`.filter_graphs`.
@@ -352,7 +337,7 @@ def require_interaction_property(
     """
 
     def check(
-        graph: MutableTransition[ParticleWithSpin, InteractionProperties],
+        graph: MutableTransition[Particle, InteractionProperties],
     ) -> bool:
         node_ids = _find_node_ids_with_ingoing_particle_name(
             graph, ingoing_particle_name
@@ -371,15 +356,14 @@ def require_interaction_property(
 
 
 def _find_node_ids_with_ingoing_particle_name(
-    graph: MutableTransition[ParticleWithSpin, InteractionProperties],
+    graph: MutableTransition[Particle, InteractionProperties],
     ingoing_particle_name: str,
 ) -> list[int]:
     topology = graph.topology
     found_node_ids = []
     for node_id in topology.nodes:
         for edge_id in topology.get_edge_ids_ingoing_to_node(node_id):
-            states = graph.states[edge_id]
-            edge_particle_name = states[0].name
+            edge_particle_name = graph.states[edge_id].name
             if str(ingoing_particle_name) in str(edge_particle_name):
                 found_node_ids.append(node_id)
                 break

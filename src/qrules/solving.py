@@ -38,7 +38,6 @@ from qrules.argument_handling import (
 )
 from qrules.quantum_numbers import (
     EdgeQuantumNumber,
-    EdgeQuantumNumbers,
     EdgeQuantumNumberTypes,
     NodeQuantumNumber,
     NodeQuantumNumberTypes,
@@ -289,7 +288,7 @@ def strip_quantum_numbers(
 
 def merge_qn_problem_sets(
     qn_problem_sets: Iterable[QNProblemSet],
-    merge_qns: Iterable[EdgeQuantumNumberTypes] | None = None,
+    merge_qns: Iterable[EdgeQuantumNumberTypes],
 ) -> list[QNProblemSet]:
     """Merge problem sets whose initial facts differ only in the given quantum numbers.
 
@@ -297,12 +296,10 @@ def merge_qn_problem_sets(
     grouped. If the differing fact values of a group form a full Cartesian product over
     the graph edges, the group is merged into a single `QNProblemSet` whose facts carry
     the values as a `list`. The `CSPSolver` registers such value ranges as regular
-    variables, so that all cases — by default, all spin-projection combinations of the
-    initial and final state — are solved within a single constraint problem instead of
-    one problem set per combination.
+    variables, so that all cases — for instance, an expansion over spin-projection
+    combinations of the initial and final state — are solved within a single
+    constraint problem instead of one problem set per combination.
     """
-    if merge_qns is None:
-        merge_qns = {EdgeQuantumNumbers.spin_projection}
     merge_qn_set = set(merge_qns)
     groups: dict[tuple, list[QNProblemSet]] = defaultdict(list)
     for problem_set in qn_problem_sets:
@@ -313,16 +310,122 @@ def merge_qn_problem_sets(
     return merged_problem_sets
 
 
+def remove_dominated_qn_problem_sets(
+    qn_problem_sets: dict[float, list[QNProblemSet]],
+) -> dict[float, list[QNProblemSet]]:
+    """Remove problem sets whose solutions are a subset of another problem set's.
+
+    Problem sets with equal initial facts and equal quantum-number domains define
+    constraint problems over the same variables, so a problem set whose
+    conservation-rule sets contain another's (for every edge and node) can only
+    produce a subset of that other's solutions. When solving for the *union* of all
+    solutions — as `.find_qn_transitions` does — such problem sets are redundant.
+    This typically removes the interaction-type combinations that add rules on top
+    of a weaker interaction type, e.g. the ``strong`` node settings that extend the
+    ``EM`` settings by isospin and :math:`G`-parity conservation. Rule priorities
+    and interaction strengths do not affect the solution set and are ignored in the
+    comparison.
+    """
+    groups: dict[tuple, list[tuple[float, QNProblemSet]]] = defaultdict(list)
+    for strength, problem_sets in qn_problem_sets.items():
+        for problem_set in problem_sets:
+            key = (
+                problem_set.topology,
+                _create_facts_key(problem_set.initial_facts),
+                _create_domains_key(problem_set.solving_settings),
+            )
+            groups[key].append((strength, problem_set))
+    surviving: dict[float, list[QNProblemSet]] = defaultdict(list)
+    for group in groups.values():
+        rule_maps = [
+            _create_rule_map(problem_set.solving_settings) for _, problem_set in group
+        ]
+        for i, (strength, problem_set) in enumerate(group):
+            is_dominated = any(
+                _is_sub_rule_map(rule_maps[j], rule_maps[i])
+                and (rule_maps[j] != rule_maps[i] or j < i)
+                for j in range(len(group))
+                if j != i
+            )
+            if not is_dominated:
+                surviving[strength].append(problem_set)
+    return dict(surviving)
+
+
+def _create_domains_key(settings: GraphSettings) -> tuple:
+    def element_domains(element_settings: EdgeSettings | NodeSettings) -> tuple:
+        return tuple(
+            sorted(
+                (qn_type.__name__, repr(domain))
+                for qn_type, domain in element_settings.qn_domains.items()
+            )
+        )
+
+    return (
+        tuple(sorted((i, element_domains(s)) for i, s in settings.states.items())),
+        tuple(
+            sorted((i, element_domains(s)) for i, s in settings.interactions.items())
+        ),
+    )
+
+
+def _create_rule_map(settings: GraphSettings) -> dict[tuple[str, int], frozenset[str]]:
+    """Map each graph element to its conservation rules, ignoring priorities.
+
+    Rules are represented by name plus their instance attributes, so that (deep)
+    copies of a rule compare equal, but parametrized rule instances such as
+    `.MassConservation` with different parameters do not.
+    """
+
+    def rule_id(rule: Any) -> str:
+        if inspect.isfunction(rule):
+            return rule.__name__
+        if isinstance(rule, str):
+            return rule
+        parameters = sorted(getattr(rule, "__dict__", {}).items())
+        return f"{type(rule).__name__}{parameters}"
+
+    return {
+        **{
+            ("edge", i): frozenset(map(rule_id, s.conservation_rules))
+            for i, s in settings.states.items()
+        },
+        **{
+            ("node", i): frozenset(map(rule_id, s.conservation_rules))
+            for i, s in settings.interactions.items()
+        },
+    }
+
+
+def _is_sub_rule_map(
+    weaker: dict[tuple[str, int], frozenset[str]],
+    stronger: dict[tuple[str, int], frozenset[str]],
+) -> bool:
+    return all(rules <= stronger[element] for element, rules in weaker.items())
+
+
 def _create_merge_key(
     problem_set: QNProblemSet, merge_qns: set[EdgeQuantumNumberTypes]
 ) -> tuple:
-    facts = problem_set.initial_facts
+    return (
+        problem_set.topology,
+        _create_facts_key(problem_set.initial_facts, exclude_qns=merge_qns),
+        _create_settings_key(problem_set.solving_settings),
+    )
+
+
+def _create_facts_key(
+    facts: GraphElementProperties,
+    exclude_qns: set[EdgeQuantumNumberTypes] | None = None,
+) -> tuple:
+    if exclude_qns is None:
+        exclude_qns = set()
     states_key = tuple(
         sorted(
             (edge_id, qn_type.__name__, repr(value))
             for edge_id, prop_map in facts.states.items()
             for qn_type, value in prop_map.items()
-            if qn_type not in merge_qns
+            if qn_type not in exclude_qns
         )
     )
     interactions_key = tuple(
@@ -332,12 +435,7 @@ def _create_merge_key(
             for qn_type, value in prop_map.items()
         )
     )
-    return (
-        problem_set.topology,
-        states_key,
-        interactions_key,
-        _create_settings_key(problem_set.solving_settings),
-    )
+    return (states_key, interactions_key)
 
 
 def _create_settings_key(settings: GraphSettings) -> tuple:
@@ -628,7 +726,7 @@ def _insert_allowed_states(
                 for candidate in candidate_states:
                     # need "shallow" copy of the nested dicts
                     new_states = {i: copy(s) for i, s in new_solution.states.items()}
-                    new_states[edge_id].update(candidate)  # keep spin_projection
+                    new_states[edge_id].update(candidate)
                     graph = attrs.evolve(new_solution, states=new_states)
                     graphs_with_candidates.append(graph)
             current_substituted_graphs = graphs_with_candidates
@@ -649,8 +747,6 @@ def __is_sub_mapping(
     state: GraphEdgePropertyMap, reference_state: GraphEdgePropertyMap
 ) -> bool:
     for qn_type, qn_value in state.items():
-        if qn_type is EdgeQuantumNumbers.spin_projection:
-            continue
         if qn_type not in reference_state:
             return False
         if qn_value != reference_state[qn_type]:
@@ -1133,8 +1229,12 @@ class CSPSolver(Solver):
             MutableTransition[GraphEdgePropertyMap, GraphNodePropertyMap]
         ] = []
         for solution in solutions:
-            states: dict[int, GraphEdgePropertyMap] = defaultdict(dict)
-            interactions: dict[int, GraphNodePropertyMap] = defaultdict(dict)
+            # initialize all graph elements, so that nodes without solved quantum
+            # numbers (e.g. without LS couplings) still appear in the solution
+            states: dict[int, GraphEdgePropertyMap] = {i: {} for i in topology.edges}
+            interactions: dict[int, GraphNodePropertyMap] = {
+                i: {} for i in topology.nodes
+            }
             for var_string, value in solution.items():
                 ele_id, qn_type = self.__var_string_to_data[var_string]
 
