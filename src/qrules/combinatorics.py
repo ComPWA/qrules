@@ -46,6 +46,21 @@ def as_state_definition(
     raise ValueError(msg)
 
 
+def to_state_definitions(
+    state: StateDefinitionInput | Sequence[StateDefinitionInput], /
+) -> list[StateDefinitionInput]:
+    """Wrap a single state definition in a `list`, or copy a sequence of them."""
+    if _is_state_definition_input(state):
+        return [state]
+    return list(state)
+
+
+def _is_state_definition_input(value: object, /) -> TypeIs[StateDefinitionInput]:
+    return isinstance(value, str) or (
+        isinstance(value, tuple) and len(value) == 2 and isinstance(value[0], str)
+    )
+
+
 class _KinematicRepresentation:  # ruff: ignore[eq-without-hash]
     def __init__(
         self,
