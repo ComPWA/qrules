@@ -41,7 +41,13 @@ from qrules.system_control import (
     create_edge_properties,
     create_node_properties,
 )
-from qrules.topology import FrozenDict, FrozenTransition, MutableTransition, Topology
+from qrules.topology import (
+    FrozenDict,
+    FrozenTransition,
+    MutableTransition,
+    Topology,
+    determine_reaction_channel,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
@@ -252,7 +258,7 @@ class StateTransitionManager:
         """`.Topology` instances over which the STM propagates quantum numbers."""
         # turn off mass conservation, in case more than one initial state
         # particle is present
-        if use_nbody_topology and len(initial_state) > 1:
+        if len(initial_state) > 1:
             mass_conservation_factor = None
 
         if reload_pdg or len(self.__particles) == 0:
@@ -430,3 +436,12 @@ class ReactionInfo:
         for transition in self.transitions:
             groupings[transition.topology].append(transition)
         return dict(groupings)
+
+    def group_by_channel(self) -> dict[str, list[StateTransition]]:
+        """Group transitions by Mandelstam channel (`.determine_reaction_channel`)."""
+        groupings = defaultdict(list)
+        for transition in self.transitions:
+            groupings[determine_reaction_channel(transition.topology)].append(
+                transition
+            )
+        return dict(sorted(groupings.items()))

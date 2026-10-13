@@ -30,6 +30,7 @@ from qrules.conservation_rules import (
     c_parity_conservation,
     clebsch_gordan_helicity_to_canonical,
     g_parity_conservation,
+    g_parity_validity,
     gellmann_nishijima,
     helicity_conservation,
     identical_particle_symmetrization,
@@ -85,6 +86,7 @@ CONSERVATION_LAW_PRIORITIES: dict[RuleKey, int] = {
 
 EDGE_RULE_PRIORITIES: dict[RuleKey, int] = {
     gellmann_nishijima: 50,
+    g_parity_validity: 60,
     isospin_validity: 61,
     spin_validity: 62,
 }
@@ -149,6 +151,7 @@ def create_interaction_settings(  # ruff: ignore[too-many-positional-arguments]
         conservation_rules=_with_priorities(
             {
                 isospin_validity,
+                g_parity_validity,
                 gellmann_nishijima,
                 spin_validity,
             },
