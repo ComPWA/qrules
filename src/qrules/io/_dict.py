@@ -40,11 +40,18 @@ def from_attrs_decorated(inst: Any) -> dict:
     )
 
 
-def _value_serializer(inst: type, field: attrs.Attribute, value: Any) -> Any:  # ruff: ignore[unused-function-argument, too-many-return-statements]
+def _value_serializer(inst: type, field: attrs.Attribute, value: Any) -> Any:  # ruff: ignore[too-many-return-statements]
+    if isinstance(value, (frozenset, set)):
+        return sorted(value)
     if isinstance(value, abc.Mapping):
         if all(isinstance(p, Particle) for p in value.values()):
             return {k: v.name for k, v in value.items()}
-        return dict(value)
+        return {
+            (key.__name__ if callable(key) else key): _value_serializer(
+                inst, field, item
+            )
+            for key, item in value.items()
+        }
     if not isinstance(inst, (ReactionInfo, State, FrozenTransition)):  # ruff: ignore[collapsible-if]
         if isinstance(value, Particle):
             return value.name
