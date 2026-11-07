@@ -54,9 +54,8 @@ from types import GenericAlias
 from typing import TYPE_CHECKING, Any, Protocol, TypeVar
 
 from attrs import define, field, frozen
-from attrs.converters import optional
 
-from qrules._attrs import to_fraction, to_parity
+from qrules._attrs import optional_converter, to_fraction, to_parity
 from qrules.quantum_numbers import EdgeQuantumNumbers as EdgeQN
 from qrules.quantum_numbers import NodeQuantumNumbers as NodeQN
 from qrules.quantum_numbers import Parity, QuantumNumberType, arange
@@ -269,7 +268,9 @@ def parity_conservation_helicity(
 class CParityEdgeInput:
     spin_magnitude: EdgeSpinMagnitude = field(converter=to_fraction)
     pid: EdgePid = field(converter=int)
-    c_parity: EdgeCParity | None = field(converter=optional(to_parity), default=None)
+    c_parity: EdgeCParity | None = field(
+        converter=optional_converter(to_parity), default=None
+    )
 
 
 @frozen
@@ -325,7 +326,9 @@ class GParityEdgeInput:
     isospin_magnitude: EdgeIsospinMagnitude = field(converter=to_fraction)
     spin_magnitude: EdgeSpinMagnitude = field(converter=to_fraction)
     pid: EdgePid = field(converter=int)
-    g_parity: EdgeGParity | None = field(converter=optional(to_parity), default=None)
+    g_parity: EdgeGParity | None = field(
+        converter=optional_converter(to_parity), default=None
+    )
 
 
 @frozen
@@ -819,31 +822,31 @@ def helicity_conservation(
 class GellMannNishijimaInput:
     charge: EdgeQN.charge = field(converter=EdgeQN.charge)
     isospin_projection: EdgeQN.isospin_projection | None = field(
-        converter=optional(EdgeQN.isospin_projection), default=None
+        converter=optional_converter(EdgeQN.isospin_projection), default=None
     )
     strangeness: EdgeQN.strangeness | None = field(
-        converter=optional(EdgeQN.strangeness), default=None
+        converter=optional_converter(EdgeQN.strangeness), default=None
     )
     charmness: EdgeQN.charmness | None = field(
-        converter=optional(EdgeQN.charmness), default=None
+        converter=optional_converter(EdgeQN.charmness), default=None
     )
     bottomness: EdgeQN.bottomness | None = field(
-        converter=optional(EdgeQN.bottomness), default=None
+        converter=optional_converter(EdgeQN.bottomness), default=None
     )
     topness: EdgeQN.topness | None = field(
-        converter=optional(EdgeQN.topness), default=None
+        converter=optional_converter(EdgeQN.topness), default=None
     )
     baryon_number: EdgeQN.baryon_number | None = field(
-        converter=optional(EdgeQN.baryon_number), default=None
+        converter=optional_converter(EdgeQN.baryon_number), default=None
     )
     electron_lepton_number: EdgeQN.electron_lepton_number | None = field(
-        converter=optional(EdgeQN.electron_lepton_number), default=None
+        converter=optional_converter(EdgeQN.electron_lepton_number), default=None
     )
     muon_lepton_number: EdgeQN.muon_lepton_number | None = field(
-        converter=optional(EdgeQN.muon_lepton_number), default=None
+        converter=optional_converter(EdgeQN.muon_lepton_number), default=None
     )
     tau_lepton_number: EdgeQN.tau_lepton_number | None = field(
-        converter=optional(EdgeQN.tau_lepton_number), default=None
+        converter=optional_converter(EdgeQN.tau_lepton_number), default=None
     )
 
 

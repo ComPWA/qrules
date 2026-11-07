@@ -34,6 +34,7 @@ from qrules._implementers import implement_pretty_repr
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Mapping, Sequence
 
+    from _typeshed import SupportsRichComparison
     from IPython.lib.pretty import RepresentationPrinter
 
 _LOGGER = logging.getLogger(__name__)
@@ -41,6 +42,7 @@ _LOGGER = logging.getLogger(__name__)
 
 KT = TypeVar("KT", bound=abc.Hashable)
 VT = TypeVar("VT")
+SortableT = TypeVar("SortableT", bound="SupportsRichComparison")
 
 
 @total_ordering
@@ -79,8 +81,8 @@ class FrozenDict(frozendict, Generic[KT, VT]):
 
 
 def _convert_mapping_to_sorted_tuple(
-    mapping: Mapping[KT, VT],
-) -> tuple[tuple[KT, VT], ...]:
+    mapping: Mapping[SortableT, VT],
+) -> tuple[tuple[SortableT, VT], ...]:
     return tuple((key, mapping[key]) for key in sorted(mapping.keys()))
 
 

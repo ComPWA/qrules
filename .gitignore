@@ -57,5 +57,4 @@ CLAUDE.md
 !.pre-commit-config.yaml
 !.readthedocs.yml
 !.vscode/*.json
-!.zenodo.json
 !codecov.yml

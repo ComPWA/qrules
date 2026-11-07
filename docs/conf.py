@@ -3,9 +3,7 @@ from __future__ import annotations
 import os
 import sys
 import typing
-import warnings
 
-from sphinx.deprecation import RemovedInSphinx10Warning
 from sphinx_api_relink.helpers import (
     get_branch_name,
     get_execution_mode,
@@ -35,7 +33,6 @@ set_intersphinx_version_remapping({
         "8.12.3": "8.12.1",
     },
 })
-warnings.filterwarnings("ignore", category=RemovedInSphinx10Warning)
 
 BRANCH = get_branch_name()
 ORGANIZATION = "ComPWA"
@@ -280,7 +277,9 @@ mermaid_init_config = {
 }
 project = REPO_TITLE
 modindex_common_prefix = [f"{PACKAGE}."]
+myst_colon_fence_exact_match = True
 myst_enable_extensions = [
+    "alert",
     "amsmath",
     "colon_fence",
     "dollarmath",
