@@ -85,30 +85,36 @@ def check_reaction_violations(  # ruff: ignore[complex-structure, too-many-posit
 ) -> set[frozenset[str]]:
     """Determine violated interaction rules for a given particle reaction.
 
-    .. warning:: This function only guarantees to find P, C and G parity
-      violations, if it's a two body decay. If all initial and final states
-      have the C/G parity defined, then these violations are also determined
-      correctly.
+    .. warning::
+
+        This function only guarantees to find P, C and G parity violations, if it's a
+        two body decay. If all initial and final states have the C/G parity defined,
+        then these violations are also determined correctly.
 
     Args:
-      initial_state: Shortform description of the initial state w/o spin
-        projections.
-      final_state: Shortform description of the final state w/o spin
-        projections.
-      mass_conservation_factor: Factor with which the width is multiplied when
-        checking for `.MassConservation`. Set to `None` in order to deactivate mass
-        conservation.
-      particle_db (Optional): Custom `.ParticleCollection` object.  Defaults to
-        the `.ParticleCollection` returned by `.load_pdg`.
-      max_angular_momentum: Maximum angular momentum over which to generate
-        :math:`LS`-couplings.
-      max_spin_magnitude: Maximum spin magnitude over which to generate
-        :math:`LS`-couplings.
+        initial_state: Shortform description of the initial state w/o spin
+            projections.
+
+        final_state: Shortform description of the final state w/o spin
+            projections.
+
+        mass_conservation_factor: Factor with which the width is multiplied when
+            checking for `.MassConservation`. Set to `None` in order to deactivate mass
+            conservation.
+
+        particle_db (Optional): Custom `.ParticleCollection` object. Defaults to
+            the `.ParticleCollection` returned by `.load_pdg`.
+
+        max_angular_momentum: Maximum angular momentum over which to generate
+            :math:`LS`-couplings.
+
+        max_spin_magnitude: Maximum spin magnitude over which to generate
+            :math:`LS`-couplings.
 
     Returns:
-      Set of least violating rules. The set can have multiple entries, as several
-      quantum numbers can be violated. Each entry in the frozenset represents a group of
-      rules that together violate all possible quantum number configurations.
+        Set of least violating rules. The set can have multiple entries, as several
+        quantum numbers can be violated. Each entry in the frozenset represents a group
+        of rules that together violate all possible quantum number configurations.
 
     Example:
         >>> import qrules
@@ -118,7 +124,9 @@ def check_reaction_violations(  # ruff: ignore[complex-structure, too-many-posit
         ... )
         {frozenset({'c_parity_conservation'})}
 
-    .. seealso:: :ref:`usage:Check allowed reactions`
+    .. seealso::
+
+        :ref:`usage:Check allowed reactions`
     """
     initial_state_definitions = _to_state_definitions(initial_state)
 
@@ -293,11 +301,11 @@ def generate_transitions(  # ruff: ignore[too-many-positional-arguments]
     Arguments:
         initial_state (list): A list of particle names in the initial
             state. You can specify spin projections for these particles with a `tuple`,
-            e.g. :code:`("J/psi(1S)", [-1, 0, +1])`. If spin projections are not
-            specified, all projections are taken, so the example here would be
-            equivalent to :code:`"J/psi(1S)"`.
+            e.g. ``("J/psi(1S)", [-1, 0, +1])``. If spin projections are not specified,
+            all projections are taken, so the example here would be equivalent to
+            ``"J/psi(1S)"``.
 
-        final_state (list): Same as :code:`initial_state`, but for final state
+        final_state (list): Same as ``initial_state``, but for final state
             particles.
 
         allowed_intermediate_particles (`list`, optional): A list of particle
@@ -305,8 +313,8 @@ def generate_transitions(  # ruff: ignore[too-many-positional-arguments]
             out resonances and (2) speed up computation time.
 
         allowed_interaction_types: Interaction types you want to consider. For
-            instance, :code:`["s", "em"]` results in `~.InteractionType.EM` and
-            `~.InteractionType.STRONG` and :code:`["strong"]` results in
+            instance, ``["s", "em"]`` results in `~.InteractionType.EM` and
+            `~.InteractionType.STRONG` and ``["strong"]`` results in
             `~.InteractionType.STRONG`.
 
         formalism (`str`, optional): Formalism that you intend to use in
@@ -330,9 +338,9 @@ def generate_transitions(  # ruff: ignore[too-many-positional-arguments]
         topology_building (str): Technique with which to build the `.Topology`
             instances. Allowed values are:
 
-            - :code:`"isobar"`: Isobar model (each state decays into two states)
-            - :code:`"nbody"`: Use one central node and connect initial and final
-              states to it
+            - ``"isobar"``: Isobar model (each state decays into two states)
+            - ``"nbody"``: Use one central node and connect initial and final states to
+              it
 
         number_of_threads: Number of cores with which to compute the allowed
             transitions. Defaults to the current value returned by
@@ -400,8 +408,7 @@ def load_default_particles() -> ParticleCollection:
     """Load the default particle list that comes with `qrules`.
 
     Runs `.load_pdg` and supplements its output definitions from the file
-    :download:`additional_definitions.yml
-    </../src/qrules/additional_definitions.yml>`.
+    :download:`additional_definitions.yml </../src/qrules/additional_definitions.yml>`.
     """
     particle_db = load_pdg()
     additional_particles = io.load(ADDITIONAL_PARTICLES_DEFINITIONS_PATH)

@@ -132,9 +132,11 @@ class Particle:
     labels that are not taken into account when checking if two `Particle` instances are
     equal.
 
-    .. note:: As opposed to classes such as `.EdgeQuantumNumbers` and
-        `.NodeQuantumNumbers`, the `Particle` class serves as an interface to
-        the user (see :doc:`/usage/particle`).
+    .. note::
+
+        As opposed to classes such as `.EdgeQuantumNumbers` and `.NodeQuantumNumbers`,
+        the `Particle` class serves as an interface to the user (see
+        :doc:`/usage/particle`).
     """
 
     # Labels
@@ -371,7 +373,7 @@ class ParticleCollection(abc.MutableSet):  # ruff: ignore[eq-without-hash]
         raise NotImplementedError(msg)
 
     def filter(self, function: Callable[[Particle], bool]) -> ParticleCollection:
-        """Search by `Particle` properties using a :code:`lambda` function.
+        """Search by `Particle` properties using a ``lambda`` function.
 
         For example:
 

@@ -62,6 +62,7 @@ viz = ["graphviz"]
 [dependency-groups]
 dev = [
     "ruff",
+    "ty",
     { include-group = "doc" },
     { include-group = "jupyter" },
     { include-group = "style" },
@@ -98,7 +99,6 @@ jupyter = [
 ]
 notebooks = ["qrules[viz]"]
 style = [
-    "ty",
     { include-group = "types" },
 ]
 test = [
@@ -138,6 +138,7 @@ type-checker = ["ty"]
 
 [tool.coverage.report]
 exclude_also = ["if TYPE_CHECKING:"]
+fail_under = 85
 
 [tool.coverage.run]
 branch = true
@@ -149,6 +150,10 @@ omit = [
     "tests/**/*.py",
 ]
 source = ["src"]
+
+[tool.docstrfmt]
+docstring-trailing-line = false
+format-python-code-blocks = false
 
 [tool.lychee]
 cache = true
@@ -279,7 +284,6 @@ heading = "Testing"
 cmd = """
 pytest \
     --cov=qrules \
-    --cov-fail-under=85 \
     --cov-report=html \
     --cov-report=xml \
     --numprocesses=auto \
@@ -559,7 +563,7 @@ key-empty = "off"
 
 [[tool.tombi.schemas]]
 root = "tool.compwa.policy"
-path = "https://raw.githubusercontent.com/ComPWA/policy/0.10.3/compwa-policy.schema.json"
+path = "https://raw.githubusercontent.com/ComPWA/policy/0.10.4/compwa-policy.schema.json"
 include = ["pyproject.toml"]
 
 [[tool.ty.overrides]]
