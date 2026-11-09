@@ -36,7 +36,7 @@ classifiers = [
 ]
 dependencies = [
     "PyYAML",
-    "attrs>=20.1.0",  # on_setattr and https://www.attrs.org/en/stable/api.html#next-gen
+    "attrs>=20.1.0",  # on_setattr and https://www.attrs.org/en/stable/api.html#attrs.define
     "frozendict",
     "jsonschema",
     "particle",
@@ -150,6 +150,35 @@ omit = [
 ]
 source = ["src"]
 
+[tool.lychee]
+cache = true
+cache_exclude_status = "400.."
+# [:] keeps Lychee from extracting regex patterns as URLs.
+exclude = [
+    '^https[:]//doi\.org/10\.1002/andp\.19955070504',  # 403 for onlinelibrary.wiley.com
+    '^https[:]//doi\.org/10\.1103/PhysRevD\.86\.010001',  # Preserved from the Sphinx linkcheck configuration
+    "%7B[^/]*%7D",  # URL templates are completed at build or runtime
+    "^https[:]//x-access-token/$",  # Token-authenticated Git remote placeholder
+    '\$(?:NEXT_[A-Z_]+|PREVIOUS_TAG)',  # Release Drafter substitutes these placeholders at runtime
+    '^http[:]//doi\.wiley\.com/10\.1002/andp\.19955070504$',  # Rejects automated requests with 403
+    '^https[:]//github\.com/ComPWA/qrules/runs/8132605149\?check_suite_focus=true#step:5:92$',  # Historical CI logs have expired
+    '^http[:]//www\.curtismeyer\.com/material/lecture\.pdf$',  # The lecture website does not respond to automated requests
+    '^https[:]//stackoverflow\.com/a/44284819$',  # Rejects automated requests with 403
+    '^https[:]//stackoverflow\.com/a/8230505$',  # Rejects automated requests with 403
+]
+exclude_path = ["tests"]  # Test fixtures contain dummy URLs
+extensions = ["bib", "css", "ipynb", "json", "md", "py", "toml", "yaml", "yml"]
+hidden = true  # Include the workflows under .github/
+include_fragments = "anchor-only"
+include_verbatim = true
+max_cache_age = "7d"
+remap = [
+    '^git\+(https[:]//[^@]+)(@.*)?$ $1',
+    "^(.+)/n$ $1",
+    '^(https[:]//github\.com/ComPWA/qrules/compare)/\$PREVIOUS_TAG.*$ $1',
+    '^https[:]//pypi\.org/p/\$$ https://pypi.org/project/qrules/',
+]
+
 [tool.poe.executor]
 isolated = true
 no-group = "dev"
@@ -224,17 +253,9 @@ help = "Set up a server to directly preview changes to the HTML pages with cache
 sequence = ["doclive"]
 
 [tool.poe.groups.doc.tasks.linkcheck]
-cmd = """
-sphinx-build \
-    --builder=linkcheck \
-    --fail-on-warning \
-    --show-traceback \
-    docs/ \
-    docs/_build/linkcheck/
-"""
-env = { PYTHONWARNINGS = "" }
-executor = { group = "doc" }
-help = "Check external links in the documentation (requires internet connection)"
+cmd = "uvx --from lychee-bin lychee . --quiet"
+executor = { type = "simple" }
+help = "Check links and fragments in repository sources (requires internet connection)"
 
 [tool.poe.groups.notebook]
 heading = "Notebooks"
