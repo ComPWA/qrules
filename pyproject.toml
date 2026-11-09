@@ -246,9 +246,7 @@ executor = { group = "jupyter" }
 help = "Launch Jupyter Lab"
 
 [tool.poe.groups.notebook.tasks.nb]
-args = [
-    { name = "paths", default = "docs", multiple = true, positional = true },
-]
+args = [{ name = "paths", default = "docs", multiple = true, positional = true }]
 cmd = "pytest --nbmake --nbmake-timeout=0 ${paths}"
 executor = { group = "notebooks", with = "nbmake" }
 help = "Run all notebooks"
