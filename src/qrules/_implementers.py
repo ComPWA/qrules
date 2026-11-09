@@ -39,5 +39,5 @@ def implement_pretty_repr(
             p.breakable()
             p.text(")")
 
-    decorated_class._repr_pretty_ = repr_pretty  # ty: ignore[unresolved-attribute]
+    decorated_class._repr_pretty_ = repr_pretty  # ty: ignore[missing-attribute]
     return decorated_class  # ty: ignore[invalid-return-type]
