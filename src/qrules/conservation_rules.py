@@ -663,7 +663,7 @@ def isospin_conservation(
 
         |I_1 - I_2| \leq I \leq |I_1 + I_2|
 
-    Also checks :math:`I_{1,z} + I_{2,z} = I_z` and if Clebsch-Gordan coefficients are
+    Also checks :math:`I_{1,z} + I_{2,z} = I_z` and if Clebsch–Gordan coefficients are
     all 0.
     """
     if sum(x.isospin_projection for x in ingoing_isospins) != sum(
@@ -709,7 +709,7 @@ def spin_conservation(
 
         |L - S| \leq J \leq |L + S|
 
-    Also checks :math:`M_1 + M_2 = M` and if Clebsch-Gordan coefficients are all 0.
+    Also checks :math:`M_1 + M_2 = M` and if Clebsch–Gordan coefficients are all 0.
 
     .. seealso::
 
@@ -779,7 +779,7 @@ def clebsch_gordan_helicity_to_canonical(
     outgoing_spins: list[SpinEdgeInput],
     interaction_qns: SpinNodeInput,
 ) -> bool:
-    """Implement Clebsch-Gordan checks.
+    """Implement Clebsch–Gordan checks.
 
     For :math:`S_1, S_2` to :math:`S` and the :math:`L,S` to :math:`J` coupling based on
     the conversion of helicity to canonical amplitude sums.
@@ -869,9 +869,9 @@ class GellMannNishijimaInput:
 
 
 def gellmann_nishijima(edge_qns: GellMannNishijimaInput) -> bool:
-    r"""Check the Gell-Mann-Nishijima formula.
+    r"""Check the Gell-Mann–Nishijima formula.
 
-    `Gell-Mann-Nishijima formula
+    `Gell-Mann–Nishijima formula
     <https://en.wikipedia.org/wiki/Gell-Mann%E2%80%93Nishijima_formula>`_:
 
     .. math::

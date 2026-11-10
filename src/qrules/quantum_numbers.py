@@ -203,7 +203,7 @@ class InteractionProperties:
 
     Interaction properties are in particular important in the canonical basis of the
     helicity formalism. There, the *coupled spin* and angular momentum of each
-    interaction are used for the Clebsch-Gordan coefficients for each term in a
+    interaction are used for the Clebsch–Gordan coefficients for each term in a
     sequential amplitude.
 
     .. note::

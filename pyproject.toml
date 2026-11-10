@@ -426,6 +426,7 @@ docstring-code-format = true
 line-ending = "lf"
 
 [tool.ruff.lint]
+allowed-confusables = ["–"]
 ignore = [
     "DOC",
     "FBT00",
