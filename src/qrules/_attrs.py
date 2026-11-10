@@ -17,7 +17,15 @@ _Output = TypeVar("_Output")
 def optional_converter(
     converter: Callable[[_Input], _Output],
 ) -> Callable[[_Input | None], _Output | None]:
-    """Preserve the input and output types of an optional attrs converter."""
+    """Preserve the input and output types of an optional attrs converter.
+
+    This wraps :func:`attrs.converters.optional`, whose stubs type the returned
+    converter as taking `~typing.Any`. Type checkers then fall back to the attribute
+    type for the generated ``__init__`` parameter, so calls like ``Particle(...,
+    parity=-1)`` are flagged even though the converter accepts them. The generic
+    signature here carries the input type of the wrapped converter through to
+    ``__init__``.
+    """
     return optional(converter)
 
 
