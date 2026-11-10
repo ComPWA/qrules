@@ -494,14 +494,21 @@ def load_pdg(*, source: PyPIPackage = "particle") -> ParticleCollection:
 
     By default, particle definitions are imported from the `particle
     <https://github.com/scikit-hep/particle>`_ package. Set ``source="pdg"`` to import
-    them from the official `PDG Python API <https://pdgapi.lbl.gov/doc/>`_ instead.
+    them from the official `PDG Python API <https://pdgapi.lbl.gov/doc/>`_ instead,
+    which requires the optional ``pdg`` dependency (:code:`pip install qrules[pdg]`).
     """
     if source == "particle":
         from qrules.particle._adapter.scikit_hep import load_pdg as load_particle_pdg  # ruff: ignore[import-outside-top-level]
 
         return load_particle_pdg()
     if source == "pdg":
-        from qrules.particle._adapter.pdg import load_pdg as load_official_pdg  # ruff: ignore[import-outside-top-level]
+        try:
+            from qrules.particle._adapter.pdg import load_pdg as load_official_pdg  # ruff: ignore[import-outside-top-level]
+        except ModuleNotFoundError as exc:
+            if exc.name != "pdg":
+                raise
+            msg = 'Loading from the PDG API requires the "pdg" package. Install it with: pip install "qrules[pdg]"'
+            raise ModuleNotFoundError(msg, name="pdg") from exc
 
         return load_official_pdg()
     msg = f"Unknown particle source: {source!r}"

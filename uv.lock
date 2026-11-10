@@ -2268,13 +2268,15 @@ dependencies = [
     { name = "frozendict" },
     { name = "jsonschema" },
     { name = "particle" },
-    { name = "pdg" },
     { name = "python-constraint2" },
     { name = "pyyaml" },
     { name = "tqdm" },
 ]
 
 [package.optional-dependencies]
+pdg = [
+    { name = "pdg" },
+]
 viz = [
     { name = "graphviz" },
 ]
@@ -2298,7 +2300,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-lsp-ruff" },
     { name = "python-lsp-server" },
-    { name = "qrules", extra = ["viz"] },
+    { name = "qrules", extra = ["pdg", "viz"] },
     { name = "ruff" },
     { name = "sphinx", version = "9.0.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "sphinx", version = "9.1.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
@@ -2355,6 +2357,7 @@ style = [
     { name = "ipython" },
     { name = "pydot" },
     { name = "pytest" },
+    { name = "qrules", extra = ["pdg"] },
     { name = "sphinx-api-relink" },
     { name = "ty" },
     { name = "types-pyyaml" },
@@ -2366,12 +2369,14 @@ test = [
     { name = "pytest-cov" },
     { name = "pytest-describe" },
     { name = "pytest-xdist" },
+    { name = "qrules", extra = ["pdg"] },
 ]
 types = [
     { name = "graphviz" },
     { name = "ipython" },
     { name = "pydot" },
     { name = "pytest" },
+    { name = "qrules", extra = ["pdg"] },
     { name = "sphinx-api-relink" },
     { name = "types-pyyaml" },
 ]
@@ -2383,12 +2388,12 @@ requires-dist = [
     { name = "graphviz", marker = "extra == 'viz'" },
     { name = "jsonschema" },
     { name = "particle" },
-    { name = "pdg" },
+    { name = "pdg", marker = "extra == 'pdg'" },
     { name = "python-constraint2" },
     { name = "pyyaml" },
     { name = "tqdm", specifier = ">=4.24.0" },
 ]
-provides-extras = ["viz"]
+provides-extras = ["pdg", "viz"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -2409,6 +2414,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "python-lsp-ruff" },
     { name = "python-lsp-server" },
+    { name = "qrules", extras = ["pdg"] },
     { name = "qrules", extras = ["viz"] },
     { name = "ruff" },
     { name = "sphinx" },
@@ -2462,6 +2468,7 @@ style = [
     { name = "ipython" },
     { name = "pydot" },
     { name = "pytest" },
+    { name = "qrules", extras = ["pdg"] },
     { name = "sphinx-api-relink" },
     { name = "ty" },
     { name = "types-pyyaml" },
@@ -2473,12 +2480,14 @@ test = [
     { name = "pytest-cov" },
     { name = "pytest-describe" },
     { name = "pytest-xdist" },
+    { name = "qrules", extras = ["pdg"] },
 ]
 types = [
     { name = "graphviz" },
     { name = "ipython" },
     { name = "pydot" },
     { name = "pytest" },
+    { name = "qrules", extras = ["pdg"] },
     { name = "sphinx-api-relink" },
     { name = "types-pyyaml" },
 ]
