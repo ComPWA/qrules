@@ -161,12 +161,10 @@ cache = true
 cache_exclude_status = "400.."
 # [:] keeps Lychee from extracting regex patterns as URLs.
 exclude = [
-    '^https[:]//doi\.org/10\.1002/andp\.19955070504',  # 403 for onlinelibrary.wiley.com
-    '^https[:]//doi\.org/10\.1103/PhysRevD\.86\.010001',  # Preserved from the Sphinx linkcheck configuration
+    '^https[:]//doi\.org/10\.1002/andp\.19955070504$',  # onlinelibrary.wiley.com rejects automated requests with 403
     "%7B[^/]*%7D",  # URL templates are completed at build or runtime
     "^https[:]//x-access-token/$",  # Token-authenticated Git remote placeholder
     '\$(?:NEXT_[A-Z_]+|PREVIOUS_TAG)',  # Release Drafter substitutes these placeholders at runtime
-    '^http[:]//doi\.wiley\.com/10\.1002/andp\.19955070504$',  # Rejects automated requests with 403
     '^https[:]//github\.com/ComPWA/qrules/runs/8132605149\?check_suite_focus=true#step:5:92$',  # Historical CI logs have expired
     '^http[:]//www\.curtismeyer\.com/material/lecture\.pdf$',  # The lecture website does not respond to automated requests
     '^https[:]//stackoverflow\.com/a/44284819$',  # Rejects automated requests with 403
