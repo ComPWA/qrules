@@ -131,6 +131,7 @@ repo-name = "qrules"
 repo-title = "QRules"
 
 [tool.compwa.policy.github]
+dependabot-assignees = ["redeboer"]
 macos-python-version = "3.13"
 
 [tool.compwa.policy.python]
