@@ -153,9 +153,7 @@ class Topology:
 
     See also :meth:`MutableTopology.organize_edge_ids`.
 
-    #########
-     Example
-    #########
+    .. rubric:: Example
 
     **Isobar decay** topologies can best be created as follows:
 
