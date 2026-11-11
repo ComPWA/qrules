@@ -43,13 +43,18 @@ TAGS
 pyvenv*/
 
 # Settings
-.agents/
-.claude/
 .idea/
 .pr_body.md
 **.code-workspace
+
+# Agent tooling
+.agents/
+.claude/
+.codex/
+.gemini/
 AGENTS.md
 CLAUDE.md
+GEMINI.md
 
 # Exceptions
 !.cspell.json
