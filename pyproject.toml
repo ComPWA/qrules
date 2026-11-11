@@ -166,7 +166,6 @@ exclude = [
     "^https[:]//x-access-token/$",  # Token-authenticated Git remote placeholder
     '\$(?:NEXT_[A-Z_]+|PREVIOUS_TAG)',  # Release Drafter substitutes these placeholders at runtime
     '^https[:]//github\.com/ComPWA/qrules/runs/8132605149\?check_suite_focus=true#step:5:92$',  # Historical CI logs have expired
-    '^http[:]//www\.curtismeyer\.com/material/lecture\.pdf$',  # The lecture website does not respond to automated requests
     '^https[:]//stackoverflow\.com/a/44284819$',  # Rejects automated requests with 403
     '^https[:]//stackoverflow\.com/a/8230505$',  # Rejects automated requests with 403
 ]
