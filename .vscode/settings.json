@@ -35,10 +35,6 @@
     {
       "fileMatch": ["*particle*.json"],
       "url": "./src/qrules/particle-validation.json"
-    },
-    {
-      "fileMatch": [".zenodo.json"],
-      "url": "https://raw.githubusercontent.com/zenodo/zenodo/master/zenodo/modules/deposit/jsonschemas/deposits/records/legacyrecord.json"
     }
   ],
   "livePreview.defaultPreviewPath": "docs/_build/html",
