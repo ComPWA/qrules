@@ -46,6 +46,14 @@ def describe_load_pdg():
         with pytest.raises(ModuleNotFoundError, match=r"qrules\[pdg\]"):
             load_pdg(source="pdg")
 
+    def it_raises_other_missing_modules_unchanged(monkeypatch: pytest.MonkeyPatch):
+        pytest.importorskip("pdg")
+        monkeypatch.setitem(sys.modules, "pdg.errors", None)
+        monkeypatch.delitem(sys.modules, "qrules.particle._adapter.pdg", raising=False)
+        with pytest.raises(ModuleNotFoundError) as exc_info:
+            load_pdg(source="pdg")
+        assert exc_info.value.name == "pdg.errors"
+
 
 def describe_Particle():
     @pytest.mark.parametrize("repr_method", [repr, pretty])
