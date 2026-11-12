@@ -97,7 +97,7 @@ jupyter = [
     "python-lsp-server",
     { include-group = "notebooks" },
 ]
-notebooks = ["qrules[viz]"]
+notebooks = ["qrules[pdg,viz]"]
 style = [
     { include-group = "types" },
 ]

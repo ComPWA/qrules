@@ -2382,7 +2382,7 @@ dev = [
 ]
 doc = [
     { name = "myst-nb" },
-    { name = "qrules", extra = ["viz"] },
+    { name = "qrules", extra = ["pdg", "viz"] },
     { name = "sphinx", version = "9.0.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "sphinx", version = "9.1.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.12.*'" },
     { name = "sphinx", version = "9.2.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.13'" },
@@ -2409,10 +2409,10 @@ jupyter = [
     { name = "jupyterlab-quickopen" },
     { name = "python-lsp-ruff" },
     { name = "python-lsp-server" },
-    { name = "qrules", extra = ["viz"] },
+    { name = "qrules", extra = ["pdg", "viz"] },
 ]
 notebooks = [
-    { name = "qrules", extra = ["viz"] },
+    { name = "qrules", extra = ["pdg", "viz"] },
 ]
 style = [
     { name = "graphviz" },
@@ -2476,7 +2476,7 @@ dev = [
     { name = "python-lsp-ruff" },
     { name = "python-lsp-server" },
     { name = "qrules", extras = ["pdg"] },
-    { name = "qrules", extras = ["viz"] },
+    { name = "qrules", extras = ["pdg", "viz"] },
     { name = "ruff" },
     { name = "sphinx" },
     { name = "sphinx-api-relink" },
@@ -2496,7 +2496,7 @@ dev = [
 ]
 doc = [
     { name = "myst-nb" },
-    { name = "qrules", extras = ["viz"] },
+    { name = "qrules", extras = ["pdg", "viz"] },
     { name = "sphinx" },
     { name = "sphinx-api-relink" },
     { name = "sphinx-book-theme" },
@@ -2521,9 +2521,9 @@ jupyter = [
     { name = "jupyterlab-quickopen" },
     { name = "python-lsp-ruff" },
     { name = "python-lsp-server" },
-    { name = "qrules", extras = ["viz"] },
+    { name = "qrules", extras = ["pdg", "viz"] },
 ]
-notebooks = [{ name = "qrules", extras = ["viz"] }]
+notebooks = [{ name = "qrules", extras = ["pdg", "viz"] }]
 style = [
     { name = "graphviz" },
     { name = "ipython" },
