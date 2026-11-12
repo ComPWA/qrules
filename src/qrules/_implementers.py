@@ -15,7 +15,7 @@ _DecoratedClass = TypeVar("_DecoratedClass")
 def implement_pretty_repr(
     decorated_class: type[_DecoratedClass],
 ) -> type[_DecoratedClass]:
-    """Implement a pretty :code:`repr` in a class decorated by `attrs`."""
+    """Implement a pretty ``repr`` in a class decorated by `attrs`."""
     if not attrs.has(decorated_class):
         msg = "Can only implement a pretty repr for a class created with attrs"
         raise TypeError(msg)
@@ -39,5 +39,5 @@ def implement_pretty_repr(
             p.breakable()
             p.text(")")
 
-    decorated_class._repr_pretty_ = repr_pretty  # ty: ignore[unresolved-attribute]
+    decorated_class._repr_pretty_ = repr_pretty  # ty: ignore[missing-attribute]
     return decorated_class  # ty: ignore[invalid-return-type]

@@ -21,10 +21,9 @@ from typing import TYPE_CHECKING, Any, Literal, Self
 
 import attrs
 from attrs import field, frozen
-from attrs.converters import optional
 from attrs.validators import instance_of
 
-from qrules._attrs import to_fraction, to_parity
+from qrules._attrs import optional_converter, to_fraction, to_parity
 from qrules.conservation_rules import GellMannNishijimaInput, gellmann_nishijima
 from qrules.quantum_numbers import Parity, _float_as_signed_str
 
@@ -133,9 +132,11 @@ class Particle:
     labels that are not taken into account when checking if two `Particle` instances are
     equal.
 
-    .. note:: As opposed to classes such as `.EdgeQuantumNumbers` and
-        `.NodeQuantumNumbers`, the `Particle` class serves as an interface to
-        the user (see :doc:`/usage/particle`).
+    .. note::
+
+        As opposed to classes such as `.EdgeQuantumNumbers` and `.NodeQuantumNumbers`,
+        the `Particle` class serves as an interface to the user (see
+        :doc:`/usage/particle`).
     """
 
     # Labels
@@ -147,7 +148,7 @@ class Particle:
     mass: float = field(converter=float)
     width: float = field(converter=float, default=0.0)
     charge: int = field(default=0)
-    isospin: Spin | None = field(converter=optional(_to_spin), default=None)
+    isospin: Spin | None = field(converter=optional_converter(_to_spin), default=None)
     strangeness: int = field(default=0, validator=instance_of(int))
     charmness: int = field(default=0, validator=instance_of(int))
     bottomness: int = field(default=0, validator=instance_of(int))
@@ -156,9 +157,13 @@ class Particle:
     electron_lepton_number: int = field(default=0, validator=instance_of(int))
     muon_lepton_number: int = field(default=0, validator=instance_of(int))
     tau_lepton_number: int = field(default=0, validator=instance_of(int))
-    parity: Parity | None = field(converter=optional(to_parity), default=None)
-    c_parity: Parity | None = field(converter=optional(to_parity), default=None)
-    g_parity: Parity | None = field(converter=optional(to_parity), default=None)
+    parity: Parity | None = field(converter=optional_converter(to_parity), default=None)
+    c_parity: Parity | None = field(
+        converter=optional_converter(to_parity), default=None
+    )
+    g_parity: Parity | None = field(
+        converter=optional_converter(to_parity), default=None
+    )
 
     def __attrs_post_init__(self) -> None:
         if self.isospin is not None and not gellmann_nishijima(
@@ -368,7 +373,7 @@ class ParticleCollection(abc.MutableSet):  # ruff: ignore[eq-without-hash]
         raise NotImplementedError(msg)
 
     def filter(self, function: Callable[[Particle], bool]) -> ParticleCollection:
-        """Search by `Particle` properties using a :code:`lambda` function.
+        """Search by `Particle` properties using a ``lambda`` function.
 
         For example:
 

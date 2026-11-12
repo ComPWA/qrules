@@ -13,7 +13,9 @@ use-case is covered by two functions:
 The remaining functions implement the individual stages of the pipeline, so that each
 intermediate result can be worked with directly.
 
-.. seealso:: :doc:`/usage/reaction`
+.. seealso::
+
+    :doc:`/usage/reaction`
 """
 
 from __future__ import annotations
@@ -235,7 +237,9 @@ class InteractionConfig:
     )
     """Checks that are executed over selected conservation rules.
 
-    .. seealso:: {ref}`usage/reaction:Select interaction types`
+    .. seealso::
+
+        {ref}`usage/reaction:Select interaction types`
     """
 
     @overload
@@ -556,9 +560,9 @@ def collect_reaction_info(  # ruff: ignore[complex-structure, too-many-branches]
     """Summarize particle-level solutions as a `.ReactionInfo` object.
 
     Removes duplicate solutions, warns about violated and non-executed conservation
-    rules, and matches the external edge IDs over all solutions. If a
-    :code:`final_state` is given, the final state edge IDs are reordered to match it.
-    The quantum number filters default to those for the given :code:`formalism`.
+    rules, and matches the external edge IDs over all solutions. If a ``final_state`` is
+    given, the final state edge IDs are reordered to match it. The quantum number
+    filters default to those for the given ``formalism``.
     """
     for strength, result in results.items():
         _LOGGER.info(
@@ -744,15 +748,15 @@ def find_solutions(  # ruff: ignore[too-many-positional-arguments]
     `QNProblemSetCollection`, the final state, formalism, and intermediate-particle
     selection default to the values with which the problem sets were created; explicit
     arguments override them. Given a plain `dict` of `.QNProblemSet` objects, the
-    :code:`formalism` and :code:`allowed_intermediate_particles` have to be specified:
-    the formalism determines which quantum numbers are filtered out of the solutions and
-    the particle selection determines which particles the intermediate states are
-    matched against. The :code:`particle_db` is required, because a `.QNProblemSet`
-    contains quantum numbers only: particles are re-matched by PID via `.find_particle`.
+    ``formalism`` and ``allowed_intermediate_particles`` have to be specified: the
+    formalism determines which quantum numbers are filtered out of the solutions and the
+    particle selection determines which particles the intermediate states are matched
+    against. The ``particle_db`` is required, because a `.QNProblemSet` contains quantum
+    numbers only: particles are re-matched by PID via `.find_particle`.
 
     Raises:
-        ValueError: If :code:`formalism` or :code:`allowed_intermediate_particles` is
-            not given and cannot be inferred from :code:`qn_problem_sets`.
+        ValueError: If ``formalism`` or ``allowed_intermediate_particles`` is
+            not given and cannot be inferred from ``qn_problem_sets``.
     """
     if isinstance(qn_problem_sets, QNProblemSetCollection):
         if final_state is None:
