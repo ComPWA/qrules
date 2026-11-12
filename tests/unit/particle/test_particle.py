@@ -70,10 +70,10 @@ def describe_Particle():
             test_state.charge = 1  # ty: ignore[invalid-assignment]
         with pytest.raises(
             ValueError,
-            match=r"Fails Gell-Mann–Nishijima",  # ruff: ignore[ambiguous-unicode-character-string]
+            match=r"Fails Gell-Mann–Nishijima",
         ):
             Particle(
-                name="Fails Gell-Mann–Nishijima formula",  # ruff: ignore[ambiguous-unicode-character-string]
+                name="Fails Gell-Mann–Nishijima formula",
                 pid=666,
                 mass=0.0,
                 spin=1,

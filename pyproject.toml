@@ -36,12 +36,12 @@ classifiers = [
 ]
 dependencies = [
     "PyYAML",
-    "attrs >=20.1.0",  # on_setattr and https://www.attrs.org/en/stable/api.html#next-gen
+    "attrs>=20.1.0",  # on_setattr and https://www.attrs.org/en/stable/api.html#attrs.define
     "frozendict",
     "jsonschema",
     "particle",
     "python-constraint2",
-    "tqdm >=4.24.0",  # autonotebook
+    "tqdm>=4.24.0",  # autonotebook
 ]
 dynamic = ["version"]
 
@@ -62,6 +62,7 @@ viz = ["graphviz"]
 [dependency-groups]
 dev = [
     "ruff",
+    "ty",
     { include-group = "doc" },
     { include-group = "jupyter" },
     { include-group = "style" },
@@ -80,7 +81,7 @@ doc = [
     "sphinx-pybtex-etal-style",
     "sphinx-thebe",
     "sphinx-togglebutton",
-    "sphinxcontrib-bibtex >=2",
+    "sphinxcontrib-bibtex>=2",
     "sphinxcontrib-mermaid",
     { include-group = "notebooks" },
 ]
@@ -98,7 +99,6 @@ jupyter = [
 ]
 notebooks = ["qrules[viz]"]
 style = [
-    "ty",
     { include-group = "types" },
 ]
 test = [
@@ -133,6 +133,7 @@ repo-name = "qrules"
 repo-title = "QRules"
 
 [tool.compwa.policy.github]
+dependabot-assignees = ["redeboer"]
 macos-python-version = "3.13"
 
 [tool.compwa.policy.python]
@@ -140,6 +141,7 @@ type-checker = ["ty"]
 
 [tool.coverage.report]
 exclude_also = ["if TYPE_CHECKING:"]
+fail_under = 85
 
 [tool.coverage.run]
 branch = true
@@ -151,6 +153,36 @@ omit = [
     "tests/**/*.py",
 ]
 source = ["src"]
+
+[tool.docstrfmt]
+docstring-trailing-line = false
+format-python-code-blocks = false
+
+[tool.lychee]
+cache = true
+cache_exclude_status = "400.."
+# [:] keeps Lychee from extracting regex patterns as URLs.
+exclude = [
+    '^https[:]//doi\.org/10\.1002/andp\.19955070504$',  # onlinelibrary.wiley.com rejects automated requests with 403
+    "%7B[^/]*%7D",  # URL templates are completed at build or runtime
+    "^https[:]//x-access-token/$",  # Token-authenticated Git remote placeholder
+    '\$(?:NEXT_[A-Z_]+|PREVIOUS_TAG)',  # Release Drafter substitutes these placeholders at runtime
+    '^https[:]//github\.com/ComPWA/qrules/runs/8132605149\?check_suite_focus=true#step:5:92$',  # Historical CI logs have expired
+    '^https[:]//stackoverflow\.com/a/44284819$',  # Rejects automated requests with 403
+    '^https[:]//stackoverflow\.com/a/8230505$',  # Rejects automated requests with 403
+]
+exclude_path = ["tests"]  # Test fixtures contain dummy URLs
+extensions = ["bib", "css", "ipynb", "json", "md", "py", "toml", "yaml", "yml"]
+hidden = true  # Include the workflows under .github/
+include_fragments = "anchor-only"
+include_verbatim = true
+max_cache_age = "7d"
+remap = [
+    '^git\+(https[:]//[^@]+)(@.*)?$ $1',
+    "^(.+)/n$ $1",
+    '^(https[:]//github\.com/ComPWA/qrules/compare)/\$PREVIOUS_TAG.*$ $1',
+    '^https[:]//pypi\.org/p/\$$ https://pypi.org/project/qrules/',
+]
 
 [tool.poe.executor]
 isolated = true
@@ -226,17 +258,9 @@ help = "Set up a server to directly preview changes to the HTML pages with cache
 sequence = ["doclive"]
 
 [tool.poe.groups.doc.tasks.linkcheck]
-cmd = """
-sphinx-build \
-    --builder=linkcheck \
-    --fail-on-warning \
-    --show-traceback \
-    docs/ \
-    docs/_build/linkcheck/
-"""
-env = { PYTHONWARNINGS = "" }
-executor = { group = "doc" }
-help = "Check external links in the documentation (requires internet connection)"
+cmd = "uvx --from lychee-bin lychee . --quiet"
+executor = { type = "simple" }
+help = "Check links and fragments in repository sources (requires internet connection)"
 
 [tool.poe.groups.notebook]
 heading = "Notebooks"
@@ -248,9 +272,7 @@ executor = { group = "jupyter" }
 help = "Launch Jupyter Lab"
 
 [tool.poe.groups.notebook.tasks.nb]
-args = [
-    { name = "paths", default = "docs", multiple = true, positional = true },
-]
+args = [{ name = "paths", default = "docs", multiple = true, positional = true }]
 cmd = "pytest --nbmake --nbmake-timeout=0 ${paths}"
 executor = { group = "notebooks", with = "nbmake" }
 help = "Run all notebooks"
@@ -262,7 +284,6 @@ heading = "Testing"
 cmd = """
 pytest \
     --cov=qrules \
-    --cov-fail-under=85 \
     --cov-report=html \
     --cov-report=xml \
     --numprocesses=auto \
@@ -404,6 +425,7 @@ docstring-code-format = true
 line-ending = "lf"
 
 [tool.ruff.lint]
+allowed-confusables = ["–"]
 ignore = [
     "DOC",
     "FBT00",
@@ -542,7 +564,7 @@ key-empty = "off"
 
 [[tool.tombi.schemas]]
 root = "tool.compwa.policy"
-path = "https://raw.githubusercontent.com/ComPWA/policy/0.10.1/compwa-policy.schema.json"
+path = "https://raw.githubusercontent.com/ComPWA/policy/0.10.7/compwa-policy.schema.json"
 include = ["pyproject.toml"]
 
 [[tool.ty.overrides]]
@@ -551,6 +573,8 @@ include = [
     "src/qrules/settings.py",
     "tests/unit/conservation_rules/test_additive_qn.py",
 ]
+# The additive quantum-number decorator supplies __call__ at runtime.
+rules.abstract-class-instantiation = "ignore"
 rules.call-non-callable = "ignore"
 
 [tool.ty.rules]
