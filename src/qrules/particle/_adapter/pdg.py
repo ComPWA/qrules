@@ -40,13 +40,18 @@ def load_pdg() -> ParticleCollection:
 def _load_pdg_particles() -> tuple[Particle, ...]:
     """Load and cache immutable particle definitions from the PDG database."""
     api = pdg.connect()
-    particles = []
-    for source_particle in _iter_particles(api):
-        try:
-            particle = _convert_particle(source_particle)
-        except ValueError:
-            continue
-        particles.append(particle)
+    try:
+        particles = []
+        for source_particle in _iter_particles(api):
+            try:
+                particle = _convert_particle(source_particle)
+            except ValueError:
+                continue
+            particles.append(particle)
+    finally:
+        # The PDG API never closes its SQLAlchemy connection pool, which leaves
+        # unclosed sqlite3 connections behind.
+        api.engine.dispose()
     return tuple(particles)
 
 
