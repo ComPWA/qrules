@@ -85,10 +85,9 @@ SpinFormalism = Literal[
 ]
 """Name for the spin formalism to be used.
 
-The options :code:`"helicity"`, :code:`"canonical-helicity"`, and :code:`"canonical"`
-are all used for the helicity formalism, but :code:`"canonical-helicity"` and
-:code:`"canonical"` generate angular momentum and coupled spins as well on the
-interaction nodes.
+The options ``"helicity"``, ``"canonical-helicity"``, and ``"canonical"`` are all used
+for the helicity formalism, but ``"canonical-helicity"`` and ``"canonical"`` generate
+angular momentum and coupled spins as well on the interaction nodes.
 """
 
 
@@ -221,7 +220,9 @@ def _group_by_strength(
 class StateTransitionManager:
     """Main handler for decay topologies.
 
-    .. seealso:: :doc:`/usage/reaction` and `.generate_transitions`
+    .. seealso::
+
+        :doc:`/usage/reaction` and `.generate_transitions`
     """
 
     def __init__(  # ruff: ignore[complex-structure, too-many-branches, too-many-positional-arguments]
@@ -271,7 +272,9 @@ class StateTransitionManager:
         ]
         """Checks that are executed over selected conservation rules.
 
-        .. seealso:: {ref}`usage/reaction:Select interaction types`
+        .. seealso::
+
+            {ref}`usage/reaction:Select interaction types`
         """
         self.final_state_groupings: list[list[list[str]]] | None = None
         self.__allowed_interaction_types: (

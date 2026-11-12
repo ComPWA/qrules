@@ -95,7 +95,7 @@ def find_particle(  # ruff: ignore[undocumented-param]
 
     Args:
         states: The quantum number dictionary. particle_db: A `.ParticleCollection`
-            which is used to retrieve a reference :code:`state` to lower the memory
+            which is used to retrieve a reference ``state`` to lower the memory
             footprint.
 
     Raises:

@@ -8,7 +8,7 @@ are three different types of rules:
 
 1. `GraphElementRule` that work on individual graph edges or nodes.
 2. `EdgeQNConservationRule` that work on the interaction level, which use ingoing edges,
-   outgoing edges as arguments.  E.g.: `.ChargeConservation`.
+   outgoing edges as arguments. E.g.: `.ChargeConservation`.
 3. `ConservationRule` that work on the interaction level, which use ingoing edges,
    outgoing edges and a interaction node as arguments. E.g: `.parity_conservation`.
 
@@ -19,17 +19,17 @@ do not have to be limited to a single quantum number, but can be a composite (se
 `.CParityEdgeInput`).
 
 .. warning::
-    Besides the rule logic itself, a rule also has the responsibility of
-    stating its run conditions. These run conditions **must** be stated by
-    the type annotations of its :code:`__call__` method. The type annotations
-    therefore are not just there for *static* type checking: they also
-    carry more information about the rule that is extracted *dynamically*
-    by the :mod:`.solving` module.
+
+    Besides the rule logic itself, a rule also has the responsibility of stating its run
+    conditions. These run conditions **must** be stated by the type annotations of its
+    ``__call__`` method. The type annotations therefore are not just there for *static*
+    type checking: they also carry more information about the rule that is extracted
+    *dynamically* by the :mod:`.solving` module.
 
 Generally, the conditions can be separated into two categories:
 
-* variable conditions
-* toplogical conditions
+- variable conditions
+- toplogical conditions
 
 Currently, only variable conditions are being used. Topological conditions could be
 created in the form of `~typing.Tuple` instead of `~typing.List`.
@@ -41,7 +41,9 @@ The module is therefore strongly typed (both for the reader of the code and for 
 checking). An example is `.HelicityParityEdgeInput`, which has been defined to provide
 type checks on `.parity_conservation_helicity`.
 
-.. seealso:: :doc:`/usage/conservation`
+.. seealso::
+
+    :doc:`/usage/conservation`
 """
 
 import operator
@@ -54,9 +56,8 @@ from types import GenericAlias
 from typing import TYPE_CHECKING, Any, Protocol, TypeVar
 
 from attrs import define, field, frozen
-from attrs.converters import optional
 
-from qrules._attrs import to_fraction, to_parity
+from qrules._attrs import optional_converter, to_fraction, to_parity
 from qrules.quantum_numbers import EdgeQuantumNumbers as EdgeQN
 from qrules.quantum_numbers import NodeQuantumNumbers as NodeQN
 from qrules.quantum_numbers import Parity, QuantumNumberType, arange
@@ -132,7 +133,9 @@ def additive_quantum_number_rule(
     Use this decorator to create a `EdgeQNConservationRule` for a quantum number to
     which an additive conservation rule applies:
 
-    .. math:: \sum q_{in} = \sum q_{out}
+    .. math::
+
+        \sum q_{in} = \sum q_{out}
 
     Args:
         quantum_number: Quantum number to which you want to apply the additive
@@ -238,12 +241,18 @@ def parity_conservation_helicity(
 
     Check the following:
 
-    .. math:: A_{-\lambda_1-\lambda_2} = P_1 P_2 P_3 (-1)^{S_2+S_3-S_1}
+    .. math::
+
+        A_{-\lambda_1-\lambda_2} = P_1 P_2 P_3 (-1)^{S_2+S_3-S_1}
         A_{\lambda_1\lambda_2}
 
-    .. math:: \mathrm{parity\,prefactor} = P_1 P_2 P_3 (-1)^{S_2+S_3-S_1}
+    .. math::
 
-    .. note:: Only the special case :math:`\lambda_1=\lambda_2=0` may return `False`
+        \mathrm{parity\,prefactor} = P_1 P_2 P_3 (-1)^{S_2+S_3-S_1}
+
+    .. note::
+
+        Only the special case :math:`\lambda_1=\lambda_2=0` may return `False`
         independent on the parity prefactor.
     """
     if len(ingoing_edge_qns) == 1 and len(outgoing_edge_qns) == 2:
@@ -269,7 +278,9 @@ def parity_conservation_helicity(
 class CParityEdgeInput:
     spin_magnitude: EdgeSpinMagnitude = field(converter=to_fraction)
     pid: EdgePid = field(converter=int)
-    c_parity: EdgeCParity | None = field(converter=optional(to_parity), default=None)
+    c_parity: EdgeCParity | None = field(
+        converter=optional_converter(to_parity), default=None
+    )
 
 
 @frozen
@@ -325,7 +336,9 @@ class GParityEdgeInput:
     isospin_magnitude: EdgeIsospinMagnitude = field(converter=to_fraction)
     spin_magnitude: EdgeSpinMagnitude = field(converter=to_fraction)
     pid: EdgePid = field(converter=int)
-    g_parity: EdgeGParity | None = field(converter=optional(to_parity), default=None)
+    g_parity: EdgeGParity | None = field(
+        converter=optional_converter(to_parity), default=None
+    )
 
 
 @frozen
@@ -647,9 +660,10 @@ def isospin_conservation(
     Implements
 
     .. math::
+
         |I_1 - I_2| \leq I \leq |I_1 + I_2|
 
-    Also checks :math:`I_{1,z} + I_{2,z} = I_z` and if Clebsch-Gordan coefficients are
+    Also checks :math:`I_{1,z} + I_{2,z} = I_z` and if Clebsch–Gordan coefficients are
     all 0.
     """
     if sum(x.isospin_projection for x in ingoing_isospins) != sum(
@@ -686,16 +700,20 @@ def spin_conservation(
     Implements
 
     .. math::
+
         |S_1 - S_2| \leq S \leq |S_1 + S_2|
 
     and
 
     .. math::
+
         |L - S| \leq J \leq |L + S|
 
-    Also checks :math:`M_1 + M_2 = M` and if Clebsch-Gordan coefficients are all 0.
+    Also checks :math:`M_1 + M_2 = M` and if Clebsch–Gordan coefficients are all 0.
 
-    .. seealso:: /docs/usage/ls-coupling
+    .. seealso::
+
+        /docs/usage/ls-coupling
     """
     # L and S can only be used if one side is a single state
     # and the other side contains of two states (isobar)
@@ -727,11 +745,13 @@ def spin_magnitude_conservation(
     Implements
 
     .. math::
+
         |S_1 - S_2| \leq S \leq |S_1 + S_2|
 
     and
 
     .. math::
+
         |L - S| \leq J \leq |L + S|
     """
     # L and S can only be used if one side is a single state
@@ -759,14 +779,15 @@ def clebsch_gordan_helicity_to_canonical(
     outgoing_spins: list[SpinEdgeInput],
     interaction_qns: SpinNodeInput,
 ) -> bool:
-    """Implement Clebsch-Gordan checks.
+    """Implement Clebsch–Gordan checks.
 
     For :math:`S_1, S_2` to :math:`S` and the :math:`L,S` to :math:`J` coupling based on
     the conversion of helicity to canonical amplitude sums.
 
-    .. note:: This rule does not check that the spin magnitudes couple correctly to
-        :math:`L` and :math:`S`, as this is already performed by
-        `.spin_magnitude_conservation`.
+    .. note::
+
+        This rule does not check that the spin magnitudes couple correctly to :math:`L`
+        and :math:`S`, as this is already performed by `.spin_magnitude_conservation`.
     """
     if len(ingoing_spins) == 1 and len(outgoing_spins) == 2:
         out_spin1 = _Spin(
@@ -819,51 +840,48 @@ def helicity_conservation(
 class GellMannNishijimaInput:
     charge: EdgeQN.charge = field(converter=EdgeQN.charge)
     isospin_projection: EdgeQN.isospin_projection | None = field(
-        converter=optional(EdgeQN.isospin_projection), default=None
+        converter=optional_converter(EdgeQN.isospin_projection), default=None
     )
     strangeness: EdgeQN.strangeness | None = field(
-        converter=optional(EdgeQN.strangeness), default=None
+        converter=optional_converter(EdgeQN.strangeness), default=None
     )
     charmness: EdgeQN.charmness | None = field(
-        converter=optional(EdgeQN.charmness), default=None
+        converter=optional_converter(EdgeQN.charmness), default=None
     )
     bottomness: EdgeQN.bottomness | None = field(
-        converter=optional(EdgeQN.bottomness), default=None
+        converter=optional_converter(EdgeQN.bottomness), default=None
     )
     topness: EdgeQN.topness | None = field(
-        converter=optional(EdgeQN.topness), default=None
+        converter=optional_converter(EdgeQN.topness), default=None
     )
     baryon_number: EdgeQN.baryon_number | None = field(
-        converter=optional(EdgeQN.baryon_number), default=None
+        converter=optional_converter(EdgeQN.baryon_number), default=None
     )
     electron_lepton_number: EdgeQN.electron_lepton_number | None = field(
-        converter=optional(EdgeQN.electron_lepton_number), default=None
+        converter=optional_converter(EdgeQN.electron_lepton_number), default=None
     )
     muon_lepton_number: EdgeQN.muon_lepton_number | None = field(
-        converter=optional(EdgeQN.muon_lepton_number), default=None
+        converter=optional_converter(EdgeQN.muon_lepton_number), default=None
     )
     tau_lepton_number: EdgeQN.tau_lepton_number | None = field(
-        converter=optional(EdgeQN.tau_lepton_number), default=None
+        converter=optional_converter(EdgeQN.tau_lepton_number), default=None
     )
 
 
 def gellmann_nishijima(edge_qns: GellMannNishijimaInput) -> bool:
-    r"""Check the Gell-Mann-Nishijima formula.
+    r"""Check the Gell-Mann–Nishijima formula.
 
-    `Gell-Mann-Nishijima formula
+    `Gell-Mann–Nishijima formula
     <https://en.wikipedia.org/wiki/Gell-Mann%E2%80%93Nishijima_formula>`_:
 
     .. math::
+
         Q = I_3 + \frac{1}{2}(B+S+C+B'+T)
 
-    where
-    :math:`Q` is charge (computed),
-    :math:`I_3` is `.Spin.projection` of `~.Particle.isospin`,
-    :math:`B` is `~.Particle.baryon_number`,
-    :math:`S` is `~.Particle.strangeness`,
-    :math:`C` is `~.Particle.charmness`,
-    :math:`B'` is `~.Particle.bottomness`, and
-    :math:`T` is `~.Particle.topness`.
+    where :math:`Q` is charge (computed), :math:`I_3` is `.Spin.projection` of
+    `~.Particle.isospin`, :math:`B` is `~.Particle.baryon_number`, :math:`S` is
+    `~.Particle.strangeness`, :math:`C` is `~.Particle.charmness`, :math:`B'` is
+    `~.Particle.bottomness`, and :math:`T` is `~.Particle.topness`.
     """
 
     def calculate_hypercharge(

@@ -92,8 +92,8 @@ def select_transitions(
     """Reduce a collection of transitions to the graphs that are worth rendering.
 
     The ``collapse`` and ``strip_spin`` flags are the printer attributes
-    :code:`collapse_graphs` and :code:`strip_spin`. Spin projections can only be
-    stripped from the interaction nodes if those nodes are not rendered.
+    ``collapse_graphs`` and ``strip_spin``. Spin projections can only be stripped from
+    the interaction nodes if those nodes are not rendered.
     """
     if collapse:
         return collapse_graphs(graphs)
@@ -590,7 +590,9 @@ def get_particle_graphs(
     Extract a `list` of `.Transition` instances with only `.Particle` instances on the
     edges.
 
-    .. seealso:: :doc:`/usage/visualize`
+    .. seealso::
+
+        :doc:`/usage/visualize`
     """
     inventory = set()
     for transition in graphs:
