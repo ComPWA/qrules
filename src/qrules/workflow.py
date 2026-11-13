@@ -69,6 +69,7 @@ from qrules.topology import (
 )
 from qrules.transition import (
     ExecutionInfo,
+    NoSolutionsError,
     ProblemSet,
     ReactionInfo,
     SolutionContainer,
@@ -550,7 +551,7 @@ def _convert_to_particle_definitions(
     )
 
 
-def collect_reaction_info(  # ruff: ignore[complex-structure, too-many-branches]
+def collect_reaction_info(
     results: dict[float, SolutionContainer],
     final_state: Sequence[StateDefinitionInput] | None = None,
     formalism: SpinFormalism = "helicity",
@@ -589,27 +590,10 @@ def collect_reaction_info(  # ruff: ignore[complex-structure, too-many-branches]
     )
 
     execution_info = final_result.execution_info
-    if (
-        final_result.execution_info.violated_edge_rules
-        or final_result.execution_info.violated_node_rules
-    ):
-        violated_rules: set[str] = set()
-        for rules in execution_info.violated_edge_rules.values():
-            violated_rules |= rules
-        for rules in execution_info.violated_node_rules.values():
-            violated_rules |= rules
-        if violated_rules:
-            msg = f"There were violated conservation rules: {', '.join(sorted(violated_rules))}"
-            warnings.warn(msg, category=RuntimeWarning, stacklevel=1)
-    if (
-        final_result.execution_info.not_executed_edge_rules
-        or final_result.execution_info.not_executed_node_rules
-    ):
-        not_executed_rules: set[str] = set()
-        for rules in execution_info.not_executed_edge_rules.values():
-            not_executed_rules |= rules
-        for rules in execution_info.not_executed_node_rules.values():
-            not_executed_rules |= rules
+    if violated_rules := execution_info.violated_rules:
+        msg = f"There were violated conservation rules: {', '.join(sorted(violated_rules))}"
+        warnings.warn(msg, category=RuntimeWarning, stacklevel=1)
+    if not_executed_rules := execution_info.not_executed_rules:
         msg = (
             "There are conservation rules that were not executed:"
             f" {', '.join(sorted(not_executed_rules))}. This does not mean that these"
@@ -619,7 +603,7 @@ def collect_reaction_info(  # ruff: ignore[complex-structure, too-many-branches]
         warnings.warn(msg, category=RuntimeWarning, stacklevel=1)
     if not final_solutions:
         msg = "No solutions were found"
-        raise RuntimeError(msg, execution_info)
+        raise NoSolutionsError(msg, execution_info)
 
     match_external_edges(final_solutions)
     if final_state is not None:
