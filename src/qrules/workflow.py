@@ -462,7 +462,7 @@ def solve(
     progress_bar = tqdm(
         total=total,
         desc="Propagating quantum numbers",
-        disable=_LOGGER.level > logging.WARNING,
+        disable=_LOGGER.getEffectiveLevel() > logging.WARNING,
     )
     solve_single = partial(
         _solve_single_problem,
