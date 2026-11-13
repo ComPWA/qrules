@@ -105,18 +105,6 @@ class ExecutionInfo:
     violated_edge_rules: dict[int, set[str]] = field(factory=lambda: defaultdict(set))
     """Rules per edge ID that were evaluated and never satisfied."""
 
-    @property
-    def violated_rules(self) -> set[str]:
-        """Names of all violated rules, merged over nodes and edges."""
-        return _merge_rule_names(self.violated_node_rules, self.violated_edge_rules)
-
-    @property
-    def not_executed_rules(self) -> set[str]:
-        """Names of all rules that were not executed, merged over nodes and edges."""
-        return _merge_rule_names(
-            self.not_executed_node_rules, self.not_executed_edge_rules
-        )
-
     def _repr_markdown_(self) -> str:  # ruff: ignore[bad-dunder-method-name]
         rows = [
             "| | Violated | Not executed |",
@@ -170,28 +158,10 @@ class ExecutionInfo:
         self.violated_edge_rules.clear()
 
 
-def _merge_rule_names(*rules_per_id: dict[int, set[str]]) -> set[str]:
-    return {
-        rule for rules in rules_per_id for names in rules.values() for rule in names
-    }
-
-
 def _format_rule_names(rules: set[str] | None) -> str:
     if not rules:
         return ""
     return ", ".join(f"`{rule}`" for rule in sorted(rules))
-
-
-class NoSolutionsError(RuntimeError):
-    """Raised when no transitions can be found for a reaction.
-
-    Subclasses `RuntimeError` for backward compatibility.
-    """
-
-    @property
-    def execution_info(self) -> ExecutionInfo:
-        """Conservation rules that explain why no solution was found."""
-        return self.args[1]
 
 
 def _merge_violations(

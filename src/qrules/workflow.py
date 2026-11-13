@@ -69,7 +69,6 @@ from qrules.topology import (
 )
 from qrules.transition import (
     ExecutionInfo,
-    NoSolutionsError,
     ProblemSet,
     ReactionInfo,
     SolutionContainer,
@@ -590,10 +589,16 @@ def collect_reaction_info(
     )
 
     execution_info = final_result.execution_info
-    if violated_rules := execution_info.violated_rules:
+    violated_rules = _merge_rule_names(
+        execution_info.violated_node_rules, execution_info.violated_edge_rules
+    )
+    if violated_rules:
         msg = f"There were violated conservation rules: {', '.join(sorted(violated_rules))}"
         warnings.warn(msg, category=RuntimeWarning, stacklevel=1)
-    if not_executed_rules := execution_info.not_executed_rules:
+    not_executed_rules = _merge_rule_names(
+        execution_info.not_executed_node_rules, execution_info.not_executed_edge_rules
+    )
+    if not_executed_rules:
         msg = (
             "There are conservation rules that were not executed:"
             f" {', '.join(sorted(not_executed_rules))}. This does not mean that these"
@@ -603,7 +608,7 @@ def collect_reaction_info(
         warnings.warn(msg, category=RuntimeWarning, stacklevel=1)
     if not final_solutions:
         msg = "No solutions were found"
-        raise NoSolutionsError(msg, execution_info)
+        raise RuntimeError(msg, execution_info)
 
     match_external_edges(final_solutions)
     if final_state is not None:
@@ -616,6 +621,12 @@ def collect_reaction_info(
         graph.freeze().convert(lambda s: State(*s)) for graph in final_solutions
     ]
     return ReactionInfo(transitions, formalism)
+
+
+def _merge_rule_names(*rules_per_id: dict[int, set[str]]) -> set[str]:
+    return {
+        rule for rules in rules_per_id for names in rules.values() for rule in names
+    }
 
 
 @implement_pretty_repr

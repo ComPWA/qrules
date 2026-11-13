@@ -19,7 +19,6 @@ from qrules.topology import (  # ruff: ignore[unused-import]
 )
 from qrules.transition import (
     ExecutionInfo,
-    NoSolutionsError,
     ReactionInfo,
     SolutionContainer,
     SolvingMode,
@@ -44,16 +43,6 @@ def describe_ExecutionInfo():
         )
         assert info.violated_node_rules == {0: {"b"}, 1: {"d"}}
 
-    def it_merges_rule_names_over_nodes_and_edges():
-        info = ExecutionInfo(
-            violated_node_rules={0: {"a"}, 1: {"b"}},
-            violated_edge_rules={0: {"c"}},
-            not_executed_node_rules={0: {"d"}},
-            not_executed_edge_rules={0: {"e"}},
-        )
-        assert info.violated_rules == {"a", "b", "c"}
-        assert info.not_executed_rules == {"d", "e"}
-
     def it_renders_a_markdown_table():
         info = ExecutionInfo(
             violated_node_rules={0: {"b", "a"}, 1: set()},
@@ -74,24 +63,6 @@ def describe_ExecutionInfo():
         info = ExecutionInfo(violated_edge_rules={0: {"a"}})
         info.extend(ExecutionInfo(violated_edge_rules={0: {"b"}}))
         assert info.violated_edge_rules == {0: {"a", "b"}}
-
-
-def describe_NoSolutionsError():
-    def it_is_raised_with_execution_info():
-        stm = StateTransitionManager(
-            initial_state=["J/psi(1S)"],
-            final_state=["pi+", "pi-"],
-            number_of_threads=1,
-        )
-        stm.set_allowed_interaction_types([InteractionType.STRONG])
-        problem_sets = stm.create_problem_sets()
-        with (
-            pytest.warns(RuntimeWarning),
-            pytest.raises(NoSolutionsError) as exc_info,
-        ):
-            stm.find_solutions(problem_sets)
-        assert isinstance(exc_info.value, RuntimeError)
-        assert "g_parity_conservation" in exc_info.value.execution_info.violated_rules
 
 
 def describe_SolutionContainer():
