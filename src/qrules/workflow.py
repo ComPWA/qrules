@@ -564,6 +564,11 @@ def collect_reaction_info(
     rules, and matches the external edge IDs over all solutions. If a ``final_state`` is
     given, the final state edge IDs are reordered to match it. The quantum number
     filters default to those for the given ``formalism``.
+
+    Raises:
+        NoSolutionsError: If no transitions are found. See
+            :doc:`/usage/troubleshooting` for how to interpret its
+            `~.NoSolutionsError.execution_info`.
     """
     for strength, result in results.items():
         _LOGGER.info(

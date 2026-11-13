@@ -168,6 +168,10 @@ class NoSolutionsError(RuntimeError):
     """Raised when no transitions can be found for a reaction.
 
     Subclasses `RuntimeError` for backward compatibility.
+
+    .. seealso::
+
+        :doc:`/usage/troubleshooting`
     """
 
     @property
@@ -421,7 +425,13 @@ class StateTransitionManager:
     def find_solutions(
         self, problem_sets: dict[float, list[ProblemSet]]
     ) -> ReactionInfo:
-        """Check for solutions for a specific set of interaction settings."""
+        """Check for solutions for a specific set of interaction settings.
+
+        Raises:
+            NoSolutionsError: If no transitions are found. See
+                :doc:`/usage/troubleshooting` for how to interpret its
+                `~.NoSolutionsError.execution_info`.
+        """
         from qrules.workflow import collect_reaction_info  # ruff: ignore[import-outside-top-level]
 
         results = self._find_particle_transitions(problem_sets)
