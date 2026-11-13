@@ -3,6 +3,7 @@ import pickle  # ruff: ignore[suspicious-pickle-import]
 import sys
 from copy import deepcopy
 from fractions import Fraction
+from textwrap import dedent
 
 import pytest
 from IPython.lib.pretty import pretty
@@ -49,12 +50,12 @@ def describe_ExecutionInfo():
             violated_node_rules={0: {"b", "a"}, 1: set()},
             not_executed_edge_rules={-1: {"c"}},
         )
-        expected = """
-| | Violated | Not executed |
-|:--|:--|:--|
-| **Node 0** | `a`, `b` |  |
-| **Edge -1** |  | `c` |
-"""
+        expected = dedent("""
+            | | Violated | Not executed |
+            |:--|:--|:--|
+            | **Node 0** | `a`, `b` |  |
+            | **Edge -1** |  | `c` |
+        """)
         assert info._repr_markdown_() == expected.strip()
         assert (
             ExecutionInfo()._repr_markdown_() == "*No violated or non-executed rules*"

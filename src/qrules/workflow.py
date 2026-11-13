@@ -596,13 +596,15 @@ def collect_reaction_info(
 
     execution_info = final_result.execution_info
     violated_rules = _merge_rule_names(
-        execution_info.violated_node_rules, execution_info.violated_edge_rules
+        execution_info.violated_node_rules,
+        execution_info.violated_edge_rules,
     )
     if violated_rules:
         msg = f"There were violated conservation rules: {', '.join(sorted(violated_rules))}"
         warnings.warn(msg, category=RuntimeWarning, stacklevel=1)
     not_executed_rules = _merge_rule_names(
-        execution_info.not_executed_node_rules, execution_info.not_executed_edge_rules
+        execution_info.not_executed_node_rules,
+        execution_info.not_executed_edge_rules,
     )
     if not_executed_rules:
         msg = (
