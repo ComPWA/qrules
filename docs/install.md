@@ -36,6 +36,12 @@ Optionally, you can install the dependencies required for
 pip install qrules[viz]  # installs qrules with graphviz
 ```
 
+To load particle definitions from the official [PDG Python API](https://pdgapi.lbl.gov/doc/) with {func}`.load_pdg`, install the `pdg` extra:
+
+```shell
+pip install qrules[pdg]
+```
+
 The latest version on the [`main`](https://github.com/ComPWA/qrules/tree/main) branch
 can be installed as follows:
 
