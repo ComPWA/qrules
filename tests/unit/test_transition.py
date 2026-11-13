@@ -17,10 +17,43 @@ from qrules.topology import (  # ruff: ignore[unused-import]
     MutableTransition,
     Topology,
 )
-from qrules.transition import ReactionInfo, SolvingMode, State, StateTransitionManager
+from qrules.transition import (
+    ExecutionInfo,
+    ReactionInfo,
+    SolutionContainer,
+    SolvingMode,
+    State,
+    StateTransitionManager,
+)
 
 NAMESPACE_WITH_FRACTIONS = globals()
 NAMESPACE_WITH_FRACTIONS["Fraction"] = Fraction
+
+
+def describe_ExecutionInfo():
+    def it_intersects_violations_starting_from_the_first_result():
+        info = ExecutionInfo()
+        info.extend(
+            ExecutionInfo(violated_node_rules={0: {"a", "b"}}),
+            intersect_violations=True,
+        )
+        info.extend(
+            ExecutionInfo(violated_node_rules={0: {"b", "c"}, 1: {"d"}}),
+            intersect_violations=True,
+        )
+        assert info.violated_node_rules == {0: {"b"}, 1: {"d"}}
+
+    def it_takes_the_union_of_violations_by_default():
+        info = ExecutionInfo(violated_edge_rules={0: {"a"}})
+        info.extend(ExecutionInfo(violated_edge_rules={0: {"b"}}))
+        assert info.violated_edge_rules == {0: {"a", "b"}}
+
+
+def describe_SolutionContainer():
+    def it_does_not_share_execution_info_between_instances():
+        container = SolutionContainer()
+        container.execution_info.violated_node_rules[0].add("a")
+        assert SolutionContainer().execution_info.violated_node_rules == {}
 
 
 def describe_MutableTransition():

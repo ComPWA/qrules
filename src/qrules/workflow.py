@@ -599,9 +599,7 @@ def collect_reaction_info(  # ruff: ignore[complex-structure, too-many-branches]
         for rules in execution_info.violated_node_rules.values():
             violated_rules |= rules
         if violated_rules:
-            msg = (
-                f"There were violated conservation rules:  {', '.join(violated_rules)}"
-            )
+            msg = f"There were violated conservation rules: {', '.join(sorted(violated_rules))}"
             warnings.warn(msg, category=RuntimeWarning, stacklevel=1)
     if (
         final_result.execution_info.not_executed_edge_rules
@@ -614,7 +612,9 @@ def collect_reaction_info(  # ruff: ignore[complex-structure, too-many-branches]
             not_executed_rules |= rules
         msg = (
             "There are conservation rules that were not executed:"
-            f" {', '.join(not_executed_rules)}"
+            f" {', '.join(sorted(not_executed_rules))}. This does not mean that these"
+            " rules are violated: the solver stops checking rules once a combination"
+            " of quantum numbers is excluded. See ExecutionInfo for more information."
         )
         warnings.warn(msg, category=RuntimeWarning, stacklevel=1)
     if not final_solutions:

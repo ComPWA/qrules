@@ -77,41 +77,79 @@ class SolvingMode(Enum):
 @implement_pretty_repr
 @define(on_setattr=attrs.setters.frozen)
 class ExecutionInfo:
+    """Bookkeeping of conservation rules that did not lead to a solution.
+
+    The dictionaries map node or edge IDs of the `.Topology` to names of conservation
+    rules. They are only filled when no solutions were found: as soon as one problem set
+    yields a solution, the `.SolutionContainer` clears this information.
+
+    A conservation rule is **violated** if it was evaluated and failed for every
+    combination of quantum numbers that the solver tried. It is **not executed** if it
+    was never evaluated. This happens if a quantum number that the rule requires is not
+    available on the node or its edges, for instance if the `.EdgeSettings.qn_domains`
+    do not define it. More often, it happens because the constraint solver works by
+    backtracking: once one rule fails for every candidate value of a quantum number, the
+    solver abandons the search, so rules that would only have been checked later are
+    never called. A non-executed rule therefore does *not* mean that the rule is broken
+    or skipped by mistake. Look at the violated rules, or remove the restrictions on the
+    problem (allowed interaction types, intermediate particles, topologies), to find out
+    why no solution exists.
+    """
+
     not_executed_node_rules: dict[int, set[str]] = field(
         factory=lambda: defaultdict(set)
     )
+    """Rules per node ID that were never evaluated by the solver."""
     violated_node_rules: dict[int, set[str]] = field(factory=lambda: defaultdict(set))
+    """Rules per node ID that were evaluated and never satisfied."""
     not_executed_edge_rules: dict[int, set[str]] = field(
         factory=lambda: defaultdict(set)
     )
+    """Rules per edge ID that were never evaluated by the solver."""
     violated_edge_rules: dict[int, set[str]] = field(factory=lambda: defaultdict(set))
+    """Rules per edge ID that were evaluated and never satisfied."""
 
     def extend(
         self, other_result: ExecutionInfo, intersect_violations: bool = False
     ) -> None:
+        """Merge the rules of another `ExecutionInfo` into this one.
+
+        Non-executed rules are always merged as a union. If ``intersect_violations`` is
+        `True`, a rule is only kept as violated on a node or edge if it is violated in
+        both results.
+        """
         for key, rules in other_result.not_executed_node_rules.items():
             self.not_executed_node_rules[key].update(rules)
 
         for key, rules in other_result.not_executed_edge_rules.items():
             self.not_executed_edge_rules[key].update(rules)
 
-        for key, rules2 in other_result.violated_node_rules.items():
-            if intersect_violations:
-                self.violated_node_rules[key] &= rules2
-            else:
-                self.violated_node_rules[key].update(rules2)
-
-        for key, rules2 in other_result.violated_edge_rules.items():
-            if intersect_violations:
-                self.violated_edge_rules[key] &= rules2
-            else:
-                self.violated_edge_rules[key].update(rules2)
+        _merge_violations(
+            self.violated_node_rules,
+            other_result.violated_node_rules,
+            intersect_violations,
+        )
+        _merge_violations(
+            self.violated_edge_rules,
+            other_result.violated_edge_rules,
+            intersect_violations,
+        )
 
     def clear(self) -> None:
         self.not_executed_node_rules.clear()
         self.violated_node_rules.clear()
         self.not_executed_edge_rules.clear()
         self.violated_edge_rules.clear()
+
+
+def _merge_violations(
+    violations: dict[int, set[str]], other: dict[int, set[str]], intersect: bool
+) -> None:
+    for key, rules in other.items():
+        if intersect and key in violations:
+            violations[key] &= rules
+        else:
+            violations[key] = violations.get(key, set()) | rules
 
 
 @frozen
@@ -126,7 +164,7 @@ class SolutionContainer:
         factory=list
     )
     """Transitions that satisfy all conservation rules."""
-    execution_info: ExecutionInfo = field(default=ExecutionInfo())
+    execution_info: ExecutionInfo = field(factory=ExecutionInfo)
     """Rules that were violated or could not be executed."""
 
     def __attrs_post_init__(self) -> None:
