@@ -40,7 +40,6 @@ dependencies = [
     "frozendict",
     "jsonschema",
     "particle",
-    "pdg",
     "python-constraint2",
     "tqdm>=4.24.0",  # autonotebook
 ]
@@ -57,6 +56,7 @@ Issues = "https://github.com/ComPWA/qrules/issues"
 Source = "https://github.com/ComPWA/qrules"
 
 [project.optional-dependencies]
+pdg = ["pdg"]
 viz = ["graphviz"]
 
 [dependency-groups]
@@ -97,7 +97,7 @@ jupyter = [
     "python-lsp-server",
     { include-group = "notebooks" },
 ]
-notebooks = ["qrules[viz]"]
+notebooks = ["qrules[pdg,viz]"]
 style = [
     { include-group = "types" },
 ]
@@ -108,12 +108,14 @@ test = [
     "pytest-cov",
     "pytest-describe",
     "pytest-xdist",
+    "qrules[pdg]",
 ]
 types = [
     "graphviz",
     "ipython",
     "pydot",
     "pytest",
+    "qrules[pdg]",
     "sphinx-api-relink",
     "types-PyYAML",
 ]

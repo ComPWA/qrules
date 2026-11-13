@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import sys
 from copy import deepcopy
 from fractions import Fraction
 from typing import Any, cast
@@ -38,6 +39,20 @@ def describe_load_pdg():
     def it_rejects_unknown_source():
         with pytest.raises(ValueError, match="Unknown particle source"):
             load_pdg(source=cast("Any", "unknown"))
+
+    def it_explains_how_to_install_missing_pdg_package(monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.setitem(sys.modules, "pdg", None)
+        monkeypatch.delitem(sys.modules, "qrules.particle._adapter.pdg", raising=False)
+        with pytest.raises(ModuleNotFoundError, match=r"qrules\[pdg\]"):
+            load_pdg(source="pdg")
+
+    def it_raises_other_missing_modules_unchanged(monkeypatch: pytest.MonkeyPatch):
+        pytest.importorskip("pdg")
+        monkeypatch.setitem(sys.modules, "pdg.errors", None)
+        monkeypatch.delitem(sys.modules, "qrules.particle._adapter.pdg", raising=False)
+        with pytest.raises(ModuleNotFoundError) as exc_info:
+            load_pdg(source="pdg")
+        assert exc_info.value.name == "pdg.errors"
 
 
 def describe_Particle():
