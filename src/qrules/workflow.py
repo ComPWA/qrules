@@ -69,6 +69,7 @@ from qrules.topology import (
 )
 from qrules.transition import (
     ExecutionInfo,
+    NoSolutionsError,
     ProblemSet,
     ReactionInfo,
     SolutionContainer,
@@ -608,7 +609,7 @@ def collect_reaction_info(
         warnings.warn(msg, category=RuntimeWarning, stacklevel=1)
     if not final_solutions:
         msg = "No solutions were found"
-        raise RuntimeError(msg, execution_info)
+        raise NoSolutionsError(msg, execution_info)
 
     match_external_edges(final_solutions)
     if final_state is not None:

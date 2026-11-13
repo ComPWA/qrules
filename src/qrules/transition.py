@@ -164,6 +164,18 @@ def _format_rule_names(rules: set[str] | None) -> str:
     return ", ".join(f"`{rule}`" for rule in sorted(rules))
 
 
+class NoSolutionsError(RuntimeError):
+    """Raised when no transitions can be found for a reaction.
+
+    Subclasses `RuntimeError` for backward compatibility.
+    """
+
+    @property
+    def execution_info(self) -> ExecutionInfo:
+        """Conservation rules that explain why no solution was found."""
+        return self.args[1]
+
+
 def _merge_violations(
     violations: dict[int, set[str]], other: dict[int, set[str]], intersect: bool
 ) -> None:

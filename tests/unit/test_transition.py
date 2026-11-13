@@ -19,6 +19,7 @@ from qrules.topology import (  # ruff: ignore[unused-import]
 )
 from qrules.transition import (
     ExecutionInfo,
+    NoSolutionsError,
     ReactionInfo,
     SolutionContainer,
     SolvingMode,
@@ -63,6 +64,25 @@ def describe_ExecutionInfo():
         info = ExecutionInfo(violated_edge_rules={0: {"a"}})
         info.extend(ExecutionInfo(violated_edge_rules={0: {"b"}}))
         assert info.violated_edge_rules == {0: {"a", "b"}}
+
+
+def describe_NoSolutionsError():
+    def it_is_raised_with_execution_info():
+        stm = StateTransitionManager(
+            initial_state=["J/psi(1S)"],
+            final_state=["pi+", "pi-"],
+            number_of_threads=1,
+        )
+        stm.set_allowed_interaction_types([InteractionType.STRONG])
+        problem_sets = stm.create_problem_sets()
+        with (
+            pytest.warns(RuntimeWarning),
+            pytest.raises(NoSolutionsError) as exc_info,
+        ):
+            stm.find_solutions(problem_sets)
+        assert isinstance(exc_info.value, RuntimeError)
+        violated_rules = exc_info.value.execution_info.violated_node_rules[0]
+        assert "g_parity_conservation" in violated_rules
 
 
 def describe_SolutionContainer():
