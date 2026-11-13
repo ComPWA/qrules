@@ -3,6 +3,7 @@ import pickle  # ruff: ignore[suspicious-pickle-import]
 import sys
 from copy import deepcopy
 from fractions import Fraction
+from textwrap import dedent
 
 import pytest
 from IPython.lib.pretty import pretty
@@ -17,10 +18,79 @@ from qrules.topology import (  # ruff: ignore[unused-import]
     MutableTransition,
     Topology,
 )
-from qrules.transition import ReactionInfo, SolvingMode, State, StateTransitionManager
+from qrules.transition import (
+    ExecutionInfo,
+    NoSolutionsError,
+    ReactionInfo,
+    SolutionContainer,
+    SolvingMode,
+    State,
+    StateTransitionManager,
+)
 
 NAMESPACE_WITH_FRACTIONS = globals()
 NAMESPACE_WITH_FRACTIONS["Fraction"] = Fraction
+
+
+def describe_ExecutionInfo():
+    def it_intersects_violations_starting_from_the_first_result():
+        info = ExecutionInfo()
+        info.extend(
+            ExecutionInfo(violated_node_rules={0: {"a", "b"}}),
+            intersect_violations=True,
+        )
+        info.extend(
+            ExecutionInfo(violated_node_rules={0: {"b", "c"}, 1: {"d"}}),
+            intersect_violations=True,
+        )
+        assert info.violated_node_rules == {0: {"b"}, 1: {"d"}}
+
+    def it_renders_a_markdown_table():
+        info = ExecutionInfo(
+            violated_node_rules={0: {"b", "a"}, 1: set()},
+            not_executed_edge_rules={-1: {"c"}},
+        )
+        expected = dedent("""
+            | | Violated | Not executed |
+            |:--|:--|:--|
+            | **Node 0** | `a`, `b` |  |
+            | **Edge -1** |  | `c` |
+        """)
+        assert info._repr_markdown_() == expected.strip()
+        assert (
+            ExecutionInfo()._repr_markdown_() == "*No violated or non-executed rules*"
+        )
+
+    def it_takes_the_union_of_violations_by_default():
+        info = ExecutionInfo(violated_edge_rules={0: {"a"}})
+        info.extend(ExecutionInfo(violated_edge_rules={0: {"b"}}))
+        assert info.violated_edge_rules == {0: {"a", "b"}}
+
+
+def describe_NoSolutionsError():
+    def it_is_raised_with_execution_info():
+        stm = StateTransitionManager(
+            initial_state=["J/psi(1S)"],
+            final_state=["pi+", "pi-"],
+            number_of_threads=1,
+        )
+        stm.set_allowed_interaction_types([InteractionType.STRONG])
+        problem_sets = stm.create_problem_sets()
+        with (
+            pytest.warns(RuntimeWarning),
+            pytest.raises(NoSolutionsError) as exc_info,
+        ):
+            stm.find_solutions(problem_sets)
+        assert isinstance(exc_info.value, RuntimeError)
+        violated_rules = exc_info.value.execution_info.violated_node_rules[0]
+        assert "g_parity_conservation" in violated_rules
+
+
+def describe_SolutionContainer():
+    def it_does_not_share_execution_info_between_instances():
+        container = SolutionContainer()
+        container.execution_info.violated_node_rules[0].add("a")
+        assert SolutionContainer().execution_info.violated_node_rules == {}
 
 
 def describe_MutableTransition():

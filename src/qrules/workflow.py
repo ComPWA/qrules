@@ -69,6 +69,7 @@ from qrules.topology import (
 )
 from qrules.transition import (
     ExecutionInfo,
+    NoSolutionsError,
     ProblemSet,
     ReactionInfo,
     SolutionContainer,
@@ -461,7 +462,7 @@ def solve(
     progress_bar = tqdm(
         total=total,
         desc="Propagating quantum numbers",
-        disable=_LOGGER.level > logging.WARNING,
+        disable=_LOGGER.getEffectiveLevel() > logging.WARNING,
     )
     solve_single = partial(
         _solve_single_problem,
@@ -550,7 +551,7 @@ def _convert_to_particle_definitions(
     )
 
 
-def collect_reaction_info(  # ruff: ignore[complex-structure, too-many-branches]
+def collect_reaction_info(
     results: dict[float, SolutionContainer],
     final_state: Sequence[StateDefinitionInput] | None = None,
     formalism: SpinFormalism = "helicity",
@@ -563,6 +564,11 @@ def collect_reaction_info(  # ruff: ignore[complex-structure, too-many-branches]
     rules, and matches the external edge IDs over all solutions. If a ``final_state`` is
     given, the final state edge IDs are reordered to match it. The quantum number
     filters default to those for the given ``formalism``.
+
+    Raises:
+        NoSolutionsError: If no transitions are found. See
+            :doc:`/usage/troubleshooting` for how to interpret its
+            `~.NoSolutionsError.execution_info`.
     """
     for strength, result in results.items():
         _LOGGER.info(
@@ -589,37 +595,28 @@ def collect_reaction_info(  # ruff: ignore[complex-structure, too-many-branches]
     )
 
     execution_info = final_result.execution_info
-    if (
-        final_result.execution_info.violated_edge_rules
-        or final_result.execution_info.violated_node_rules
-    ):
-        violated_rules: set[str] = set()
-        for rules in execution_info.violated_edge_rules.values():
-            violated_rules |= rules
-        for rules in execution_info.violated_node_rules.values():
-            violated_rules |= rules
-        if violated_rules:
-            msg = (
-                f"There were violated conservation rules:  {', '.join(violated_rules)}"
-            )
-            warnings.warn(msg, category=RuntimeWarning, stacklevel=1)
-    if (
-        final_result.execution_info.not_executed_edge_rules
-        or final_result.execution_info.not_executed_node_rules
-    ):
-        not_executed_rules: set[str] = set()
-        for rules in execution_info.not_executed_edge_rules.values():
-            not_executed_rules |= rules
-        for rules in execution_info.not_executed_node_rules.values():
-            not_executed_rules |= rules
+    violated_rules = _merge_rule_names(
+        execution_info.violated_node_rules,
+        execution_info.violated_edge_rules,
+    )
+    if violated_rules:
+        msg = f"There were violated conservation rules: {', '.join(sorted(violated_rules))}"
+        warnings.warn(msg, category=RuntimeWarning, stacklevel=1)
+    not_executed_rules = _merge_rule_names(
+        execution_info.not_executed_node_rules,
+        execution_info.not_executed_edge_rules,
+    )
+    if not_executed_rules:
         msg = (
             "There are conservation rules that were not executed:"
-            f" {', '.join(not_executed_rules)}"
+            f" {', '.join(sorted(not_executed_rules))}. This does not mean that these"
+            " rules are violated: the solver stops checking rules once a combination"
+            " of quantum numbers is excluded. See ExecutionInfo for more information."
         )
         warnings.warn(msg, category=RuntimeWarning, stacklevel=1)
     if not final_solutions:
         msg = "No solutions were found"
-        raise RuntimeError(msg, execution_info)
+        raise NoSolutionsError(msg, execution_info)
 
     match_external_edges(final_solutions)
     if final_state is not None:
@@ -632,6 +629,12 @@ def collect_reaction_info(  # ruff: ignore[complex-structure, too-many-branches]
         graph.freeze().convert(lambda s: State(*s)) for graph in final_solutions
     ]
     return ReactionInfo(transitions, formalism)
+
+
+def _merge_rule_names(*rules_per_id: dict[int, set[str]]) -> set[str]:
+    return {
+        rule for rules in rules_per_id for names in rules.values() for rule in names
+    }
 
 
 @implement_pretty_repr
