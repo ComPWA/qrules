@@ -110,7 +110,7 @@ class ExecutionInfo:
     """Rules per edge ID that were evaluated and never satisfied."""
 
     def extend(
-        self, other_result: ExecutionInfo, intersect_violations: bool = False
+        self, other: ExecutionInfo, /, intersect_violations: bool = False
     ) -> None:
         """Merge the rules of another `ExecutionInfo` into this one.
 
@@ -118,20 +118,20 @@ class ExecutionInfo:
         `True`, a rule is only kept as violated on a node or edge if it is violated in
         both results.
         """
-        for key, rules in other_result.not_executed_node_rules.items():
+        for key, rules in other.not_executed_node_rules.items():
             self.not_executed_node_rules[key].update(rules)
 
-        for key, rules in other_result.not_executed_edge_rules.items():
+        for key, rules in other.not_executed_edge_rules.items():
             self.not_executed_edge_rules[key].update(rules)
 
         _merge_violations(
             self.violated_node_rules,
-            other_result.violated_node_rules,
+            other.violated_node_rules,
             intersect_violations,
         )
         _merge_violations(
             self.violated_edge_rules,
-            other_result.violated_edge_rules,
+            other.violated_edge_rules,
             intersect_violations,
         )
 
