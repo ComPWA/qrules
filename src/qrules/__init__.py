@@ -346,6 +346,11 @@ def generate_transitions(  # ruff: ignore[too-many-positional-arguments]
             transitions. Defaults to the current value returned by
             :meth:`.settings.NumberOfThreads.get`.
 
+    Raises:
+        NoSolutionsError: If no transitions are found. See
+            :doc:`/usage/troubleshooting` for how to interpret its
+            `~.NoSolutionsError.execution_info`.
+
     An example (where, for illustrative purposes only, we specify all arguments) would
     be:
 

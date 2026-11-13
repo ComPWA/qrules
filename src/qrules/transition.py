@@ -103,41 +103,123 @@ class SolvingMode(Enum):
 @implement_pretty_repr
 @define(on_setattr=attrs.setters.frozen)
 class ExecutionInfo:
+    """Conservation rules that explain why no solution was found.
+
+    Each attribute maps a node or edge ID to rule names. The information is only kept if
+    no solution was found at all.
+
+    - **Violated** rules were checked and always failed. These explain why the reaction
+      is forbidden.
+    - **Not executed** rules were never checked, usually because the solver stopped
+      after an earlier rule failed. They are *not* necessarily violated.
+
+    .. seealso::
+
+        :doc:`/usage/troubleshooting` for examples.
+    """
+
     not_executed_node_rules: dict[int, set[str]] = field(
         factory=lambda: defaultdict(set)
     )
+    """Rules per node ID that were never evaluated by the solver."""
     violated_node_rules: dict[int, set[str]] = field(factory=lambda: defaultdict(set))
+    """Rules per node ID that were evaluated and never satisfied."""
     not_executed_edge_rules: dict[int, set[str]] = field(
         factory=lambda: defaultdict(set)
     )
+    """Rules per edge ID that were never evaluated by the solver."""
     violated_edge_rules: dict[int, set[str]] = field(factory=lambda: defaultdict(set))
+    """Rules per edge ID that were evaluated and never satisfied."""
+
+    def _repr_markdown_(self) -> str:  # ruff: ignore[bad-dunder-method-name]
+        rows = [
+            "| | Violated | Not executed |",
+            "|:--|:--|:--|",
+        ]
+        for label, violated, not_executed in (
+            ("Node", self.violated_node_rules, self.not_executed_node_rules),
+            ("Edge", self.violated_edge_rules, self.not_executed_edge_rules),
+        ):
+            for i in sorted(violated.keys() | not_executed.keys()):
+                if not violated.get(i) and not not_executed.get(i):
+                    continue
+                rows.append(
+                    f"| **{label} {i}** | {_format_rule_names(violated.get(i))}"
+                    f" | {_format_rule_names(not_executed.get(i))} |"
+                )
+        if len(rows) == 2:
+            return "*No violated or non-executed rules*"
+        return "\n".join(rows)
 
     def extend(
-        self, other_result: ExecutionInfo, intersect_violations: bool = False
+        self, other: ExecutionInfo, /, intersect_violations: bool = False
     ) -> None:
-        for key, rules in other_result.not_executed_node_rules.items():
+        """Merge the rules of another `ExecutionInfo` into this one.
+
+        Non-executed rules are always merged as a union. If ``intersect_violations`` is
+        `True`, a rule is only kept as violated on a node or edge if it is violated in
+        both results.
+        """
+        for key, rules in other.not_executed_node_rules.items():
             self.not_executed_node_rules[key].update(rules)
 
-        for key, rules in other_result.not_executed_edge_rules.items():
+        for key, rules in other.not_executed_edge_rules.items():
             self.not_executed_edge_rules[key].update(rules)
 
-        for key, rules2 in other_result.violated_node_rules.items():
-            if intersect_violations:
-                self.violated_node_rules[key] &= rules2
-            else:
-                self.violated_node_rules[key].update(rules2)
-
-        for key, rules2 in other_result.violated_edge_rules.items():
-            if intersect_violations:
-                self.violated_edge_rules[key] &= rules2
-            else:
-                self.violated_edge_rules[key].update(rules2)
+        _merge_violations(
+            self.violated_node_rules,
+            other.violated_node_rules,
+            intersect_violations,
+        )
+        _merge_violations(
+            self.violated_edge_rules,
+            other.violated_edge_rules,
+            intersect_violations,
+        )
 
     def clear(self) -> None:
         self.not_executed_node_rules.clear()
         self.violated_node_rules.clear()
         self.not_executed_edge_rules.clear()
         self.violated_edge_rules.clear()
+
+
+def _format_rule_names(rules: set[str] | None) -> str:
+    if not rules:
+        return ""
+    return ", ".join(f"`{rule}`" for rule in sorted(rules))
+
+
+class NoSolutionsError(RuntimeError):
+    """Raised when no transitions can be found for a reaction.
+
+    Subclasses `RuntimeError` for backward compatibility.
+
+    .. seealso::
+
+        :doc:`/usage/troubleshooting`
+    """
+
+    @property
+    def execution_info(self) -> ExecutionInfo:
+        """Conservation rules that explain why no solution was found."""
+        return self.args[1]
+
+
+def _merge_rule_names(*rules_per_id: dict[int, set[str]]) -> set[str]:
+    return {
+        rule for rules in rules_per_id for names in rules.values() for rule in names
+    }
+
+
+def _merge_violations(
+    violations: dict[int, set[str]], other: dict[int, set[str]], intersect: bool
+) -> None:
+    for key, rules in other.items():
+        if intersect and key in violations:
+            violations[key] &= rules
+        else:
+            violations[key] = violations.get(key, set()) | rules
 
 
 @frozen
@@ -147,7 +229,9 @@ class _SolutionContainer:
     solutions: list[MutableTransition[ParticleWithSpin, InteractionProperties]] = field(
         factory=list
     )
-    execution_info: ExecutionInfo = field(default=ExecutionInfo())
+    """Transitions that satisfy all conservation rules."""
+    execution_info: ExecutionInfo = field(factory=ExecutionInfo)
+    """Rules that were violated or could not be executed."""
 
     def __attrs_post_init__(self) -> None:
         if self.solutions and (
@@ -515,10 +599,16 @@ class StateTransitionManager:
 
         return graph_settings
 
-    def find_solutions(  # ruff: ignore[complex-structure]
+    def find_solutions(
         self, problem_sets: dict[float, list[ProblemSet]]
     ) -> ReactionInfo:
-        """Check for solutions for a specific set of interaction settings."""
+        """Check for solutions for a specific set of interaction settings.
+
+        Raises:
+            NoSolutionsError: If no transitions are found. See
+                :doc:`/usage/troubleshooting` for how to interpret its
+                `~.NoSolutionsError.execution_info`.
+        """
         results = self._find_particle_transitions(problem_sets)
         for strength, result in results.items():
             _LOGGER.info(
@@ -538,38 +628,28 @@ class StateTransitionManager:
         )
 
         execution_info = final_result.execution_info
-        if (
-            final_result.execution_info.violated_edge_rules
-            or final_result.execution_info.violated_node_rules
-        ):
-            violated_rules: set[str] = set()
-            for rules in execution_info.violated_edge_rules.values():
-                violated_rules |= rules
-            for rules in execution_info.violated_node_rules.values():
-                violated_rules |= rules
-            if violated_rules:
-                msg = (
-                    "There were violated conservation rules: "
-                    f" {', '.join(violated_rules)}"
-                )
-                warnings.warn(msg, category=RuntimeWarning, stacklevel=1)
-        if (
-            final_result.execution_info.not_executed_edge_rules
-            or final_result.execution_info.not_executed_node_rules
-        ):
-            not_executed_rules: set[str] = set()
-            for rules in execution_info.not_executed_edge_rules.values():
-                not_executed_rules |= rules
-            for rules in execution_info.not_executed_node_rules.values():
-                not_executed_rules |= rules
+        violated_rules = _merge_rule_names(
+            execution_info.violated_node_rules,
+            execution_info.violated_edge_rules,
+        )
+        if violated_rules:
+            msg = f"There were violated conservation rules: {', '.join(sorted(violated_rules))}"
+            warnings.warn(msg, category=RuntimeWarning, stacklevel=1)
+        not_executed_rules = _merge_rule_names(
+            execution_info.not_executed_node_rules,
+            execution_info.not_executed_edge_rules,
+        )
+        if not_executed_rules:
             msg = (
                 "There are conservation rules that were not executed:"
-                f" {', '.join(not_executed_rules)}"
+                f" {', '.join(sorted(not_executed_rules))}. This does not mean that these"
+                " rules are violated: the solver stops checking rules once a combination"
+                " of quantum numbers is excluded. See ExecutionInfo for more information."
             )
             warnings.warn(msg, category=RuntimeWarning, stacklevel=1)
         if not final_solutions:
             msg = "No solutions were found"
-            raise RuntimeError(msg, execution_info)
+            raise NoSolutionsError(msg, execution_info)
 
         match_external_edges(final_solutions)
         final_solutions = [
@@ -610,7 +690,7 @@ class StateTransitionManager:
         progress_bar = tqdm(
             total=total,
             desc="Propagating quantum numbers",
-            disable=_LOGGER.level > logging.WARNING,
+            disable=_LOGGER.getEffectiveLevel() > logging.WARNING,
         )
         for strength, problems in sorted(problem_sets.items(), reverse=True):
             _LOGGER.info(
