@@ -77,23 +77,19 @@ class SolvingMode(Enum):
 @implement_pretty_repr
 @define(on_setattr=attrs.setters.frozen)
 class ExecutionInfo:
-    """Bookkeeping of conservation rules that did not lead to a solution.
+    """Conservation rules that explain why no solution was found.
 
-    The dictionaries map node or edge IDs of the `.Topology` to names of conservation
-    rules. They are only filled when no solutions were found: as soon as one problem set
-    yields a solution, the `.SolutionContainer` clears this information.
+    Each attribute maps a node or edge ID to rule names. The information is only kept if
+    no solution was found at all.
 
-    A conservation rule is **violated** if it was evaluated and failed for every
-    combination of quantum numbers that the solver tried. It is **not executed** if it
-    was never evaluated. This happens if a quantum number that the rule requires is not
-    available on the node or its edges, for instance if the `.EdgeSettings.qn_domains`
-    do not define it. More often, it happens because the constraint solver works by
-    backtracking: once one rule fails for every candidate value of a quantum number, the
-    solver abandons the search, so rules that would only have been checked later are
-    never called. A non-executed rule therefore does *not* mean that the rule is broken
-    or skipped by mistake. Look at the violated rules, or remove the restrictions on the
-    problem (allowed interaction types, intermediate particles, topologies), to find out
-    why no solution exists.
+    - **Violated** rules were checked and always failed. These explain why the reaction
+      is forbidden.
+    - **Not executed** rules were never checked, usually because the solver stopped
+      after an earlier rule failed. They are *not* necessarily violated.
+
+    .. seealso::
+
+        :doc:`/usage/troubleshooting` for examples.
     """
 
     not_executed_node_rules: dict[int, set[str]] = field(
