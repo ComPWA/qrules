@@ -3,6 +3,7 @@ from importlib.metadata import version
 import pytest
 
 from qrules.particle import ParticleCollection, _get_name_root, create_antiparticle
+from qrules.quantum_numbers import Parity
 
 
 def _get_omega_mesons() -> list[str]:
@@ -93,6 +94,30 @@ def describe_load_pdg():
         if skh_particle_version > "0.15":
             expected.update({"K(2)*(1980)+", "K(2)*(1980)0"})
         assert sorted_result == sorted(expected)
+
+    @pytest.mark.parametrize(
+        ("name", "parity", "c_parity", "g_parity"),
+        [
+            ("pi+", Parity(-1), None, Parity(-1)),
+            ("pi0", Parity(-1), Parity(+1), Parity(-1)),
+            ("K+", Parity(-1), None, None),
+            ("Z0", Parity.UNKNOWN, Parity.UNKNOWN, None),
+            ("W+", Parity.UNKNOWN, None, None),
+            ("D(s)*+", Parity.UNKNOWN, None, None),
+            ("Xi(1690)-", Parity.UNKNOWN, None, None),
+        ],
+    )
+    def it_distinguishes_unknown_from_undefined_parities(
+        particle_database: ParticleCollection,
+        name: str,
+        parity: Parity,
+        c_parity: Parity | None,
+        g_parity: Parity | None,
+    ):
+        particle = particle_database[name]
+        assert particle.parity == parity
+        assert particle.c_parity == c_parity
+        assert particle.g_parity == g_parity
 
     def it_loads_particle_properties(particle_database: ParticleCollection):
         f2_1950 = particle_database.find(9050225)

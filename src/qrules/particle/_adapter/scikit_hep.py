@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 from particle import Particle as PdgDatabase
 
 from qrules.particle import Particle, ParticleCollection, Spin
+from qrules.particle._adapter import mark_unknown_parities
 from qrules.quantum_numbers import Parity
 
 if TYPE_CHECKING:
@@ -73,7 +74,7 @@ def __convert_pdg_instance(pdg_particle: PdgDatabase) -> Particle:
     latex = None
     if pdg_particle.latex_name != "Unknown":
         latex = str(pdg_particle.latex_name)
-    return Particle(
+    particle = Particle(
         name=str(pdg_particle.name),
         latex=latex,
         pid=int(pdg_particle.pdgid),
@@ -94,6 +95,8 @@ def __convert_pdg_instance(pdg_particle: PdgDatabase) -> Particle:
         c_parity=__create_parity(pdg_particle.C),
         g_parity=__create_parity(pdg_particle.G),
     )
+    # Scikit-HEP uses Parity.u for both undefined and unknown parities
+    return mark_unknown_parities(particle)
 
 
 def __compute_quark_numbers(

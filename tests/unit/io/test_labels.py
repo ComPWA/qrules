@@ -16,7 +16,7 @@ from qrules.io._labels import (
     strip_projections,
 )
 from qrules.particle import Particle, ParticleCollection
-from qrules.quantum_numbers import InteractionProperties
+from qrules.quantum_numbers import InteractionProperties, Parity
 from qrules.solving import QNProblemSet, QNResult
 from qrules.transition import ProblemSet, ReactionInfo, State
 
@@ -113,6 +113,12 @@ def describe_as_latex():
         assert as_latex(None) == R"\mathrm{None}"
         assert not as_latex({})
         assert as_latex({"pid": 1}) == R"\text{pid} = 1"
+
+    def it_renders_unknown_parity_values():
+        unknown = Parity.UNKNOWN.value
+        assert as_string(unknown) == "?"
+        assert as_latex(unknown) == "?"
+        assert as_string({"parity": unknown}) == "parity = ?"
 
     def it_collapsed_particle_tuple(particle_database: ParticleCollection):
         particles = (
