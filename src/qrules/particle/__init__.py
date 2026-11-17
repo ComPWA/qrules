@@ -236,7 +236,9 @@ class Particle:
                     if value != attribute.default:
                         p.breakable()
                         p.text(f"{attribute.name}=")
-                        if isinstance(value, Parity):
+                        if isinstance(value, Parity) and value.is_unknown:
+                            p.text(repr(value))
+                        elif isinstance(value, Parity):
                             p.text(_float_as_signed_str(int(value), render_plus=True))
                         else:
                             p.pretty(value)
