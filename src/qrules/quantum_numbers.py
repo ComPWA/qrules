@@ -8,9 +8,10 @@ serve as data containers but only as type hints. `.EdgeQuantumNumbers` and
 
 from __future__ import annotations
 
+from enum import Enum
 from fractions import Fraction
 from functools import total_ordering
-from typing import TYPE_CHECKING, Any, Literal, NewType, Protocol, TypeVar
+from typing import TYPE_CHECKING, Any, ClassVar, Literal, NewType, Protocol, TypeVar
 
 from attrs import field, frozen
 
@@ -20,9 +21,32 @@ if TYPE_CHECKING:
     from collections.abc import Generator
 
 
-def _to_parity_int(value: int | Parity) -> Literal[-1, 1]:
+class _Unknown(Enum):
+    """Sentinel type for a `Parity` that exists but whose value is not known.
+
+    An `~enum.Enum` with a single member is the typed sentinel pattern recommended by
+    :PEP:`484#support-for-singleton-types-in-unions`. Unlike a bare `object`, its
+    identity survives `copy.deepcopy` and `pickle`, it has a readable `repr`, and type
+    checkers can narrow on it. Once Python 3.15 is the minimal supported version, it can
+    be replaced by the builtin ``sentinel()`` from :PEP:`661`.
+    """
+
+    UNKNOWN = "?"
+
+    def __repr__(self) -> str:
+        return "UNKNOWN"
+
+
+_UNKNOWN = _Unknown.UNKNOWN
+
+
+def _to_parity_value(
+    value: int | Parity | _Unknown,
+) -> Literal[-1, 1, _Unknown.UNKNOWN]:
     if isinstance(value, Parity):
         return value.value
+    if value is _UNKNOWN:
+        return _UNKNOWN
     if not isinstance(value, int):
         msg = f"Parity must be an integer, not {type(value)}"
         raise TypeError(msg)
@@ -30,14 +54,36 @@ def _to_parity_int(value: int | Parity) -> Literal[-1, 1]:
         return -1
     if value == +1:
         return 1
-    msg = f"Parity can only be +1 or -1, not {value}"
+    msg = f"Parity can only be +1, -1, or unknown, not {value}"
     raise ValueError(msg)
 
 
 @total_ordering
 @frozen(eq=False, hash=True, order=False, repr=False)
 class Parity:  # ruff: ignore[eq-without-hash]
-    value: Literal[-1, 1] = field(converter=_to_parity_int)
+    """Intrinsic parity that is either :math:`+1`, :math:`-1`, or unknown.
+
+    Use `Parity.UNKNOWN` for a parity that exists, but whose value is not (yet) known.
+    This is different from `None`, which expresses that a parity (like C-parity or
+    G-parity) is not defined for a particle at all.
+
+    >>> Parity(+1)
+    Parity(+1)
+    >>> -Parity(-1)
+    Parity(+1)
+    >>> Parity.UNKNOWN
+    Parity.UNKNOWN
+    >>> -Parity.UNKNOWN
+    Parity.UNKNOWN
+    """
+
+    value: Literal[-1, 1, _Unknown.UNKNOWN] = field(converter=_to_parity_value)
+    UNKNOWN: ClassVar[Parity]
+    """A parity that exists, but whose value is unknown."""
+
+    @property
+    def is_unknown(self) -> bool:
+        return self.value is _UNKNOWN
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Parity):
@@ -45,18 +91,37 @@ class Parity:  # ruff: ignore[eq-without-hash]
         return self.value == other
 
     def __gt__(self, other: Any) -> bool:
+        # Total order for sorting: None < UNKNOWN < -1 < +1
         if other is None:
             return True
-        return self.value > int(other)
+        if isinstance(other, Parity):
+            return self.__sort_key() > other.__sort_key()
+        return int(self) > int(other)
+
+    def __sort_key(self) -> int:
+        if self.value is _UNKNOWN:
+            return -2
+        return self.value
 
     def __int__(self) -> Literal[-1, 1]:
+        if self.value is _UNKNOWN:
+            msg = "Cannot convert an unknown parity to int"
+            raise ValueError(msg)
         return self.value
 
     def __neg__(self) -> Parity:
+        if self.value is _UNKNOWN:
+            return self
         return Parity(-self.value)
 
     def __repr__(self) -> str:
-        return f"{type(self).__name__}({_float_as_signed_str(self.value)})"
+        class_name = type(self).__name__
+        if self.value is _UNKNOWN:
+            return f"{class_name}.UNKNOWN"
+        return f"{class_name}({_float_as_signed_str(self.value)})"
+
+
+Parity.UNKNOWN = Parity(_UNKNOWN)
 
 
 def _float_as_signed_str(value: float, render_plus: bool = False) -> str:
