@@ -38,6 +38,7 @@ dependencies = [
     "PyYAML",
     "attrs>=20.1.0",  # on_setattr and https://www.attrs.org/en/stable/api.html#attrs.define
     "frozendict",
+    "hepunits>=2.4.7",
     "jsonschema",
     "particle",
     "python-constraint2",

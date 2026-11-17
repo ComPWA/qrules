@@ -120,7 +120,7 @@ def _to_spin(value: Spin | tuple[Fraction, Fraction] | tuple[float, float], /) -
 @total_ordering
 @frozen(kw_only=True, order=False, repr=True)
 class Particle:
-    """Immutable container of data defining a physical particle.
+    r"""Immutable container of data defining a physical particle.
 
     A `Particle` is defined by the minimum set of the quantum numbers that every
     possible instances of that particle have in common (the "static" quantum numbers of
@@ -131,6 +131,15 @@ class Particle:
     like `~Particle.mass`. The `~Particle.name` and `~Particle.pid` are therefore just
     labels that are not taken into account when checking if two `Particle` instances are
     equal.
+
+    The `~Particle.mass` and `~Particle.width` are expressed in :math:`\mathrm{GeV}`
+    (with :math:`c=1`). To convert values from another unit, use the `hepunits
+    <https://pypi.org/project/hepunits>`_ package, in which :math:`\mathrm{MeV}=1`:
+
+    >>> from hepunits import GeV, MeV
+    >>> phi = Particle(name="phi(1020)", pid=333, spin=1, mass=1019.461 * MeV / GeV)
+    >>> phi.mass
+    1.019461
 
     .. note::
 
