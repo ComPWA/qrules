@@ -96,3 +96,48 @@ def describe_g_parity_conservation():
     )
     def it_g_parity_multiparticle_boson(rule_input, expected):
         assert g_parity_conservation(*rule_input) is expected
+
+
+def describe_unknown_g_parity():
+    @pytest.mark.parametrize(
+        ("g_parity_in", "g_parities_out"),
+        [
+            (Parity.UNKNOWN, (Parity(-1), Parity(-1))),
+            (Parity(-1), (Parity.UNKNOWN, Parity(-1))),
+            (Parity(+1), (Parity(-1), Parity.UNKNOWN)),
+        ],
+    )
+    def it_passes_if_one_state_is_unknown(
+        g_parity_in: Parity, g_parities_out: tuple[Parity, Parity]
+    ):
+        ingoing = [
+            GParityEdgeInput(
+                isospin_magnitude=0, spin_magnitude=0, pid=1, g_parity=g_parity_in
+            )
+        ]
+        outgoing = [
+            GParityEdgeInput(isospin_magnitude=1, spin_magnitude=0, pid=2, g_parity=g)
+            for g in g_parities_out
+        ]
+        node = GParityNodeInput(l_magnitude=Fraction(0), s_magnitude=Fraction(0))
+        assert g_parity_conservation(ingoing, outgoing, node) is True
+
+    @pytest.mark.parametrize(
+        ("g_parity_in", "expected"),
+        [(Parity(-1), True), (Parity(+1), False), (Parity.UNKNOWN, True)],
+    )
+    def it_uses_g_parity_of_boson_pair(g_parity_in: Parity, expected: bool):
+        # G of a boson-antiboson pair is (-1)^(L+I), independent of individual parities
+        ingoing = [
+            GParityEdgeInput(
+                isospin_magnitude=1, spin_magnitude=0, pid=1, g_parity=g_parity_in
+            )
+        ]
+        outgoing = [
+            GParityEdgeInput(
+                isospin_magnitude=1, spin_magnitude=0, pid=pid, g_parity=Parity.UNKNOWN
+            )
+            for pid in (+5, -5)
+        ]
+        node = GParityNodeInput(l_magnitude=Fraction(0), s_magnitude=Fraction(0))
+        assert g_parity_conservation(ingoing, outgoing, node) is expected

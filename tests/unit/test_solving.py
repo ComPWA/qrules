@@ -12,7 +12,7 @@ from qrules.conservation_rules import (
     spin_magnitude_conservation,
     spin_validity,
 )
-from qrules.quantum_numbers import EdgeQuantumNumbers, NodeQuantumNumbers
+from qrules.quantum_numbers import EdgeQuantumNumbers, NodeQuantumNumbers, Parity
 from qrules.solving import CSPSolver, QNProblemSet, filter_quantum_number_problem_set
 
 if TYPE_CHECKING:
@@ -30,7 +30,8 @@ def describe_CSPSolver():
 
     @pytest.mark.parametrize(
         ("with_spin_projection", "expected_solutions"),
-        [(True, 321), (False, 129)],
+        # Includes resonances with unknown parity, like D(s)*+, W+, and Z0
+        [(True, 404), (False, 158)],
         ids=["with-spin-projection", "without-spin-projection"],
     )
     def it_with_filtered_quantum_number_problem_set(
@@ -91,3 +92,27 @@ def quantum_number_problem_set() -> QNProblemSet:
         for strength in sorted(problem_sets)
         for p in problem_sets[strength]
     )
+
+
+def describe_get_candidate_states():
+    @pytest.mark.parametrize(
+        ("solved_value", "expected"),
+        [(-1, True), (+1, True), (None, False)],
+    )
+    def it_matches_unknown_parity_with_any_defined_value(
+        solved_value: int | None, expected: bool
+    ):
+        get_candidate_states = getattr(qrules.solving, "__get_candidate_states")
+        unknown = Parity.UNKNOWN.value
+        candidate = {EdgeQuantumNumbers.pid: 23, EdgeQuantumNumbers.c_parity: unknown}
+        state = {EdgeQuantumNumbers.pid: 23, EdgeQuantumNumbers.c_parity: solved_value}
+        candidates = get_candidate_states(state, [candidate])
+        assert (candidates == [candidate]) is expected
+
+    def it_does_not_match_known_parity_with_other_value():
+        get_candidate_states = getattr(qrules.solving, "__get_candidate_states")
+        candidate = {EdgeQuantumNumbers.parity: -1}
+        assert get_candidate_states({EdgeQuantumNumbers.parity: +1}, [candidate]) == []
+        assert get_candidate_states({EdgeQuantumNumbers.parity: -1}, [candidate]) == [
+            candidate
+        ]

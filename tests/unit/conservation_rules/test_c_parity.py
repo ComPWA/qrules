@@ -100,3 +100,29 @@ def describe_c_parity_conservation():
     )
     def it_c_parity_multiparticle_fermion(rule_input, expected):
         assert c_parity_conservation(*rule_input) is expected
+
+
+def describe_unknown_c_parity():
+    @pytest.mark.parametrize("c_parity_in", [Parity(-1), Parity(+1), Parity.UNKNOWN])
+    def it_passes_if_one_side_is_unknown(c_parity_in: Parity):
+        ingoing = [CParityEdgeInput(spin_magnitude=0, pid=1, c_parity=c_parity_in)]
+        outgoing = [
+            CParityEdgeInput(spin_magnitude=0, pid=2, c_parity=Parity.UNKNOWN),
+            CParityEdgeInput(spin_magnitude=0, pid=3, c_parity=Parity(+1)),
+        ]
+        node = CParityNodeInput(l_magnitude=0, s_magnitude=0)
+        assert c_parity_conservation(ingoing, outgoing, node) is True
+
+    @pytest.mark.parametrize(
+        ("c_parity_in", "expected"),
+        [(Parity(-1), True), (Parity(+1), False), (Parity.UNKNOWN, True)],
+    )
+    def it_uses_c_parity_of_boson_pair(c_parity_in: Parity, expected: bool):
+        # C of a boson-antiboson pair is (-1)^L, independent of the individual parities
+        ingoing = [CParityEdgeInput(spin_magnitude=1, pid=1, c_parity=c_parity_in)]
+        outgoing = [
+            CParityEdgeInput(spin_magnitude=0, pid=+5, c_parity=Parity.UNKNOWN),
+            CParityEdgeInput(spin_magnitude=0, pid=-5, c_parity=Parity.UNKNOWN),
+        ]
+        node = CParityNodeInput(l_magnitude=1, s_magnitude=0)
+        assert c_parity_conservation(ingoing, outgoing, node) is expected

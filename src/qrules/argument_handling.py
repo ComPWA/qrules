@@ -28,6 +28,7 @@ from qrules.conservation_rules import (
     GraphElementRule,
 )
 from qrules.quantum_numbers import (
+    _UNKNOWN,
     EdgeQuantumNumber,
     NodeQuantumNumber,
     Parity,
@@ -150,6 +151,8 @@ class _ValueExtractor(Generic[_ElementType]):
             return None
         supertype = getattr(self.__obj_type, "__supertype__", None)
         if supertype == Parity:
+            if value is _UNKNOWN:  # value of an unknown parity in a property map
+                return Parity.UNKNOWN
             return Parity(int(value))  # ty: ignore[invalid-return-type]
         return self.__obj_type(value)
 
