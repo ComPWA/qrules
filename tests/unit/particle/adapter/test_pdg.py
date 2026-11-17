@@ -62,6 +62,27 @@ def describe_load_pdg():
         assert pion.c_parity is None
         assert pion.g_parity == Parity(-1)
 
+    @pytest.mark.parametrize(
+        ("mcid", "parity", "c_parity", "g_parity"),
+        [
+            (111, Parity(-1), Parity(+1), Parity(-1)),
+            (23, Parity.UNKNOWN, Parity.UNKNOWN, None),  # Z0: P not listed
+            (24, Parity.UNKNOWN, None, None),  # W+: P not listed
+            (203312, Parity.UNKNOWN, None, None),  # Xi(1690)-: P listed as "?"
+        ],
+    )
+    def it_distinguishes_unknown_from_undefined_parities(
+        official_particles: ParticleCollection,
+        mcid: int,
+        parity: Parity,
+        c_parity: Parity | None,
+        g_parity: Parity | None,
+    ):
+        particle = official_particles.find(mcid)
+        assert particle.parity == parity
+        assert particle.c_parity == c_parity
+        assert particle.g_parity == g_parity
+
     def it_loads_antiproton_quantum_numbers(
         official_particles: ParticleCollection,
     ):

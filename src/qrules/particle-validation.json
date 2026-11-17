@@ -10,7 +10,7 @@
       "type": "object",
       "required": ["value"],
       "properties": {
-        "value": { "enum": [-1, 1] },
+        "value": { "enum": [-1, 1, "?"] },
         "additionalProperties": false
       }
     },
