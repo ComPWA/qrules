@@ -47,7 +47,7 @@ type checks on `.parity_conservation_helicity`.
 """
 
 import operator
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from copy import deepcopy
 from fractions import Fraction
 from functools import reduce
@@ -215,14 +215,27 @@ def parity_conservation(
     outgoing_edge_qns: list[EdgeQN.parity],
     l_magnitude: NodeQN.l_magnitude,
 ) -> bool:
-    r"""Implement :math:`P_{in} = P_{out} \cdot (-1)^L`."""
-    if any(p is None for p in [*ingoing_edge_qns, *outgoing_edge_qns]):
-        return False
+    r"""Implement :math:`P_{in} = P_{out} \cdot (-1)^L`.
+
+    The rule cannot be checked if any of the parities is unknown and then passes.
+    """
+    if not _all_parities_known([*ingoing_edge_qns, *outgoing_edge_qns]):
+        return True
     if len(ingoing_edge_qns) == 1 and len(outgoing_edge_qns) == 2:
-        parity_in = reduce(lambda x, y: x * y.value, ingoing_edge_qns, 1)
-        parity_out = reduce(lambda x, y: x * y.value, outgoing_edge_qns, 1)
+        parity_in = reduce(lambda x, y: x * int(y), ingoing_edge_qns, 1)
+        parity_out = reduce(lambda x, y: x * int(y), outgoing_edge_qns, 1)
         return parity_in == (parity_out * (-1) ** l_magnitude)
     return True
+
+
+def _all_parities_known(parities: Iterable[Parity | None]) -> bool:
+    return all(p is not None and not p.is_unknown for p in parities)
+
+
+def _known_parity_value(parity: Parity | None) -> int | None:
+    if parity is None or parity.is_unknown:
+        return None
+    return int(parity)
 
 
 @frozen
@@ -254,14 +267,15 @@ def parity_conservation_helicity(
 
         Only the special case :math:`\lambda_1=\lambda_2=0` may return `False`
         independent on the parity prefactor.
+
+    The rule cannot be checked if any of the parities is unknown and then passes.
     """
     if len(ingoing_edge_qns) == 1 and len(outgoing_edge_qns) == 2:
+        edge_qns = ingoing_edge_qns + outgoing_edge_qns
+        if not _all_parities_known(x.parity for x in edge_qns):
+            return True
         out_spins = [x.spin_magnitude for x in outgoing_edge_qns]
-        parity_product = reduce(
-            lambda x, y: x * y.parity.value if y.parity else x,
-            ingoing_edge_qns + outgoing_edge_qns,
-            1,
-        )
+        parity_product = reduce(lambda x, y: x * int(y.parity), edge_qns, 1)
 
         prefactor = parity_product * (-1.0) ** (
             sum(out_spins) - ingoing_edge_qns[0].spin_magnitude
@@ -297,15 +311,17 @@ def c_parity_conservation(
 ) -> bool:
     """Check for :math:`C`-parity conservation.
 
-    Implements :math:`C_{in} = C_{out}`.
+    Implements :math:`C_{in} = C_{out}`. An unknown :math:`C`-parity is treated like an
+    undefined one: the rule passes if the :math:`C`-parity of a side cannot be
+    determined.
     """
 
     def _get_c_parity_multiparticle(
         part_qns: list[CParityEdgeInput], interaction_qns: CParityNodeInput
     ) -> int | None:
-        c_parities_part = [x.c_parity.value for x in part_qns if x.c_parity]
-        # if all states have C parity defined, then just multiply them
-        if len(c_parities_part) == len(part_qns):
+        c_parities_part = [_known_parity_value(x.c_parity) for x in part_qns]
+        # if all states have C parity defined and known, then just multiply them
+        if all(c is not None for c in c_parities_part):
             return reduce(operator.mul, c_parities_part, 1)
 
         # two particle case
@@ -354,7 +370,9 @@ def g_parity_conservation(  # ruff: ignore[complex-structure]
 ) -> bool:
     """Check for :math:`G`-parity conservation.
 
-    Implements for :math:`G_{in} = G_{out}`.
+    Implements for :math:`G_{in} = G_{out}`. An unknown :math:`G`-parity is treated like
+    an undefined one: the rule passes if the :math:`G`-parity of a side cannot be
+    determined.
     """
 
     def check_multistate_g_parity(
@@ -382,28 +400,18 @@ def g_parity_conservation(  # ruff: ignore[complex-structure]
             single_state.isospin_magnitude,
             (couple_state[0], couple_state[1]),
         )
-        single_state_g_parity = (
-            ingoing_edge_qns[0].g_parity.value if ingoing_edge_qns[0].g_parity else None
-        )
+        single_state_g_parity = _known_parity_value(ingoing_edge_qns[0].g_parity)
 
         if not couple_state_g_parity or not single_state_g_parity:
             return True
         return couple_state_g_parity == single_state_g_parity
 
-    no_g_parity_in_part = [True for x in ingoing_edge_qns if x.g_parity is None]
-    no_g_parity_out_part = [True for x in outgoing_edge_qns if x.g_parity is None]
-    # if all states have G parity defined, then just multiply them
-    if not any(no_g_parity_in_part + no_g_parity_out_part):
-        in_g_parity = reduce(
-            lambda x, y: x * y.g_parity.value if y.g_parity else x,
-            ingoing_edge_qns,
-            1,
-        )
-        out_g_parity = reduce(
-            lambda x, y: x * y.g_parity.value if y.g_parity else x,
-            outgoing_edge_qns,
-            1,
-        )
+    # if all states have G parity defined and known, then just multiply them
+    in_g_parities = [_known_parity_value(x.g_parity) for x in ingoing_edge_qns]
+    out_g_parities = [_known_parity_value(x.g_parity) for x in outgoing_edge_qns]
+    if all(g is not None for g in in_g_parities + out_g_parities):
+        in_g_parity = reduce(operator.mul, in_g_parities, 1)
+        out_g_parity = reduce(operator.mul, out_g_parities, 1)
         return in_g_parity == out_g_parity
 
     # two particle case
