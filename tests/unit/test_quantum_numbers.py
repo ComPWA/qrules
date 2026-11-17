@@ -1,4 +1,5 @@
-from copy import deepcopy
+import pickle  # ruff: ignore[suspicious-pickle-import]
+from copy import copy, deepcopy
 from fractions import Fraction
 
 import pytest
@@ -35,7 +36,7 @@ def describe_Parity():
     def it_neg():
         parity = Parity(+1)
         flipped_parity = -parity
-        assert flipped_parity.value == -parity.value
+        assert flipped_parity == Parity(-1)
 
     @pytest.mark.parametrize("value", [-1, +1])
     def it_repr(value):
@@ -46,8 +47,64 @@ def describe_Parity():
     def it_exceptions():
         with pytest.raises(TypeError):
             Parity(1.2)  # ty: ignore[invalid-argument-type]
-        with pytest.raises(ValueError, match=r"Parity can only be \+1 or -1, not 0"):
+        with pytest.raises(
+            ValueError, match=r"Parity can only be \+1, -1, or unknown, not 0"
+        ):
             Parity(0)
+
+    def describe_unknown():
+        def it_is_distinct_from_known_parities():
+            unknown = Parity.UNKNOWN
+            assert unknown.is_unknown
+            assert not Parity(+1).is_unknown
+            assert not Parity(-1).is_unknown
+            assert unknown != Parity(+1)
+            assert unknown != Parity(-1)
+            assert unknown != +1
+            assert unknown != -1
+            assert unknown is not None
+
+        def it_init_from_unknown():
+            assert Parity(Parity.UNKNOWN) == Parity.UNKNOWN
+            assert Parity(Parity.UNKNOWN.value) == Parity.UNKNOWN
+
+        def it_survives_copy_and_pickle():
+            unknown = Parity.UNKNOWN
+            for copied in [
+                copy(unknown),
+                deepcopy(unknown),
+                pickle.loads(pickle.dumps(unknown)),  # ruff: ignore[suspicious-pickle-usage]
+            ]:
+                assert copied == unknown
+                assert copied.is_unknown
+                assert copied.value is unknown.value
+
+        def it_hash():
+            assert {Parity.UNKNOWN, deepcopy(Parity.UNKNOWN), Parity(+1)} == {
+                Parity(+1),
+                Parity.UNKNOWN,
+            }
+
+        def it_neg():
+            assert -Parity.UNKNOWN == Parity.UNKNOWN
+
+        def it_int_raises():
+            with pytest.raises(ValueError, match=r"unknown parity"):
+                int(Parity.UNKNOWN)
+
+        def it_compares_with_int_raises():
+            with pytest.raises(ValueError, match=r"unknown parity"):
+                _ = Parity.UNKNOWN > 0
+
+        def it_sorts():
+            unsorted = [Parity(+1), Parity.UNKNOWN, Parity(-1)]
+            assert sorted(unsorted) == [Parity.UNKNOWN, Parity(-1), Parity(+1)]
+            assert Parity.UNKNOWN > None
+            assert Parity(-1) > Parity.UNKNOWN
+
+        def it_repr():
+            assert repr(Parity.UNKNOWN) == "Parity.UNKNOWN"
+            assert eval(repr(Parity.UNKNOWN)) == Parity.UNKNOWN
 
 
 @pytest.mark.parametrize(
