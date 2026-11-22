@@ -2448,7 +2448,7 @@ requires-dist = [
     { name = "attrs", specifier = ">=20.1.0" },
     { name = "frozendict" },
     { name = "graphviz", marker = "extra == 'viz'" },
-    { name = "hepunits", specifier = ">=2.4.7" },
+    { name = "hepunits" },
     { name = "jsonschema" },
     { name = "particle" },
     { name = "pdg", marker = "extra == 'pdg'" },
