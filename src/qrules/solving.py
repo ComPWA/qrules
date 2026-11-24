@@ -985,9 +985,9 @@ class CSPSolver(Solver):
     ) -> tuple[set[_NodeVariableInfo], GraphNodePropertyMap]:
         """Select the node variables and fixed values that a rule can use.
 
-        Quantum numbers that are defined by the initial facts become fixed values,
-        which cannot be changed by the csp solver. The remaining quantum numbers are
-        matched against the variables declared by the problem set (see
+        Quantum numbers that are defined by the initial facts become fixed values, which
+        cannot be changed by the csp solver. The remaining quantum numbers are matched
+        against the variables declared by the problem set (see
         :meth:`__create_variables`).
         """
         variables: tuple[set[_NodeVariableInfo], GraphNodePropertyMap] = (
@@ -1019,10 +1019,10 @@ class CSPSolver(Solver):
     ) -> tuple[set[_EdgeVariableInfo], dict[int, GraphEdgePropertyMap]]:
         """Select the edge variables and fixed values that a rule can use.
 
-        Quantum numbers that are defined by the initial facts become fixed values,
-        which cannot be changed by the csp solver. This is the case for initial and
-        final state edges. The remaining quantum numbers are matched against the
-        variables declared by the problem set (see :meth:`__create_variables`).
+        Quantum numbers that are defined by the initial facts become fixed values, which
+        cannot be changed by the csp solver. This is the case for initial and final
+        state edges. The remaining quantum numbers are matched against the variables
+        declared by the problem set (see :meth:`__create_variables`).
         """
         variables: tuple[
             set[_EdgeVariableInfo],

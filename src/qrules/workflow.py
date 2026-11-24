@@ -396,8 +396,8 @@ def _restrict_domains_to_rules(graph_settings: GraphSettings) -> None:
     The `.CSPSolver` creates a variable for every quantum number domain declared in a
     `.QNProblemSet`, so a domain that no conservation rule of the surrounding graph
     elements can consume would only inflate the solution space. An edge domain is kept
-    if an edge rule of that edge or a node rule of an adjacent node requires the
-    quantum number; a node domain is kept if a rule of that node requires it.
+    if an edge rule of that edge or a node rule of an adjacent node requires the quantum
+    number; a node domain is kept if a rule of that node requires it.
     """
     topology = graph_settings.topology
     node_edge_requirements: dict[int, set[type[EdgeQuantumNumber]]] = {}
@@ -732,10 +732,10 @@ def create_qn_problem_sets(  # ruff: ignore[too-many-positional-arguments]
     with `find_solutions`, optionally after inspecting or modifying its problem sets
     (see e.g. `.filter_quantum_number_problem_set`).
 
-    With :code:`merge_spin_projections`, the spin-projection combinations of the
-    initial and final state are merged into value ranges on a single `.QNProblemSet`
-    (see `.merge_qn_problem_sets`), which reduces the number of problem sets and speeds
-    up solving.
+    With ``merge_spin_projections``, the spin-projection combinations of the initial and
+    final state are merged into value ranges on a single `.QNProblemSet` (see
+    `.merge_qn_problem_sets`), which reduces the number of problem sets and speeds up
+    solving.
     """
     _validate_formalism(formalism)
     if particle_db is None:
