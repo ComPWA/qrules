@@ -21,10 +21,9 @@ from typing import TYPE_CHECKING, Any, Literal, Self
 
 import attrs
 from attrs import field, frozen
-from attrs.converters import optional
 from attrs.validators import instance_of
 
-from qrules._attrs import to_fraction, to_parity
+from qrules._attrs import optional_converter, to_fraction, to_parity
 from qrules.conservation_rules import GellMannNishijimaInput, gellmann_nishijima
 from qrules.quantum_numbers import Parity, _float_as_signed_str
 
@@ -121,7 +120,7 @@ def _to_spin(value: Spin | tuple[Fraction, Fraction] | tuple[float, float], /) -
 @total_ordering
 @frozen(kw_only=True, order=False, repr=True)
 class Particle:
-    """Immutable container of data defining a physical particle.
+    r"""Immutable container of data defining a physical particle.
 
     A `Particle` is defined by the minimum set of the quantum numbers that every
     possible instances of that particle have in common (the "static" quantum numbers of
@@ -133,9 +132,20 @@ class Particle:
     labels that are not taken into account when checking if two `Particle` instances are
     equal.
 
-    .. note:: As opposed to classes such as `.EdgeQuantumNumbers` and
-        `.NodeQuantumNumbers`, the `Particle` class serves as an interface to
-        the user (see :doc:`/usage/particle`).
+    The `~Particle.mass` and `~Particle.width` are expressed in :math:`\mathrm{GeV}`
+    (with :math:`c=1`). To convert values from another unit, use the `hepunits
+    <https://pypi.org/project/hepunits>`_ package, in which :math:`\mathrm{MeV}=1`:
+
+    >>> from hepunits import GeV, MeV
+    >>> phi = Particle(name="phi(1020)", pid=333, spin=1, mass=1019.461 * MeV / GeV)
+    >>> phi.mass
+    1.019461
+
+    .. note::
+
+        As opposed to classes such as `.EdgeQuantumNumbers` and `.NodeQuantumNumbers`,
+        the `Particle` class serves as an interface to the user (see
+        :doc:`/usage/particle`).
     """
 
     # Labels
@@ -147,7 +157,7 @@ class Particle:
     mass: float = field(converter=float)
     width: float = field(converter=float, default=0.0)
     charge: int = field(default=0)
-    isospin: Spin | None = field(converter=optional(_to_spin), default=None)
+    isospin: Spin | None = field(converter=optional_converter(_to_spin), default=None)
     strangeness: int = field(default=0, validator=instance_of(int))
     charmness: int = field(default=0, validator=instance_of(int))
     bottomness: int = field(default=0, validator=instance_of(int))
@@ -156,9 +166,13 @@ class Particle:
     electron_lepton_number: int = field(default=0, validator=instance_of(int))
     muon_lepton_number: int = field(default=0, validator=instance_of(int))
     tau_lepton_number: int = field(default=0, validator=instance_of(int))
-    parity: Parity | None = field(converter=optional(to_parity), default=None)
-    c_parity: Parity | None = field(converter=optional(to_parity), default=None)
-    g_parity: Parity | None = field(converter=optional(to_parity), default=None)
+    parity: Parity | None = field(converter=optional_converter(to_parity), default=None)
+    c_parity: Parity | None = field(
+        converter=optional_converter(to_parity), default=None
+    )
+    g_parity: Parity | None = field(
+        converter=optional_converter(to_parity), default=None
+    )
 
     def __attrs_post_init__(self) -> None:
         if self.isospin is not None and not gellmann_nishijima(
@@ -364,7 +378,7 @@ class ParticleCollection(abc.MutableSet):  # ruff: ignore[eq-without-hash]
         raise NotImplementedError(msg)
 
     def filter(self, function: Callable[[Particle], bool]) -> ParticleCollection:
-        """Search by `Particle` properties using a :code:`lambda` function.
+        """Search by `Particle` properties using a ``lambda`` function.
 
         For example:
 
@@ -490,14 +504,21 @@ def load_pdg(*, source: PyPIPackage = "particle") -> ParticleCollection:
 
     By default, particle definitions are imported from the `particle
     <https://github.com/scikit-hep/particle>`_ package. Set ``source="pdg"`` to import
-    them from the official `PDG Python API <https://pdgapi.lbl.gov/doc/>`_ instead.
+    them from the official `PDG Python API <https://pdgapi.lbl.gov/doc/>`_ instead,
+    which requires the optional ``pdg`` dependency (``pip install qrules[pdg]``).
     """
     if source == "particle":
         from qrules.particle._adapter.scikit_hep import load_pdg as load_particle_pdg  # ruff: ignore[import-outside-top-level]
 
         return load_particle_pdg()
     if source == "pdg":
-        from qrules.particle._adapter.pdg import load_pdg as load_official_pdg  # ruff: ignore[import-outside-top-level]
+        try:
+            from qrules.particle._adapter.pdg import load_pdg as load_official_pdg  # ruff: ignore[import-outside-top-level]
+        except ModuleNotFoundError as exc:
+            if exc.name != "pdg":
+                raise
+            msg = 'Loading from the PDG API requires the "pdg" package. Install it with: pip install "qrules[pdg]"'
+            raise ModuleNotFoundError(msg, name="pdg") from exc
 
         return load_official_pdg()
     msg = f"Unknown particle source: {source!r}"

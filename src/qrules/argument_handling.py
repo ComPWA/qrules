@@ -111,7 +111,7 @@ class _TypedDictArgumentCheck:
     def __init__(self, typed_dict: type) -> None:
         self.__required_qn_types = [
             _QN_TYPE_BY_NAME[name]
-            for name in typed_dict.__required_keys__  # ty: ignore[unresolved-attribute]
+            for name in typed_dict.__required_keys__  # ty: ignore[missing-attribute]
         ]
 
     def __call__(self, props: GraphElementPropertyMap) -> bool:

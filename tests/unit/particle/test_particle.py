@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import sys
 from copy import deepcopy
 from fractions import Fraction
 from typing import Any, cast
@@ -39,6 +40,20 @@ def describe_load_pdg():
         with pytest.raises(ValueError, match="Unknown particle source"):
             load_pdg(source=cast("Any", "unknown"))
 
+    def it_explains_how_to_install_missing_pdg_package(monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.setitem(sys.modules, "pdg", None)
+        monkeypatch.delitem(sys.modules, "qrules.particle._adapter.pdg", raising=False)
+        with pytest.raises(ModuleNotFoundError, match=r"qrules\[pdg\]"):
+            load_pdg(source="pdg")
+
+    def it_raises_other_missing_modules_unchanged(monkeypatch: pytest.MonkeyPatch):
+        pytest.importorskip("pdg")
+        monkeypatch.setitem(sys.modules, "pdg.errors", None)
+        monkeypatch.delitem(sys.modules, "qrules.particle._adapter.pdg", raising=False)
+        with pytest.raises(ModuleNotFoundError) as exc_info:
+            load_pdg(source="pdg")
+        assert exc_info.value.name == "pdg.errors"
+
 
 def describe_Particle():
     @pytest.mark.parametrize("repr_method", [repr, pretty])
@@ -63,10 +78,10 @@ def describe_Particle():
             test_state.charge = 1  # ty: ignore[invalid-assignment]
         with pytest.raises(
             ValueError,
-            match=r"Fails Gell-Mann–Nishijima",  # ruff: ignore[ambiguous-unicode-character-string]
+            match=r"Fails Gell-Mann–Nishijima",
         ):
             Particle(
-                name="Fails Gell-Mann–Nishijima formula",  # ruff: ignore[ambiguous-unicode-character-string]
+                name="Fails Gell-Mann–Nishijima formula",
                 pid=666,
                 mass=0.0,
                 spin=1,

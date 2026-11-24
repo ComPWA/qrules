@@ -2,6 +2,7 @@ import pytest
 
 from qrules import generate_transitions
 from qrules.particle import create_particle, load_pdg
+from qrules.transition import NoSolutionsError
 
 
 @pytest.mark.parametrize(
@@ -34,7 +35,8 @@ def test_generate_transitions(resonance_names):
 
 
 @pytest.mark.filterwarnings(
-    "ignore:There are conservation rules that were not executed"
+    "ignore:There are conservation rules that were not executed",
+    "ignore:There were violated conservation rules",
 )
 def test_ls_free_solving_conserves_pair_c_parity():
     """Existence rules prune particle-antiparticle pairs without LS couplings."""
@@ -51,7 +53,7 @@ def test_ls_free_solving_conserves_pair_c_parity():
     )
     particle_db.add(exotic)
     for ls_couplings in (True, False):
-        with pytest.raises(RuntimeError, match="No solutions were found"):
+        with pytest.raises(NoSolutionsError, match="No solutions were found"):
             generate_transitions(
                 initial_state="J/psi(1S)",
                 final_state=["gamma", "p", "p~"],

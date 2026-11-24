@@ -1,11 +1,7 @@
-from __future__ import annotations
-
 import os
 import sys
 import typing
-import warnings
 
-from sphinx.deprecation import RemovedInSphinx10Warning
 from sphinx_api_relink.helpers import (
     get_branch_name,
     get_execution_mode,
@@ -35,7 +31,6 @@ set_intersphinx_version_remapping({
         "8.12.3": "8.12.1",
     },
 })
-warnings.filterwarnings("ignore", category=RemovedInSphinx10Warning)
 
 BRANCH = get_branch_name()
 ORGANIZATION = "ComPWA"
@@ -146,9 +141,10 @@ default_role = "py:obj"
 exclude_patterns = [
     "**.ipynb_checkpoints",
     "**.virtual_documents",
+    "**AGENTS.md",
+    "**CLAUDE.md",
+    "**GEMINI.md",
     "*build",
-    "AGENTS.md",
-    "CLAUDE.md",
     "adr/template.md",
     "tests",
 ]
@@ -260,14 +256,6 @@ intersphinx_mapping = {
     "jsonschema": ("https://python-jsonschema.readthedocs.io/en/stable", None),
     "python": ("https://docs.python.org/3", None),
 }
-linkcheck_anchors = False
-linkcheck_ignore = [
-    "https://doi.org/10.1002/andp.19955070504",  # 403 for onlinelibrary.wiley.com
-    "https://doi.org/10.1103/PhysRevD.86.010001",
-    "https://doi.org/10.5281/zenodo",  # 403 for zenodo.org
-    "https://github.com/scikit-hep/particle",
-    "https://zenodo.org",  # 403
-]
 mermaid_height = "auto"  # do not stretch diagrams to the default 500px
 mermaid_init_config = {
     "flowchart": {
@@ -280,7 +268,9 @@ mermaid_init_config = {
 }
 project = REPO_TITLE
 modindex_common_prefix = [f"{PACKAGE}."]
+myst_colon_fence_exact_match = True
 myst_enable_extensions = [
+    "alert",
     "amsmath",
     "colon_fence",
     "dollarmath",

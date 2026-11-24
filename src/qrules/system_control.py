@@ -89,6 +89,7 @@ def find_particle(
 
     Args:
         state: The quantum number dictionary.
+
         particle_db: A `.ParticleCollection` which is used to retrieve a reference
             `.Particle` to lower the memory footprint.
 

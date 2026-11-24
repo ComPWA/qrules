@@ -5,6 +5,7 @@ from typing import Any
 import attrs
 import pytest
 
+import qrules
 from qrules.argument_handling import GraphEdgePropertyMap
 from qrules.conservation_rules import helicity_conservation, spin_validity
 from qrules.io import asdict, asdot, asmermaid
@@ -19,7 +20,7 @@ from qrules.settings import (
 )
 from qrules.solving import QNProblemSet
 from qrules.topology import MutableTransition
-from qrules.transition import ReactionInfo, SolvingMode
+from qrules.transition import NoSolutionsError, ReactionInfo, SolvingMode
 from qrules.workflow import (
     InteractionConfig,
     QNProblemSetCollection,
@@ -245,16 +246,15 @@ def test_qn_transitions_are_projection_free():
 
 
 def test_spin_projections_reenabled_through_problem_sets():
-    """Spin projections remain available as an extension of the QN problem sets.
+    r"""Spin projections remain available as an extension of the QN problem sets.
 
     Spin projections are no longer part of the default workflow, but the `.CSPSolver`
-    handles any quantum number that the problem sets declare through facts and
-    domains. This test re-enables them for :math:`J/\\psi \\to \\gamma f_2(1270)` by
-    adding `~.EdgeQuantumNumbers.spin_projection` facts to the external edges (a
-    `list` fact is solved as a variable over that range), a projection domain plus
-    `.spin_validity` to the intermediate edges, and `.helicity_conservation` to the
-    interaction nodes, which prunes the helicity combinations to
-    :math:`|\\lambda_\\gamma - \\lambda_{f_2}| \\leq 1`.
+    handles any quantum number that the problem sets declare through facts and domains.
+    This test re-enables them for :math:`J/\psi \to \gamma f_2(1270)` by adding
+    `~.EdgeQuantumNumbers.spin_projection` facts to the external edges (a `list` fact is
+    solved as a variable over that range), a projection domain plus `.spin_validity` to
+    the intermediate edges, and `.helicity_conservation` to the interaction nodes, which
+    prunes the helicity combinations to :math:`|\lambda_\gamma - \lambda_{f_2}| \leq 1`.
     """
     particle_db = load_pdg()
     collection = create_qn_problem_sets(
@@ -377,6 +377,17 @@ def test_spin_projections_reenabled_through_problem_sets():
     assert initial_state_projections == {Fraction(-1), Fraction(+1)}
 
 
+def test_generate_qn_transitions_raises_no_solutions_error():
+    with pytest.raises(NoSolutionsError) as exc_info:
+        generate_qn_transitions(
+            initial_state="J/psi(1S)",
+            final_state=["pi+", "pi-"],
+            allowed_interaction_types="strong",
+        )
+    violated_rules = exc_info.value.execution_info.violated_node_rules[0]
+    assert "g_parity_conservation" in violated_rules
+
+
 def test_generate_qn_transitions():
     particle_db = load_pdg()
     reaction = generate_qn_transitions(
@@ -481,6 +492,19 @@ def test_generate_qn_transitions_without_ls_couplings():
                     assert not interactions
     assert signatures_by_mode[False] == signatures_by_mode[True]
     assert n_transitions_by_mode[False] < n_transitions_by_mode[True]
+
+
+def test_reaction_info_group_by_channel():
+    reaction = qrules.generate_transitions(
+        initial_state=["gamma", "p"],
+        final_state=["pi0", "p"],
+        allowed_intermediate_particles=["Delta(1232)"],
+        allowed_interaction_types=["strong", "em"],
+        formalism="helicity",
+    )
+    channels = reaction.group_by_channel()
+    assert sorted(channels) == ["s", "u"]
+    assert sum(map(len, channels.values())) == len(reaction.transitions)
 
 
 def test_group_by_channel_and_channel_selection():
