@@ -28,7 +28,7 @@ def describe_serialization():
             g_parity=-1,
         )
         definition = io.asdict(particle)
-        assert definition["parity"] == {"value": "?"}
+        assert "parity" not in definition  # default value is not serialized
         assert definition["c_parity"] == {"value": "?"}
         assert definition["g_parity"] == {"value": -1}
         collection_definition = {"particles": [definition]}

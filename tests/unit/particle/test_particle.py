@@ -91,6 +91,16 @@ def describe_Particle():
                 charmness=1,
             )
 
+    def it_has_unknown_parity_by_default():
+        particle = Particle(name="X", pid=1, mass=1.0, spin=0)
+        assert particle.parity == Parity.UNKNOWN
+        assert particle.c_parity is None
+        assert particle.g_parity is None
+
+    def it_requires_a_parity():
+        with pytest.raises(TypeError, match=r"Parity must be an integer"):
+            Particle(name="X", pid=1, mass=1.0, spin=0, parity=None)  # ty: ignore[invalid-argument-type]
+
     def it_eq():
         particle = Particle(
             name="MyParticle",

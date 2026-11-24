@@ -6,11 +6,6 @@ from qrules.quantum_numbers import Parity
 
 
 def describe_mark_unknown_parities():
-    def it_marks_missing_parity_as_unknown():
-        particle = Particle(name="X", pid=1, mass=1.0, spin=0)
-        assert particle.parity is None
-        assert mark_unknown_parities(particle).parity == Parity.UNKNOWN
-
     def it_keeps_known_parities():
         particle = Particle(
             name="X0", pid=1, mass=1.0, spin=0, parity=-1, c_parity=+1, g_parity=-1

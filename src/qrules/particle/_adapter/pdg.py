@@ -102,7 +102,8 @@ def _convert_particle(source: PdgParticle) -> Particle:
         baryon_number=baryon_number,
         flavor_numbers=(strangeness, charmness, bottomness, topness),
     )
-    parity = _to_parity(source.quantum_P)
+    # Every particle has a parity, so a missing one is unknown
+    parity = _to_parity(source.quantum_P) or Parity.UNKNOWN
     if source.is_lepton:
         # QRules convention: fermions and antifermions have opposite intrinsic parity.
         parity = Parity(+1 if mcid > 0 else -1)

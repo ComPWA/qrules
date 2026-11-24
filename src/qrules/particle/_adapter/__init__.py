@@ -13,21 +13,20 @@ if TYPE_CHECKING:
 
 
 def mark_unknown_parities(particle: Particle) -> Particle:
-    """Distinguish parities that are not defined from parities that are unknown.
+    """Distinguish C- and G-parities that are not defined from those that are unknown.
 
     Particle databases do not consistently distinguish a parity that does not exist for
     a particle from a parity that exists, but has not been measured. This function
     decides that based on the other quantum numbers of the particle:
 
-    - The (spatial) parity exists for all particles, so a missing parity is unknown.
     - :math:`C`-parity exists only for particles that are their own antiparticle.
     - :math:`G`-parity exists only for non-strange, flavorless mesons with isospin.
 
     Missing parities that exist are set to `.Parity.UNKNOWN`, the others stay `None`.
+    The (spatial) `~.Particle.parity` exists for all particles and is therefore already
+    `.Parity.UNKNOWN` if it is missing.
     """
     changes: dict[str, Parity] = {}
-    if particle.parity is None:
-        changes["parity"] = Parity.UNKNOWN
     if particle.c_parity is None and _has_c_parity(particle):
         changes["c_parity"] = Parity.UNKNOWN
     if particle.g_parity is None and _has_g_parity(particle):

@@ -141,6 +141,15 @@ class Particle:
     >>> phi.mass
     1.019461
 
+    Every particle has a `~Particle.parity`, so it is `.Parity.UNKNOWN` if not given.
+    The `~Particle.c_parity` and `~Particle.g_parity` are `None` if they are not defined
+    for the particle and `.Parity.UNKNOWN` if they are defined but not known.
+
+    >>> phi.parity
+    Parity.UNKNOWN
+    >>> phi.c_parity is None
+    True
+
     .. note::
 
         As opposed to classes such as `.EdgeQuantumNumbers` and `.NodeQuantumNumbers`,
@@ -166,7 +175,7 @@ class Particle:
     electron_lepton_number: int = field(default=0, validator=instance_of(int))
     muon_lepton_number: int = field(default=0, validator=instance_of(int))
     tau_lepton_number: int = field(default=0, validator=instance_of(int))
-    parity: Parity | None = field(converter=optional_converter(to_parity), default=None)
+    parity: Parity = field(converter=to_parity, default=Parity.UNKNOWN)
     c_parity: Parity | None = field(
         converter=optional_converter(to_parity), default=None
     )
@@ -473,12 +482,9 @@ def create_antiparticle(
     isospin: Spin | None = None
     if template_particle.isospin:
         isospin = -template_particle.isospin
-    parity: Parity | None = None
-    if template_particle.parity is not None:
-        if template_particle.spin.denominator == 1:
-            parity = template_particle.parity
-        else:
-            parity = -template_particle.parity
+    parity = template_particle.parity
+    if template_particle.spin.denominator != 1:
+        parity = -parity  # fermions and antifermions have opposite parity
     return Particle(
         name=new_name or "anti-" + template_particle.name,
         pid=-template_particle.pid,
