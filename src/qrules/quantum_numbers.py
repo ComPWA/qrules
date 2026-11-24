@@ -203,11 +203,13 @@ class InteractionProperties:
 
     Interaction properties are in particular important in the canonical basis of the
     helicity formalism. There, the *coupled spin* and angular momentum of each
-    interaction are used for the Clebsch-Gordan coefficients for each term in a
+    interaction are used for the Clebsch–Gordan coefficients for each term in a
     sequential amplitude.
 
-    .. note:: As opposed to `NodeQuantumNumbers`, the `InteractionProperties` class
-        serves as an interface to the user.
+    .. note::
+
+        As opposed to `NodeQuantumNumbers`, the `InteractionProperties` class serves as
+        an interface to the user.
     """
 
     l_magnitude: int | None = field(  # L cannot be half integer
