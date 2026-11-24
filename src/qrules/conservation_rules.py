@@ -400,7 +400,7 @@ def g_parity_conservation(  # ruff: ignore[complex-structure]
             single_state.isospin_magnitude,
             (couple_state[0], couple_state[1]),
         )
-        single_state_g_parity = _known_parity_value(ingoing_edge_qns[0].g_parity)
+        single_state_g_parity = _known_parity_value(single_state.g_parity)
 
         if not couple_state_g_parity or not single_state_g_parity:
             return True

@@ -97,6 +97,32 @@ def describe_g_parity_conservation():
     def it_g_parity_multiparticle_boson(rule_input, expected):
         assert g_parity_conservation(*rule_input) is expected
 
+    @pytest.mark.parametrize(
+        ("g_parity", "isospin", "l_magnitude"),
+        list(product([-1, 1], [0, 1], range(5))),
+    )
+    def it_g_parity_multiparticle_boson_fusion(
+        g_parity: int, isospin: int, l_magnitude: int
+    ):
+        # Mirror of the 1 -> 2 case: the pair is now in the initial state
+        ingoing = [
+            GParityEdgeInput(isospin_magnitude=0, spin_magnitude=0, pid=pid)
+            for pid in (+100, -100)
+        ]
+        outgoing = [
+            GParityEdgeInput(
+                isospin_magnitude=isospin,
+                spin_magnitude=0,
+                pid=123,
+                g_parity=Parity(g_parity),
+            )
+        ]
+        node = GParityNodeInput(
+            l_magnitude=Fraction(l_magnitude), s_magnitude=Fraction(0)
+        )
+        expected = (-1) ** (l_magnitude + isospin) == g_parity
+        assert g_parity_conservation(ingoing, outgoing, node) is expected
+
 
 def describe_unknown_g_parity():
     @pytest.mark.parametrize(
@@ -141,3 +167,23 @@ def describe_unknown_g_parity():
         ]
         node = GParityNodeInput(l_magnitude=Fraction(0), s_magnitude=Fraction(0))
         assert g_parity_conservation(ingoing, outgoing, node) is expected
+
+    @pytest.mark.parametrize("l_magnitude", range(4))
+    def it_passes_fusion_into_unknown_g_parity(l_magnitude: int):
+        # The pair has known G-parities, but the single final state has not, so the
+        # rule cannot be checked and must not compare against one of the pair
+        ingoing = [
+            GParityEdgeInput(
+                isospin_magnitude=1, spin_magnitude=0, pid=pid, g_parity=Parity(-1)
+            )
+            for pid in (+5, -5)
+        ]
+        outgoing = [
+            GParityEdgeInput(
+                isospin_magnitude=0, spin_magnitude=0, pid=1, g_parity=Parity.UNKNOWN
+            )
+        ]
+        node = GParityNodeInput(
+            l_magnitude=Fraction(l_magnitude), s_magnitude=Fraction(0)
+        )
+        assert g_parity_conservation(ingoing, outgoing, node) is True
