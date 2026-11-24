@@ -192,6 +192,26 @@ def describe_clebsch_gordan():
         expected: bool,
     ):
         assert clebsch_gordan_helicity_to_canonical(*rule_input) is expected
+        # production node 1 2 -> 3 mirrors the decay node 3 -> 1 2
+        ingoing_spins, outgoing_spins, interaction_qns = rule_input
+        assert (
+            clebsch_gordan_helicity_to_canonical(
+                outgoing_spins, ingoing_spins, interaction_qns
+            )
+            is expected
+        )
+
+    def it_rejects_nodes_that_are_not_two_body():
+        _, outgoing_spins, interaction_qns = create_two_body_decay_spin_data(
+            in_spin=Spin(0, 0),
+            out_spin1=Spin(0, 0),
+            out_spin2=Spin(0, 0),
+            angular_momentum=Spin(0, 0),
+            coupled_spin=Spin(0, 0),
+        )
+        assert not clebsch_gordan_helicity_to_canonical(
+            outgoing_spins, outgoing_spins, interaction_qns
+        )
 
 
 @pytest.mark.parametrize(

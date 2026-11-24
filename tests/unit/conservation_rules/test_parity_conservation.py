@@ -131,3 +131,15 @@ def describe_parity_conservation():
             parity_conservation_helicity(in_parities, out_parities, l_magnitude)
             is expected
         )
+        # production node 1 2 -> 3 mirrors the decay node 3 -> 1 2
+        assert (
+            parity_conservation_helicity(out_parities, in_parities, l_magnitude)
+            is expected
+        )
+
+    def it_ignores_nodes_that_are_not_two_body():
+        edge = HelicityParityEdgeInput(
+            parity=Parity(-1), spin_magnitude=0, spin_projection=0
+        )
+        prefactor = NodeQuantumNumbers.parity_prefactor(1)
+        assert parity_conservation_helicity([edge, edge], [edge, edge], prefactor)

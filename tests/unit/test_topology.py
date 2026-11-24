@@ -312,6 +312,11 @@ def test_create_isobar_topologies(
             assert len(topology.nodes) == n_expected_nodes
 
 
+def test_create_isobar_topologies_requires_initial_state():
+    with pytest.raises(ValueError, match="At least one initial state required"):
+        create_isobar_topologies(2, number_of_initial_states=0)
+
+
 @pytest.mark.parametrize(
     ("n_final", "n_topologies"),
     [

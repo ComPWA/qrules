@@ -4,6 +4,7 @@ from typing import Any
 
 import pytest
 
+import qrules
 from qrules.io import asdict, asdot, asmermaid
 from qrules.particle import ParticleCollection, load_pdg
 from qrules.quantum_numbers import EdgeQuantumNumbers
@@ -354,6 +355,19 @@ def test_generate_qn_transitions_two_to_n():
     assert (1, Fraction(3, 2)) in intermediate_signatures  # s-channel Delta(1232)
     assert (0, Fraction(1)) in intermediate_signatures  # t-channel vector exchange
     assert len(reaction.group_by_topology()) > 1
+
+
+def test_reaction_info_group_by_channel():
+    reaction = qrules.generate_transitions(
+        initial_state=["gamma", "p"],
+        final_state=["pi0", "p"],
+        allowed_intermediate_particles=["Delta(1232)"],
+        allowed_interaction_types=["strong", "em"],
+        formalism="helicity",
+    )
+    channels = reaction.group_by_channel()
+    assert sorted(channels) == ["s", "u"]
+    assert sum(map(len, channels.values())) == len(reaction.transitions)
 
 
 def test_group_by_channel_and_channel_selection():
