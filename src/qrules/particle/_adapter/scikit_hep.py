@@ -7,6 +7,7 @@ from fractions import Fraction
 from math import copysign
 from typing import TYPE_CHECKING
 
+from hepunits import GeV
 from particle import Particle as PdgDatabase
 
 from qrules.particle import Particle, ParticleCollection, Spin
@@ -53,7 +54,7 @@ def __convert_pdg_instance(pdg_particle: PdgDatabase) -> Particle:
     def convert_mass_width(value: float | None) -> float:
         if value is None:
             return 0.0
-        return float(value) / 1e3  # https://github.com/ComPWA/qrules/issues/14
+        return float(value) / GeV
 
     def convert_spin(value: Fraction | float | None) -> float:
         if value is None:
