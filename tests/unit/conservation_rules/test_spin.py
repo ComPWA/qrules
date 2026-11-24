@@ -5,8 +5,11 @@ from fractions import Fraction
 import pytest
 
 from qrules.conservation_rules import (
+    SpinCoupling,
     SpinMagnitudeFacts,
     SpinMagnitudeNodeFacts,
+    SpinParityCoupling,
+    SpinParityFacts,
     spin_conservation,
     spin_magnitude_conservation,
 )
@@ -136,3 +139,28 @@ def test_spin_ignore_z_component(
     rule_input: _SpinMagnitudeRuleInputType, expected: bool
 ) -> None:
     assert spin_magnitude_conservation(*rule_input) is expected
+
+
+def describe_SpinCoupling():
+    def it_checks_integer_spin_sums_for_other_nodes():
+        rule = SpinCoupling(max_angular_momentum=0)
+        boson: SpinMagnitudeFacts = {"spin_magnitude": Fraction(1)}
+        fermion: SpinMagnitudeFacts = {"spin_magnitude": Fraction(1, 2)}
+        assert rule([boson, boson], [boson, boson]) is True
+        assert rule([boson, fermion], [fermion, fermion]) is False
+
+
+def describe_SpinParityCoupling():
+    def it_ignores_other_nodes():
+        rule = SpinParityCoupling(max_angular_momentum=0)
+        state: SpinParityFacts = {"spin_magnitude": Fraction(0), "parity": -1}
+        assert rule([state, state], [state, state]) is True
+
+    def it_requires_parities():
+        rule = SpinParityCoupling(max_angular_momentum=0)
+        state: SpinParityFacts = {"spin_magnitude": Fraction(0), "parity": -1}
+        undefined: SpinParityFacts = {
+            "spin_magnitude": Fraction(0),
+            "parity": None,  # ty: ignore[invalid-argument-type]
+        }
+        assert rule([undefined], [state, state]) is False

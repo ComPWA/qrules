@@ -143,6 +143,13 @@ def describe_CParityCoupling():
         rule = CParityCoupling(max_angular_momentum)
         assert rule([single], [proton, antiproton]) is expected
 
+    def it_ignores_undetermined_nodes():
+        rule = CParityCoupling(max_angular_momentum=1)
+        rho = CParityCouplingEdgeInput(1, -1, 113, c_parity=-1)
+        k_plus = CParityCouplingEdgeInput(spin_magnitude=0, parity=-1, pid=321)
+        assert rule([pi_plus, pi_minus], [pi_plus, pi_minus]) is True  # not isobar
+        assert rule([rho], [pi_plus, k_plus]) is True  # no particle-antiparticle pair
+
     def it_multiplies_defined_c_parities():
         rule = CParityCoupling(max_angular_momentum=0)
         photon = CParityCouplingEdgeInput(1, -1, 22, c_parity=-1)
@@ -158,3 +165,19 @@ def describe_CParityCoupling():
         exotic = CParityCouplingEdgeInput(1, -1, 1, c_parity=+1)
         kaon = CParityCouplingEdgeInput(0, -1, pid=321)
         assert rule([exotic], [pi_plus, kaon]) is True
+
+
+def test_c_parity_skips_pairs_without_angular_momentum():
+    pi_plus = CParityEdgeInput(spin_magnitude=0, pid=211)
+    pi_minus = CParityEdgeInput(spin_magnitude=0, pid=-211)
+    rho = CParityEdgeInput(spin_magnitude=1, pid=113, c_parity=Parity(-1))
+    node = CParityNodeInput(l_magnitude=None, s_magnitude=None)
+    assert c_parity_conservation([rho], [pi_plus, pi_minus], node) is True
+
+
+def test_c_parity_skips_fermion_pairs_without_coupled_spin():
+    proton = CParityEdgeInput(spin_magnitude=0.5, pid=2212)
+    antiproton = CParityEdgeInput(spin_magnitude=0.5, pid=-2212)
+    eta_c = CParityEdgeInput(spin_magnitude=0, pid=441, c_parity=Parity(+1))
+    node = CParityNodeInput(l_magnitude=0, s_magnitude=None)
+    assert c_parity_conservation([eta_c], [proton, antiproton], node) is True

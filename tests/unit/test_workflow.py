@@ -557,3 +557,17 @@ def test_qn_reaction_info_requires_particle_states():
     qn_transitions = find_qn_transitions(qn_problem_sets)
     with pytest.raises(TypeError, match="is of type FrozenDict, not Particle"):
         QNReactionInfo(qn_transitions)
+
+
+def test_find_qn_transitions_in_parallel():
+    particle_db = load_pdg()
+    qn_problem_sets = create_qn_problem_sets(
+        initial_state=["J/psi(1S)"],
+        final_state=["gamma", "pi0", "pi0"],
+        particle_db=particle_db,
+        allowed_intermediate_particles=["f(0)(980)", "f(0)(1500)"],
+    )
+    serial = find_qn_transitions(qn_problem_sets, number_of_threads=1)
+    parallel = find_qn_transitions(qn_problem_sets, number_of_threads=2)
+    assert len(serial) > 0
+    assert set(parallel) == set(serial)

@@ -154,7 +154,47 @@ def describe_GParityCoupling():
         assert rule([omega], [rho, pi_plus]) is True
         assert rule([rho], [rho, pi_plus]) is False
 
+    def it_ignores_undetermined_nodes():
+        rule = GParityCoupling(max_angular_momentum=1)
+        rho = GParityCouplingEdgeInput(1, 1, -1, 113, g_parity=+1)
+        assert rule([k_plus, k_minus], [k_plus, k_minus]) is True  # not isobar
+        assert rule([rho], [k_plus, pi_minus]) is True  # no particle-antiparticle pair
+
     def it_skips_half_integer_isospin():
         rule = GParityCoupling(max_angular_momentum=0)
         single = GParityCouplingEdgeInput(0.5, 1, -1, 1, g_parity=-1)
         assert rule([single], [k_plus, k_minus]) is True
+
+
+def test_g_parity_skips_pairs_without_angular_momentum():
+    pi_plus = GParityEdgeInput(isospin_magnitude=1, spin_magnitude=0, pid=211)
+    pi_minus = GParityEdgeInput(isospin_magnitude=1, spin_magnitude=0, pid=-211)
+    rho = GParityEdgeInput(
+        isospin_magnitude=1, spin_magnitude=1, pid=113, g_parity=Parity(+1)
+    )
+    node = GParityNodeInput(l_magnitude=None, s_magnitude=None)
+    assert g_parity_conservation([rho], [pi_plus, pi_minus], node) is True
+
+
+@pytest.mark.parametrize(
+    ("g_parity", "expected"),
+    [(+1, False), (-1, True)],
+)
+def test_g_parity_of_fermion_pairs(g_parity: int, expected: bool):
+    proton = GParityEdgeInput(isospin_magnitude=0.5, spin_magnitude=0.5, pid=2212)
+    antiproton = GParityEdgeInput(isospin_magnitude=0.5, spin_magnitude=0.5, pid=-2212)
+    single = GParityEdgeInput(
+        isospin_magnitude=1, spin_magnitude=1, pid=1, g_parity=Parity(g_parity)
+    )
+    node = GParityNodeInput(l_magnitude=0, s_magnitude=0)  # G = (-1)^(L+S+I) = -1
+    assert g_parity_conservation([single], [proton, antiproton], node) is expected
+
+
+def test_g_parity_skips_fermion_pairs_without_coupled_spin():
+    proton = GParityEdgeInput(isospin_magnitude=0.5, spin_magnitude=0.5, pid=2212)
+    antiproton = GParityEdgeInput(isospin_magnitude=0.5, spin_magnitude=0.5, pid=-2212)
+    single = GParityEdgeInput(
+        isospin_magnitude=1, spin_magnitude=1, pid=1, g_parity=Parity(+1)
+    )
+    node = GParityNodeInput(l_magnitude=0, s_magnitude=None)
+    assert g_parity_conservation([single], [proton, antiproton], node) is True
