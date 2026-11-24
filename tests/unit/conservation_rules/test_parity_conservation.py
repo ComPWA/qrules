@@ -39,6 +39,30 @@ def describe_parity_conservation():
         [
             (
                 [
+                    Parity(parity_in1),
+                    Parity(1),
+                ],
+                [
+                    Parity(parity_out),
+                ],
+                NodeQuantumNumbers.l_magnitude(Fraction(l_magnitude)),
+                parity_in1 == parity_out * (-1) ** (l_magnitude),
+            )
+            for parity_in1, parity_out, l_magnitude in product(
+                [-1, 1], [-1, 1], range(5)
+            )
+        ],
+    )
+    def it_conserves_parity_in_production(
+        in_parities, out_parities, l_magnitude, expected
+    ):
+        assert parity_conservation(in_parities, out_parities, l_magnitude) is expected
+
+    @pytest.mark.parametrize(
+        ("in_parities", "out_parities", "l_magnitude", "expected"),
+        [
+            (
+                [
                     HelicityParityEdgeInput(
                         parity=Parity(in_parity),
                         spin_magnitude=in_spin_mag,
@@ -107,3 +131,15 @@ def describe_parity_conservation():
             parity_conservation_helicity(in_parities, out_parities, l_magnitude)
             is expected
         )
+        # production node 1 2 -> 3 mirrors the decay node 3 -> 1 2
+        assert (
+            parity_conservation_helicity(out_parities, in_parities, l_magnitude)
+            is expected
+        )
+
+    def it_ignores_nodes_that_are_not_two_body():
+        edge = HelicityParityEdgeInput(
+            parity=Parity(-1), spin_magnitude=0, spin_projection=0
+        )
+        prefactor = NodeQuantumNumbers.parity_prefactor(1)
+        assert parity_conservation_helicity([edge, edge], [edge, edge], prefactor)
