@@ -918,10 +918,10 @@ def find_qn_transitions(
     """Find allowed transitions purely at the quantum-number level.
 
     Solves the problem sets with the `.CSPSolver` without completing the intermediate
-    states from a particle database: the intermediate states of the returned
-    transitions carry exactly the quantum numbers that the problem sets declare as
-    domains. Combine with `strip_spin_projections` to obtain :math:`J^{P(C)}`-level
-    transitions for e.g. a Dalitz-plot decomposition.
+    states from a particle database: the intermediate states of the returned transitions
+    carry exactly the quantum numbers that the problem sets declare as domains. Combine
+    with `strip_spin_projections` to obtain :math:`J^{P(C)}`-level transitions for e.g.
+    a Dalitz-plot decomposition.
     """
     if isinstance(qn_problem_sets, QNProblemSetCollection):
         qn_problem_sets = qn_problem_sets.problem_sets
@@ -941,9 +941,9 @@ def collect_qn_transitions(
     """Summarize solver results as unique quantum-number-level transitions.
 
     The counterpart of `collect_reaction_info` for a quantum-number-only workflow: no
-    particle database is consulted and no `.State` objects are created — each
-    transition carries exactly the quantum numbers that are known from the initial
-    facts or were solved for.
+    particle database is consulted and no `.State` objects are created — each transition
+    carries exactly the quantum numbers that are known from the initial facts or were
+    solved for.
     """
     transitions: dict[QNTransition, None] = {}
     for qn_result_pairs in qn_results.values():
