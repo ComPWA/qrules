@@ -154,14 +154,14 @@ def create_interaction_settings(  # ruff: ignore[too-many-positional-arguments]
 ) -> dict[InteractionType, tuple[EdgeSettings, NodeSettings]]:
     """Create a container that holds the settings for `.InteractionType`.
 
-    With :code:`ls_couplings=False`, the settings declare no
-    `~.NodeQuantumNumbers.l_magnitude` and `~.NodeQuantumNumbers.s_magnitude`
-    domains, so the solver does not enumerate :math:`LS`-combinations. The
-    corresponding constraints are imposed by the existence rules `.SpinCoupling`,
+    With ``ls_couplings=False``, the settings declare no
+    `~.NodeQuantumNumbers.l_magnitude` and `~.NodeQuantumNumbers.s_magnitude` domains,
+    so the solver does not enumerate :math:`LS`-combinations. The corresponding
+    constraints are imposed by the existence rules `.SpinCoupling`,
     `.SpinParityCoupling`, `.CParityCoupling`, and `.GParityCoupling` instead, which
-    only check whether *some* :math:`(L, S)` combination up to
-    :code:`max_angular_momentum` exists. The allowed combinations can be reconstructed
-    from the spins and parities of the solutions afterwards.
+    only check whether *some* :math:`(L, S)` combination up to ``max_angular_momentum``
+    exists. The allowed combinations can be reconstructed from the spins and parities of
+    the solutions afterwards.
     """
     default_edge_settings = EdgeSettings(
         conservation_rules=_with_priorities(
