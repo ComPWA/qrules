@@ -229,8 +229,8 @@ def _create_exchange_same_rank_lines(topology: Topology, prefix: str = "") -> li
     """Align the two nodes of each exchange edge at the same rank.
 
     Without this constraint, Graphviz places the vertices of :math:`t`- and
-    :math:`u`-channel exchanges at subsequent ranks, which makes them look
-    time-ordered like a decay chain.
+    :math:`u`-channel exchanges at subsequent ranks, which makes them look time-ordered
+    like a decay chain.
     """
     return [
         f"{{ rank=same; {prefix}N{edge.originating_node_id}"
