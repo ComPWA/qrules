@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../src/qrules/particle-validation.json
 particles:
   - name: Sigma(1385)+
     pid: 32241385
