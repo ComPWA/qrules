@@ -8,10 +8,10 @@ def describe_reaction_generation():
     @pytest.mark.parametrize(
         ("allowed_intermediate_particles", "n_topologies", "number_of_solutions"),
         [
-            (["f(0)(1500)"], 1, 4),
-            (["f(0)(980)", "f(0)(1500)"], 1, 8),
-            (["f(2)(1270)"], 1, 12),
-            (["omega(782)"], 1, 8),
+            (["f(0)(1500)"], 1, 1),
+            (["f(0)(980)", "f(0)(1500)"], 1, 2),
+            (["f(2)(1270)"], 1, 1),
+            (["omega(782)"], 1, 1),
             (
                 [
                     "f(0)(980)",
@@ -21,7 +21,7 @@ def describe_reaction_generation():
                     "omega(782)",
                 ],
                 2,
-                40,
+                5,
             ),
         ],
     )
@@ -33,7 +33,7 @@ def describe_reaction_generation():
         number_of_solutions,
     ):
         reaction = qrules.generate_transitions(
-            initial_state=("J/psi(1S)", [-1, +1]),
+            initial_state="J/psi(1S)",
             final_state=["gamma", "pi0", "pi0"],
             particle_db=particle_database,
             allowed_interaction_types=["strong", "EM"],
@@ -49,7 +49,7 @@ def describe_reaction_generation():
 
     def it_id_to_particle_mappings(particle_database):
         reaction = qrules.generate_transitions(
-            initial_state=("J/psi(1S)", [-1, +1]),
+            initial_state="J/psi(1S)",
             final_state=["gamma", "pi0", "pi0"],
             particle_db=particle_database,
             allowed_interaction_types="strong",
@@ -57,12 +57,10 @@ def describe_reaction_generation():
             formalism="helicity",
         )
         assert len(reaction.group_by_topology()) == 1
-        assert len(reaction.transitions) == 4
+        assert len(reaction.transitions) == 1
         iter_transitions = iter(reaction.transitions)
         first_transition = next(iter_transitions)
-        graph = first_transition.convert(
-            lambda s: (s.particle, s.spin_projection)
-        ).unfreeze()
+        graph = first_transition.unfreeze()
         ref_mapping_fs = _create_edge_id_particle_mapping(
             graph, graph.topology.outgoing_edge_ids
         )
@@ -70,9 +68,7 @@ def describe_reaction_generation():
             graph, graph.topology.incoming_edge_ids
         )
         for transition in iter_transitions:
-            graph = transition.convert(
-                lambda s: (s.particle, s.spin_projection)
-            ).unfreeze()
+            graph = transition.unfreeze()
             assert ref_mapping_fs == _create_edge_id_particle_mapping(
                 graph, graph.topology.outgoing_edge_ids
             )
