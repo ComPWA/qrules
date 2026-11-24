@@ -13,7 +13,9 @@ use-case is covered by two functions:
 The remaining functions implement the individual stages of the pipeline, so that each
 intermediate result can be worked with directly.
 
-.. seealso:: :doc:`/usage/reaction`
+.. seealso::
+
+    :doc:`/usage/reaction`
 """
 
 from __future__ import annotations
@@ -78,6 +80,7 @@ from qrules.topology import (
 )
 from qrules.transition import (
     ExecutionInfo,
+    NoSolutionsError,
     ProblemSet,
     ReactionInfo,
     SolutionContainer,
@@ -246,7 +249,9 @@ class InteractionConfig:
     )
     """Checks that are executed over selected conservation rules.
 
-    .. seealso:: {ref}`usage/reaction:Select interaction types`
+    .. seealso::
+
+        {ref}`usage/reaction:Select interaction types`
     """
 
     @overload
@@ -397,8 +402,8 @@ def _restrict_domains_to_rules(graph_settings: GraphSettings) -> None:
     The `.CSPSolver` creates a variable for every quantum number domain declared in a
     `.QNProblemSet`, so a domain that no conservation rule of the surrounding graph
     elements can consume would only inflate the solution space. An edge domain is kept
-    if an edge rule of that edge or a node rule of an adjacent node requires the
-    quantum number; a node domain is kept if a rule of that node requires it.
+    if an edge rule of that edge or a node rule of an adjacent node requires the quantum
+    number; a node domain is kept if a rule of that node requires it.
     """
     topology = graph_settings.topology
     node_edge_requirements: dict[int, set[type[EdgeQuantumNumber]]] = {}
@@ -443,9 +448,9 @@ def create_problem_sets(  # ruff: ignore[too-many-positional-arguments]
 ) -> dict[float, list[ProblemSet]]:
     """Create a `.ProblemSet` collection over all topologies, grouped by strength.
 
-    With :code:`allowed_channels`, only the kinematic permutations whose
-    `.determine_reaction_channel` label is in the given selection (e.g.
-    :code:`["s"]` or :code:`["t", "u"]`) are turned into problem sets.
+    With ``allowed_channels``, only the kinematic permutations whose
+    `.determine_reaction_channel` label is in the given selection (e.g. ``["s"]`` or
+    ``["t", "u"]``) are turned into problem sets.
     """
     allowed_channels = _validate_channels(allowed_channels)
     initial_state = list(map(as_state_definition, initial_state))
@@ -556,7 +561,7 @@ def solve(
     progress_bar = tqdm(
         total=total,
         desc="Propagating quantum numbers",
-        disable=_LOGGER.level > logging.WARNING,
+        disable=_LOGGER.getEffectiveLevel() > logging.WARNING,
     )
     solve_single = partial(
         _solve_single_problem,
@@ -645,7 +650,7 @@ def _convert_to_particle_definitions(
     )
 
 
-def collect_reaction_info(  # ruff: ignore[complex-structure, too-many-branches]
+def collect_reaction_info(
     results: dict[float, SolutionContainer],
     final_state: Sequence[StateDefinitionInput] | None = None,
     formalism: SpinFormalism = "helicity",
@@ -655,9 +660,14 @@ def collect_reaction_info(  # ruff: ignore[complex-structure, too-many-branches]
     """Summarize particle-level solutions as a `.ReactionInfo` object.
 
     Removes duplicate solutions, warns about violated and non-executed conservation
-    rules, and matches the external edge IDs over all solutions. If a
-    :code:`final_state` is given, the final state edge IDs are reordered to match it.
-    The quantum number filters default to those for the given :code:`formalism`.
+    rules, and matches the external edge IDs over all solutions. If a ``final_state`` is
+    given, the final state edge IDs are reordered to match it. The quantum number
+    filters default to those for the given ``formalism``.
+
+    Raises:
+        NoSolutionsError: If no transitions are found. See
+            :doc:`/usage/troubleshooting` for how to interpret its
+            `~.NoSolutionsError.execution_info`.
     """
     for strength, result in results.items():
         _LOGGER.info(
@@ -684,37 +694,28 @@ def collect_reaction_info(  # ruff: ignore[complex-structure, too-many-branches]
     )
 
     execution_info = final_result.execution_info
-    if (
-        final_result.execution_info.violated_edge_rules
-        or final_result.execution_info.violated_node_rules
-    ):
-        violated_rules: set[str] = set()
-        for rules in execution_info.violated_edge_rules.values():
-            violated_rules |= rules
-        for rules in execution_info.violated_node_rules.values():
-            violated_rules |= rules
-        if violated_rules:
-            msg = (
-                f"There were violated conservation rules:  {', '.join(violated_rules)}"
-            )
-            warnings.warn(msg, category=RuntimeWarning, stacklevel=1)
-    if (
-        final_result.execution_info.not_executed_edge_rules
-        or final_result.execution_info.not_executed_node_rules
-    ):
-        not_executed_rules: set[str] = set()
-        for rules in execution_info.not_executed_edge_rules.values():
-            not_executed_rules |= rules
-        for rules in execution_info.not_executed_node_rules.values():
-            not_executed_rules |= rules
+    violated_rules = _merge_rule_names(
+        execution_info.violated_node_rules,
+        execution_info.violated_edge_rules,
+    )
+    if violated_rules:
+        msg = f"There were violated conservation rules: {', '.join(sorted(violated_rules))}"
+        warnings.warn(msg, category=RuntimeWarning, stacklevel=1)
+    not_executed_rules = _merge_rule_names(
+        execution_info.not_executed_node_rules,
+        execution_info.not_executed_edge_rules,
+    )
+    if not_executed_rules:
         msg = (
             "There are conservation rules that were not executed:"
-            f" {', '.join(not_executed_rules)}"
+            f" {', '.join(sorted(not_executed_rules))}. This does not mean that these"
+            " rules are violated: the solver stops checking rules once a combination"
+            " of quantum numbers is excluded. See ExecutionInfo for more information."
         )
         warnings.warn(msg, category=RuntimeWarning, stacklevel=1)
     if not final_solutions:
         msg = "No solutions were found"
-        raise RuntimeError(msg, execution_info)
+        raise NoSolutionsError(msg, execution_info)
 
     match_external_edges(final_solutions)
     if final_state is not None:
@@ -727,6 +728,12 @@ def collect_reaction_info(  # ruff: ignore[complex-structure, too-many-branches]
         graph.freeze().convert(lambda s: State(*s)) for graph in final_solutions
     ]
     return ReactionInfo(transitions, formalism)
+
+
+def _merge_rule_names(*rules_per_id: dict[int, set[str]]) -> set[str]:
+    return {
+        rule for rules in rules_per_id for names in rules.values() for rule in names
+    }
 
 
 @implement_pretty_repr
@@ -778,22 +785,21 @@ def create_qn_problem_sets(  # ruff: ignore[too-many-positional-arguments]
     with `find_solutions`, optionally after inspecting or modifying its problem sets
     (see e.g. `.filter_quantum_number_problem_set`).
 
-    With :code:`merge_spin_projections`, the spin-projection combinations of the
-    initial and final state are merged into value ranges on a single `.QNProblemSet`
-    (see `.merge_qn_problem_sets`), which reduces the number of problem sets and speeds
-    up solving.
+    With ``merge_spin_projections``, the spin-projection combinations of the initial and
+    final state are merged into value ranges on a single `.QNProblemSet` (see
+    `.merge_qn_problem_sets`), which reduces the number of problem sets and speeds up
+    solving.
 
-    With :code:`spin_projections=False`, the problem sets contain no spin projections
-    at all: the Cartesian expansion over spin-projection combinations is skipped
-    entirely, so the problem sets can only be solved at the :math:`J^{P(C)}` level
-    with `find_qn_transitions`. This is equivalent to passing the collection through
+    With ``spin_projections=False``, the problem sets contain no spin projections at
+    all: the Cartesian expansion over spin-projection combinations is skipped entirely,
+    so the problem sets can only be solved at the :math:`J^{P(C)}` level with
+    `find_qn_transitions`. This is equivalent to passing the collection through
     `strip_spin_projections` afterwards, but much cheaper.
 
-    The :code:`allowed_interaction_types` (e.g. :code:`"strong"` or
-    :code:`["em", "weak"]`) restrict the interaction types of the default or given
-    :code:`interaction_config`. For reactions with more than one initial state,
-    :code:`allowed_channels` (e.g. :code:`["s"]` or :code:`["t", "u"]`) restricts the
-    problem sets to specific Mandelstam channels (see
+    The ``allowed_interaction_types`` (e.g. ``"strong"`` or ``["em", "weak"]``) restrict
+    the interaction types of the default or given ``interaction_config``. For reactions
+    with more than one initial state, ``allowed_channels`` (e.g. ``["s"]`` or ``["t",
+    "u"]``) restricts the problem sets to specific Mandelstam channels (see
     `.determine_reaction_channel`).
     """
     if not spin_projections and merge_spin_projections:
@@ -884,15 +890,15 @@ def find_solutions(  # ruff: ignore[too-many-positional-arguments]
     `QNProblemSetCollection`, the final state, formalism, and intermediate-particle
     selection default to the values with which the problem sets were created; explicit
     arguments override them. Given a plain `dict` of `.QNProblemSet` objects, the
-    :code:`formalism` and :code:`allowed_intermediate_particles` have to be specified:
-    the formalism determines which quantum numbers are filtered out of the solutions and
-    the particle selection determines which particles the intermediate states are
-    matched against. The :code:`particle_db` is required, because a `.QNProblemSet`
-    contains quantum numbers only: particles are re-matched by PID via `.find_particle`.
+    ``formalism`` and ``allowed_intermediate_particles`` have to be specified: the
+    formalism determines which quantum numbers are filtered out of the solutions and the
+    particle selection determines which particles the intermediate states are matched
+    against. The ``particle_db`` is required, because a `.QNProblemSet` contains quantum
+    numbers only: particles are re-matched by PID via `.find_particle`.
 
     Raises:
-        ValueError: If :code:`formalism` or :code:`allowed_intermediate_particles` is
-            not given and cannot be inferred from :code:`qn_problem_sets`.
+        ValueError: If ``formalism`` or ``allowed_intermediate_particles`` is
+            not given and cannot be inferred from ``qn_problem_sets``.
     """
     if isinstance(qn_problem_sets, QNProblemSetCollection):
         if final_state is None:
@@ -948,9 +954,9 @@ class QNReactionInfo:
     """Ordered collection of `QNTransition` instances.
 
     The quantum-number-level counterpart of `.ReactionInfo`: the initial and final
-    states are `.Particle` instances, while each intermediate state is a property map
-    of the quantum numbers that any particle appearing there must carry. Create an
-    instance with `generate_qn_transitions`.
+    states are `.Particle` instances, while each intermediate state is a property map of
+    the quantum numbers that any particle appearing there must carry. Create an instance
+    with `generate_qn_transitions`.
     """
 
     transitions: tuple[QNTransition, ...] = field(converter=_to_qn_transition_tuple)
@@ -1020,12 +1026,17 @@ def generate_qn_transitions(  # ruff: ignore[too-many-positional-arguments]
     """Generate allowed transitions without spin projections.
 
     The quantum-number-level counterpart of `.generate_transitions`: chains
-    `create_qn_problem_sets` with :code:`spin_projections=False` and
-    `find_qn_transitions`, so that the reaction is solved at the :math:`J^{P(C)}`
-    level. Since the spin-projection combinatorics is avoided both in the problem sets
-    and in the constraint problem, this is feasible for reactions with many-body final
-    states, for which `.generate_transitions` would take impractically long. The
-    arguments mirror those of `.generate_transitions`.
+    `create_qn_problem_sets` with ``spin_projections=False`` and `find_qn_transitions`,
+    so that the reaction is solved at the :math:`J^{P(C)}` level. Since the
+    spin-projection combinatorics is avoided both in the problem sets and in the
+    constraint problem, this is feasible for reactions with many-body final states, for
+    which `.generate_transitions` would take impractically long. The arguments mirror
+    those of `.generate_transitions`.
+
+    Raises:
+        NoSolutionsError: If no transitions are found. See
+            :doc:`/usage/troubleshooting` for how to interpret its
+            `~.NoSolutionsError.execution_info`.
     """
     if particle_db is None:
         particle_db = load_pdg()
@@ -1044,10 +1055,22 @@ def generate_qn_transitions(  # ruff: ignore[too-many-positional-arguments]
         allowed_channels=allowed_channels,
         spin_projections=False,
     )
-    transitions = find_qn_transitions(qn_problem_sets, particle_db)
+    qn_results = _solve_qn_problem_sets(qn_problem_sets)
+    transitions = collect_qn_transitions(qn_results, particle_db)
     if not transitions:
+        execution_info = ExecutionInfo()
+        for qn_result_pairs in qn_results.values():
+            for _, qn_result in qn_result_pairs:
+                execution_info.extend(
+                    ExecutionInfo(
+                        violated_edge_rules=qn_result.violated_edge_rules,
+                        violated_node_rules=qn_result.violated_node_rules,
+                        not_executed_node_rules=qn_result.not_executed_node_rules,
+                        not_executed_edge_rules=qn_result.not_executed_edge_rules,
+                    )
+                )
         msg = "No solutions were found"
-        raise RuntimeError(msg)
+        raise NoSolutionsError(msg, execution_info)
     return QNReactionInfo(transitions)
 
 
@@ -1071,9 +1094,11 @@ def strip_spin_projections(
     deduplicated. Rules that require spin projections are skipped and reported by the
     solver through the not-executed-rules mechanism.
 
-    .. tip:: `create_qn_problem_sets` with :code:`spin_projections=False` produces the
-        same problem sets without generating the spin-projection expansion in the
-        first place, which is considerably faster for reactions with many spin-carrying
+    .. tip::
+
+        `create_qn_problem_sets` with ``spin_projections=False`` produces the same
+        problem sets without generating the spin-projection expansion in the first
+        place, which is considerably faster for reactions with many spin-carrying
         states.
     """
     if isinstance(qn_problem_sets, QNProblemSetCollection):
@@ -1112,13 +1137,19 @@ def find_qn_transitions(
     """Find allowed transitions purely at the quantum-number level.
 
     Solves the problem sets with the `.CSPSolver` without completing the intermediate
-    states from a particle database: the intermediate states of the returned
-    transitions carry exactly the quantum numbers that the problem sets declare as
-    domains. Combine with `strip_spin_projections` to obtain :math:`J^{P(C)}`-level
-    transitions for e.g. a Dalitz-plot decomposition. A :code:`particle_db` is only
-    used to resolve the initial and final states to `.Particle` instances (see
-    `collect_qn_transitions`).
+    states from a particle database: the intermediate states of the returned transitions
+    carry exactly the quantum numbers that the problem sets declare as domains. Combine
+    with `strip_spin_projections` to obtain :math:`J^{P(C)}`-level transitions for e.g.
+    a Dalitz-plot decomposition. A ``particle_db`` is only used to resolve the initial
+    and final states to `.Particle` instances (see `collect_qn_transitions`).
     """
+    qn_results = _solve_qn_problem_sets(qn_problem_sets)
+    return collect_qn_transitions(qn_results, particle_db)
+
+
+def _solve_qn_problem_sets(
+    qn_problem_sets: QNProblemSetCollection | dict[float, list[QNProblemSet]],
+) -> dict[float, list[tuple[QNProblemSet, QNResult]]]:
     if isinstance(qn_problem_sets, QNProblemSetCollection):
         qn_problem_sets = qn_problem_sets.problem_sets
     solver = CSPSolver()
@@ -1128,7 +1159,7 @@ def find_qn_transitions(
             (qn_problem_set, solver.find_solutions(qn_problem_set))
             for qn_problem_set in qn_problems
         )
-    return collect_qn_transitions(qn_results, particle_db)
+    return qn_results
 
 
 def collect_qn_transitions(
@@ -1139,10 +1170,10 @@ def collect_qn_transitions(
 
     The counterpart of `collect_reaction_info` for a quantum-number-only workflow: no
     `.State` objects are created — each transition carries exactly the quantum numbers
-    that are known from the initial facts or were solved for. If a :code:`particle_db`
-    is given, the initial and final states — which are fully determined by their
-    `~.EdgeQuantumNumbers.pid` — are resolved to `.Particle` instances;
-    intermediate states always remain quantum-number property maps.
+    that are known from the initial facts or were solved for. If a ``particle_db`` is
+    given, the initial and final states — which are fully determined by their
+    `~.EdgeQuantumNumbers.pid` — are resolved to `.Particle` instances; intermediate
+    states always remain quantum-number property maps.
     """
     transitions: dict[QNTransition, None] = {}
     for qn_result_pairs in qn_results.values():

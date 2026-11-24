@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import attrs
 import pytest
 
 import qrules.particle
@@ -37,11 +38,16 @@ def describe_CSPSolver():
         )
         assert len(result.solutions) == 19
 
-    @pytest.mark.parametrize("with_spin_projection", [True, False])
+    @pytest.mark.parametrize(
+        ("with_spin_projection", "expected_solutions"),
+        [(True, 321), (False, 129)],
+        ids=["with-spin-projection", "without-spin-projection"],
+    )
     def it_with_filtered_quantum_number_problem_set(
         all_particles: list[GraphEdgePropertyMap],
         quantum_number_problem_set: QNProblemSet,
         with_spin_projection: bool,
+        expected_solutions: int,
     ) -> None:
         solver = CSPSolver()
         parametrized_edge_properties_and_domains = {
@@ -74,10 +80,7 @@ def describe_CSPSolver():
             qn_result, new_quantum_number_problem_set, all_particles
         )
 
-        if with_spin_projection:
-            assert len(result.solutions) == 319
-        else:
-            assert len(result.solutions) == 127
+        assert len(result.solutions) == expected_solutions
 
 
 def test_merge_qn_problem_sets() -> None:
@@ -100,6 +103,90 @@ def test_merge_qn_problem_sets() -> None:
         return sum(len(solver.find_solutions(p).solutions) for p in problem_sets)
 
     assert n_total_solutions(merged_problem_sets) == n_total_solutions(qn_problem_sets)
+
+
+def _with_spin_projections(
+    problem_set: QNProblemSet, projections: dict[int, float]
+) -> QNProblemSet:
+    states = {
+        edge_id: dict(prop_map)
+        for edge_id, prop_map in problem_set.initial_facts.states.items()
+    }
+    for edge_id, projection in projections.items():
+        states[edge_id][EdgeQuantumNumbers.spin_projection] = projection
+    initial_facts = attrs.evolve(problem_set.initial_facts, states=states)
+    return attrs.evolve(problem_set, initial_facts=initial_facts)
+
+
+def describe_merge_qn_problem_sets():
+    def it_keeps_a_single_problem_set(quantum_number_problem_set: QNProblemSet) -> None:
+        merged = merge_qn_problem_sets([quantum_number_problem_set])
+        assert merged == [quantum_number_problem_set]
+
+    def it_does_not_merge_incomplete_products(
+        quantum_number_problem_set: QNProblemSet,
+    ) -> None:
+        edge_a, edge_b, *_ = sorted(quantum_number_problem_set.initial_facts.states)
+        group = [
+            _with_spin_projections(quantum_number_problem_set, {edge_a: 0, edge_b: 0}),
+            _with_spin_projections(quantum_number_problem_set, {edge_a: 1, edge_b: 0}),
+            _with_spin_projections(quantum_number_problem_set, {edge_a: 0, edge_b: 1}),
+        ]
+        assert merge_qn_problem_sets(group) == group
+
+    def it_does_not_merge_inhomogeneous_facts(
+        quantum_number_problem_set: QNProblemSet,
+    ) -> None:
+        edge_id = min(quantum_number_problem_set.initial_facts.states)
+        with_projection = _with_spin_projections(
+            quantum_number_problem_set, {edge_id: 0}
+        )
+        states = {
+            i: dict(prop_map)
+            for i, prop_map in with_projection.initial_facts.states.items()
+        }
+        del states[edge_id][EdgeQuantumNumbers.spin_projection]
+        without_projection = attrs.evolve(
+            with_projection,
+            initial_facts=attrs.evolve(with_projection.initial_facts, states=states),
+        )
+        group = [with_projection, without_projection]
+        assert merge_qn_problem_sets(group) == group
+
+
+def describe_complete_intermediate_states():
+    def it_respects_node_facts(
+        all_particles: list[GraphEdgePropertyMap],
+        quantum_number_problem_set: QNProblemSet,
+    ) -> None:
+        solver = CSPSolver()
+        reference = complete_intermediate_states(
+            solver.find_solutions(quantum_number_problem_set),
+            quantum_number_problem_set,
+            all_particles,
+        )
+        node_id, node_props = next(iter(reference.solutions[0].interactions.items()))
+        l_magnitude = node_props[NodeQuantumNumbers.l_magnitude]
+        s_magnitude = node_props[NodeQuantumNumbers.s_magnitude]
+        node_facts = {
+            **node_props,
+            NodeQuantumNumbers.s_magnitude: [s_magnitude],  # value range
+        }
+        initial_facts = attrs.evolve(
+            quantum_number_problem_set.initial_facts,
+            interactions={node_id: node_facts},
+        )
+        problem_set = attrs.evolve(
+            quantum_number_problem_set, initial_facts=initial_facts
+        )
+        result = complete_intermediate_states(
+            solver.find_solutions(problem_set), problem_set, all_particles
+        )
+        assert 0 < len(result.solutions) <= len(reference.solutions)
+        for solution in result.solutions:
+            props = solution.interactions[node_id]
+            assert props[NodeQuantumNumbers.l_magnitude] == l_magnitude
+            assert props[NodeQuantumNumbers.s_magnitude] == s_magnitude
 
 
 @pytest.fixture(scope="session")

@@ -13,7 +13,7 @@ from qrules.settings import (
     create_interaction_settings,
 )
 from qrules.solving import _create_merge_key
-from qrules.transition import ReactionInfo, SolvingMode
+from qrules.transition import NoSolutionsError, ReactionInfo, SolvingMode
 from qrules.workflow import (
     InteractionConfig,
     QNProblemSetCollection,
@@ -274,6 +274,17 @@ def _to_merge_keys(collection: QNProblemSetCollection) -> set[tuple]:
         for strength, problem_sets in collection.problem_sets.items()
         for problem_set in problem_sets
     }
+
+
+def test_generate_qn_transitions_raises_no_solutions_error():
+    with pytest.raises(NoSolutionsError) as exc_info:
+        generate_qn_transitions(
+            initial_state="J/psi(1S)",
+            final_state=["pi+", "pi-"],
+            allowed_interaction_types="strong",
+        )
+    violated_rules = exc_info.value.execution_info.violated_node_rules[0]
+    assert "g_parity_conservation" in violated_rules
 
 
 def test_generate_qn_transitions():

@@ -34,6 +34,7 @@ from qrules._implementers import implement_pretty_repr
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Mapping, Sequence
 
+    from _typeshed import SupportsRichComparison
     from IPython.lib.pretty import RepresentationPrinter
 
 _LOGGER = logging.getLogger(__name__)
@@ -41,11 +42,12 @@ _LOGGER = logging.getLogger(__name__)
 
 KT = TypeVar("KT", bound=abc.Hashable)
 VT = TypeVar("VT")
+SortableT = TypeVar("SortableT", bound="SupportsRichComparison")
 
 
 @total_ordering
 class FrozenDict(frozendict, Generic[KT, VT]):
-    """A sortable version of :code:`frozendict`.
+    """A sortable version of ``frozendict``.
 
     Keys must be mutually orderable when comparing instances. Values associated with
     equal keys must also be mutually orderable.
@@ -79,8 +81,8 @@ class FrozenDict(frozendict, Generic[KT, VT]):
 
 
 def _convert_mapping_to_sorted_tuple(
-    mapping: Mapping[KT, VT],
-) -> tuple[tuple[KT, VT], ...]:
+    mapping: Mapping[SortableT, VT],
+) -> tuple[tuple[SortableT, VT], ...]:
     return tuple((key, mapping[key]) for key in sorted(mapping.keys()))
 
 
@@ -145,14 +147,14 @@ class Topology:
     pattern:
 
     - `incoming_edge_ids` (`~Transition.initial_states`) are always negative.
-    - `outgoing_edge_ids` (`~Transition.final_states`) lie in the range :code:`0...n-1`
-      with :code:`n` the number of final states.
-    - `intermediate_edge_ids` continue counting from :code:`n`.
+    - `outgoing_edge_ids` (`~Transition.final_states`) lie in the range ``0...n-1`` with
+      ``n`` the number of final states.
+    - `intermediate_edge_ids` continue counting from ``n``.
 
     See also :meth:`MutableTopology.organize_edge_ids`.
 
-    Example
-    -------
+    .. rubric:: Example
+
     **Isobar decay** topologies can best be created as follows:
 
     >>> topologies = create_isobar_topologies(number_of_final_states=3)
@@ -247,7 +249,9 @@ class Topology:
         Returns `True` if the two graphs have a one-to-one mapping of the node IDs and
         edge IDs.
 
-        .. warning:: Not yet implemented.
+        .. warning::
+
+            Not yet implemented.
         """
         raise NotImplementedError
 
@@ -335,9 +339,8 @@ def get_originating_node_list(
 ) -> list[int]:
     """Get list of node ids from which the supplied edges originate from.
 
-    Args:
-        topology: The `Topology` on which to perform the search.
-        edge_ids ([int]): A list of edge ids for which the origin node is searched for.
+    :param topology: The topology to search.
+    :param edge_ids: Edges whose originating nodes are returned.
     """
 
     def __get_originating_node(edge_id: int) -> int | None:
@@ -383,10 +386,10 @@ class MutableTopology:
     """See `Topology.edges`."""
 
     def add_node(self, node_id: int) -> None:
-        """Adds a node with number :code:`node_id`.
+        """Adds a node with number ``node_id``.
 
         Raises:
-            ValueError: if :code:`node_id` already exists in `nodes`.
+            ValueError: if ``node_id`` already exists in `nodes`.
         """
         if node_id in self.nodes:
             msg = f"Node nr. {node_id} already exists"
@@ -394,10 +397,10 @@ class MutableTopology:
         self.nodes.add(node_id)
 
     def add_edges(self, edge_ids: Iterable[int]) -> None:
-        """Add edges with the ids in the :code:`edge_ids` list.
+        """Add edges with the ids in the ``edge_ids`` list.
 
         Raises:
-            ValueError: if :code:`edge_ids` already exist in `edges`.
+            ValueError: if ``edge_ids`` already exist in `edges`.
         """
         for edge_id in edge_ids:
             if edge_id in self.edges:
@@ -412,13 +415,10 @@ class MutableTopology:
 
         So that the are ingoing to these nodes.
 
-        Args:
-            ingoing_edge_ids ([int]): list of edge ids, that will be attached
-            node_id (int): id of the node to which the edges will be attached
+        :param ingoing_edge_ids: Existing edges to attach.
+        :param node_id: Node that the edges enter.
 
-        Raises:
-            ValueError: if an edge not doesn't exist.
-            ValueError: if an edge ID is already an ingoing node.
+        :raises ValueError: An edge is missing or already enters a node.
         """
         # first check if the ingoing edges are all available
         for edge_id in ingoing_edge_ids:
@@ -464,17 +464,16 @@ class MutableTopology:
             )
 
     def organize_edge_ids(self) -> MutableTopology:
-        """Organize edge IDS so that they lie in range :code:`[-m, n+i]`.
+        """Organize edge IDS so that they lie in range ``[-m, n+i]``.
 
-        Here, :code:`m` is the number of `.incoming_edge_ids`, :code:`n` is the number
-        of `.outgoing_edge_ids`, and :code:`i` is the number of
-        `.intermediate_edge_ids`.
+        Here, ``m`` is the number of `.incoming_edge_ids`, ``n`` is the number of
+        `.outgoing_edge_ids`, and ``i`` is the number of `.intermediate_edge_ids`.
 
         In other words, relabel the edges so that:
 
-        - incoming edge IDs lie in the range :code:`[-1, -2, ...]`,
-        - outgoing edge IDs lie in the range :code:`[0, 1, ..., n]`,
-        - intermediate edge IDs lie in the range :code:`[n+1, n+2, ...]`.
+        - incoming edge IDs lie in the range ``[-1, -2, ...]``,
+        - outgoing edge IDs lie in the range ``[0, 1, ..., n]``,
+        - intermediate edge IDs lie in the range ``[n+1, n+2, ...]``.
         """
         incoming = {
             i for i, edge in self.edges.items() if edge.originating_node_id is None
@@ -588,13 +587,13 @@ class SimpleStateTransitionTopologyBuilder:
     ) -> bool:
         r"""Check whether extending a graph can still lead to a valid final state.
 
-        Only interaction nodes with more than one ingoing edge can reduce the number
-        of open edges, and — since attaching such a node to already-connected edges is
-        forbidden (see `._extend_graph`) — each one merges at least two of the
-        graph's connected groups. Graphs whose open edges exceed the number of final
-        edges by more than these merges can compensate are dead ends. Pruning them
-        keeps the recursive search finite when the interaction node set contains
-        :math:`2 \to 1` building blocks.
+        Only interaction nodes with more than one ingoing edge can reduce the number of
+        open edges, and — since attaching such a node to already-connected edges is
+        forbidden (see `._extend_graph`) — each one merges at least two of the graph's
+        connected groups. Graphs whose open edges exceed the number of final edges by
+        more than these merges can compensate are dead ends. Pruning them keeps the
+        recursive search finite when the interaction node set contains :math:`2 \to 1`
+        building blocks.
         """
         merging_nodes = [
             node
@@ -660,8 +659,8 @@ class SimpleStateTransitionTopologyBuilder:
 def _group_connected_edge_ids(topology: MutableTopology) -> list[set[int]]:
     """Group the edge IDs of a topology into connected components.
 
-    Two edges are connected when they are attached to a common node. Edges that are
-    not attached to any node form a component of their own.
+    Two edges are connected when they are attached to a common node. Edges that are not
+    attached to any node form a component of their own.
 
     >>> topology = MutableTopology()
     >>> topology.add_edges([0, 1, 2])
@@ -698,9 +697,8 @@ def _create_isomorphism_invariant(topology: Topology) -> tuple[tuple[int, int], 
 
     Two topologies have the same invariant if and only if they are isomorphic as
     directed graphs, i.e. equal up to a relabeling of their nodes and edges. The
-    invariant is the lexicographically smallest sorted tuple of
-    ``(originating_node_id, ending_node_id)`` pairs over all node relabelings, with
-    ``-1`` for open edge ends.
+    invariant is the lexicographically smallest sorted tuple of ``(originating_node_id,
+    ending_node_id)`` pairs over all node relabelings, with ``-1`` for open edge ends.
     """
     nodes = sorted(topology.nodes)
     return min(
@@ -735,16 +733,18 @@ def create_isobar_topologies(
 ) -> tuple[Topology, ...]:
     r"""Builder function to create a set of unique isobar decay topologies.
 
-    All topologies are built from two-body interaction nodes only: :math:`1 \to 2`
-    decay nodes and — when there is more than one initial state — :math:`2 \to 1`
-    production nodes. For two initial states, this covers both :math:`s`-channel
-    topologies (the initial states annihilate into a single intermediate edge) and
+    All topologies are built from two-body interaction nodes only: :math:`1 \to 2` decay
+    nodes and — when there is more than one initial state — :math:`2 \to 1` production
+    nodes. For two initial states, this covers both :math:`s`-channel topologies (the
+    initial states annihilate into a single intermediate edge) and
     :math:`t`-channel-like topologies (the initial states are connected through an
-    exchange edge). See `ComPWA/qrules#29 <https://github.com/ComPWA/qrules/issues/29>`_.
+    exchange edge). See `ComPWA/qrules#29
+    <https://github.com/ComPWA/qrules/issues/29>`_.
 
     Args:
         number_of_final_states: The number of `~Topology.outgoing_edge_ids`
             (`~.Transition.final_states`).
+
         number_of_initial_states: The number of `~Topology.incoming_edge_ids`
             (`~.Transition.initial_states`).
 
@@ -794,13 +794,13 @@ def determine_mandelstam_channel(
     r"""Determine which Mandelstam channel an intermediate edge represents.
 
     Cutting the intermediate edge splits a tree topology into two sides. If one side
-    contains all initial states, the edge carries the invariant mass of the final
-    states on the other side, that is, an :math:`s`-type channel. Otherwise, the edge
-    is an exchange between the initial states. Following the Mandelstam convention
-    :math:`t = (p_1 - p_3)^2` and :math:`u = (p_1 - p_4)^2` for :math:`1\,2 \to 3\,4`,
-    the exchange is labeled :math:`t` if the first initial state and the first final
-    state lie on the same side of the cut and :math:`u` otherwise. Reorder the final
-    states to switch between the two.
+    contains all initial states, the edge carries the invariant mass of the final states
+    on the other side, that is, an :math:`s`-type channel. Otherwise, the edge is an
+    exchange between the initial states. Following the Mandelstam convention :math:`t =
+    (p_1 - p_3)^2` and :math:`u = (p_1 - p_4)^2` for :math:`1\,2 \to 3\,4`, the exchange
+    is labeled :math:`t` if the first initial state and the first final state lie on the
+    same side of the cut and :math:`u` otherwise. Reorder the final states to switch
+    between the two.
 
     >>> topologies = create_isobar_topologies(
     ...     number_of_final_states=2,
@@ -861,10 +861,10 @@ def __collect_node_ids_on_side(
 def determine_reaction_channel(topology: Topology) -> str:
     """Summarize the Mandelstam channels of a topology as a single label.
 
-    The label is :code:`"s"` if none of the intermediate edges is an exchange between
-    the initial states, and otherwise the alphabetically sorted concatenation of the
-    `.determine_mandelstam_channel` letters of the exchange edges — :code:`"t"` or
-    :code:`"u"` for a single exchange, :code:`"tt"` etc. for double exchange.
+    The label is ``"s"`` if none of the intermediate edges is an exchange between the
+    initial states, and otherwise the alphabetically sorted concatenation of the
+    `.determine_mandelstam_channel` letters of the exchange edges — ``"t"`` or ``"u"``
+    for a single exchange, ``"tt"`` etc. for double exchange.
 
     >>> topologies = create_isobar_topologies(
     ...     number_of_final_states=2,
@@ -894,6 +894,7 @@ def create_n_body_topology(
     Args:
         number_of_initial_states: The number of `~Topology.incoming_edge_ids`
             (`~.Transition.initial_states`).
+
         number_of_final_states: The number of `~Topology.outgoing_edge_ids`
             (`~.Transition.final_states`).
 
@@ -1023,7 +1024,7 @@ class Transition(ABC, Generic[EdgeType, NodeType]):
         return self.filter_states(self.topology.intermediate_edge_ids)
 
     def filter_states(self, edge_ids: Iterable[int]) -> dict[int, EdgeType]:
-        """Filter `states` by a selection of :code:`edge_ids`."""
+        """Filter `states` by a selection of ``edge_ids``."""
         return {i: self.states[i] for i in edge_ids if i in self.states}
 
 

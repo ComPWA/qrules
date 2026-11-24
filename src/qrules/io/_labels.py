@@ -99,8 +99,8 @@ def select_transitions(
 ) -> list[Any]:
     """Reduce a collection of transitions to the graphs that are worth rendering.
 
-    The ``collapse`` mode is the printer attribute :code:`collapse`. Spin projections
-    are only stripped from the interaction nodes if those nodes are not rendered, and
+    The ``collapse`` mode is the printer attribute ``collapse``. Spin projections are
+    only stripped from the interaction nodes if those nodes are not rendered, and
     topologies cannot be collapsed at all while node properties are rendered.
     """
     if collapse is None:
@@ -722,7 +722,9 @@ def get_particle_graphs(
     Extract a `list` of `.Transition` instances with only `.Particle` instances on the
     edges.
 
-    .. seealso:: :doc:`/usage/visualize`
+    .. seealso::
+
+        :doc:`/usage/visualize`
     """
     inventory = set()
     for transition in graphs:
@@ -806,8 +808,8 @@ def _summarize_property_maps(states: Iterable[Any]) -> set[Any]:
     """Replace collapsed quantum-number property maps by unique signatures.
 
     Property maps in which some quantum numbers are merely unassigned (`None`) are
-    dropped when a more determined map with the same assigned values is present, so
-    that the collapsed edge label stays minimal.
+    dropped when a more determined map with the same assigned values is present, so that
+    the collapsed edge label stays minimal.
     """
     property_maps = [state for state in states if isinstance(state, abc.Mapping)]
     summarized: set[Any] = {

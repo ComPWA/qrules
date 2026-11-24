@@ -230,10 +230,10 @@ def create_initial_facts(
     """Attach the initial and final states to the external edges of a `.Topology`.
 
     By default, one `.InitialFacts` is created for every combination of allowed spin
-    projections of the initial and final state. With
-    :code:`expand_spin_projections=False`, this Cartesian expansion is skipped and a
-    single `.InitialFacts` without spin projections is returned, for solving at the
-    :math:`J^{P(C)}` level (see `.strip_spin_projections`).
+    projections of the initial and final state. With ``expand_spin_projections=False``,
+    this Cartesian expansion is skipped and a single `.InitialFacts` without spin
+    projections is returned, for solving at the :math:`J^{P(C)}` level (see
+    `.strip_spin_projections`).
     """
     states = __create_states_with_spin_projections(
         sorted(topology.incoming_edge_ids) + sorted(topology.outgoing_edge_ids),
