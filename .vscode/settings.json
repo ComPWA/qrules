@@ -7,13 +7,9 @@
     "rewrap.wrappingColumn": 72
   },
   "[json]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.wordWrap": "on"
   },
-  "[jsonc]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "[markdown]": {
+  "[json][jsonc][markdown][yaml]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[python]": {
@@ -26,12 +22,12 @@
   "[toml]": {
     "editor.defaultFormatter": "tombi-toml.tombi"
   },
-  "[yaml]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
   "cSpell.enabled": true,
   "diffEditor.experimental.showMoves": true,
   "editor.formatOnSave": true,
+  "editor.unicodeHighlight.allowedCharacters": {
+    "–": true
+  },
   "git.rebaseWhenSync": true,
   "github-actions.workflows.pinned.workflows": [".github/workflows/ci.yml"],
   "gitlens.telemetry.enabled": false,
@@ -39,14 +35,9 @@
     {
       "fileMatch": ["*particle*.json"],
       "url": "./src/qrules/particle-validation.json"
-    },
-    {
-      "fileMatch": [".zenodo.json"],
-      "url": "https://zenodo.org/schemas/deposits/records/legacyrecord.json"
     }
   ],
   "livePreview.defaultPreviewPath": "docs/_build/html",
-  "multiDiffEditor.experimental.enabled": true,
   "notebook.codeActionsOnSave": {
     "notebook.source.organizeImports": "explicit"
   },
@@ -69,8 +60,6 @@
   "ty.diagnosticMode": "workspace",
   "ty.importStrategy": "fromEnvironment",
   "yaml.schemas": {
-    "./src/qrules/particle-validation.json": ["*particle*.y*ml"],
-    "https://citation-file-format.github.io/1.2.0/schema.json": "CITATION.cff",
-    "https://json.schemastore.org/github-workflow.json": "./.github/workflows/requirements.yml"
+    "./src/qrules/particle-validation.json": ["*particle*.y*ml"]
   }
 }

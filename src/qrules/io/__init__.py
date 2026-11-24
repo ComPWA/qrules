@@ -75,39 +75,37 @@ def asdot(
     Only works for objects that can be represented as a graph, particularly a
     `.MutableTransition` or a `list` of `.MutableTransition` instances.
 
-    Args:
-        instance: the input `object` that is to be rendered as DOT (graphviz) language.
+    :param instance: the input `object` that is to be rendered as DOT (graphviz)
+        language.
+    :param collapse: Optionally combine transitions. With ``"spin"``, transitions that
+        differ only in their spin projections are combined. With ``"topology"``,
+        transitions with equivalent kinematic topologies are grouped and all allowed
+        particles on each edge are collected. Node properties cannot be rendered when
+        collapsing by topology.
+    :param render_node: Whether or not to render node ID (in the case of a `.Topology`)
+        and/or node properties (in the case of a `.MutableTransition`). Meaning of the
+        labels:
 
-        collapse: Optionally combine transitions. With ``"spin"``, transitions that
-            differ only in their spin projections are combined. With ``"topology"``,
-            transitions with equivalent kinematic topologies are grouped and all allowed
-            particles on each edge are collected. Node properties cannot be rendered
-            when collapsing by topology.
+        - :math:`P`: parity prefactor
+        - :math:`s`: tuple of **coupled spin** magnitude and its projection
+        - :math:`l`: tuple of **angular momentum** and its projection
 
-        render_node: Whether or not to render node ID (in the case of a `.Topology`)
-            and/or node properties (in the case of a `.MutableTransition`). Meaning of
-            the labels:
-
-            - :math:`P`: parity prefactor
-            - :math:`s`: tuple of **coupled spin** magnitude and its
-              projection
-            - :math:`l`: tuple of **angular momentum** and its projection
-
-            See `.InteractionProperties` for more info.
-
-        render_final_state_id: Add edge IDs for the final state edges.
-        render_resonance_id: Add edge IDs for the intermediate state edges.
-        render_initial_state_id: Add edge IDs for the initial state edges.
-        edge_style: Styling of a Graphviz edge.
-        node_style: Styling of a Graphviz node.
-        figure_style: Styling of the whole figure.
+        See `.InteractionProperties` for more info.
+    :param render_final_state_id: Add edge IDs for the final state edges.
+    :param render_resonance_id: Add edge IDs for the intermediate state edges.
+    :param render_initial_state_id: Add edge IDs for the initial state edges.
+    :param edge_style: Styling of a Graphviz edge.
+    :param node_style: Styling of a Graphviz node.
+    :param figure_style: Styling of the whole figure.
 
     .. seealso::
 
         See `Graphviz attributes <https://graphviz.org/doc/info/attrs.html>`_ for the
         available styling arguments.
 
-    .. seealso:: :doc:`/usage/visualize`
+    .. seealso::
+
+        :doc:`/usage/visualize`
     """
     print_dot = _dot.GraphvizPrinter(
         render_node=render_node,
@@ -142,37 +140,32 @@ def asmermaid(
     Only works for objects that can be represented as a graph, particularly a
     `.MutableTransition` or a `list` of `.MutableTransition` instances.
 
-    Args:
-        instance: the input `object` that is to be rendered as Mermaid flowchart
-            source.
+    :param instance: the input `object` that is to be rendered as Mermaid flowchart
+        source.
+    :param collapse: Optionally combine transitions. With ``"spin"``, transitions that
+        differ only in their spin projections are combined. With ``"topology"``,
+        transitions with equivalent kinematic topologies are grouped and all allowed
+        particles on each edge are collected. Node properties cannot be rendered when
+        collapsing by topology. With LaTeX rendering, particle lists longer than six
+        entries are arranged in columns of at most six rows.
+    :param render_node: Whether or not to render node ID (in the case of a `.Topology`)
+        and/or node properties (in the case of a `.MutableTransition`). Meaning of the
+        labels:
 
-        collapse: Optionally combine transitions. With ``"spin"``, transitions that
-            differ only in their spin projections are combined. With ``"topology"``,
-            transitions with equivalent kinematic topologies are grouped and all allowed
-            particles on each edge are collected. Node properties cannot be rendered
-            when collapsing by topology. With LaTeX rendering, particle lists longer
-            than six entries are arranged in columns of at most six rows.
+        - :math:`P`: parity prefactor
+        - :math:`S`: coupled spin magnitude and projection
+        - :math:`L`: angular momentum and projection
 
-        render_node: Whether or not to render node ID (in the case of a `.Topology`)
-            and/or node properties (in the case of a `.MutableTransition`). Meaning of
-            the labels:
-
-            - :math:`P`: parity prefactor
-            - :math:`S`: coupled spin magnitude and projection
-            - :math:`L`: angular momentum and projection
-
-            See `.InteractionProperties` for more info.
-
-        render_final_state_id: Add edge IDs for the final state edges.
-        render_resonance_id: Add edge IDs for the intermediate state edges.
-        render_initial_state_id: Add edge IDs for the initial state edges.
-        edge_style: Styling of Mermaid edges.
-        node_style: Styling of Mermaid nodes.
-        figure_style: Styling of the whole Mermaid diagram.
-
-        latex: Render edge and node labels as LaTeX math expressions. Particle labels
-            use `.Particle.latex` when available.
-        markdown: Wrap the Mermaid source in a Markdown code fence.
+        See `.InteractionProperties` for more info.
+    :param render_final_state_id: Add edge IDs for the final state edges.
+    :param render_resonance_id: Add edge IDs for the intermediate state edges.
+    :param render_initial_state_id: Add edge IDs for the initial state edges.
+    :param edge_style: Styling of Mermaid edges.
+    :param node_style: Styling of Mermaid nodes.
+    :param figure_style: Styling of the whole Mermaid diagram.
+    :param latex: Render edge and node labels as LaTeX math expressions. Particle labels
+        use `.Particle.latex` when available.
+    :param markdown: Wrap the Mermaid source in a Markdown code fence.
 
     .. seealso::
 
@@ -180,7 +173,9 @@ def asmermaid(
         <https://mermaid.ai/open-source/syntax/flowchart.html>`_ for available diagram
         constructs and style directives.
 
-    .. seealso:: :doc:`/usage/visualize`
+    .. seealso::
+
+        :doc:`/usage/visualize`
     """
     print_mermaid = _mermaid.MermaidPrinter(
         render_node=render_node,
