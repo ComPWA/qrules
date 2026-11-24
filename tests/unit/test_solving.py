@@ -36,11 +36,16 @@ def describe_CSPSolver():
         )
         assert len(result.solutions) == 19
 
-    @pytest.mark.parametrize("with_spin_projection", [True, False])
+    @pytest.mark.parametrize(
+        ("with_spin_projection", "expected_solutions"),
+        [(True, 321), (False, 129)],
+        ids=["with-spin-projection", "without-spin-projection"],
+    )
     def it_with_filtered_quantum_number_problem_set(
         all_particles: list[GraphEdgePropertyMap],
         quantum_number_problem_set: QNProblemSet,
         with_spin_projection: bool,
+        expected_solutions: int,
     ) -> None:
         solver = CSPSolver()
         parametrized_edge_properties_and_domains = {
@@ -73,10 +78,7 @@ def describe_CSPSolver():
             qn_result, new_quantum_number_problem_set, all_particles
         )
 
-        if with_spin_projection:
-            assert len(result.solutions) == 319
-        else:
-            assert len(result.solutions) == 127
+        assert len(result.solutions) == expected_solutions
 
 
 @pytest.fixture(scope="session")
