@@ -36,6 +36,7 @@ from qrules.argument_handling import (
     get_required_qns,
 )
 from qrules.quantum_numbers import (
+    _UNKNOWN,
     EdgeQuantumNumber,
     EdgeQuantumNumbers,
     EdgeQuantumNumberTypes,
@@ -337,7 +338,11 @@ def __is_sub_mapping(
             continue
         if qn_type not in reference_state:
             return False
-        if qn_value != reference_state[qn_type]:
+        reference_value = reference_state[qn_type]
+        if reference_value is _UNKNOWN and qn_value is not None:
+            # A particle with an unknown parity can have any (defined) parity value
+            continue
+        if qn_value != reference_value:
             return False
     return True
 

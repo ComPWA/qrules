@@ -1,7 +1,10 @@
 import pytest
+from jsonschema import ValidationError
 
 from qrules import io
-from qrules.particle import ParticleCollection
+from qrules.io._dict import validate_particle_collection
+from qrules.particle import Particle, ParticleCollection
+from qrules.quantum_numbers import Parity
 
 
 def describe_serialization():
@@ -13,6 +16,35 @@ def describe_serialization():
         reversed_collection = ParticleCollection()
         reversed_collection.update(reversed(list(particle_selection)))
         assert io.asdict(reversed_collection) == io.asdict(particle_selection)
+
+    def it_round_trips_unknown_parities():
+        particle = Particle(
+            name="X0",
+            pid=1,
+            mass=1.0,
+            spin=0,
+            parity=Parity.UNKNOWN,
+            c_parity=Parity.UNKNOWN,
+            g_parity=-1,
+        )
+        definition = io.asdict(particle)
+        assert "parity" not in definition  # default value is not serialized
+        assert definition["c_parity"] == {"value": "?"}
+        assert definition["g_parity"] == {"value": -1}
+        collection_definition = {"particles": [definition]}
+        validate_particle_collection(collection_definition)
+        imported = io.fromdict(collection_definition)
+        assert isinstance(imported, ParticleCollection)
+        assert imported["X0"] == particle
+
+    def it_rejects_invalid_parity_values():
+        definition = {
+            "particles": [
+                {"name": "X0", "pid": 1, "mass": 1.0, "spin": 0, "parity": {"value": 0}}
+            ]
+        }
+        with pytest.raises(ValidationError):
+            validate_particle_collection(definition)
 
     def it_not_implemented_errors(
         output_dir: str, particle_selection: ParticleCollection

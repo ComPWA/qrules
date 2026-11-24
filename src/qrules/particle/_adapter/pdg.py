@@ -12,6 +12,7 @@ from pdg.errors import PdgNoDataError
 from pdg.units import convert
 
 from qrules.particle import Particle, ParticleCollection, Spin
+from qrules.particle._adapter import mark_unknown_parities
 from qrules.quantum_numbers import Parity
 
 if TYPE_CHECKING:
@@ -101,31 +102,35 @@ def _convert_particle(source: PdgParticle) -> Particle:
         baryon_number=baryon_number,
         flavor_numbers=(strangeness, charmness, bottomness, topness),
     )
-    parity = _to_parity(source.quantum_P)
+    # Every particle has a parity, so a missing one is unknown
+    parity = _to_parity(source.quantum_P) or Parity.UNKNOWN
     if source.is_lepton:
         # QRules convention: fermions and antifermions have opposite intrinsic parity.
         parity = Parity(+1 if mcid > 0 else -1)
     c_parity = _to_parity(source.quantum_C) if source.self_conjugate else None
 
-    return Particle(
-        name=source.name,
-        pid=mcid,
-        spin=spin,
-        mass=mass,
-        width=width,
-        charge=charge,
-        isospin=isospin,
-        strangeness=strangeness,
-        charmness=charmness,
-        bottomness=bottomness,
-        topness=topness,
-        baryon_number=baryon_number,
-        electron_lepton_number=lepton_numbers[0],
-        muon_lepton_number=lepton_numbers[1],
-        tau_lepton_number=lepton_numbers[2],
-        parity=parity,
-        c_parity=c_parity,
-        g_parity=_to_parity(source.quantum_G),
+    # The PDG API leaves out parities that are undefined or not listed (like for W, Z)
+    return mark_unknown_parities(
+        Particle(
+            name=source.name,
+            pid=mcid,
+            spin=spin,
+            mass=mass,
+            width=width,
+            charge=charge,
+            isospin=isospin,
+            strangeness=strangeness,
+            charmness=charmness,
+            bottomness=bottomness,
+            topness=topness,
+            baryon_number=baryon_number,
+            electron_lepton_number=lepton_numbers[0],
+            muon_lepton_number=lepton_numbers[1],
+            tau_lepton_number=lepton_numbers[2],
+            parity=parity,
+            c_parity=c_parity,
+            g_parity=_to_parity(source.quantum_G),
+        )
     )
 
 
@@ -233,6 +238,8 @@ def _to_parity(value: str | None) -> Parity | None:
         return Parity(+1)
     if value == "-":
         return Parity(-1)
+    if value == "?":
+        return Parity.UNKNOWN
     return None
 
 

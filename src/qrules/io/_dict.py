@@ -15,6 +15,9 @@ from qrules.quantum_numbers import InteractionProperties
 from qrules.topology import Edge, FrozenTransition, Topology
 from qrules.transition import ReactionInfo, State
 
+_UNKNOWN_PARITY = "?"
+"""Serialized value of `.Parity.UNKNOWN`."""
+
 
 def from_particle_collection(particles: ParticleCollection) -> dict:
     """Serialize a `.ParticleCollection`, sorted by particle name.
@@ -49,6 +52,8 @@ def _value_serializer(inst: type, field: attrs.Attribute, value: Any) -> Any:  #
         if isinstance(value, Particle):
             return value.name
     if isinstance(value, Parity):
+        if value.is_unknown:
+            return {"value": _UNKNOWN_PARITY}
         return {"value": value.value}
     if isinstance(value, Spin):
         return {
@@ -68,6 +73,12 @@ def build_particle_collection(
     return ParticleCollection(build_particle(p) for p in definition["particles"])
 
 
+def _build_parity(definition: dict) -> Parity:
+    if definition["value"] == _UNKNOWN_PARITY:
+        return Parity.UNKNOWN
+    return Parity(**definition)
+
+
 def build_particle(definition: dict) -> Particle:
     isospin_def = definition.get("isospin")
     if isospin_def is not None:
@@ -75,7 +86,7 @@ def build_particle(definition: dict) -> Particle:
     for parity in ["parity", "c_parity", "g_parity"]:
         parity_def = definition.get(parity)
         if parity_def is not None:
-            definition[parity] = Parity(**parity_def)
+            definition[parity] = _build_parity(parity_def)
     return Particle(**definition)
 
 

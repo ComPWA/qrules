@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any, Literal, Protocol, TypeAlias
 import attrs
 
 from qrules.particle import Particle, ParticleWithSpin, Spin, _render_fraction
-from qrules.quantum_numbers import InteractionProperties
+from qrules.quantum_numbers import InteractionProperties, _Unknown
 from qrules.solving import (
     EdgeSettings,
     GraphEdgePropertyMap,
@@ -317,6 +317,13 @@ def _(value: Fraction) -> str:
 @as_latex.register(type(None))
 def _(_: None) -> str:
     return R"\mathrm{None}"
+
+
+@as_latex.register(_Unknown)
+@as_string.register(_Unknown)
+def _(_: _Unknown) -> str:
+    """Render the value of an unknown `.Parity`, for instance in edge properties."""
+    return "?"
 
 
 @as_string.register(dict)

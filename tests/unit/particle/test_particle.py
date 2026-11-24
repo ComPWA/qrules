@@ -18,9 +18,7 @@ from qrules.particle import (
     create_particle,
     load_pdg,
 )
-
-# For eval tests
-from qrules.quantum_numbers import Parity  # ruff: ignore[unused-import]
+from qrules.quantum_numbers import Parity
 
 
 def gen_namespace_with_fraction():
@@ -92,6 +90,16 @@ def describe_Particle():
                 isospin=(0, 0),
                 charmness=1,
             )
+
+    def it_has_unknown_parity_by_default():
+        particle = Particle(name="X", pid=1, mass=1.0, spin=0)
+        assert particle.parity == Parity.UNKNOWN
+        assert particle.c_parity is None
+        assert particle.g_parity is None
+
+    def it_requires_a_parity():
+        with pytest.raises(TypeError, match=r"Parity must be an integer"):
+            Particle(name="X", pid=1, mass=1.0, spin=0, parity=None)  # ty: ignore[invalid-argument-type]
 
     def it_eq():
         particle = Particle(
@@ -354,3 +362,18 @@ def describe_create_particle():
         )
         assert template_particle.isospin != new_isospin
         assert new_particle.isospin == new_isospin
+
+    def it_overwrites_parities(particle_database: ParticleCollection):
+        new_particle = create_particle(
+            particle_database["pi0"],
+            parity=Parity.UNKNOWN,
+            c_parity=-1,
+            g_parity=Parity(+1),
+        )
+        assert new_particle.parity == Parity.UNKNOWN
+        assert new_particle.c_parity == Parity(-1)
+        assert new_particle.g_parity == Parity(+1)
+
+    def it_keeps_unknown_parity_of_template(particle_database: ParticleCollection):
+        new_particle = create_particle(particle_database["Z0"], name="new Z0")
+        assert new_particle.parity == Parity.UNKNOWN

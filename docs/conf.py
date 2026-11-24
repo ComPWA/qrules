@@ -305,6 +305,7 @@ nitpick_ignore_regex = [
     (r"py:(class|obj)", r"frozendict(\.frozendict)?"),
     (r"py:(class|obj)", r"qrules\.conservation_rules\._RuleClass"),
     (r"py:(class|obj)", r"qrules\.quantum_numbers\._QuantumNumber_co"),
+    (r"py:(class|obj)", r"(qrules\.quantum_numbers\.)?_Unknown"),
     (r"py:(class|obj)", r"qrules\.topology\.EdgeType"),
     (r"py:(class|obj)", r"qrules\.topology\.NewEdgeType"),
     (r"py:(class|obj)", r"qrules\.topology\.NewNodeType"),
