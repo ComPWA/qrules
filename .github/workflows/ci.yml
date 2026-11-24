@@ -22,7 +22,7 @@ on:
 
 jobs:
   doc:
-    uses: ComPWA/actions/.github/workflows/ci-docs.yml@5c019affeb95889e1efb0297755c03df58010e56 # readthedocs-upload
+    uses: ComPWA/actions/.github/workflows/ci-docs.yml@073b457f12323b97cc0f8ef647d7409a25b61d64 # readthedocs-upload
     permissions:
       pages: write
       id-token: write
