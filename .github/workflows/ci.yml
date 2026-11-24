@@ -11,6 +11,8 @@ on:
       - main
       - epic/*
       - "[0-9]+.[0-9]+.x"
+    tags:
+      - "*"
   pull_request:
     branches:
       - main
@@ -20,12 +22,15 @@ on:
 
 jobs:
   doc:
-    uses: ComPWA/actions/.github/workflows/ci-docs.yml@eadda724984c78a55a6acb4dcdbb2167fb5eba03 # v4.2.1
+    uses: ComPWA/actions/.github/workflows/ci-docs.yml@5c019affeb95889e1efb0297755c03df58010e56 # readthedocs-upload
     permissions:
       pages: write
       id-token: write
     with:
       apt-packages: graphviz
+      readthedocs-upload: true
+    secrets:
+      readthedocs-token: ${{ secrets.READTHEDOCS_TOKEN }}
   style:
     secrets:
       token: ${{ secrets.PAT }}
