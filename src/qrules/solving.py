@@ -330,9 +330,9 @@ def complete_intermediate_states(
     A `Solver` assigns to each intermediate edge only the quantum numbers that were
     solved for. This post-processing step completes the solutions: each intermediate
     state is replaced by the full quantum number property maps of the matching entries
-    in :code:`allowed_intermediate_states` (one new solution per match, as e.g. created
-    by `.create_edge_properties` from a `.ParticleCollection`) and solutions without
-    any match are discarded. Conservation rules that the solver could not execute are
+    in ``allowed_intermediate_states`` (one new solution per match, as e.g. created by
+    `.create_edge_properties` from a `.ParticleCollection`) and solutions without any
+    match are discarded. Conservation rules that the solver could not execute are
     re-validated against the completed states, which may provide the previously missing
     quantum numbers.
     """
