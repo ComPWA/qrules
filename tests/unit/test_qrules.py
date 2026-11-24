@@ -1,6 +1,6 @@
 import pytest
 
-from qrules import generate_transitions
+from qrules import check_reaction_violations, generate_transitions
 from qrules.particle import create_particle, load_pdg
 from qrules.transition import NoSolutionsError
 
@@ -63,3 +63,10 @@ def test_ls_free_solving_conserves_pair_c_parity():
                 max_angular_momentum=1,
                 ls_couplings=ls_couplings,
             )
+
+
+def test_check_reaction_violations_with_two_initial_states():
+    initial_state = ["p", "p~"]
+    assert check_reaction_violations(initial_state, ["pi+", "pi-"]) == set()
+    violations = check_reaction_violations(initial_state, ["pi+", "pi+"])
+    assert frozenset({"ChargeConservation"}) in violations
