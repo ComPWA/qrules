@@ -436,9 +436,9 @@ def create_particle(  # ruff: ignore[too-many-positional-arguments]
     electron_lepton_number: int | None = None,
     muon_lepton_number: int | None = None,
     tau_lepton_number: int | None = None,
-    parity: int | None = None,
-    c_parity: int | None = None,
-    g_parity: int | None = None,
+    parity: int | Parity | None = None,
+    c_parity: int | Parity | None = None,
+    g_parity: int | Parity | None = None,
 ) -> Particle:
     return Particle(
         name=name or template_particle.name,

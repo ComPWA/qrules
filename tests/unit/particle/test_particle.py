@@ -18,9 +18,7 @@ from qrules.particle import (
     create_particle,
     load_pdg,
 )
-
-# For eval tests
-from qrules.quantum_numbers import Parity  # ruff: ignore[unused-import]
+from qrules.quantum_numbers import Parity
 
 
 def gen_namespace_with_fraction():
@@ -354,3 +352,18 @@ def describe_create_particle():
         )
         assert template_particle.isospin != new_isospin
         assert new_particle.isospin == new_isospin
+
+    def it_overwrites_parities(particle_database: ParticleCollection):
+        new_particle = create_particle(
+            particle_database["pi0"],
+            parity=Parity.UNKNOWN,
+            c_parity=-1,
+            g_parity=Parity(+1),
+        )
+        assert new_particle.parity == Parity.UNKNOWN
+        assert new_particle.c_parity == Parity(-1)
+        assert new_particle.g_parity == Parity(+1)
+
+    def it_keeps_unknown_parity_of_template(particle_database: ParticleCollection):
+        new_particle = create_particle(particle_database["Z0"], name="new Z0")
+        assert new_particle.parity == Parity.UNKNOWN
